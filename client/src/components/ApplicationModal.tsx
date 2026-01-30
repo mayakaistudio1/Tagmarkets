@@ -19,7 +19,8 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) 
     e.preventDefault();
     setIsSubmitting(true);
     
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     const data = {
       name: formData.get("name") as string,
       contact: formData.get("contact") as string,
@@ -39,12 +40,12 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) 
       
       setIsSubmitting(false);
       setIsSuccess(true);
+      form.reset();
       
       // Auto close after success
       setTimeout(() => {
         setIsSuccess(false);
         onClose();
-        e.currentTarget.reset();
       }, 2000);
     } catch (error) {
       console.error("Error submitting application:", error);

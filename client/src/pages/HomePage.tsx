@@ -92,7 +92,7 @@ const HomePage: React.FC = () => {
             <div className="pl-2">
               <div className="chat-bubble chat-bubble-incoming">
                 <p className="text-sm text-gray-800 leading-relaxed">
-                  Привет! Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?
+                  Привет, я Мария ассистент Александра. Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?
                 </p>
               </div>
             </div>

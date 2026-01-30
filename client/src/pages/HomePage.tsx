@@ -133,7 +133,7 @@ const HomePage: React.FC = () => {
             <button
               onClick={goToMaria}
               className="w-full py-3.5 text-base font-semibold text-white rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-              style={{ backgroundColor: '#00C853' }}
+              style={{ backgroundColor: '#12A152' }}
               data-testid="cta-ask-maria"
             >
               <MessageCircle className="w-5 h-5" />

@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Zap, User, MessageCircle, FileText, Send } from "lucide-react";
+import { Home, Zap, MessageCircle, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TabBarProps {
@@ -12,7 +12,6 @@ const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate, onOpenApplicat
   const tabs = [
     { id: "home", label: "Главная", icon: Home, path: "/" },
     { id: "xfusion", label: "XFusion", icon: Zap, path: "/xfusion" },
-    { id: "popp", label: "Александр", icon: User, path: "/popp" },
     { id: "maria", label: "Мария", icon: MessageCircle, path: "/maria" },
   ];
 

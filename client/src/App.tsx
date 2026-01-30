@@ -1,13 +1,12 @@
 import React, { useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Users, User, MessageCircle, FileText } from "lucide-react";
+import { Home, Users, MessageCircle, FileText } from "lucide-react";
 import { initTelegram } from "@/lib/telegram";
 
 // Pages
 import HomePage from "@/pages/HomePage";
 import XFusionPage from "@/pages/XFusionPage";
-import PoppPage from "@/pages/PoppPage";
 import MariaPage from "@/pages/MariaPage";
 import LinksPage from "@/pages/LinksPage";
 import ApplicationModal from "@/components/ApplicationModal";
@@ -29,7 +28,8 @@ function App() {
       case "/xfusion":
         return <XFusionPage onOpenMaria={() => setLocation("/maria")} />;
       case "/popp":
-        return <PoppPage />;
+        setLocation("/");
+        return <HomePage onOpenMaria={() => setLocation("/maria")} onOpenLinks={() => setLocation("/links")} />;
       case "/maria":
         return <MariaPage />;
       case "/links":

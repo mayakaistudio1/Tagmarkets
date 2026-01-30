@@ -73,19 +73,45 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       setStatus('connecting');
       setError(null);
 
-      const response = await fetch('/api/liveavatar/session', {
+      const tokenResponse = await fetch('/api/liveavatar/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ language: 'ru' }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create session');
+      if (!tokenResponse.ok) {
+        const errText = await tokenResponse.text();
+        throw new Error(`Failed to get token: ${errText}`);
       }
 
-      const data = await response.json();
-      setSessionId(data.sessionId);
-      setSessionToken(data.accessToken);
+      const tokenData = await tokenResponse.json();
+      const { session_id, session_token, raw } = tokenData;
+      
+      if (!session_token) {
+        throw new Error('No session token received');
+      }
+
+      setSessionId(session_id);
+      setSessionToken(session_token);
+
+      const startResponse = await fetch('/api/liveavatar/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_token }),
+      });
+
+      if (!startResponse.ok) {
+        const errText = await startResponse.text();
+        throw new Error(`Failed to start session: ${errText}`);
+      }
+
+      const startData = await startResponse.json();
+      const url = startData?.data?.url;
+      const accessToken = startData?.data?.access_token;
+
+      if (!url || !accessToken) {
+        throw new Error('Missing LiveKit connection data');
+      }
 
       const room = new Room({
         adaptiveStream: true,
@@ -104,7 +130,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
         }
       });
 
-      await room.connect(data.url, data.accessToken);
+      await room.connect(url, accessToken);
 
       const localAudio = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       const audioTrack = localAudio.getAudioTracks()[0];
@@ -130,13 +156,10 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       }
 
       if (sessionId && sessionToken) {
-        await fetch('/api/liveavatar/session', {
-          method: 'DELETE',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionToken}`
-          },
-          body: JSON.stringify({ sessionId }),
+        await fetch('/api/liveavatar/stop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: sessionId, session_token: sessionToken }),
         });
       }
     } catch (err) {

@@ -1,52 +1,28 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, X } from "lucide-react";
-
-const LIVE_URL = "https://popp-api.vercel.app/demo.html";
+import { MessageCircle } from "lucide-react";
+import LiveAvatarChat from "@/components/LiveAvatar";
 
 const MariaPage: React.FC = () => {
   const [isLiveOpen, setIsLiveOpen] = useState(false);
+
+  const handleSessionEnd = (messages: any[]) => {
+    console.log("Session ended with messages:", messages);
+  };
 
   return (
     <div className="h-full flex flex-col">
       <AnimatePresence>
         {isLiveOpen ? (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-0 z-[100] bg-background flex flex-col"
-          >
-            {/* Header with Close Button */}
-            <div className="flex items-center justify-between p-4 border-b">
-              <span className="font-bold flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                Живой разговор
-              </span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setIsLiveOpen(false)}
-                className="rounded-full"
-              >
-                <X size={24} />
-              </Button>
-            </div>
-            
-            {/* Iframe Container */}
-            <div className="flex-1 bg-black relative">
-              <iframe 
-                src={isLiveOpen ? LIVE_URL : ""} 
-                className="w-full h-full border-none"
-                allow="microphone; camera; autoplay"
-                title="Maria Live"
-              />
-            </div>
-          </motion.div>
+          <LiveAvatarChat 
+            language="ru" 
+            onSessionEnd={handleSessionEnd}
+            onClose={() => setIsLiveOpen(false)}
+          />
         ) : (
           <div className="p-6 flex flex-col items-center justify-center flex-1 text-center space-y-8 pb-24">
-             <motion.div 
+            <motion.div 
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 260, damping: 20 }}

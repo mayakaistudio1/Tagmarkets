@@ -3,11 +3,15 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertApplicationSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
+import { registerLiveAvatarRoutes } from "./integrations/liveavatar";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  
+  // Register LiveAvatar routes
+  registerLiveAvatarRoutes(app);
   
   app.post("/api/applications", async (req, res) => {
     try {

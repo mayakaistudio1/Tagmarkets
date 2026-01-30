@@ -77,24 +77,11 @@ const HomePage: React.FC = () => {
       >
         <Card className="border-0 card-elevated bg-white p-5 rounded-3xl">
           <div className="space-y-4">
-            {/* Maria Header */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <span className="text-lg font-bold text-primary">M</span>
-              </div>
-              <div>
-                <h2 className="text-lg font-bold" style={{ fontWeight: 700 }}>Мария</h2>
-                <p className="text-xs" style={{ color: '#666666' }}>AI-ассистент Александра</p>
-              </div>
-            </div>
-            
-            {/* Chat Bubble - Telegram Style */}
-            <div className="pl-2">
-              <div className="chat-bubble chat-bubble-incoming">
-                <p className="text-sm text-gray-800 leading-relaxed">
-                  Привет, я Мария ассистент Александра. Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?
-                </p>
-              </div>
+            {/* Chat Bubble - Highlighted Box Style */}
+            <div className="bg-primary/5 border border-primary/20 p-5 rounded-2xl shadow-sm">
+              <p className="text-[15px] text-gray-800 leading-relaxed font-medium">
+                Привет, я Мария ассистент Александра. Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?
+              </p>
             </div>
 
             {/* Quick Reply Buttons - Compact Telegram Style */}

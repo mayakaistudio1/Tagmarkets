@@ -226,36 +226,61 @@ export function registerMariaChatRoutes(app: Express): void {
     try {
       const { messages } = req.body;
 
-      if (!messages || !Array.isArray(messages)) {
-        return res.status(400).json({ error: "Messages array is required" });
+      if (!messages || !Array.isArray(messages) || messages.length === 0) {
+        return res.json({ suggestions: [
+          "Что такое Exfusion?",
+          "Как начать зарабатывать?",
+          "Это безопасно?"
+        ]});
       }
 
-      const suggestionPrompt = `Based on the conversation history, generate exactly 3 short, natural follow-up questions that the user might want to ask Maria. 
-The suggestions should be relevant to the last assistant response and keep the conversation flowing.
-Use Russian language. Return only a JSON array of strings. 
-Example format: ["How does it work?", "What's the next step?", "Is it safe?"]`;
+      const lastMessage = messages[messages.length - 1];
+      const suggestionPrompt = `Ты помогаешь генерировать вопросы для чат-бота.
+
+На основе последнего сообщения ассистента, предложи 3 коротких естественных вопроса, которые пользователь может захотеть задать следующими.
+
+Последнее сообщение ассистента: "${lastMessage?.content || ''}"
+
+Верни JSON объект в формате: {"questions": ["вопрос 1", "вопрос 2", "вопрос 3"]}
+
+Вопросы должны быть:
+- Короткими (3-6 слов)
+- На русском языке
+- Релевантными контексту разговора
+- Разными по смыслу`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: suggestionPrompt },
-          ...messages.slice(-5).map((m: { role: string; content: string }) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-          })),
+          { role: "user", content: suggestionPrompt },
         ],
         response_format: { type: "json_object" },
         temperature: 0.7,
+        max_tokens: 150,
       });
 
-      const content = response.choices[0]?.message?.content || '{"suggestions": []}';
+      const content = response.choices[0]?.message?.content || '{"questions": []}';
+      console.log("Suggestions API response:", content);
+      
       const parsed = JSON.parse(content);
-      const suggestions = Array.isArray(parsed) ? parsed : (parsed.suggestions || []);
+      const suggestions = parsed.questions || parsed.suggestions || [];
+
+      if (suggestions.length === 0) {
+        return res.json({ suggestions: [
+          "Расскажи подробнее",
+          "Как это работает?",
+          "Что дальше?"
+        ]});
+      }
 
       res.json({ suggestions: suggestions.slice(0, 3) });
     } catch (error) {
       console.error("Maria suggestions error:", error);
-      res.status(500).json({ suggestions: [] });
+      res.json({ suggestions: [
+        "Что такое Exfusion?",
+        "Как начать зарабатывать?",
+        "Это безопасно?"
+      ]});
     }
   });
 }

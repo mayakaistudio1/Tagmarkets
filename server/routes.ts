@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertApplicationSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { registerLiveAvatarRoutes } from "./integrations/liveavatar";
+import { registerMariaChatRoutes } from "./integrations/maria-chat";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -12,6 +13,9 @@ export async function registerRoutes(
   
   // Register LiveAvatar routes
   registerLiveAvatarRoutes(app);
+  
+  // Register Maria text chat routes
+  registerMariaChatRoutes(app);
   
   app.post("/api/applications", async (req, res) => {
     try {

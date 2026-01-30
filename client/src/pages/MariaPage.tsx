@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
+import { Video, MessageSquareText } from "lucide-react";
 import LiveAvatarChat from "@/components/LiveAvatar";
+import TextChat from "@/components/TextChat";
+
+type ChatMode = 'none' | 'video' | 'text';
 
 const MariaPage: React.FC = () => {
-  const [isLiveOpen, setIsLiveOpen] = useState(false);
+  const [mode, setMode] = useState<ChatMode>('none');
 
   const handleSessionEnd = (messages: any[]) => {
     console.log("Session ended with messages:", messages);
@@ -13,40 +16,74 @@ const MariaPage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <AnimatePresence>
-        {isLiveOpen ? (
+      <AnimatePresence mode="wait">
+        {mode === 'video' && (
           <LiveAvatarChat 
+            key="video"
             language="ru" 
             onSessionEnd={handleSessionEnd}
-            onClose={() => setIsLiveOpen(false)}
+            onClose={() => setMode('none')}
           />
-        ) : (
-          <div className="p-6 flex flex-col items-center justify-center flex-1 text-center space-y-8 pb-24">
+        )}
+        
+        {mode === 'text' && (
+          <TextChat 
+            key="text"
+            onClose={() => setMode('none')}
+          />
+        )}
+        
+        {mode === 'none' && (
+          <motion.div 
+            key="selector"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="p-6 flex flex-col items-center justify-center flex-1 text-center space-y-8 pb-24"
+          >
             <motion.div 
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 260, damping: 20 }}
-              className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center text-primary relative"
+              className="w-28 h-28 rounded-full bg-primary/10 flex items-center justify-center text-primary relative"
             >
               <div className="absolute inset-0 rounded-full border border-primary/20 animate-[spin_10s_linear_infinite]" />
               <div className="absolute inset-2 rounded-full border border-primary/20 animate-[spin_15s_linear_infinite_reverse]" />
-              <MessageCircle size={48} strokeWidth={1.5} />
+              <span className="text-4xl font-bold">M</span>
             </motion.div>
 
-            <div className="space-y-2 max-w-[280px]">
-              <h1 className="text-2xl font-bold">Живой разговор</h1>
+            <div className="space-y-2 max-w-[300px]">
+              <h1 className="text-2xl font-bold">Мария</h1>
               <p className="text-muted-foreground">
-                Пообщайтесь с Марией в режиме реального времени. Это быстро, удобно и естественно.
+                Ваш персональный ассистент. Выберите удобный способ общения.
               </p>
             </div>
 
-            <Button 
-              onClick={() => setIsLiveOpen(true)}
-              className="w-full max-w-[280px] h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/25 bg-primary hover:bg-primary/90 text-black border-none active:scale-95 transition-transform"
-            >
-              Запустить разговор
-            </Button>
-          </div>
+            <div className="w-full max-w-[300px] space-y-3">
+              <Button 
+                onClick={() => setMode('video')}
+                className="w-full h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/25 bg-primary hover:bg-primary/90 text-black border-none active:scale-95 transition-transform"
+                data-testid="button-video-chat"
+              >
+                <Video size={20} className="mr-2" />
+                Видеозвонок
+              </Button>
+              
+              <Button 
+                onClick={() => setMode('text')}
+                variant="outline"
+                className="w-full h-14 rounded-2xl text-base font-bold border-2 hover:bg-primary/5 active:scale-95 transition-transform"
+                data-testid="button-text-chat"
+              >
+                <MessageSquareText size={20} className="mr-2" />
+                Текстовый чат
+              </Button>
+            </div>
+            
+            <p className="text-xs text-muted-foreground max-w-[280px]">
+              История текстового чата сохраняется автоматически
+            </p>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

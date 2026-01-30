@@ -221,4 +221,41 @@ export function registerMariaChatRoutes(app: Express): void {
       }
     }
   });
+
+  app.post("/api/maria/suggestions", async (req: Request, res: Response) => {
+    try {
+      const { messages } = req.body;
+
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: "Messages array is required" });
+      }
+
+      const suggestionPrompt = `Based on the conversation history, generate exactly 3 short, natural follow-up questions that the user might want to ask Maria. 
+The suggestions should be relevant to the last assistant response and keep the conversation flowing.
+Use Russian language. Return only a JSON array of strings. 
+Example format: ["How does it work?", "What's the next step?", "Is it safe?"]`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: suggestionPrompt },
+          ...messages.slice(-5).map((m: { role: string; content: string }) => ({
+            role: m.role as "user" | "assistant",
+            content: m.content,
+          })),
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.7,
+      });
+
+      const content = response.choices[0]?.message?.content || '{"suggestions": []}';
+      const parsed = JSON.parse(content);
+      const suggestions = Array.isArray(parsed) ? parsed : (parsed.suggestions || []);
+
+      res.json({ suggestions: suggestions.slice(0, 3) });
+    } catch (error) {
+      console.error("Maria suggestions error:", error);
+      res.status(500).json({ suggestions: [] });
+    }
+  });
 }

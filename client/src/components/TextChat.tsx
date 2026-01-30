@@ -22,7 +22,7 @@ const INITIAL_GREETING: ChatMessage = {
   timestamp: 0,
 };
 
-const QUICK_REPLIES = [
+const INITIAL_QUICK_REPLIES = [
   'Что такое Exfusion?',
   'Как начать зарабатывать?',
   'Это безопасно?',
@@ -33,12 +33,34 @@ export default function TextChat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
-  const [showQuickReplies, setShowQuickReplies] = useState(true);
+  const [quickReplies, setQuickReplies] = useState<string[]>(INITIAL_QUICK_REPLIES);
   const [isVideoActive, setIsVideoActive] = useState(false);
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const isInitializedRef = useRef(false);
+
+  const updateSuggestions = async (history: ChatMessage[]) => {
+    try {
+      const response = await fetch('/api/maria/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: history
+            .filter(m => m.id !== 'greeting')
+            .map(m => ({ role: m.role, content: m.content })),
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.suggestions && data.suggestions.length > 0) {
+          setQuickReplies(data.suggestions);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to update suggestions:', error);
+    }
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -49,19 +71,18 @@ export default function TextChat() {
         const parsed = JSON.parse(saved);
         if (parsed.length > 1) {
           setMessages(parsed);
-          setShowQuickReplies(false);
+          updateSuggestions(parsed);
         } else {
           setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
-          setShowQuickReplies(true);
+          setQuickReplies(INITIAL_QUICK_REPLIES);
         }
       } catch (e) {
         console.error('Failed to parse chat history:', e);
         setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
-        setShowQuickReplies(true);
       }
     } else {
       setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
-      setShowQuickReplies(true);
+      setQuickReplies(INITIAL_QUICK_REPLIES);
     }
 
     if (initialQuestion) {
@@ -152,8 +173,10 @@ export default function TextChat() {
                 content: fullContent,
                 timestamp: Date.now(),
               };
-              setMessages(prev => [...prev, assistantMessage]);
+              const finalMessages = [...currentMessages, assistantMessage];
+              setMessages(finalMessages);
               setStreamingContent('');
+              updateSuggestions(finalMessages);
             }
           } catch (e) {
             // Ignore parse errors
@@ -234,8 +257,10 @@ export default function TextChat() {
                 content: fullContent,
                 timestamp: Date.now(),
               };
-              setMessages(prev => [...prev, assistantMessage]);
+              const finalMessages = [...updatedMessages, assistantMessage];
+              setMessages(finalMessages);
               setStreamingContent('');
+              updateSuggestions(finalMessages);
             }
           } catch (e) {
             // Ignore parse errors
@@ -379,7 +404,7 @@ export default function TextChat() {
       {!isLoading && (
         <div className="px-4 py-2 bg-white border-t border-gray-50">
           <div className="flex flex-wrap gap-2">
-            {QUICK_REPLIES.map((reply) => (
+            {quickReplies.map((reply) => (
               <button
                 key={reply}
                 onClick={() => handleQuickReply(reply)}

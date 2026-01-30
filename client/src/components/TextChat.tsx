@@ -35,11 +35,15 @@ export default function TextChat() {
   const [streamingContent, setStreamingContent] = useState('');
   const [showQuickReplies, setShowQuickReplies] = useState(true);
   const [isVideoActive, setIsVideoActive] = useState(false);
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
+    const initialQuestion = localStorage.getItem('maria-initial-question');
+    
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -59,6 +63,13 @@ export default function TextChat() {
       setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
       setShowQuickReplies(true);
     }
+
+    if (initialQuestion) {
+      localStorage.removeItem('maria-initial-question');
+      setPendingQuestion(initialQuestion);
+    }
+    
+    isInitializedRef.current = true;
   }, []);
 
   useEffect(() => {
@@ -67,6 +78,16 @@ export default function TextChat() {
     }
   }, [messages]);
 
+  useEffect(() => {
+    if (pendingQuestion && isInitializedRef.current && messages.length > 0 && !isLoading) {
+      const question = pendingQuestion;
+      setPendingQuestion(null);
+      setTimeout(() => {
+        handleSendPending(question);
+      }, 300);
+    }
+  }, [pendingQuestion, messages, isLoading]);
+
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
@@ -74,6 +95,88 @@ export default function TextChat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, streamingContent, scrollToBottom]);
+
+  const handleSendPending = async (text: string) => {
+    if (!text || isLoading) return;
+
+    setShowQuickReplies(false);
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: text,
+      timestamp: Date.now(),
+    };
+
+    const currentMessages = [...messages, userMessage];
+    setMessages(currentMessages);
+    setIsLoading(true);
+    setStreamingContent('');
+
+    try {
+      const response = await fetch('/api/maria/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: currentMessages
+            .filter(m => m.id !== 'greeting')
+            .map(m => ({ role: m.role, content: m.content })),
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to send message');
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.content) {
+              fullContent += data.content;
+              setStreamingContent(fullContent);
+            }
+            if (data.done) {
+              const assistantMessage: ChatMessage = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: fullContent,
+                timestamp: Date.now(),
+              };
+              setMessages(prev => [...prev, assistantMessage]);
+              setStreamingContent('');
+            }
+          } catch (e) {
+            // Ignore parse errors
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Извините, произошла ошибка. Попробуйте позже.',
+        timestamp: Date.now(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const sendMessage = async (text?: string) => {
     const messageText = text || input.trim();

@@ -77,10 +77,14 @@ const HomePage: React.FC = () => {
       >
         <Card className="border-0 card-elevated bg-white p-5 rounded-3xl">
           <div className="space-y-4">
-            {/* Chat Bubble - Highlighted Box Style */}
-            <div className="bg-primary/5 border border-primary/20 p-5 rounded-2xl shadow-sm">
-              <p className="text-[15px] text-gray-800 leading-relaxed font-medium">
-                Привет, я Мария ассистент Александра. Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?
+            {/* Chat Bubble - Gradient Style (Variant 2) */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-white to-white border border-primary/20 p-6 rounded-2xl shadow-sm group">
+              <div className="absolute -right-2 -top-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                <MessageCircle size={80} className="text-primary" />
+              </div>
+              <p className="relative z-10 text-[16px] text-gray-800 leading-relaxed font-medium">
+                Привет, я <span className="text-primary font-bold">Мария</span> ассистент Александра. 
+                Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?
               </p>
             </div>
 

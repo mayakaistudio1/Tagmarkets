@@ -401,14 +401,14 @@ export default function TextChat() {
       </div>
 
       {/* Quick Replies - Fixed above input */}
-      {!isLoading && (
-        <div className="px-4 py-2 bg-white border-t border-gray-50">
+      {!isLoading && quickReplies.length > 0 && (
+        <div className="px-4 py-2.5 bg-white border-t border-gray-50">
           <div className="flex flex-wrap gap-2">
             {quickReplies.map((reply) => (
               <button
                 key={reply}
                 onClick={() => handleQuickReply(reply)}
-                className="px-4 py-2 text-sm font-medium bg-gray-50 text-gray-700 rounded-full hover:bg-gray-100 transition-colors active:scale-95"
+                className="px-3.5 py-2 text-xs font-medium bg-transparent border border-primary/40 text-primary rounded-full hover:bg-primary/5 transition-colors active:scale-95"
                 data-testid={`quick-reply-${reply.slice(0, 10)}`}
               >
                 {reply}

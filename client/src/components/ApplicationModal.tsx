@@ -3,7 +3,6 @@ import { Drawer } from "vaul";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Check, Loader2 } from "lucide-react";
 import { tg } from "@/lib/telegram";
 
@@ -16,25 +15,42 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get("name") as string,
+      contact: formData.get("contact") as string,
+      interest: formData.get("interest") as string,
+    };
     
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    
-    // Auto close after success
-    setTimeout(() => {
-      setIsSuccess(false);
-      onClose();
-      // Reset form logic would go here
-    }, 2000);
-
-    // Optional: Open Telegram link with pre-filled message
-    // if (tg) tg.openTelegramLink("https://t.me/share/url?url=...");
+    try {
+      const response = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to submit application");
+      }
+      
+      setIsSubmitting(false);
+      setIsSuccess(true);
+      
+      // Auto close after success
+      setTimeout(() => {
+        setIsSuccess(false);
+        onClose();
+        e.currentTarget.reset();
+      }, 2000);
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      setIsSubmitting(false);
+      alert("Произошла ошибка. Попробуйте еще раз.");
+    }
   };
 
   return (
@@ -56,26 +72,27 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) 
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Имя</Label>
-                      <Input id="name" placeholder="Как к вам обращаться?" required className="bg-background" />
+                      <Input id="name" name="name" placeholder="Как к вам обращаться?" required className="bg-background" />
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="contact">Контакт</Label>
-                      <Input id="contact" placeholder="Telegram или WhatsApp" required className="bg-background" />
+                      <Input id="contact" name="contact" placeholder="Telegram или WhatsApp" required className="bg-background" />
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="interest">Что интересно</Label>
-                      <Select required>
-                        <SelectTrigger className="bg-background">
-                          <SelectValue placeholder="Выберите тему" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="passive">Пассивный доход</SelectItem>
-                          <SelectItem value="team">Построение команды</SelectItem>
-                          <SelectItem value="general">Общий обзор</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <select
+                        id="interest"
+                        name="interest"
+                        required
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="">Выберите тему</option>
+                        <option value="passive">Пассивный доход</option>
+                        <option value="team">Построение команды</option>
+                        <option value="general">Общий обзор</option>
+                      </select>
                     </div>
                     
                     <Button type="submit" className="w-full mt-4 font-bold rounded-xl h-12 text-base shadow-lg shadow-primary/20" disabled={isSubmitting}>

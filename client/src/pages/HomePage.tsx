@@ -77,15 +77,26 @@ const HomePage: React.FC = () => {
       >
         <Card className="border-0 card-elevated bg-white p-5 rounded-3xl">
           <div className="space-y-4">
-            {/* Chat Bubble - Gradient Style (Variant 2) */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-white to-white border border-primary/20 p-6 rounded-2xl shadow-sm group">
-              <div className="absolute -right-2 -top-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                <MessageCircle size={80} className="text-primary" />
+            {/* Chat Bubble - Messenger Style (Variant 3) */}
+            <div className="space-y-3">
+              <div className="flex items-end gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mb-1 border border-primary/10">
+                  <span className="text-xs font-bold text-primary">M</span>
+                </div>
+                <div className="chat-bubble chat-bubble-incoming !max-w-[85%] !p-3.5 !bg-gray-50 border border-gray-100">
+                  <p className="text-[14px] text-gray-800 leading-relaxed">
+                    Привет, я <span className="font-semibold text-primary">Мария</span> ассистент Александра. 
+                    Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?
+                  </p>
+                </div>
               </div>
-              <p className="relative z-10 text-[16px] text-gray-800 leading-relaxed font-medium">
-                Привет, я <span className="text-primary font-bold">Мария</span> ассистент Александра. 
-                Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?
-              </p>
+              
+              <div className="flex items-center gap-1.5 ml-10 opacity-60">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="text-[10px] font-medium text-gray-500 ml-1">Мария печатает...</span>
+              </div>
             </div>
 
             {/* Quick Reply Buttons - Compact Telegram Style */}

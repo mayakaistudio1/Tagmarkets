@@ -73,9 +73,7 @@ export default function TextChat() {
   }, []);
 
   useEffect(() => {
-    if (messages.length > 1) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
   }, [messages]);
 
   useEffect(() => {
@@ -98,8 +96,6 @@ export default function TextChat() {
 
   const handleSendPending = async (text: string) => {
     if (!text || isLoading) return;
-
-    setShowQuickReplies(false);
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -182,8 +178,6 @@ export default function TextChat() {
     const messageText = text || input.trim();
     if (!messageText || isLoading) return;
 
-    setShowQuickReplies(false);
-
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -265,7 +259,6 @@ export default function TextChat() {
 
   const clearHistory = () => {
     setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
-    setShowQuickReplies(true);
     localStorage.removeItem(STORAGE_KEY);
   };
 
@@ -383,7 +376,7 @@ export default function TextChat() {
       </div>
 
       {/* Quick Replies - Fixed above input */}
-      {showQuickReplies && !isLoading && (
+      {!isLoading && (
         <div className="px-4 py-2 bg-white border-t border-gray-50">
           <div className="flex flex-wrap gap-2">
             {QUICK_REPLIES.map((reply) => (

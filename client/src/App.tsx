@@ -24,18 +24,18 @@ function App() {
   const renderPage = () => {
     switch (location) {
       case "/":
-        return <HomePage onOpenMaria={() => setLocation("/maria")} onOpenLinks={() => setLocation("/links")} />;
+        return <HomePage />;
       case "/xfusion":
         return <XFusionPage onOpenMaria={() => setLocation("/maria")} />;
       case "/popp":
         setLocation("/");
-        return <HomePage onOpenMaria={() => setLocation("/maria")} onOpenLinks={() => setLocation("/links")} />;
+        return <HomePage />;
       case "/maria":
         return <MariaPage />;
       case "/links":
         return <LinksPage />;
       default:
-        return <HomePage onOpenMaria={() => setLocation("/maria")} onOpenLinks={() => setLocation("/links")} />;
+        return <HomePage />;
     }
   };
 

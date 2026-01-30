@@ -2,14 +2,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Link as LinkIcon, Briefcase, Globe, Phone, TrendingUp } from "lucide-react";
+import { Briefcase, Globe, Phone, TrendingUp } from "lucide-react";
 
-interface HomePageProps {
-  onOpenMaria: () => void;
-  onOpenLinks: () => void;
-}
-
-const HomePage: React.FC<HomePageProps> = ({ onOpenLinks }) => {
+const HomePage: React.FC = () => {
   return (
     <div className="p-4 pb-24 space-y-6">
       {/* Alexander Section - Now at the top */}
@@ -62,18 +57,6 @@ const HomePage: React.FC<HomePageProps> = ({ onOpenLinks }) => {
           </Button>
         </a>
       </motion.div>
-
-      {/* Small Links Button */}
-      <div className="flex justify-center pt-2">
-        <button 
-          onClick={onOpenLinks}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
-          data-testid="button-links"
-        >
-          <LinkIcon size={16} />
-          <span>Ссылки</span>
-        </button>
-      </div>
     </div>
   );
 };

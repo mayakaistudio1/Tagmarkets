@@ -2,7 +2,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Zap } from "lucide-react";
+import { Zap, ChevronLeft } from "lucide-react";
+import { Link } from "wouter";
 
 interface XFusionPageProps {
   onOpenMaria: () => void;
@@ -11,16 +12,19 @@ interface XFusionPageProps {
 const XFusionPage: React.FC<XFusionPageProps> = ({ onOpenMaria }) => {
   return (
     <div className="p-4 pb-24 space-y-6">
-       <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3 mb-6"
-      >
-        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-          <Zap size={20} className="fill-current" />
+      <div className="flex items-center gap-4 mb-6">
+        <Link href="/">
+          <button className="w-10 h-10 rounded-full bg-card flex items-center justify-center hover:bg-card/80 transition-colors shadow-sm" data-testid="button-back">
+            <ChevronLeft size={24} />
+          </button>
+        </Link>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+            <Zap size={20} className="fill-current" />
+          </div>
+          <h1 className="text-2xl font-bold">Как это работает?</h1>
         </div>
-        <h1 className="text-2xl font-bold">Как это работает?</h1>
-      </motion.div>
+      </div>
 
       <motion.div
         initial={{ opacity: 0 }}
@@ -81,6 +85,7 @@ const XFusionPage: React.FC<XFusionPageProps> = ({ onOpenMaria }) => {
         <Button 
           onClick={onOpenMaria}
           className="w-full h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/25 bg-primary hover:bg-primary/90 text-black border-none active:scale-95 transition-transform"
+          data-testid="button-open-maria"
         >
           Задать вопрос Марии
         </Button>

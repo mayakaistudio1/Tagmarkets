@@ -2,14 +2,14 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ShieldCheck, Link as LinkIcon, Star, Briefcase, Globe, Phone, TrendingUp } from "lucide-react";
+import { Link as LinkIcon, Star, Briefcase, Globe, Phone, TrendingUp } from "lucide-react";
 
 interface HomePageProps {
   onOpenMaria: () => void;
   onOpenLinks: () => void;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ onOpenMaria, onOpenLinks }) => {
+const HomePage: React.FC<HomePageProps> = ({ onOpenLinks }) => {
   return (
     <div className="p-4 pb-24 space-y-6">
       {/* Alexander Section - Now at the top */}
@@ -62,23 +62,18 @@ const HomePage: React.FC<HomePageProps> = ({ onOpenMaria, onOpenLinks }) => {
         </p>
       </motion.div>
 
-      {/* Actions - Now at the bottom */}
+      {/* Single CTA Button */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="space-y-3 pt-2"
+        className="pt-2"
       >
-        <Button 
-          onClick={onOpenMaria}
-          className="w-full h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/25 bg-primary hover:bg-primary/90 text-black border-none active:scale-95 transition-transform"
-          data-testid="button-open-maria"
-        >
-          Начать разговор с Марией
-        </Button>
-        
-        <a href="/xfusion" className="block">
-           <Button variant="secondary" className="w-full h-12 rounded-xl text-foreground font-medium bg-secondary hover:bg-secondary/80 border-none active:scale-95 transition-transform" data-testid="button-how-it-works">
+        <a href="/maria" className="block">
+          <Button 
+            className="w-full h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/25 bg-primary hover:bg-primary/90 text-black border-none active:scale-95 transition-transform"
+            data-testid="button-open-maria"
+          >
             Подробнее об EXFUSION
           </Button>
         </a>

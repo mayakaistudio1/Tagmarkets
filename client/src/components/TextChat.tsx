@@ -178,41 +178,30 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background flex flex-col">
+    <div className="fixed inset-0 z-[100] bg-white flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-card">
+      <div className="flex items-center justify-between p-4 bg-white">
         <div className="flex items-center gap-3">
           <Link href="/">
-            <button className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors" data-testid="button-back">
-              <ChevronLeft size={24} />
+            <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors" data-testid="button-back">
+              <ChevronLeft size={24} className="text-gray-600" />
             </button>
           </Link>
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
             <span className="text-lg font-bold text-primary">M</span>
           </div>
           <div>
-            <h2 className="font-semibold text-foreground">Мария</h2>
-            <span className="text-xs text-muted-foreground">Онлайн</span>
+            <h2 className="font-semibold text-gray-900">Мария</h2>
+            <span className="text-xs text-green-500 font-medium">Онлайн</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {onSwitchToVideo && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onSwitchToVideo}
-              className="text-primary hover:bg-primary/10"
-              data-testid="button-video-call"
-            >
-              <Video size={22} />
-            </Button>
-          )}
           {messages.length > 1 && (
             <Button
               variant="ghost"
               size="icon"
               onClick={clearHistory}
-              className="text-muted-foreground hover:text-destructive"
+              className="text-gray-400 hover:text-destructive"
               data-testid="button-clear-chat"
             >
               <Trash2 size={20} />
@@ -222,7 +211,7 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
         <AnimatePresence>
           {messages.map((msg) => (
             <motion.div
@@ -237,10 +226,10 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
             >
               <div
                 className={cn(
-                  "max-w-[80%] px-4 py-2.5 rounded-2xl text-sm",
+                  "max-w-[85%] px-4 py-2.5 rounded-2xl text-[15px] leading-relaxed shadow-sm",
                   msg.role === 'user'
-                    ? "bg-primary text-primary-foreground rounded-br-md"
-                    : "bg-muted text-foreground rounded-bl-md"
+                    ? "bg-primary text-black rounded-tr-sm"
+                    : "bg-gray-100 text-gray-800 rounded-tl-sm"
                 )}
               >
                 {msg.content}
@@ -248,6 +237,25 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
             </motion.div>
           ))}
         </AnimatePresence>
+
+        {/* Video Call CTA in dialogue */}
+        {showQuickReplies && onSwitchToVideo && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="pt-2"
+          >
+            <Button
+              onClick={onSwitchToVideo}
+              variant="outline"
+              className="w-full h-12 rounded-xl border-primary/30 text-primary hover:bg-primary/5 font-bold gap-2"
+              data-testid="button-video-call-cta"
+            >
+              <Video size={18} />
+              Перейти на видеозвонок
+            </Button>
+          </motion.div>
+        )}
 
         {/* Quick Replies */}
         {showQuickReplies && !isLoading && (
@@ -260,7 +268,7 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
               <button
                 key={reply}
                 onClick={() => handleQuickReply(reply)}
-                className="px-4 py-2 text-sm font-medium bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors active:scale-95"
+                className="px-4 py-2 text-sm font-medium bg-gray-50 border border-gray-100 text-gray-700 rounded-full hover:bg-gray-100 transition-colors active:scale-95"
                 data-testid={`quick-reply-${reply.slice(0, 10)}`}
               >
                 {reply}
@@ -276,9 +284,9 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
             animate={{ opacity: 1, y: 0 }}
             className="flex justify-start"
           >
-            <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-bl-md bg-muted text-foreground text-sm">
+            <div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tl-sm bg-gray-100 text-gray-800 text-[15px] leading-relaxed shadow-sm">
               {streamingContent}
-              <span className="inline-block w-1 h-4 ml-1 bg-foreground/50 animate-pulse" />
+              <span className="inline-block w-1 h-4 ml-1 bg-gray-400 animate-pulse" />
             </div>
           </motion.div>
         )}
@@ -290,11 +298,11 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
             animate={{ opacity: 1 }}
             className="flex justify-start"
           >
-            <div className="px-4 py-3 rounded-2xl rounded-bl-md bg-muted">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 rounded-full bg-foreground/30 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 rounded-full bg-foreground/30 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 rounded-full bg-foreground/30 animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-100 shadow-sm">
+              <div className="flex gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </motion.div>
@@ -304,7 +312,7 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t bg-card safe-area-bottom">
+      <div className="p-4 bg-white safe-area-bottom">
         <div className="flex items-center gap-2">
           <input
             ref={inputRef}
@@ -314,13 +322,13 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
             onKeyDown={handleKeyDown}
             placeholder="Напишите сообщение..."
             disabled={isLoading}
-            className="flex-1 h-12 px-4 rounded-2xl bg-muted border-0 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="flex-1 h-12 px-5 rounded-full bg-gray-50 border-none text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary/20"
             data-testid="input-chat-message"
           />
           <Button
             onClick={() => sendMessage()}
             disabled={!input.trim() || isLoading}
-            className="h-12 w-12 rounded-2xl p-0"
+            className="h-12 w-12 rounded-full p-0 shadow-sm"
             data-testid="button-send-message"
           >
             {isLoading ? (

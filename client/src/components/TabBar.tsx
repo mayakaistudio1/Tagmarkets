@@ -12,7 +12,7 @@ const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate, onOpenApplicat
   const tabs = [
     { id: "home", label: "Главная", icon: Home, path: "/" },
     { id: "xfusion", label: "XFusion", icon: Zap, path: "/xfusion" },
-    { id: "maria", label: "Мария", icon: MessageCircle, path: "/maria" },
+    { id: "maria", label: "Общение", icon: MessageCircle, path: "/maria" },
   ];
 
   return (

@@ -79,7 +79,7 @@ const HomePage: React.FC<HomePageProps> = ({ onOpenMaria, onOpenLinks }) => {
         
         <a href="/xfusion" className="block">
            <Button variant="secondary" className="w-full h-12 rounded-xl text-foreground font-medium bg-secondary hover:bg-secondary/80 border-none active:scale-95 transition-transform" data-testid="button-how-it-works">
-            Как это работает?
+            Подробнее об EXFUSION
           </Button>
         </a>
 

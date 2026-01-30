@@ -20,6 +20,7 @@ interface VideoCallBarProps {
 }
 
 export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarProps) {
+  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'active' | 'finished'>('idle');
   const [isMuted, setIsMuted] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -194,22 +195,57 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
 
   if (!isActive && status === 'idle') {
     return (
-      <div className="sticky top-0 z-40 bg-black">
-        <div className="relative aspect-[16/9] max-h-[400px] w-full overflow-hidden flex flex-col items-center justify-center bg-gray-900 text-white p-6 text-center">
-          <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-6">
-            <Mic className="w-10 h-10 text-primary" />
-          </div>
-          <h2 className="text-2xl font-bold mb-2">Мария</h2>
-          <p className="text-gray-400 mb-8 max-w-[280px]">Готова ответить на ваши вопросы в режиме реального времени</p>
+      <>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="sticky top-0 z-40 bg-gradient-to-r from-primary/5 to-primary/10 border-b border-primary/10 p-3"
+        >
           <Button
-            onClick={startSession}
-            className="w-full max-w-[280px] h-14 rounded-2xl bg-primary text-black font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+            onClick={() => setIsOverlayVisible(true)}
+            variant="outline"
+            className="w-full h-12 rounded-xl border-primary/30 bg-white text-primary hover:bg-primary/5 font-bold gap-2"
             data-testid="button-start-video"
           >
-            Начать разговор
+            <Video size={20} />
+            Начать видеозвонок с Марией
           </Button>
-        </div>
-      </div>
+        </motion.div>
+
+        <AnimatePresence>
+          {isOverlayVisible && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-6 text-center"
+            >
+              <button 
+                onClick={() => setIsOverlayVisible(false)}
+                className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors"
+              >
+                <X size={32} />
+              </button>
+
+              <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-6">
+                <Mic className="w-10 h-10 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2 text-white">Мария</h2>
+              <p className="text-gray-400 mb-8 max-w-[280px]">Готова ответить на ваши вопросы в режиме реального времени</p>
+              <Button
+                onClick={() => {
+                  setIsOverlayVisible(false);
+                  startSession();
+                }}
+                className="w-full max-w-[280px] h-14 rounded-2xl bg-primary text-black font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                data-testid="button-confirm-start-video"
+              >
+                Начать разговор
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </>
     );
   }
 

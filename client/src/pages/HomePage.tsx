@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ShieldCheck, Link as LinkIcon, Star, Briefcase, Globe, Phone, TrendingUp, User } from "lucide-react";
+import { ShieldCheck, Link as LinkIcon, Star, Briefcase, Globe, Phone, TrendingUp } from "lucide-react";
 
 interface HomePageProps {
   onOpenMaria: () => void;
@@ -18,14 +18,9 @@ const HomePage: React.FC<HomePageProps> = ({ onOpenMaria, onOpenLinks }) => {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-4"
       >
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border-2 border-card shadow-lg flex-shrink-0">
-            <User size={32} className="text-muted-foreground" />
-          </div>
-          <div className="space-y-1">
-            <h2 className="text-lg font-bold leading-tight">Александр Попп</h2>
-            <p className="text-sm font-medium text-primary">Твой проводник в мир пассивного дохода</p>
-          </div>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold leading-tight tracking-tight">Александр Попп</h1>
+          <p className="text-xl font-medium text-primary">Твой проводник в мир <span className="text-primary">пассивного дохода</span></p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">

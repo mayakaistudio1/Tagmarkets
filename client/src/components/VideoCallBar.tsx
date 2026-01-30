@@ -133,14 +133,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
 
       await room.connect(url, accessToken);
 
-      const localAudio = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-      const audioTrack = localAudio.getAudioTracks()[0];
-      if (audioTrack) {
-        await room.localParticipant.publishTrack(audioTrack);
-        audioTrack.enabled = false;
-        setIsMuted(true);
-      }
-
+      setStatus('active');
       onStart();
     } catch (err: any) {
       console.error('Session start error:', err);

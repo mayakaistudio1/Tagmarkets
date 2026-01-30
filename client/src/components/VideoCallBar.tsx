@@ -32,6 +32,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
   const audioContainerRef = useRef<HTMLDivElement>(null);
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const roomRef = useRef<Room | null>(null);
+  const speakerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleTrackSubscribed = useCallback(
     (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
@@ -70,31 +71,83 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
     []
   );
 
+  const enableUserMic = useCallback(() => {
+    console.log("Enabling user microphone");
+    if (roomRef.current) {
+      roomRef.current.localParticipant.setMicrophoneEnabled(true);
+      setIsMuted(false);
+    }
+    setIsAvatarTalking(false);
+  }, []);
+
+  const disableUserMic = useCallback(() => {
+    console.log("Disabling user microphone");
+    if (roomRef.current) {
+      roomRef.current.localParticipant.setMicrophoneEnabled(false);
+      setIsMuted(true);
+    }
+    setIsAvatarTalking(true);
+  }, []);
+
   const handleActiveSpeakersChanged = useCallback((speakers: any[]) => {
     if (!roomRef.current) return;
     
     const localIdentity = roomRef.current.localParticipant.identity;
     const avatarIsSpeaking = speakers.some(
-      (speaker) => speaker.identity !== localIdentity
+      (speaker) => speaker.identity !== localIdentity && speaker.identity !== "client"
     );
 
-    console.log("Active speakers changed, avatar speaking:", avatarIsSpeaking);
+    console.log("Active speakers changed, speakers:", speakers.map(s => s.identity), "avatar speaking:", avatarIsSpeaking);
 
-    setIsAvatarTalking((prevTalking) => {
-      if (avatarIsSpeaking && !prevTalking) {
-        console.log("Avatar started speaking - muting user mic");
-        roomRef.current?.localParticipant.setMicrophoneEnabled(false);
-        setIsMuted(true);
-        return true;
-      } else if (!avatarIsSpeaking && prevTalking) {
-        console.log("Avatar stopped speaking - unmuting user mic");
-        roomRef.current?.localParticipant.setMicrophoneEnabled(true);
-        setIsMuted(false);
-        return false;
+    if (speakerTimeoutRef.current) {
+      clearTimeout(speakerTimeoutRef.current);
+      speakerTimeoutRef.current = null;
+    }
+
+    if (avatarIsSpeaking) {
+      disableUserMic();
+    } else {
+      speakerTimeoutRef.current = setTimeout(() => {
+        console.log("Speaker timeout - enabling user mic after 1s silence");
+        enableUserMic();
+      }, 1000);
+    }
+  }, [enableUserMic, disableUserMic]);
+
+  const handleDataReceived = useCallback((payload: Uint8Array) => {
+    try {
+      const message = new TextDecoder().decode(payload);
+      console.log("Raw data received:", message);
+      
+      let data: any;
+      try {
+        data = JSON.parse(message);
+      } catch {
+        return;
       }
-      return prevTalking;
-    });
-  }, []);
+
+      const eventType = data?.type || data?.event || data?.action;
+      console.log("Data event type:", eventType);
+
+      if (eventType === "avatar_start_talking" || eventType === "agent_start_talking" || 
+          eventType === "start_talking" || eventType === "speaking_started") {
+        console.log("Avatar started talking (data event)");
+        if (speakerTimeoutRef.current) {
+          clearTimeout(speakerTimeoutRef.current);
+          speakerTimeoutRef.current = null;
+        }
+        disableUserMic();
+      } else if (eventType === "avatar_stop_talking" || eventType === "agent_stop_talking" ||
+                 eventType === "stop_talking" || eventType === "speaking_ended") {
+        console.log("Avatar stopped talking (data event)");
+        speakerTimeoutRef.current = setTimeout(() => {
+          enableUserMic();
+        }, 500);
+      }
+    } catch (e) {
+      console.log("Error processing data message:", e);
+    }
+  }, [enableUserMic, disableUserMic]);
 
   const startSession = async () => {
     try {
@@ -151,6 +204,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       room.on(RoomEvent.TrackSubscribed, handleTrackSubscribed);
       room.on(RoomEvent.TrackUnsubscribed, handleTrackUnsubscribed);
       room.on(RoomEvent.ActiveSpeakersChanged, handleActiveSpeakersChanged);
+      room.on(RoomEvent.DataReceived, handleDataReceived);
       room.on(RoomEvent.ConnectionStateChanged, (state: ConnectionState) => {
         if (state === ConnectionState.Connected) {
           setStatus('active');
@@ -176,6 +230,10 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
 
   const endSession = async () => {
     try {
+      if (speakerTimeoutRef.current) {
+        clearTimeout(speakerTimeoutRef.current);
+        speakerTimeoutRef.current = null;
+      }
       if (roomRef.current) {
         roomRef.current.disconnect();
         roomRef.current = null;
@@ -201,6 +259,9 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
 
   useEffect(() => {
     return () => {
+      if (speakerTimeoutRef.current) {
+        clearTimeout(speakerTimeoutRef.current);
+      }
       if (roomRef.current) {
         roomRef.current.disconnect();
       }

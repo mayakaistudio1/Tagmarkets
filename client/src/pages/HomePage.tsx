@@ -36,33 +36,33 @@ const HomePage: React.FC = () => {
               <p className="text-base font-medium" style={{ color: '#666666' }}>Твой проводник в мир пассивного дохода</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3">
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Briefcase className="w-5 h-5 text-primary" />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Briefcase className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-sm font-medium text-gray-700 leading-relaxed">Более 10 лет в финансах</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">Более 10 лет в финансах</p>
               </div>
 
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Globe className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Globe className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-sm font-medium text-gray-700 leading-relaxed">Просто о сложном</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">Просто о сложном</p>
               </div>
 
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Phone className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-sm font-medium text-gray-700 leading-relaxed">Всегда на связи</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">Всегда на связи</p>
               </div>
 
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-sm font-medium text-gray-700 leading-relaxed">Строим пассивный доход</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">Строим доход</p>
               </div>
             </div>
           </div>

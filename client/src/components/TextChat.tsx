@@ -1,19 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Trash2, Loader2, Video, ChevronLeft } from 'lucide-react';
+import { Send, Trash2, Loader2, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Link } from 'wouter';
+import VideoCallBar from './VideoCallBar';
 
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
-}
-
-interface TextChatProps {
-  onSwitchToVideo?: () => void;
 }
 
 const STORAGE_KEY = 'maria-chat-history';
@@ -29,15 +26,15 @@ const QUICK_REPLIES = [
   'Что такое Exfusion?',
   'Как начать зарабатывать?',
   'Это безопасно?',
-  'Сколько нужно вложить?',
 ];
 
-export default function TextChat({ onSwitchToVideo }: TextChatProps) {
+export default function TextChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const [showQuickReplies, setShowQuickReplies] = useState(true);
+  const [isVideoActive, setIsVideoActive] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -183,7 +180,7 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
   return (
     <div className="fixed inset-0 z-[100] bg-white flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-white">
+      <div className="flex items-center justify-between p-4 bg-white border-b border-gray-100">
         <div className="flex items-center gap-3">
           <Link href="/">
             <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors" data-testid="button-back">
@@ -199,17 +196,6 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {onSwitchToVideo && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onSwitchToVideo}
-              className="text-primary hover:bg-primary/10"
-              data-testid="button-video-call"
-            >
-              <Video size={22} />
-            </Button>
-          )}
           {messages.length > 1 && (
             <Button
               variant="ghost"
@@ -223,6 +209,13 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
           )}
         </div>
       </div>
+
+      {/* Video Call Bar - Fixed at top */}
+      <VideoCallBar 
+        isActive={isVideoActive}
+        onStart={() => setIsVideoActive(true)}
+        onEnd={() => setIsVideoActive(false)}
+      />
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
@@ -240,7 +233,7 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
             >
               <div
                 className={cn(
-                  "max-w-[85%] px-4 py-2.5 rounded-2xl text-[15px] leading-relaxed shadow-sm",
+                  "max-w-[85%] px-4 py-2.5 rounded-2xl text-[15px] leading-relaxed",
                   msg.role === 'user'
                     ? "bg-primary text-black rounded-tr-sm"
                     : "bg-gray-100 text-gray-800 rounded-tl-sm"
@@ -252,45 +245,6 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
           ))}
         </AnimatePresence>
 
-        {/* Video Call CTA in dialogue */}
-        {showQuickReplies && onSwitchToVideo && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="pt-2"
-          >
-            <Button
-              onClick={onSwitchToVideo}
-              variant="outline"
-              className="w-full h-12 rounded-xl border-primary/30 text-primary hover:bg-primary/5 font-bold gap-2"
-              data-testid="button-video-call-cta"
-            >
-              <Video size={18} />
-              Перейти на видеозвонок
-            </Button>
-          </motion.div>
-        )}
-
-        {/* Quick Replies */}
-        {showQuickReplies && !isLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-wrap gap-2 pt-2"
-          >
-            {QUICK_REPLIES.map((reply) => (
-              <button
-                key={reply}
-                onClick={() => handleQuickReply(reply)}
-                className="px-4 py-2 text-sm font-medium bg-gray-50 border border-gray-100 text-gray-700 rounded-full hover:bg-gray-100 transition-colors active:scale-95"
-                data-testid={`quick-reply-${reply.slice(0, 10)}`}
-              >
-                {reply}
-              </button>
-            ))}
-          </motion.div>
-        )}
-
         {/* Streaming message */}
         {streamingContent && (
           <motion.div
@@ -298,7 +252,7 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
             animate={{ opacity: 1, y: 0 }}
             className="flex justify-start"
           >
-            <div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tl-sm bg-gray-100 text-gray-800 text-[15px] leading-relaxed shadow-sm">
+            <div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tl-sm bg-gray-100 text-gray-800 text-[15px] leading-relaxed">
               {streamingContent}
               <span className="inline-block w-1 h-4 ml-1 bg-gray-400 animate-pulse" />
             </div>
@@ -312,7 +266,7 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
             animate={{ opacity: 1 }}
             className="flex justify-start"
           >
-            <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-100 shadow-sm">
+            <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-100">
               <div className="flex gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -325,8 +279,26 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Quick Replies - Fixed above input */}
+      {showQuickReplies && !isLoading && (
+        <div className="px-4 py-2 bg-white border-t border-gray-50">
+          <div className="flex flex-wrap gap-2">
+            {QUICK_REPLIES.map((reply) => (
+              <button
+                key={reply}
+                onClick={() => handleQuickReply(reply)}
+                className="px-4 py-2 text-sm font-medium bg-gray-50 text-gray-700 rounded-full hover:bg-gray-100 transition-colors active:scale-95"
+                data-testid={`quick-reply-${reply.slice(0, 10)}`}
+              >
+                {reply}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Input */}
-      <div className="p-4 bg-white safe-area-bottom">
+      <div className="p-4 bg-white safe-area-bottom border-t border-gray-100">
         <div className="flex items-center gap-2">
           <input
             ref={inputRef}
@@ -342,7 +314,7 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
           <Button
             onClick={() => sendMessage()}
             disabled={!input.trim() || isLoading}
-            className="h-12 w-12 rounded-full p-0 shadow-sm"
+            className="h-12 w-12 rounded-full p-0"
             data-testid="button-send-message"
           >
             {isLoading ? (

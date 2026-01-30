@@ -508,28 +508,6 @@ export default function LiveAvatarChat({ language = "ru", onSessionEnd, onClose 
         </motion.div>
       )}
 
-      {/* Transcript Overlay */}
-      {status === 'active' && messages.length > 0 && (
-        <div className="absolute bottom-28 left-4 right-4 max-h-32 overflow-y-auto no-scrollbar">
-          <div className="space-y-2">
-            {messages.slice(-3).map((msg, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={cn(
-                  "px-4 py-2 rounded-2xl text-sm max-w-[80%]",
-                  msg.sender === 'user' 
-                    ? "ml-auto bg-primary text-black" 
-                    : "bg-white/20 text-white"
-                )}
-              >
-                {msg.text}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

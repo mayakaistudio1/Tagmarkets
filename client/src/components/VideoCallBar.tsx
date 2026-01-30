@@ -107,8 +107,8 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       }
 
       const startData = await startResponse.json();
-      const url = startData?.data?.url;
-      const accessToken = startData?.data?.access_token;
+      const url = startData?.data?.livekit_url;
+      const accessToken = startData?.data?.livekit_client_token;
 
       if (!url || !accessToken) {
         throw new Error('Missing LiveKit connection data');

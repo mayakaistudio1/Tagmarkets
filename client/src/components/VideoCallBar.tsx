@@ -9,7 +9,7 @@ import {
   RemoteParticipant, 
   ConnectionState 
 } from 'livekit-client';
-import { Video, VideoOff, Mic, MicOff, PhoneOff, Loader2, X } from 'lucide-react';
+import { Video, VideoOff, Mic, MicOff, PhoneOff, Loader2, X, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +23,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'active' | 'finished'>('idle');
   const [isMuted, setIsMuted] = useState(true);
+  const [isAvatarTalking, setIsAvatarTalking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
@@ -68,6 +69,32 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
     },
     []
   );
+
+  const handleActiveSpeakersChanged = useCallback((speakers: any[]) => {
+    if (!roomRef.current) return;
+    
+    const localIdentity = roomRef.current.localParticipant.identity;
+    const avatarIsSpeaking = speakers.some(
+      (speaker) => speaker.identity !== localIdentity
+    );
+
+    console.log("Active speakers changed, avatar speaking:", avatarIsSpeaking);
+
+    setIsAvatarTalking((prevTalking) => {
+      if (avatarIsSpeaking && !prevTalking) {
+        console.log("Avatar started speaking - muting user mic");
+        roomRef.current?.localParticipant.setMicrophoneEnabled(false);
+        setIsMuted(true);
+        return true;
+      } else if (!avatarIsSpeaking && prevTalking) {
+        console.log("Avatar stopped speaking - unmuting user mic");
+        roomRef.current?.localParticipant.setMicrophoneEnabled(true);
+        setIsMuted(false);
+        return false;
+      }
+      return prevTalking;
+    });
+  }, []);
 
   const startSession = async () => {
     try {
@@ -123,6 +150,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
 
       room.on(RoomEvent.TrackSubscribed, handleTrackSubscribed);
       room.on(RoomEvent.TrackUnsubscribed, handleTrackUnsubscribed);
+      room.on(RoomEvent.ActiveSpeakersChanged, handleActiveSpeakersChanged);
       room.on(RoomEvent.ConnectionStateChanged, (state: ConnectionState) => {
         if (state === ConnectionState.Connected) {
           setStatus('active');
@@ -132,6 +160,10 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       });
 
       await room.connect(url, accessToken);
+      
+      await room.localParticipant.setMicrophoneEnabled(true);
+      setIsMuted(false);
+      setIsAvatarTalking(false);
 
       setStatus('active');
       onStart();
@@ -166,17 +198,6 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
     }
   };
 
-  const toggleMute = () => {
-    if (roomRef.current) {
-      const localPart = roomRef.current.localParticipant;
-      localPart.audioTrackPublications.forEach(pub => {
-        if (pub.track) {
-          pub.track.mediaStreamTrack.enabled = isMuted;
-        }
-      });
-      setIsMuted(!isMuted);
-    }
-  };
 
   useEffect(() => {
     return () => {
@@ -269,18 +290,25 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
             <div ref={audioContainerRef} className="hidden" />
             
             {status === 'active' && (
-              <div className="absolute bottom-10 left-0 right-0 flex justify-center items-center gap-6 z-20">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={toggleMute}
-                  className={cn(
-                    "rounded-full w-14 h-14 border-white/20 backdrop-blur-md transition-all",
-                    isMuted ? "bg-red-500/80 text-white" : "bg-white/10 text-white hover:bg-white/20"
+              <div className="absolute bottom-10 left-0 right-0 flex flex-col items-center gap-4 z-20">
+                <div className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md text-sm font-medium transition-all",
+                  isAvatarTalking 
+                    ? "bg-primary/20 text-primary border border-primary/30" 
+                    : "bg-green-500/20 text-green-400 border border-green-500/30"
+                )}>
+                  {isAvatarTalking ? (
+                    <>
+                      <Volume2 size={18} className="animate-pulse" />
+                      <span>Мария говорит...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mic size={18} />
+                      <span>Ваш микрофон включён</span>
+                    </>
                   )}
-                >
-                  {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
-                </Button>
+                </div>
                 
                 <Button
                   variant="destructive"

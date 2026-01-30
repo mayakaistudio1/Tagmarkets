@@ -82,11 +82,6 @@ const HomePage: React.FC<HomePageProps> = ({ onOpenMaria, onOpenLinks }) => {
             Подробнее об EXFUSION
           </Button>
         </a>
-
-        <div className="flex items-center justify-center gap-2 pt-1 text-xs text-muted-foreground">
-          <ShieldCheck size={14} />
-          <span>Без спама. Можно просто задать вопрос.</span>
-        </div>
       </motion.div>
 
       {/* Small Links Button */}

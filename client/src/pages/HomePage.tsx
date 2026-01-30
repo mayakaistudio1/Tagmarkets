@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Link as LinkIcon, Star, Briefcase, Globe, Phone, TrendingUp } from "lucide-react";
+import { Link as LinkIcon, Briefcase, Globe, Phone, TrendingUp } from "lucide-react";
 
 interface HomePageProps {
   onOpenMaria: () => void;
@@ -44,22 +44,6 @@ const HomePage: React.FC<HomePageProps> = ({ onOpenLinks }) => {
             <p className="text-xs font-medium">Строим пассивный доход</p>
           </Card>
         </div>
-      </motion.div>
-
-      {/* Hero Badge & Text - Below Alexander */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="space-y-3"
-      >
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary-foreground dark:text-primary rounded-full text-xs font-semibold backdrop-blur-sm">
-          <Star size={12} className="fill-current" />
-          Открыто только 10 мест в первую линию
-        </div>
-        <p className="text-lg text-muted-foreground leading-relaxed">
-          Понятная система. Прозрачные условия. Первый шаг за тобой.
-        </p>
       </motion.div>
 
       {/* Single CTA Button */}

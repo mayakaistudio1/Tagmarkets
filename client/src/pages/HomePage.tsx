@@ -19,72 +19,104 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="p-4 pb-24 space-y-6">
-      {/* Alexander Section */}
+    <div className="p-4 pb-24 space-y-4">
+      {/* Block 1: Alexander Introduction */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-4"
       >
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold leading-tight tracking-tight">Александр Попп</h1>
-          <p className="text-xl font-medium text-primary">Твой проводник в мир пассивного дохода</p>
-        </div>
+        <Card className="border border-gray-100 shadow-sm bg-white p-5 rounded-2xl">
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-bold leading-tight tracking-tight">Александр Попп</h1>
+              <p className="text-base font-medium text-primary">Твой проводник в мир пассивного дохода</p>
+            </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="border-none shadow-sm bg-card hover:bg-card/80 transition-colors p-4">
-            <Briefcase className="w-6 h-6 text-primary mb-2" />
-            <p className="text-xs font-medium">Более 10 лет в финансах</p>
-          </Card>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl">
+                <Briefcase className="w-5 h-5 text-primary flex-shrink-0" />
+                <p className="text-xs font-medium text-gray-700">Более 10 лет в финансах</p>
+              </div>
 
-          <Card className="border-none shadow-sm bg-card hover:bg-card/80 transition-colors p-4">
-            <Globe className="w-6 h-6 text-primary mb-2" />
-            <p className="text-xs font-medium">Просто о сложном</p>
-          </Card>
+              <div className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl">
+                <Globe className="w-5 h-5 text-primary flex-shrink-0" />
+                <p className="text-xs font-medium text-gray-700">Просто о сложном</p>
+              </div>
 
-          <Card className="border-none shadow-sm bg-card hover:bg-card/80 transition-colors p-4">
-            <Phone className="w-6 h-6 text-primary mb-2" />
-            <p className="text-xs font-medium">Всегда на связи</p>
-          </Card>
+              <div className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl">
+                <Phone className="w-5 h-5 text-primary flex-shrink-0" />
+                <p className="text-xs font-medium text-gray-700">Всегда на связи</p>
+              </div>
 
-          <Card className="border-none shadow-sm bg-card hover:bg-card/80 transition-colors p-4">
-            <TrendingUp className="w-6 h-6 text-primary mb-2" />
-            <p className="text-xs font-medium">Строим пассивный доход</p>
-          </Card>
-        </div>
+              <div className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl">
+                <TrendingUp className="w-5 h-5 text-primary flex-shrink-0" />
+                <p className="text-xs font-medium text-gray-700">Строим пассивный доход</p>
+              </div>
+            </div>
+          </div>
+        </Card>
       </motion.div>
 
-      {/* Maria Greeting Section */}
+      {/* Block 2: About Exfusion */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="space-y-4"
       >
-        <div className="flex gap-3">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <span className="text-xl font-bold text-primary">M</span>
-          </div>
-          <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 flex-1">
-            <p className="text-[15px] text-gray-800 leading-relaxed">
-              Привет! Я Мария, ассистент Александра. Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?
+        <Card className="border border-gray-100 shadow-sm bg-white p-5 rounded-2xl">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold">Exfusion</h2>
+                <p className="text-sm text-gray-500">Инвестиционная экосистема</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Платформа для создания пассивного дохода с прозрачными условиями и поддержкой на каждом этапе.
             </p>
           </div>
-        </div>
+        </Card>
+      </motion.div>
 
-        {/* Quick Questions */}
-        <div className="flex flex-wrap gap-2 pl-15">
-          {QUICK_REPLIES.map((question) => (
-            <button
-              key={question}
-              onClick={() => handleQuickReply(question)}
-              className="px-4 py-2.5 text-sm font-medium bg-white border border-gray-200 text-gray-700 rounded-full hover:bg-gray-50 hover:border-primary/30 transition-colors active:scale-95 shadow-sm"
-              data-testid={`quick-reply-${question.slice(0, 10)}`}
-            >
-              {question}
-            </button>
-          ))}
-        </div>
+      {/* Block 3: Maria Chat Start */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <Card className="border border-gray-100 shadow-sm bg-white p-5 rounded-2xl">
+          <div className="space-y-4">
+            <div className="flex gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-lg font-bold text-primary">M</span>
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-bold">Мария</h2>
+                <p className="text-sm text-gray-500">AI-ассистент</p>
+              </div>
+            </div>
+            
+            <p className="text-sm text-gray-700 leading-relaxed">
+              Привет! Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              {QUICK_REPLIES.map((question) => (
+                <button
+                  key={question}
+                  onClick={() => handleQuickReply(question)}
+                  className="px-4 py-2 text-sm font-medium bg-gray-50 border border-gray-200 text-gray-700 rounded-full hover:bg-primary/5 hover:border-primary/30 transition-colors active:scale-95"
+                  data-testid={`quick-reply-${question.slice(0, 10)}`}
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          </div>
+        </Card>
       </motion.div>
     </div>
   );

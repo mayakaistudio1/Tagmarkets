@@ -243,64 +243,78 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
-      className="sticky top-0 z-40 bg-black"
-    >
-      <div className="relative aspect-[16/9] max-h-[200px] w-full overflow-hidden">
-        {status === 'connecting' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white">
-            <Loader2 size={32} className="animate-spin mb-2" />
-            <span className="text-sm">Подключение...</span>
-          </div>
-        )}
-        
-        <video 
-          ref={videoRef} 
-          autoPlay 
-          playsInline 
-          className={cn("w-full h-full object-cover", status !== 'active' && "hidden")}
-        />
-        
-        <div ref={audioContainerRef} className="hidden" />
-        
-        {status === 'active' && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleMute}
-              className={cn(
-                "rounded-full w-10 h-10 border-white/30",
-                isMuted ? "bg-red-500/80 text-white" : "bg-white/20 text-white"
-              )}
-            >
-              {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
-            </Button>
-            <Button
-              variant="destructive"
-              size="icon"
-              onClick={endSession}
-              className="rounded-full w-12 h-12"
-            >
-              <PhoneOff size={20} />
-            </Button>
-          </div>
-        )}
+    <AnimatePresence>
+      {(isActive || status !== 'idle') && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[150] bg-black flex flex-col"
+        >
+          <div className="relative flex-1 w-full overflow-hidden bg-gray-900">
+            {status === 'connecting' && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-white z-10">
+                <Loader2 size={48} className="animate-spin mb-4 text-primary" />
+                <span className="text-lg font-medium">Подключение к Марии...</span>
+              </div>
+            )}
+            
+            <video 
+              ref={videoRef} 
+              autoPlay 
+              playsInline 
+              className={cn("w-full h-full object-cover", status !== 'active' && "hidden")}
+            />
+            
+            <div ref={audioContainerRef} className="hidden" />
+            
+            {status === 'active' && (
+              <div className="absolute bottom-10 left-0 right-0 flex justify-center items-center gap-6 z-20">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={toggleMute}
+                  className={cn(
+                    "rounded-full w-14 h-14 border-white/20 backdrop-blur-md transition-all",
+                    isMuted ? "bg-red-500/80 text-white" : "bg-white/10 text-white hover:bg-white/20"
+                  )}
+                >
+                  {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
+                </Button>
+                
+                <Button
+                  variant="destructive"
+                  onClick={endSession}
+                  className="rounded-full h-14 px-8 bg-red-600 hover:bg-red-700 text-white font-bold text-lg shadow-xl shadow-red-900/20 gap-2"
+                >
+                  <PhoneOff size={24} />
+                  Завершить звонок
+                </Button>
+              </div>
+            )}
 
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/90 text-white p-4">
-            <div className="text-center">
-              <p className="text-red-400 mb-2">{error}</p>
-              <Button onClick={startSession} variant="outline" size="sm">
-                Попробовать снова
-              </Button>
-            </div>
+            {error && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900/95 text-white p-6 z-30">
+                <div className="text-center max-w-sm">
+                  <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+                    <X size={32} className="text-red-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Ошибка подключения</h3>
+                  <p className="text-gray-400 mb-6">{error}</p>
+                  <div className="flex gap-3 justify-center">
+                    <Button onClick={endSession} variant="ghost" className="text-white hover:bg-white/10">
+                      Закрыть
+                    </Button>
+                    <Button onClick={startSession} className="bg-primary text-black font-bold">
+                      Попробовать снова
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

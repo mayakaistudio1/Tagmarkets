@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Briefcase, Globe, Phone, TrendingUp, MessageCircle } from "lucide-react";
@@ -12,6 +12,20 @@ const QUICK_REPLIES = [
 
 const HomePage: React.FC = () => {
   const [, setLocation] = useLocation();
+  const [displayText, setDisplayText] = useState("");
+  const fullText = "Привет, я Мария ассистент Александра. Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?";
+
+  useEffect(() => {
+    let i = 0;
+    const timer = setInterval(() => {
+      setDisplayText(fullText.slice(0, i));
+      i++;
+      if (i > fullText.length) {
+        clearInterval(timer);
+      }
+    }, 40);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleQuickReply = (question: string) => {
     localStorage.setItem('maria-initial-question', question);
@@ -69,7 +83,7 @@ const HomePage: React.FC = () => {
         </Card>
       </motion.div>
 
-      {/* Block 2: Maria Chat - Telegram Style */}
+      {/* Block 2: Maria Chat - Messenger Style (Variant 3) */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -77,25 +91,27 @@ const HomePage: React.FC = () => {
       >
         <Card className="border-0 card-elevated bg-white p-5 rounded-3xl">
           <div className="space-y-4">
-            {/* Chat Bubble - Messenger Style (Variant 3) */}
+            {/* Maria Messenger UI */}
             <div className="space-y-3">
               <div className="flex items-end gap-2">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mb-1 border border-primary/10">
-                  <span className="text-xs font-bold text-primary">M</span>
+                <div className="relative flex-shrink-0 mb-1">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/10">
+                    <span className="text-xs font-bold text-primary">M</span>
+                  </div>
+                  <div className="absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full" />
                 </div>
-                <div className="chat-bubble chat-bubble-incoming !max-w-[85%] !p-3.5 !bg-gray-50 border border-gray-100">
+                <div className="chat-bubble chat-bubble-incoming !max-w-[85%] !p-3.5 !bg-gray-50 border border-gray-100 min-h-[60px]">
                   <p className="text-[14px] text-gray-800 leading-relaxed">
-                    Привет, я <span className="font-semibold text-primary">Мария</span> ассистент Александра. 
-                    Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?
+                    {displayText}
+                    {displayText.length < fullText.length && (
+                      <span className="inline-block w-1.5 h-4 ml-0.5 bg-primary/50 animate-pulse align-middle" />
+                    )}
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-1.5 ml-10 opacity-60">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
-                <span className="text-[10px] font-medium text-gray-500 ml-1">Мария печатает...</span>
+              <div className="flex items-center gap-2 ml-10">
+                <span className="text-[10px] font-semibold text-green-500">Мария онлайн</span>
               </div>
             </div>
 

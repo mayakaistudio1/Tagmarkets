@@ -46,18 +46,21 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.length > 0) {
+        if (parsed.length > 1) {
           setMessages(parsed);
           setShowQuickReplies(false);
         } else {
           setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
+          setShowQuickReplies(true);
         }
       } catch (e) {
         console.error('Failed to parse chat history:', e);
         setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
+        setShowQuickReplies(true);
       }
     } else {
       setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
+      setShowQuickReplies(true);
     }
   }, []);
 
@@ -196,6 +199,17 @@ export default function TextChat({ onSwitchToVideo }: TextChatProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {onSwitchToVideo && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onSwitchToVideo}
+              className="text-primary hover:bg-primary/10"
+              data-testid="button-video-call"
+            >
+              <Video size={22} />
+            </Button>
+          )}
           {messages.length > 1 && (
             <Button
               variant="ghost"

@@ -28,12 +28,16 @@ export async function getSessionToken(language: string = "ru"): Promise<any> {
   const LIVEAVATAR_VOICE_ID_EN = process.env.LIVEAVATAR_VOICE_ID_EN || LIVEAVATAR_VOICE_ID;
   const voiceId = language === "en" ? LIVEAVATAR_VOICE_ID_EN : LIVEAVATAR_VOICE_ID;
 
+  // Use English context if available, otherwise use default (Russian) context
+  const LIVEAVATAR_CONTEXT_ID_EN = process.env.LIVEAVATAR_CONTEXT_ID_EN;
+  const contextId = language === "en" ? (LIVEAVATAR_CONTEXT_ID_EN || LIVEAVATAR_CONTEXT_ID) : LIVEAVATAR_CONTEXT_ID;
+
   const payload = {
     mode: "FULL",
     avatar_id: LIVEAVATAR_AVATAR_ID,
     avatar_persona: {
       voice_id: voiceId,
-      context_id: LIVEAVATAR_CONTEXT_ID,
+      context_id: contextId,
       language: heygenLanguage
     }
   };

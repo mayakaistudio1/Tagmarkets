@@ -21,8 +21,8 @@ export async function getSessionToken(language: string = "ru"): Promise<any> {
     throw new Error("Missing LIVEAVATAR_API_KEY in environment");
   }
 
-  // Map language codes for HeyGen API
-  const heygenLanguage = language === "en" ? "en-US" : "ru-RU";
+  // Use simple language codes for HeyGen API: "ru" or "en"
+  const heygenLanguage = language === "en" ? "en" : "ru";
   
   // Use English voice if available, otherwise default voice
   const LIVEAVATAR_VOICE_ID_EN = process.env.LIVEAVATAR_VOICE_ID_EN || LIVEAVATAR_VOICE_ID;

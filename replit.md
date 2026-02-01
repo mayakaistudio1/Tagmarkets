@@ -34,7 +34,15 @@ Preferred communication style: Simple, everyday language.
 - **Text Chat**: OpenAI API via Replit AI Integrations for Maria text conversations
 - **Video Avatar**: HeyGen LiveAvatar integration using LiveKit for real-time video streaming
 - **Voice Processing**: Custom audio worklet implementation for PCM16 streaming playback
-- **System Prompt**: Maria persona defined as a friendly Russian-speaking assistant with strict response length limits
+- **System Prompt**: Maria persona with dual-language support (RU/EN) with strict response length limits
+
+### Multilingual Support
+- **Languages**: Russian (ru) and English (en)
+- **Language Context**: `client/src/contexts/LanguageContext.tsx` manages language state
+- **Storage**: Language preference stored in localStorage as 'app-language'
+- **UI Selector**: RU/EN toggle on main screen (HomePage)
+- **Backend Support**: Chat API accepts `language` parameter to use appropriate system prompt
+- **Translations**: All UI text, Maria greetings, quick replies, and suggestions are translated
 
 ### Build System
 - **Development**: Vite dev server with HMR on port 5000, proxied through Express

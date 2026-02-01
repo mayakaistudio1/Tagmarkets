@@ -21,13 +21,20 @@ export async function getSessionToken(language: string = "ru"): Promise<any> {
     throw new Error("Missing LIVEAVATAR_API_KEY in environment");
   }
 
+  // Map language codes for HeyGen API
+  const heygenLanguage = language === "en" ? "en-US" : "ru-RU";
+  
+  // Use English voice if available, otherwise default voice
+  const LIVEAVATAR_VOICE_ID_EN = process.env.LIVEAVATAR_VOICE_ID_EN || LIVEAVATAR_VOICE_ID;
+  const voiceId = language === "en" ? LIVEAVATAR_VOICE_ID_EN : LIVEAVATAR_VOICE_ID;
+
   const payload = {
     mode: "FULL",
     avatar_id: LIVEAVATAR_AVATAR_ID,
     avatar_persona: {
-      voice_id: LIVEAVATAR_VOICE_ID,
+      voice_id: voiceId,
       context_id: LIVEAVATAR_CONTEXT_ID,
-      language
+      language: heygenLanguage
     }
   };
 

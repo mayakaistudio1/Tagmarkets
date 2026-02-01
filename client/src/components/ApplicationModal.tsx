@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check, Loader2 } from "lucide-react";
 import { tg } from "@/lib/telegram";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ApplicationModalProps {
   isOpen: boolean;
@@ -12,8 +13,43 @@ interface ApplicationModalProps {
 }
 
 const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) => {
+  const { language } = useLanguage();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
+
+  const texts = language === 'en' ? {
+    title: 'Application',
+    description: 'Fill out the form and we will contact you shortly.',
+    name: 'Name',
+    namePlaceholder: 'How should we call you?',
+    contact: 'Contact',
+    contactPlaceholder: 'Telegram or WhatsApp',
+    interest: 'Interest',
+    interestPlaceholder: 'Select topic',
+    passive: 'Passive income',
+    team: 'Building a team',
+    general: 'General overview',
+    submit: 'Submit',
+    success: 'Thank you!',
+    successMsg: 'We will contact you shortly.',
+    error: 'An error occurred. Please try again.',
+  } : {
+    title: 'Заявка',
+    description: 'Заполните форму, и мы свяжемся с вами в ближайшее время.',
+    name: 'Имя',
+    namePlaceholder: 'Как к вам обращаться?',
+    contact: 'Контакт',
+    contactPlaceholder: 'Telegram или WhatsApp',
+    interest: 'Что интересно',
+    interestPlaceholder: 'Выберите тему',
+    passive: 'Пассивный доход',
+    team: 'Построение команды',
+    general: 'Общий обзор',
+    submit: 'Отправить',
+    success: 'Спасибо!',
+    successMsg: 'Мы свяжемся с вами в ближайшее время.',
+    error: 'Произошла ошибка. Попробуйте еще раз.',
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -42,7 +78,6 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) 
       setIsSuccess(true);
       form.reset();
       
-      // Auto close after success
       setTimeout(() => {
         setIsSuccess(false);
         onClose();
@@ -50,7 +85,7 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) 
     } catch (error) {
       console.error("Error submitting application:", error);
       setIsSubmitting(false);
-      alert("Произошла ошибка. Попробуйте еще раз.");
+      alert(texts.error);
     }
   };
 
@@ -65,39 +100,39 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) 
             <div className="max-w-md mx-auto">
               {!isSuccess ? (
                 <>
-                  <Drawer.Title className="font-bold text-2xl mb-2 text-foreground">Заявка</Drawer.Title>
+                  <Drawer.Title className="font-bold text-2xl mb-2 text-foreground">{texts.title}</Drawer.Title>
                   <Drawer.Description className="text-muted-foreground mb-6">
-                    Заполните форму, и мы свяжемся с вами в ближайшее время.
+                    {texts.description}
                   </Drawer.Description>
                   
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Имя</Label>
-                      <Input id="name" name="name" placeholder="Как к вам обращаться?" required className="bg-background" />
+                      <Label htmlFor="name">{texts.name}</Label>
+                      <Input id="name" name="name" placeholder={texts.namePlaceholder} required className="bg-background" />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="contact">Контакт</Label>
-                      <Input id="contact" name="contact" placeholder="Telegram или WhatsApp" required className="bg-background" />
+                      <Label htmlFor="contact">{texts.contact}</Label>
+                      <Input id="contact" name="contact" placeholder={texts.contactPlaceholder} required className="bg-background" />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="interest">Что интересно</Label>
+                      <Label htmlFor="interest">{texts.interest}</Label>
                       <select
                         id="interest"
                         name="interest"
                         required
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        <option value="">Выберите тему</option>
-                        <option value="passive">Пассивный доход</option>
-                        <option value="team">Построение команды</option>
-                        <option value="general">Общий обзор</option>
+                        <option value="">{texts.interestPlaceholder}</option>
+                        <option value="passive">{texts.passive}</option>
+                        <option value="team">{texts.team}</option>
+                        <option value="general">{texts.general}</option>
                       </select>
                     </div>
                     
                     <Button type="submit" className="w-full mt-4 font-bold rounded-xl h-12 text-base shadow-lg shadow-primary/20" disabled={isSubmitting}>
-                      {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : "Отправить"}
+                      {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : texts.submit}
                     </Button>
                   </form>
                 </>
@@ -106,8 +141,8 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) 
                   <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4 text-green-600 dark:text-green-400">
                     <Check size={32} strokeWidth={3} />
                   </div>
-                  <h3 className="text-2xl font-bold mb-2">Спасибо!</h3>
-                  <p className="text-muted-foreground">Мы свяжемся с вами в ближайшее время.</p>
+                  <h3 className="text-2xl font-bold mb-2">{texts.success}</h3>
+                  <p className="text-muted-foreground">{texts.successMsg}</p>
                 </div>
               )}
             </div>

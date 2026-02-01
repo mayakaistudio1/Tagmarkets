@@ -1,6 +1,7 @@
 import React from "react";
 import { Home, Zap, MessageCircle, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TabBarProps {
   currentPath: string;
@@ -9,10 +10,12 @@ interface TabBarProps {
 }
 
 const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate, onOpenApplication }) => {
+  const { t } = useLanguage();
+  
   const tabs = [
-    { id: "home", label: "Главная", icon: Home, path: "/" },
-    { id: "xfusion", label: "XFusion", icon: Zap, path: "/xfusion" },
-    { id: "maria", label: "Общение", icon: MessageCircle, path: "/maria" },
+    { id: "home", labelKey: "nav.home", icon: Home, path: "/" },
+    { id: "xfusion", labelKey: "nav.xfusion", icon: Zap, path: "/xfusion" },
+    { id: "maria", labelKey: "nav.chat", icon: MessageCircle, path: "/maria" },
   ];
 
   return (
@@ -46,7 +49,7 @@ const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate, onOpenApplicat
                   "text-[11px] font-medium leading-none transition-colors",
                   isActive && "font-semibold"
                 )}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </span>
               </button>
             );
@@ -57,10 +60,10 @@ const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate, onOpenApplicat
             className="flex flex-col items-center justify-center flex-1 py-1.5 gap-1 text-gray-400 hover:text-primary transition-all active:scale-95"
             data-testid="tab-application"
           >
-            <div className="p-1.5 rounded-full" style={{ backgroundColor: 'rgba(0, 200, 83, 0.12)' }}>
+            <div className="p-1.5 rounded-full" style={{ backgroundColor: 'rgba(18, 161, 82, 0.12)' }}>
               <FileText size={22} className="text-primary" strokeWidth={2.5} />
             </div>
-            <span className="text-[11px] font-semibold leading-none text-primary">Заявка</span>
+            <span className="text-[11px] font-semibold leading-none text-primary">{t('nav.application')}</span>
           </button>
         </div>
       </div>

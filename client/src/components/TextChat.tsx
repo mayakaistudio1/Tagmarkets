@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Link } from 'wouter';
 import VideoCallBar from './VideoCallBar';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChatMessage {
   id: string;
@@ -15,25 +16,25 @@ interface ChatMessage {
 
 const STORAGE_KEY = 'maria-chat-history';
 
-const INITIAL_GREETING: ChatMessage = {
-  id: 'greeting',
-  role: 'assistant',
-  content: 'Привет! Я Мария, ассистент Александра. Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?',
-  timestamp: 0,
-};
-
-const INITIAL_QUICK_REPLIES = [
-  'Что такое Exfusion?',
-  'Как начать зарабатывать?',
-  'Это безопасно?',
-];
-
 export default function TextChat() {
+  const { language, t } = useLanguage();
+  
+  const getInitialGreeting = (): ChatMessage => ({
+    id: 'greeting',
+    role: 'assistant',
+    content: t('chat.greeting'),
+    timestamp: 0,
+  });
+
+  const getInitialQuickReplies = () => language === 'en' 
+    ? ['What is Exfusion?', 'How to start earning?', 'Is it safe?']
+    : ['Что такое Exfusion?', 'Как начать зарабатывать?', 'Это безопасно?'];
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
-  const [quickReplies, setQuickReplies] = useState<string[]>(INITIAL_QUICK_REPLIES);
+  const [quickReplies, setQuickReplies] = useState<string[]>(getInitialQuickReplies());
   const [isVideoActive, setIsVideoActive] = useState(false);
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -49,6 +50,7 @@ export default function TextChat() {
           messages: history
             .filter(m => m.id !== 'greeting')
             .map(m => ({ role: m.role, content: m.content })),
+          language,
         }),
       });
       if (response.ok) {
@@ -73,16 +75,16 @@ export default function TextChat() {
           setMessages(parsed);
           updateSuggestions(parsed);
         } else {
-          setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
-          setQuickReplies(INITIAL_QUICK_REPLIES);
+          setMessages([{ ...getInitialGreeting(), timestamp: Date.now() }]);
+          setQuickReplies(getInitialQuickReplies());
         }
       } catch (e) {
         console.error('Failed to parse chat history:', e);
-        setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
+        setMessages([{ ...getInitialGreeting(), timestamp: Date.now() }]);
       }
     } else {
-      setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
-      setQuickReplies(INITIAL_QUICK_REPLIES);
+      setMessages([{ ...getInitialGreeting(), timestamp: Date.now() }]);
+      setQuickReplies(getInitialQuickReplies());
     }
 
     if (initialQuestion) {
@@ -138,6 +140,7 @@ export default function TextChat() {
           messages: currentMessages
             .filter(m => m.id !== 'greeting')
             .map(m => ({ role: m.role, content: m.content })),
+          language,
         }),
       });
 
@@ -188,7 +191,7 @@ export default function TextChat() {
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Извините, произошла ошибка. Попробуйте позже.',
+        content: language === 'en' ? 'Sorry, something went wrong. Please try again.' : 'Извините, произошла ошибка. Попробуйте позже.',
         timestamp: Date.now(),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -222,6 +225,7 @@ export default function TextChat() {
           messages: updatedMessages
             .filter(m => m.id !== 'greeting')
             .map(m => ({ role: m.role, content: m.content })),
+          language,
         }),
       });
 
@@ -272,7 +276,7 @@ export default function TextChat() {
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Извини, что-то пошло не так. Попробуй еще раз!',
+        content: language === 'en' ? 'Sorry, something went wrong. Please try again!' : 'Извини, что-то пошло не так. Попробуй еще раз!',
         timestamp: Date.now(),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -283,7 +287,8 @@ export default function TextChat() {
   };
 
   const clearHistory = () => {
-    setMessages([{ ...INITIAL_GREETING, timestamp: Date.now() }]);
+    setMessages([{ ...getInitialGreeting(), timestamp: Date.now() }]);
+    setQuickReplies(getInitialQuickReplies());
     localStorage.removeItem(STORAGE_KEY);
   };
 
@@ -312,8 +317,8 @@ export default function TextChat() {
             <span className="text-lg font-bold text-primary">M</span>
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900">Мария</h2>
-            <span className="text-xs text-green-500 font-medium">Онлайн</span>
+            <h2 className="font-semibold text-gray-900">{t('chat.maria')}</h2>
+            <span className="text-xs text-green-500 font-medium">{t('chat.online')}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -356,7 +361,7 @@ export default function TextChat() {
                 className={cn(
                   "max-w-[85%] px-4 py-2.5 rounded-2xl text-[15px] leading-relaxed",
                   msg.role === 'user'
-                    ? "bg-primary text-black rounded-tr-sm"
+                    ? "bg-primary text-white rounded-tr-sm"
                     : "bg-gray-100 text-gray-800 rounded-tl-sm"
                 )}
               >
@@ -427,7 +432,7 @@ export default function TextChat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Напишите сообщение..."
+            placeholder={t('chat.placeholder')}
             disabled={isLoading}
             className="flex-1 h-12 px-5 rounded-full bg-gray-50 border-none text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary/20"
             data-testid="input-chat-message"

@@ -3,19 +3,16 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Briefcase, Globe, Phone, TrendingUp, MessageCircle } from "lucide-react";
 import { useLocation } from "wouter";
-
-const QUICK_REPLIES = [
-  'Что такое Exfusion?',
-  'Как начать зарабатывать?',
-  'Это безопасно?',
-];
+import { useLanguage, Language } from "@/contexts/LanguageContext";
 
 const HomePage: React.FC = () => {
   const [, setLocation] = useLocation();
+  const { language, setLanguage, t } = useLanguage();
   const [displayText, setDisplayText] = useState("");
-  const fullText = "Привет, я Мария ассистент Александра. Расскажу тебе про Exfusion и помогу разобраться. Что тебя интересует?";
+  const fullText = t('home.mariaGreeting');
 
   useEffect(() => {
+    setDisplayText("");
     let i = 0;
     const timer = setInterval(() => {
       setDisplayText(fullText.slice(0, i));
@@ -25,7 +22,13 @@ const HomePage: React.FC = () => {
       }
     }, 40);
     return () => clearInterval(timer);
-  }, []);
+  }, [fullText]);
+
+  const quickReplies = [
+    t('quick.whatIsExfusion'),
+    t('quick.howToEarn'),
+    t('quick.isSafe'),
+  ];
 
   const handleQuickReply = (question: string) => {
     localStorage.setItem('maria-initial-question', question);
@@ -36,8 +39,25 @@ const HomePage: React.FC = () => {
     setLocation('/maria');
   };
 
+  const toggleLanguage = () => {
+    setLanguage(language === 'ru' ? 'en' : 'ru');
+  };
+
   return (
     <div className="p-4 pb-24 space-y-4">
+      {/* Language Selector */}
+      <div className="flex justify-end">
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+          data-testid="language-toggle"
+        >
+          <span className={language === 'ru' ? 'font-bold text-primary' : ''}>RU</span>
+          <span className="text-gray-300">|</span>
+          <span className={language === 'en' ? 'font-bold text-primary' : ''}>EN</span>
+        </button>
+      </div>
+
       {/* Block 1: Alexander Introduction */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
@@ -46,8 +66,8 @@ const HomePage: React.FC = () => {
         <Card className="border-0 card-elevated bg-white p-6 rounded-3xl">
           <div className="space-y-6">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold leading-tight tracking-tight" style={{ fontWeight: 700 }}>Александр Попп</h1>
-              <p className="text-base font-medium" style={{ color: '#666666' }}>Твой проводник в мир пассивного дохода</p>
+              <h1 className="text-2xl font-bold leading-tight tracking-tight" style={{ fontWeight: 700 }}>{t('home.title')}</h1>
+              <p className="text-base font-medium" style={{ color: '#666666' }}>{t('home.subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -55,35 +75,35 @@ const HomePage: React.FC = () => {
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Briefcase className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-[11px] font-medium text-gray-700 leading-tight">Более 10 лет в финансах</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.experience')}</p>
               </div>
 
               <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Globe className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-[11px] font-medium text-gray-700 leading-tight">Просто о сложном</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.simple')}</p>
               </div>
 
               <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Phone className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-[11px] font-medium text-gray-700 leading-tight">Всегда на связи</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.available')}</p>
               </div>
 
               <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <TrendingUp className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-[11px] font-medium text-gray-700 leading-tight">Строим доход</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.income')}</p>
               </div>
             </div>
           </div>
         </Card>
       </motion.div>
 
-      {/* Block 2: Maria Chat - Messenger Style (Variant 3) */}
+      {/* Block 2: Maria Chat */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -111,13 +131,13 @@ const HomePage: React.FC = () => {
               </div>
               
               <div className="flex items-center gap-2 ml-10">
-                <span className="text-[10px] font-semibold text-green-500">Мария онлайн</span>
+                <span className="text-[10px] font-semibold text-green-500">{t('home.mariaOnline')}</span>
               </div>
             </div>
 
-            {/* Quick Reply Buttons - Compact Telegram Style */}
+            {/* Quick Reply Buttons */}
             <div className="flex flex-wrap gap-2 pt-1">
-              {QUICK_REPLIES.map((question) => (
+              {quickReplies.map((question) => (
                 <button
                   key={question}
                   onClick={() => handleQuickReply(question)}
@@ -137,7 +157,7 @@ const HomePage: React.FC = () => {
               data-testid="cta-ask-maria"
             >
               <MessageCircle className="w-5 h-5" />
-              Спросить Марию
+              {t('home.askMaria')}
             </button>
           </div>
         </Card>

@@ -3,8 +3,8 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Home, Users, MessageCircle, FileText } from "lucide-react";
 import { initTelegram } from "@/lib/telegram";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
-// Pages
 import HomePage from "@/pages/HomePage";
 import XFusionPage from "@/pages/XFusionPage";
 import MariaPage from "@/pages/MariaPage";
@@ -12,7 +12,7 @@ import LinksPage from "@/pages/LinksPage";
 import ApplicationModal from "@/components/ApplicationModal";
 import TabBar from "@/components/TabBar";
 
-function App() {
+function AppContent() {
   const [location, setLocation] = useLocation();
   const [isAppModalOpen, setIsAppModalOpen] = React.useState(false);
 
@@ -20,13 +20,12 @@ function App() {
     initTelegram();
   }, []);
 
-  // Simple router switch
   const renderPage = () => {
     switch (location) {
       case "/":
         return <HomePage />;
       case "/xfusion":
-        return <XFusionPage onOpenMaria={() => setLocation("/maria")} />;
+        return <XFusionPage />;
       case "/popp":
         setLocation("/");
         return <HomePage />;
@@ -69,6 +68,14 @@ function App() {
         />
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }
 

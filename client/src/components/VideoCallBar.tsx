@@ -12,6 +12,7 @@ import {
 import { Video, VideoOff, Mic, MicOff, PhoneOff, Loader2, X, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface VideoCallBarProps {
   isActive: boolean;
@@ -20,6 +21,7 @@ interface VideoCallBarProps {
 }
 
 export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarProps) {
+  const { language } = useLanguage();
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'active' | 'finished'>('idle');
   const [isMuted, setIsMuted] = useState(true);
@@ -33,6 +35,32 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const roomRef = useRef<Room | null>(null);
   const speakerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const texts = language === 'en' ? {
+    startVideoCall: 'Start video call with Maria',
+    maria: 'Maria',
+    readyToAnswer: 'Ready to answer your questions in real time',
+    startConversation: 'Start conversation',
+    connectingToMaria: 'Connecting to Maria...',
+    mariaSpeaking: 'Maria is speaking...',
+    micEnabled: 'Your microphone is on',
+    endCall: 'End call',
+    connectionError: 'Connection error',
+    close: 'Close',
+    tryAgain: 'Try again',
+  } : {
+    startVideoCall: 'Начать видеозвонок с Марией',
+    maria: 'Мария',
+    readyToAnswer: 'Готова ответить на ваши вопросы в режиме реального времени',
+    startConversation: 'Начать разговор',
+    connectingToMaria: 'Подключение к Марии...',
+    mariaSpeaking: 'Мария говорит...',
+    micEnabled: 'Ваш микрофон включён',
+    endCall: 'Завершить звонок',
+    connectionError: 'Ошибка подключения',
+    close: 'Закрыть',
+    tryAgain: 'Попробовать снова',
+  };
 
   const handleTrackSubscribed = useCallback(
     (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
@@ -157,7 +185,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       const tokenResponse = await fetch('/api/liveavatar/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ language: 'ru' }),
+        body: JSON.stringify({ language }),
       });
 
       if (!tokenResponse.ok) {
@@ -283,7 +311,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
             data-testid="button-start-video"
           >
             <Video size={20} />
-            Начать видеозвонок с Марией
+            {texts.startVideoCall}
           </Button>
         </motion.div>
 
@@ -305,17 +333,17 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
               <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-6">
                 <Mic className="w-10 h-10 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold mb-2 text-white">Мария</h2>
-              <p className="text-gray-400 mb-8 max-w-[280px]">Готова ответить на ваши вопросы в режиме реального времени</p>
+              <h2 className="text-2xl font-bold mb-2 text-white">{texts.maria}</h2>
+              <p className="text-gray-400 mb-8 max-w-[280px]">{texts.readyToAnswer}</p>
               <Button
                 onClick={() => {
                   setIsOverlayVisible(false);
                   startSession();
                 }}
-                className="w-full max-w-[280px] h-14 rounded-2xl bg-primary text-black font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                className="w-full max-w-[280px] h-14 rounded-2xl bg-primary text-white font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
                 data-testid="button-confirm-start-video"
               >
-                Начать разговор
+                {texts.startConversation}
               </Button>
             </motion.div>
           )}
@@ -337,7 +365,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
             {status === 'connecting' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-white z-10">
                 <Loader2 size={48} className="animate-spin mb-4 text-primary" />
-                <span className="text-lg font-medium">Подключение к Марии...</span>
+                <span className="text-lg font-medium">{texts.connectingToMaria}</span>
               </div>
             )}
             
@@ -361,12 +389,12 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
                   {isAvatarTalking ? (
                     <>
                       <Volume2 size={18} className="animate-pulse" />
-                      <span>Мария говорит...</span>
+                      <span>{texts.mariaSpeaking}</span>
                     </>
                   ) : (
                     <>
                       <Mic size={18} />
-                      <span>Ваш микрофон включён</span>
+                      <span>{texts.micEnabled}</span>
                     </>
                   )}
                 </div>
@@ -377,7 +405,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
                   className="rounded-full h-14 px-8 bg-red-600 hover:bg-red-700 text-white font-bold text-lg shadow-xl shadow-red-900/20 gap-2"
                 >
                   <PhoneOff size={24} />
-                  Завершить звонок
+                  {texts.endCall}
                 </Button>
               </div>
             )}
@@ -388,14 +416,14 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
                   <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
                     <X size={32} className="text-red-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Ошибка подключения</h3>
+                  <h3 className="text-xl font-bold mb-2">{texts.connectionError}</h3>
                   <p className="text-gray-400 mb-6">{error}</p>
                   <div className="flex gap-3 justify-center">
                     <Button onClick={endSession} variant="ghost" className="text-white hover:bg-white/10">
-                      Закрыть
+                      {texts.close}
                     </Button>
-                    <Button onClick={startSession} className="bg-primary text-black font-bold">
-                      Попробовать снова
+                    <Button onClick={startSession} className="bg-primary text-white font-bold">
+                      {texts.tryAgain}
                     </Button>
                   </div>
                 </div>

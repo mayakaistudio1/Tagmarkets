@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ExternalLink, FileText, UserPlus, ChevronLeft, Copy, BarChart3, GraduationCap, Users, Shield, Rocket } from "lucide-react";
+import { ExternalLink, FileText, UserPlus, ChevronLeft, Copy, BarChart3, GraduationCap, Users, Shield } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -47,8 +47,8 @@ const XFusionPage: React.FC = () => {
           </button>
         </Link>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl jetup-gradient flex items-center justify-center shadow-sm">
-            <Rocket size={20} className="text-white" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+            <img src="/jetup-logo.png" alt="JetUP" className="w-10 h-10 object-contain" />
           </div>
           <h1 className="text-2xl font-bold">{t('jetup.title')}</h1>
         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { Layers, Shield, Sliders, GraduationCap, MessageCircle, Rocket } from "lucide-react";
+import { Layers, Shield, Sliders, GraduationCap, MessageCircle } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 
@@ -66,8 +66,8 @@ const HomePage: React.FC = () => {
           <div className="space-y-5 relative">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl jetup-gradient flex items-center justify-center shadow-md">
-                  <Rocket className="w-5 h-5 text-white" />
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center">
+                  <img src="/jetup-logo.png" alt="JetUP" className="w-11 h-11 object-contain" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold leading-tight tracking-tight text-primary">{t('home.title')}</h1>

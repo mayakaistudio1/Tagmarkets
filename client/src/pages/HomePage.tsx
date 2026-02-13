@@ -52,11 +52,11 @@ const HomePage: React.FC = () => {
   ];
 
   return (
-    <div className="px-5 pt-4 pb-28 space-y-5">
-      <div className="flex justify-end">
+    <div className="h-full flex flex-col px-4 pt-3 pb-2 overflow-hidden">
+      <div className="flex justify-end mb-2 flex-shrink-0">
         <button
           onClick={cycleLanguage}
-          className="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
+          className="flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
           data-testid="language-toggle"
         >
           <span className={language === 'ru' ? 'font-bold text-primary' : 'text-gray-400'}>RU</span>
@@ -70,29 +70,29 @@ const HomePage: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+        className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex-shrink-0"
       >
-        <div className="flex flex-col items-center text-center mb-5">
-          <img src="/jetup-logo.png" alt="JetUP" className="w-24 h-24 object-contain mb-3" />
-          <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-primary/50">
+        <div className="flex flex-col items-center text-center mb-3">
+          <img src="/jetup-logo.png" alt="JetUP" className="w-16 h-16 object-contain mb-2" />
+          <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-primary/50">
             {t('home.tagline')}
           </p>
         </div>
 
-        <p className="text-[15px] font-medium text-gray-500 mb-5 leading-snug">
+        <p className="text-[13px] font-medium text-gray-500 mb-3 leading-snug">
           {t('home.subtitle')}
         </p>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           {features.map((feat, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-3 p-3.5 bg-primary/[0.03] rounded-2xl border border-primary/[0.08]"
+              className="flex items-center gap-2 p-2.5 bg-primary/[0.03] rounded-xl border border-primary/[0.08]"
             >
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <feat.icon className="w-[18px] h-[18px] text-primary" />
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <feat.icon className="w-[14px] h-[14px] text-primary" />
               </div>
-              <p className="text-[12px] font-semibold text-gray-700 leading-tight">{feat.label}</p>
+              <p className="text-[11px] font-semibold text-gray-700 leading-tight">{feat.label}</p>
             </div>
           ))}
         </div>
@@ -102,37 +102,37 @@ const HomePage: React.FC = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white rounded-[24px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+        className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] mt-3 flex-1 min-h-0 flex flex-col"
       >
-        <div className="flex items-start gap-3 mb-4">
+        <div className="flex items-start gap-2.5 mb-3">
           <div className="relative flex-shrink-0 mt-0.5">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/10">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/10">
               <span className="text-sm font-bold text-primary">M</span>
             </div>
-            <div className="absolute -right-0.5 -bottom-0.5 w-3 h-3 bg-green-500 border-[2.5px] border-white rounded-full" />
+            <div className="absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full" />
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-md px-4 py-3">
-              <p className="text-[14px] text-gray-800 leading-relaxed">
+            <div className="bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-md px-3 py-2.5">
+              <p className="text-[13px] text-gray-800 leading-relaxed">
                 {displayText}
                 {displayText.length < fullText.length && (
-                  <span className="inline-block w-[3px] h-[16px] ml-0.5 bg-primary/40 animate-pulse align-middle rounded-full" />
+                  <span className="inline-block w-[3px] h-[14px] ml-0.5 bg-primary/40 animate-pulse align-middle rounded-full" />
                 )}
               </p>
             </div>
-            <span className="text-[11px] font-medium text-green-500 mt-1.5 block ml-1">
+            <span className="text-[10px] font-medium text-green-500 mt-1 block ml-1">
               {t('home.mariaOnline')}
             </span>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {quickReplies.map((question) => (
             <button
               key={question}
               onClick={() => handleQuickReply(question)}
-              className="px-3.5 py-2 text-[12px] font-medium bg-transparent border border-primary/25 text-primary rounded-full hover:bg-primary/5 transition-colors active:scale-95"
+              className="px-3 py-1.5 text-[11px] font-medium bg-transparent border border-primary/25 text-primary rounded-full hover:bg-primary/5 transition-colors active:scale-95"
               data-testid={`quick-reply-${question.slice(0, 10)}`}
             >
               {question}
@@ -142,10 +142,10 @@ const HomePage: React.FC = () => {
 
         <button
           onClick={goToMaria}
-          className="w-full py-3.5 text-[15px] font-semibold text-white rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2.5 jetup-gradient shadow-[0_4px_16px_rgba(124,58,237,0.25)]"
+          className="w-full py-3 text-[14px] font-semibold text-white rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 jetup-gradient shadow-[0_4px_16px_rgba(124,58,237,0.25)] mt-auto flex-shrink-0"
           data-testid="cta-ask-maria"
         >
-          <MessageCircle className="w-[18px] h-[18px]" />
+          <MessageCircle className="w-[16px] h-[16px]" />
           {t('home.askMaria')}
         </button>
       </motion.div>

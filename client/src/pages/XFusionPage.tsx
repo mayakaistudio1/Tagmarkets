@@ -68,31 +68,25 @@ const XFusionPage: React.FC = () => {
   }[language];
 
   return (
-    <div className="p-4 pb-24 space-y-6">
-      <div className="flex items-center gap-4 mb-2">
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="flex items-center gap-3 p-4 pb-2 flex-shrink-0">
         <Link href="/">
-          <button className="w-10 h-10 rounded-full bg-card flex items-center justify-center hover:bg-card/80 transition-colors shadow-sm">
-            <ChevronLeft size={24} />
+          <button className="w-9 h-9 rounded-full bg-card flex items-center justify-center hover:bg-card/80 transition-colors shadow-sm">
+            <ChevronLeft size={22} />
           </button>
         </Link>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-            <img src="/jetup-logo.png" alt="JetUP" className="w-10 h-10 object-contain" />
-          </div>
-          <h1 className="text-2xl font-bold">{t('jetup.title')}</h1>
+        <div className="flex items-center gap-2.5">
+          <img src="/jetup-logo.png" alt="JetUP" className="w-8 h-8 object-contain" />
+          <h1 className="text-xl font-bold">{t('jetup.title')}</h1>
         </div>
       </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-4"
-      >
-        <p className="text-gray-500 leading-relaxed px-1">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-4 pb-3 space-y-4">
+        <p className="text-sm text-gray-500 leading-relaxed">
           {t('jetup.desc')}
         </p>
 
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {ecosystemItems.map((item, idx) => (
             <motion.div
               key={idx}
@@ -100,14 +94,14 @@ const XFusionPage: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.05 }}
             >
-              <Card className="p-4 border border-gray-100 rounded-2xl hover:border-primary/20 transition-colors">
+              <Card className="p-3 border border-gray-100 rounded-2xl hover:border-primary/20 transition-colors">
                 <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center flex-shrink-0`}>
-                    <item.icon className="w-5 h-5" />
+                  <div className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center flex-shrink-0`}>
+                    <item.icon className="w-4.5 h-4.5" />
                   </div>
                   <div>
-                    <p className="font-bold text-[15px]">{item.title}</p>
-                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">{item.desc}</p>
+                    <p className="font-bold text-[14px]">{item.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               </Card>
@@ -115,58 +109,45 @@ const XFusionPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-3 pt-2">
-          <a href="https://jetup.ibportal.io" target="_blank" rel="noopener noreferrer" className="block">
-            <Card className="p-4 border border-gray-100 hover:border-primary/30 transition-colors flex items-center justify-between group rounded-2xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                  <UserPlus className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-bold">{registrationLabel}</p>
-                  <p className="text-xs text-gray-500">JetUP IB Portal</p>
-                </div>
+        <a href="https://jetup.ibportal.io" target="_blank" rel="noopener noreferrer" className="block">
+          <Card className="p-3 border border-gray-100 hover:border-primary/30 transition-colors flex items-center justify-between group rounded-2xl">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <UserPlus className="w-4.5 h-4.5" />
               </div>
-              <ExternalLink className="w-5 h-5 text-gray-300 group-hover:text-primary transition-colors" />
-            </Card>
-          </a>
+              <div>
+                <p className="font-bold text-sm">{registrationLabel}</p>
+                <p className="text-xs text-gray-500">JetUP IB Portal</p>
+              </div>
+            </div>
+            <ExternalLink className="w-4.5 h-4.5 text-gray-300 group-hover:text-primary transition-colors" />
+          </Card>
+        </a>
+
+        <div>
+          <h2 className="text-lg font-bold mb-3">{faqLabel}</h2>
+          <Accordion type="single" collapsible className="w-full space-y-2">
+            {faqItems.map((item, idx) => (
+              <AccordionItem key={idx} value={`item-${idx}`} className="border-none bg-card rounded-2xl px-3 shadow-sm">
+                <AccordionTrigger className="hover:no-underline py-3 font-semibold text-left text-sm">{item.q}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed pb-3 text-sm">
+                  {item.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
-      </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-      >
-        <h2 className="text-xl font-bold mb-4 px-1">{faqLabel}</h2>
-        <Accordion type="single" collapsible className="w-full space-y-3">
-          {faqItems.map((item, idx) => (
-            <AccordionItem key={idx} value={`item-${idx}`} className="border-none bg-card rounded-2xl px-4 shadow-sm">
-              <AccordionTrigger className="hover:no-underline py-4 font-semibold text-left">{item.q}</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground leading-relaxed pb-4">
-                {item.a}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </motion.div>
-
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="pt-2"
-      >
-        <Card className="p-6 bg-primary/[0.04] border border-primary/10 rounded-3xl space-y-4">
-          <h2 className="text-xl font-bold">{questionsLabel}</h2>
-          <p className="text-sm text-gray-500">{questionsDesc}</p>
+        <Card className="p-4 bg-primary/[0.04] border border-primary/10 rounded-2xl space-y-3">
+          <h2 className="text-lg font-bold">{questionsLabel}</h2>
+          <p className="text-xs text-gray-500">{questionsDesc}</p>
           <Link href="/maria">
-            <Button className="w-full h-12 rounded-2xl jetup-gradient text-white font-bold hover:opacity-90 border-none shadow-md">
+            <Button className="w-full h-11 rounded-xl jetup-gradient text-white font-bold hover:opacity-90 border-none shadow-md">
               {t('home.askMaria')}
             </Button>
           </Link>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 };

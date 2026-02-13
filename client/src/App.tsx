@@ -39,9 +39,9 @@ function AppContent() {
   };
 
   return (
-    <div className="bg-background text-foreground min-h-screen font-sans flex justify-center w-full">
-      <div className="w-full max-w-[420px] relative bg-background shadow-2xl min-h-screen flex flex-col">
-        <main className="flex-1 overflow-y-auto no-scrollbar safe-bottom relative">
+    <div className="bg-background text-foreground h-[100dvh] font-sans flex justify-center w-full overflow-hidden">
+      <div className="w-full max-w-[420px] relative bg-background shadow-2xl h-full flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-hidden no-scrollbar relative">
           <AnimatePresence mode="wait">
             <motion.div
               key={location}
@@ -49,18 +49,20 @@ function AppContent() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="h-full"
+              className="h-full overflow-hidden"
             >
               {renderPage()}
             </motion.div>
           </AnimatePresence>
         </main>
 
-        <TabBar 
-          currentPath={location} 
-          onNavigate={setLocation} 
-          onOpenApplication={() => setIsAppModalOpen(true)}
-        />
+        {location !== '/maria' && (
+          <TabBar 
+            currentPath={location} 
+            onNavigate={setLocation} 
+            onOpenApplication={() => setIsAppModalOpen(true)}
+          />
+        )}
         
         <ApplicationModal 
           isOpen={isAppModalOpen} 

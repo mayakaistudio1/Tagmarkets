@@ -60,7 +60,6 @@ function AppContent() {
           <TabBar 
             currentPath={location} 
             onNavigate={setLocation} 
-            onOpenApplication={() => setIsAppModalOpen(true)}
           />
         )}
         

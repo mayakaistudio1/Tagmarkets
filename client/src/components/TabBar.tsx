@@ -1,15 +1,14 @@
 import React from "react";
-import { Home, Rocket, MessageCircle, FileText } from "lucide-react";
+import { Home, Rocket, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TabBarProps {
   currentPath: string;
   onNavigate: (path: string) => void;
-  onOpenApplication: () => void;
 }
 
-const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate, onOpenApplication }) => {
+const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate }) => {
   const { t } = useLanguage();
   
   const tabs = [
@@ -50,24 +49,6 @@ const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate, onOpenApplicat
               </button>
             );
           })}
-          
-          <button
-            onClick={onOpenApplication}
-            className={cn(
-              "flex flex-col items-center justify-center py-1 gap-1 transition-all duration-200 active:scale-95 min-w-[64px]",
-              "text-gray-400 hover:text-gray-500"
-            )}
-            data-testid="tab-application"
-          >
-            <FileText 
-              size={24} 
-              strokeWidth={1.8}
-              className="transition-colors"
-            />
-            <span className="text-[10px] font-medium leading-none text-gray-400">
-              {t('nav.application')}
-            </span>
-          </button>
         </div>
       </div>
     </div>

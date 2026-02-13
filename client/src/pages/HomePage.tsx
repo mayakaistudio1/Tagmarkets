@@ -1,13 +1,42 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { Layers, Shield, Sliders, GraduationCap, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 
 const HomePage: React.FC = () => {
   const [, setLocation] = useLocation();
-  const { language, setLanguage } = useLanguage();
-  const [openFaq, setOpenFaq] = React.useState<number | null>(null);
+  const { language, setLanguage, t } = useLanguage();
+  const [displayText, setDisplayText] = useState("");
+  const fullText = t('home.mariaGreeting');
+
+  useEffect(() => {
+    setDisplayText("");
+    let i = 0;
+    const timer = setInterval(() => {
+      setDisplayText(fullText.slice(0, i));
+      i++;
+      if (i > fullText.length) {
+        clearInterval(timer);
+      }
+    }, 40);
+    return () => clearInterval(timer);
+  }, [fullText]);
+
+  const quickReplies = [
+    t('quick.whatIsJetup'),
+    t('quick.howToStart'),
+    t('quick.isSafe'),
+  ];
+
+  const handleQuickReply = (question: string) => {
+    localStorage.setItem('maria-initial-question', question);
+    setLocation('/maria');
+  };
+
+  const goToMaria = () => {
+    setLocation('/maria');
+  };
 
   const languages: Language[] = ['ru', 'en', 'de'];
   const cycleLanguage = () => {
@@ -15,90 +44,16 @@ const HomePage: React.FC = () => {
     setLanguage(languages[(idx + 1) % languages.length]);
   };
 
-  const goToMaria = () => {
-    setLocation('/maria');
-  };
-
-  const handleQuickReply = (question: string) => {
-    localStorage.setItem('maria-initial-question', question);
-    setLocation('/maria');
-  };
-
-  const pdfUrl = { ru: '/jetup-presentation-ru.pdf', en: '/jetup-presentation-en.pdf', de: '/jetup-presentation-de.pdf' }[language];
-
-  const texts = {
-    ru: {
-      subtitle: 'Ваш вход на финансовые рынки',
-      tagline: 'Структура · Прозрачность · Контроль',
-      infoTitle: 'О JetUP',
-      infoText: 'JetUP — платформа, объединяющая проверенные инструменты для финансовых рынков: Copy-X стратегии, торговые сигналы, обучение и партнёрскую программу. Брокер TAG Markets (лицензия FSC Mauritius). Ваш капитал всегда на вашем счёте.',
-      moreDetails: 'Подробнее',
-      mariaTitle: 'Мария — ваш ассистент',
-      mariaDesc: 'Ответит на вопросы о JetUP в реальном времени',
-      liveChat: 'Написать в чат',
-      liveVideo: 'Live видеозвонок',
-      online: 'онлайн',
-      downloadPdf: 'Скачать презентацию',
-      pdfDesc: 'PDF на вашем языке',
-      faqTitle: 'Частые вопросы',
-      quickReplies: ['Что такое JetUP?', 'Как начать?', 'Это безопасно?'],
-      faq: [
-        { q: 'С чего начать?', a: 'Регистрация → TAG Markets → MetaTrader 5 → Депозит → Доступ к инструментам. Минимум $100.' },
-        { q: 'Где мои средства?', a: 'Ваш капитал на вашем счёте у лицензированного брокера TAG Markets. Только вы имеете к нему доступ.' },
-        { q: 'Безопасно ли это?', a: 'TAG Markets — лицензированный брокер (FSC Mauritius). JetUP не управляет вашим капиталом.' },
-      ],
-    },
-    en: {
-      subtitle: 'Your entry into financial markets',
-      tagline: 'Structure · Transparency · Control',
-      infoTitle: 'About JetUP',
-      infoText: 'JetUP is a platform combining verified tools for financial markets: Copy-X strategies, trading signals, education, and a partner program. Broker: TAG Markets (FSC Mauritius licensed). Your capital always stays in your account.',
-      moreDetails: 'Learn more',
-      mariaTitle: 'Maria — your assistant',
-      mariaDesc: 'Answers your questions about JetUP in real time',
-      liveChat: 'Start text chat',
-      liveVideo: 'Live video call',
-      online: 'online',
-      downloadPdf: 'Download presentation',
-      pdfDesc: 'PDF in your language',
-      faqTitle: 'FAQ',
-      quickReplies: ['What is JetUP?', 'How to start?', 'Is it safe?'],
-      faq: [
-        { q: 'How do I get started?', a: 'Register → TAG Markets → MetaTrader 5 → Deposit → Access tools. Minimum $100.' },
-        { q: 'Where are my funds?', a: 'Your capital stays in your personal account with licensed broker TAG Markets. Only you have access.' },
-        { q: 'Is it safe?', a: 'TAG Markets is a licensed broker (FSC Mauritius). JetUP does not manage your capital.' },
-      ],
-    },
-    de: {
-      subtitle: 'Ihr Zugang zu den Finanzmärkten',
-      tagline: 'Struktur · Transparenz · Kontrolle',
-      infoTitle: 'Über JetUP',
-      infoText: 'JetUP ist eine Plattform mit verifizierten Tools für Finanzmärkte: Copy-X Strategien, Handelssignale, Ausbildung und Partnerprogramm. Broker: TAG Markets (FSC Mauritius lizenziert). Ihr Kapital bleibt immer auf Ihrem Konto.',
-      moreDetails: 'Mehr erfahren',
-      mariaTitle: 'Maria — Ihre Assistentin',
-      mariaDesc: 'Beantwortet Ihre Fragen zu JetUP in Echtzeit',
-      liveChat: 'Chat starten',
-      liveVideo: 'Live-Videoanruf',
-      online: 'online',
-      downloadPdf: 'Präsentation herunterladen',
-      pdfDesc: 'PDF in Ihrer Sprache',
-      faqTitle: 'Häufige Fragen',
-      quickReplies: ['Was ist JetUP?', 'Wie fange ich an?', 'Ist es sicher?'],
-      faq: [
-        { q: 'Wie fange ich an?', a: 'Registrierung → TAG Markets → MetaTrader 5 → Einzahlung → Zugang zu Tools. Minimum 100 $.' },
-        { q: 'Wo ist mein Kapital?', a: 'Ihr Kapital ist auf Ihrem persönlichen Konto beim lizenzierten Broker TAG Markets. Nur Sie haben Zugang.' },
-        { q: 'Ist es sicher?', a: 'TAG Markets ist ein lizenzierter Broker (FSC Mauritius). JetUP verwaltet Ihr Kapital nicht.' },
-      ],
-    },
-  }[language]!;
+  const features = [
+    { icon: Layers, label: t('home.ecosystem') },
+    { icon: Shield, label: t('home.broker') },
+    { icon: Sliders, label: t('home.control') },
+    { icon: GraduationCap, label: t('home.education') },
+  ];
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-3 pb-1 flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <img src="/jetup-logo.png" alt="JetUP" className="w-8 h-8 object-contain" />
-          <span className="font-bold text-lg">JetUP</span>
-        </div>
+    <div className="h-full flex flex-col px-4 pt-3 pb-2 overflow-hidden">
+      <div className="flex justify-end mb-2 flex-shrink-0">
         <button
           onClick={cycleLanguage}
           className="flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
@@ -112,131 +67,116 @@ const HomePage: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 pb-3 space-y-3 pt-2">
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl p-4 shadow-[0_1px_8px_rgba(0,0,0,0.06)]"
-        >
-          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary/50 mb-1">
-            {texts.tagline}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex-shrink-0"
+      >
+        <div className="flex flex-col items-center text-center mb-3">
+          <img src="/jetup-logo.png" alt="JetUP" className="w-16 h-16 object-contain mb-2" />
+          <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-primary/50">
+            {t('home.tagline')}
           </p>
-          <p className="text-[13px] text-gray-600 leading-relaxed">
-            {texts.infoText}
-          </p>
-          <button
-            onClick={() => setLocation('/xfusion')}
-            className="mt-2 text-[12px] font-semibold text-primary flex items-center gap-1"
-            data-testid="link-more-details"
-          >
-            {texts.moreDetails}
-            <ArrowRight size={14} />
-          </button>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08 }}
-        >
-          <button
-            onClick={goToMaria}
-            className="w-full bg-white rounded-2xl p-4 shadow-[0_1px_8px_rgba(0,0,0,0.06)] flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
-            data-testid="cta-ask-maria"
-          >
-            <div className="relative flex-shrink-0">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 via-pink-300 to-blue-300 flex items-center justify-center">
-                <span className="text-base font-bold text-white">M</span>
-              </div>
-              <div className="absolute -left-1 -bottom-0.5 flex items-center gap-0.5 bg-white rounded-full px-1.5 py-0.5 shadow-sm border border-gray-100">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-[8px] font-semibold text-gray-500">{texts.online}</span>
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-[14px] font-bold text-gray-900">{texts.mariaTitle}</h3>
-              <p className="text-[11px] text-gray-500 mt-0.5">{texts.mariaDesc}</p>
-              <div className="flex items-center gap-2 mt-1.5">
-                <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-semibold rounded-full">{texts.liveChat}</span>
-                <span className="px-2 py-0.5 bg-red-50 text-red-500 text-[10px] font-semibold rounded-full flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                  {texts.liveVideo}
-                </span>
-              </div>
-            </div>
-            <div className="w-9 h-9 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0">
-              <ArrowRight size={16} className="text-white" />
-            </div>
-          </button>
-        </motion.div>
+        <p className="text-[13px] font-medium text-gray-500 mb-3 leading-snug">
+          {t('home.subtitle')}
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
-          className="flex gap-2"
-        >
-          {texts.quickReplies.map((q) => (
-            <button
-              key={q}
-              onClick={() => handleQuickReply(q)}
-              className="flex-1 px-2 py-2 text-[10px] font-medium bg-white border border-primary/20 text-primary rounded-xl hover:bg-primary/5 transition-colors active:scale-95 shadow-sm"
-              data-testid={`quick-reply-${q.slice(0, 8)}`}
+        <div className="grid grid-cols-2 gap-2">
+          {features.map((feat, idx) => (
+            <div
+              key={idx}
+              className="flex items-center gap-2 p-2.5 bg-primary/[0.03] rounded-xl border border-primary/[0.08]"
             >
-              {q}
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <feat.icon className="w-[14px] h-[14px] text-primary" />
+              </div>
+              <p className="text-[11px] font-semibold text-gray-700 leading-tight">{feat.label}</p>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] mt-3 flex-1 min-h-0 flex flex-col"
+      >
+        <div className="flex items-start gap-2.5 mb-3">
+          <div className="relative flex-shrink-0 mt-0.5">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/10">
+              <span className="text-sm font-bold text-primary">M</span>
+            </div>
+            <div className="absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full" />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-md px-3 py-2.5">
+              <p className="text-[13px] text-gray-800 leading-relaxed">
+                {displayText}
+                {displayText.length < fullText.length && (
+                  <span className="inline-block w-[3px] h-[14px] ml-0.5 bg-primary/40 animate-pulse align-middle rounded-full" />
+                )}
+              </p>
+            </div>
+            <span className="text-[10px] font-medium text-green-500 mt-1 block ml-1">
+              {t('home.mariaOnline')}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {quickReplies.map((question) => (
+            <button
+              key={question}
+              onClick={() => handleQuickReply(question)}
+              className="px-3 py-1.5 text-[11px] font-medium bg-transparent border border-primary/25 text-primary rounded-full hover:bg-primary/5 transition-colors active:scale-95"
+              data-testid={`quick-reply-${question.slice(0, 10)}`}
+            >
+              {question}
             </button>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.16 }}
-        >
-          <a
-            href={pdfUrl}
-            download
-            className="flex items-center gap-3 bg-white rounded-2xl p-3.5 shadow-[0_1px_8px_rgba(0,0,0,0.06)] active:scale-[0.98] transition-transform"
-            data-testid="download-presentation-home"
-          >
-            <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
-              <Download size={18} className="text-red-500" />
-            </div>
-            <div className="flex-1">
-              <p className="text-[13px] font-bold text-gray-900">{texts.downloadPdf}</p>
-              <p className="text-[11px] text-gray-500">{texts.pdfDesc}</p>
-            </div>
-          </a>
-        </motion.div>
+      </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-2xl shadow-[0_1px_8px_rgba(0,0,0,0.06)] overflow-hidden"
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mt-3 flex-shrink-0"
+      >
+        <button
+          onClick={goToMaria}
+          className="w-full bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex items-center gap-3.5 active:scale-[0.98] transition-transform text-left"
+          data-testid="cta-ask-maria"
         >
-          <h3 className="text-[13px] font-bold text-gray-900 px-4 pt-3 pb-1">{texts.faqTitle}</h3>
-          {texts.faq.map((item, idx) => (
-            <div key={idx} className="border-t border-gray-50">
-              <button
-                onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                className="w-full flex items-center justify-between px-4 py-2.5 text-left"
-                data-testid={`faq-toggle-${idx}`}
-              >
-                <span className="text-[12px] font-semibold text-gray-800">{item.q}</span>
-                {openFaq === idx ? (
-                  <ChevronUp size={16} className="text-gray-400 flex-shrink-0" />
-                ) : (
-                  <ChevronDown size={16} className="text-gray-400 flex-shrink-0" />
-                )}
-              </button>
-              {openFaq === idx && (
-                <p className="text-[11px] text-gray-500 leading-relaxed px-4 pb-3">{item.a}</p>
-              )}
+          <div className="relative flex-shrink-0">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 via-pink-300 to-blue-300 flex items-center justify-center">
+              <span className="text-lg font-bold text-white">M</span>
             </div>
-          ))}
-        </motion.div>
-      </div>
+            <div className="absolute -left-0.5 bottom-0 flex items-center gap-1 bg-white rounded-full px-1.5 py-0.5 shadow-sm border border-gray-100">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-[9px] font-semibold text-gray-600">
+                {{ ru: 'онлайн', en: 'online', de: 'online' }[language]}
+              </span>
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-[15px] font-bold text-gray-900">
+              {{ ru: 'Live консультант', en: 'Live Consultant', de: 'Live-Beraterin' }[language]}
+            </h3>
+            <p className="text-[12px] text-gray-500 mt-0.5">
+              {{ ru: 'Нажмите для общения', en: 'Tap to start a conversation', de: 'Tippen Sie, um zu sprechen' }[language]}
+            </p>
+          </div>
+          <div className="w-11 h-11 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0">
+            <ArrowRight size={20} className="text-white" />
+          </div>
+        </button>
+      </motion.div>
     </div>
   );
 };

@@ -1,38 +1,13 @@
 import React from "react";
-import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ExternalLink, FileText, UserPlus, ChevronLeft, Copy, BarChart3, GraduationCap, Users, Shield, Download } from "lucide-react";
-import { Link } from "wouter";
+import { UserPlus, ChevronLeft, Download, ArrowRight } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const XFusionPage: React.FC = () => {
   const { language, t } = useLanguage();
-
-  const ecosystemItems = {
-    ru: [
-      { icon: Copy, title: "Copy-X Стратегии", desc: "Автоматическое копирование профессиональных стратегий. 70% прибыли остаётся у клиента.", color: "bg-violet-500/10 text-violet-600" },
-      { icon: BarChart3, title: "Торговые сигналы", desc: "Сигналы в реальном времени с точными уровнями входа, Stop Loss/Take Profit и анализом.", color: "bg-purple-500/10 text-purple-600" },
-      { icon: GraduationCap, title: "JetUP Академия", desc: "Обучение трейдингу, управление рисками, построение систем и долгосрочный подход.", color: "bg-fuchsia-500/10 text-fuchsia-600" },
-      { icon: Users, title: "Партнёрская программа", desc: "Лот-комиссии, Profit Share, Infinity-бонус и Global Pools на основе реального объёма.", color: "bg-indigo-500/10 text-indigo-600" },
-      { icon: Shield, title: "TAG Markets", desc: "Лицензированный брокер (FSC Mauritius). Ваш капитал всегда на вашем счёте.", color: "bg-emerald-500/10 text-emerald-600" },
-    ],
-    en: [
-      { icon: Copy, title: "Copy-X Strategies", desc: "Automatically copy professional strategies. 70% of profits stay with the customer.", color: "bg-violet-500/10 text-violet-600" },
-      { icon: BarChart3, title: "Trading Signals", desc: "Real-time signals with precise entry levels, Stop Loss/Take Profit and analysis.", color: "bg-purple-500/10 text-purple-600" },
-      { icon: GraduationCap, title: "JetUP Academy", desc: "Trading education, risk management, systems thinking and long-term approach.", color: "bg-fuchsia-500/10 text-fuchsia-600" },
-      { icon: Users, title: "Partner Program", desc: "Lot commissions, Profit Share, Infinity Bonus and Global Pools based on real volume.", color: "bg-indigo-500/10 text-indigo-600" },
-      { icon: Shield, title: "TAG Markets", desc: "Licensed broker (FSC Mauritius). Your capital always stays in your account.", color: "bg-emerald-500/10 text-emerald-600" },
-    ],
-    de: [
-      { icon: Copy, title: "Copy-X Strategien", desc: "Automatisches Kopieren professioneller Strategien. 70 % des Gewinns verbleiben beim Kunden.", color: "bg-violet-500/10 text-violet-600" },
-      { icon: BarChart3, title: "Handelssignale", desc: "Echtzeit-Signale mit präzisen Einstiegsniveaus, Stop Loss/Take Profit und Analyse.", color: "bg-purple-500/10 text-purple-600" },
-      { icon: GraduationCap, title: "JetUP Akademie", desc: "Trading-Ausbildung, Risikomanagement, Systemdenken und langfristiger Ansatz.", color: "bg-fuchsia-500/10 text-fuchsia-600" },
-      { icon: Users, title: "Partnerprogramm", desc: "Lot-Provisionen, Profit Share, Infinity-Bonus und Global Pools basierend auf realem Volumen.", color: "bg-indigo-500/10 text-indigo-600" },
-      { icon: Shield, title: "TAG Markets", desc: "Lizenzierter Broker (FSC Mauritius). Ihr Kapital bleibt immer auf Ihrem Konto.", color: "bg-emerald-500/10 text-emerald-600" },
-    ],
-  }[language];
+  const [, setLocation] = useLocation();
 
   const faqItems = {
     ru: [
@@ -63,12 +38,6 @@ const XFusionPage: React.FC = () => {
   const downloadLabel = { ru: 'Скачать PDF', en: 'Download PDF', de: 'PDF herunterladen' }[language];
   const registrationLabel = { ru: 'Регистрация', en: 'Registration', de: 'Registrierung' }[language];
   const faqLabel = { ru: 'Частые вопросы', en: 'FAQ', de: 'Häufige Fragen' }[language];
-  const questionsLabel = { ru: 'Остались вопросы?', en: 'Still have questions?', de: 'Noch Fragen?' }[language];
-  const questionsDesc = { 
-    ru: 'Мария знает всё об экосистеме JetUP и готова ответить на любые вопросы в режиме реального времени.',
-    en: 'Maria knows everything about the JetUP ecosystem and is ready to answer any questions in real time.',
-    de: 'Maria weiß alles über das JetUP-Ökosystem und ist bereit, alle Fragen in Echtzeit zu beantworten.',
-  }[language];
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -88,29 +57,6 @@ const XFusionPage: React.FC = () => {
         <p className="text-sm text-gray-500 leading-relaxed">
           {t('jetup.desc')}
         </p>
-
-        <div className="space-y-2.5">
-          {ecosystemItems.map((item, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: idx * 0.05 }}
-            >
-              <Card className="p-3 border border-gray-100 rounded-2xl hover:border-primary/20 transition-colors">
-                <div className="flex items-start gap-3">
-                  <div className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center flex-shrink-0`}>
-                    <item.icon className="w-4.5 h-4.5" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-[14px]">{item.title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
 
         <div className="grid grid-cols-2 gap-2.5">
           <a href="https://jetup.ibportal.io" target="_blank" rel="noopener noreferrer" className="block">
@@ -151,15 +97,34 @@ const XFusionPage: React.FC = () => {
           </Accordion>
         </div>
 
-        <Card className="p-4 bg-primary/[0.04] border border-primary/10 rounded-2xl space-y-3">
-          <h2 className="text-lg font-bold">{questionsLabel}</h2>
-          <p className="text-xs text-gray-500">{questionsDesc}</p>
-          <Link href="/maria">
-            <Button className="w-full h-11 rounded-xl jetup-gradient text-white font-bold hover:opacity-90 border-none shadow-md">
-              {t('home.askMaria')}
-            </Button>
-          </Link>
-        </Card>
+        <button
+          onClick={() => setLocation('/maria')}
+          className="w-full bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex items-center gap-3.5 active:scale-[0.98] transition-transform text-left"
+          data-testid="cta-live-consultant"
+        >
+          <div className="relative flex-shrink-0">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 via-pink-300 to-blue-300 flex items-center justify-center">
+              <span className="text-lg font-bold text-white">M</span>
+            </div>
+            <div className="absolute -left-0.5 bottom-0 flex items-center gap-1 bg-white rounded-full px-1.5 py-0.5 shadow-sm border border-gray-100">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-[9px] font-semibold text-gray-600">
+                {{ ru: 'онлайн', en: 'online', de: 'online' }[language]}
+              </span>
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-[15px] font-bold text-gray-900">
+              {{ ru: 'Live консультант', en: 'Live Consultant', de: 'Live-Beraterin' }[language]}
+            </h3>
+            <p className="text-[12px] text-gray-500 mt-0.5">
+              {{ ru: 'Нажмите для общения', en: 'Tap to start a conversation', de: 'Tippen Sie, um zu sprechen' }[language]}
+            </p>
+          </div>
+          <div className="w-11 h-11 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0">
+            <ArrowRight size={20} className="text-white" />
+          </div>
+        </button>
       </div>
     </div>
   );

@@ -71,8 +71,7 @@ const HomePage: React.FC = () => {
         <div className="flex items-center gap-4 mb-4">
           <img src="/jetup-logo.png" alt="JetUP" className="w-12 h-12 object-contain" />
           <div>
-            <h1 className="text-[22px] font-bold leading-tight text-primary tracking-tight">JetUP</h1>
-            <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-primary/40 mt-0.5">
+            <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-primary/40">
               {t('home.tagline')}
             </p>
           </div>

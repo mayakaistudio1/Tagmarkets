@@ -27,8 +27,8 @@ export default function TextChat() {
   });
 
   const getInitialQuickReplies = () => language === 'en' 
-    ? ['What is Exfusion?', 'How to start earning?', 'Is it safe?']
-    : ['Что такое Exfusion?', 'Как начать зарабатывать?', 'Это безопасно?'];
+    ? ['What is JetUP?', 'How to get started?', 'Is it safe?']
+    : ['Что такое JetUP?', 'Как начать?', 'Это безопасно?'];
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { Briefcase, Globe, Phone, TrendingUp, MessageCircle } from "lucide-react";
+import { Layers, Shield, Sliders, GraduationCap, MessageCircle, Rocket } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 
@@ -25,8 +25,8 @@ const HomePage: React.FC = () => {
   }, [fullText]);
 
   const quickReplies = [
-    t('quick.whatIsExfusion'),
-    t('quick.howToEarn'),
+    t('quick.whatIsJetup'),
+    t('quick.howToStart'),
     t('quick.isSafe'),
   ];
 
@@ -45,7 +45,6 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="p-4 pb-24 space-y-4">
-      {/* Language Selector */}
       <div className="flex justify-end">
         <button
           onClick={toggleLanguage}
@@ -58,52 +57,59 @@ const HomePage: React.FC = () => {
         </button>
       </div>
 
-      {/* Block 1: Alexander Introduction */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <Card className="border-0 card-elevated bg-white p-6 rounded-3xl">
-          <div className="space-y-6">
+        <Card className="border-0 card-elevated bg-white p-6 rounded-3xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full" />
+          <div className="space-y-5 relative">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold leading-tight tracking-tight" style={{ fontWeight: 700 }}>{t('home.title')}</h1>
-              <p className="text-base font-medium" style={{ color: '#666666' }}>{t('home.subtitle')}</p>
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl jetup-gradient flex items-center justify-center shadow-md">
+                  <Rocket className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold leading-tight tracking-tight text-primary">{t('home.title')}</h1>
+                  <p className="text-[11px] font-semibold tracking-widest uppercase text-primary/50">{t('home.tagline')}</p>
+                </div>
+              </div>
+              <p className="text-[15px] font-medium text-gray-500 mt-2">{t('home.subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Briefcase className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-2.5 p-3 bg-primary/[0.04] rounded-xl border border-primary/[0.06]">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Layers className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.experience')}</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.ecosystem')}</p>
               </div>
 
-              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Globe className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-2.5 p-3 bg-primary/[0.04] rounded-xl border border-primary/[0.06]">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.simple')}</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.broker')}</p>
               </div>
 
-              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-2.5 p-3 bg-primary/[0.04] rounded-xl border border-primary/[0.06]">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Sliders className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.available')}</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.control')}</p>
               </div>
 
-              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-2.5 p-3 bg-primary/[0.04] rounded-xl border border-primary/[0.06]">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <GraduationCap className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.income')}</p>
+                <p className="text-[11px] font-medium text-gray-700 leading-tight">{t('home.education')}</p>
               </div>
             </div>
           </div>
         </Card>
       </motion.div>
 
-      {/* Block 2: Maria Chat */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -111,14 +117,13 @@ const HomePage: React.FC = () => {
       >
         <Card className="border-0 card-elevated bg-white p-5 rounded-3xl">
           <div className="space-y-4">
-            {/* Maria Messenger UI */}
             <div className="space-y-3">
               <div className="flex items-end gap-2">
                 <div className="relative flex-shrink-0 mb-1">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/10">
+                  <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center border border-primary/10">
                     <span className="text-xs font-bold text-primary">M</span>
                   </div>
-                  <div className="absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full" />
+                  <div className="absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 bg-blue-500 border-2 border-white rounded-full" />
                 </div>
                 <div className="chat-bubble chat-bubble-incoming !max-w-[85%] !p-3.5 !bg-gray-50 border border-gray-100 min-h-[60px]">
                   <p className="text-[14px] text-gray-800 leading-relaxed">
@@ -131,17 +136,16 @@ const HomePage: React.FC = () => {
               </div>
               
               <div className="flex items-center gap-2 ml-10">
-                <span className="text-[10px] font-semibold text-green-500">{t('home.mariaOnline')}</span>
+                <span className="text-[10px] font-semibold text-blue-500">{t('home.mariaOnline')}</span>
               </div>
             </div>
 
-            {/* Quick Reply Buttons */}
             <div className="flex flex-wrap gap-2 pt-1">
               {quickReplies.map((question) => (
                 <button
                   key={question}
                   onClick={() => handleQuickReply(question)}
-                  className="px-4 py-2 text-xs font-medium bg-transparent border border-primary/40 text-primary rounded-full hover:bg-primary/5 transition-colors active:scale-95"
+                  className="px-4 py-2 text-xs font-medium bg-transparent border border-primary/30 text-primary rounded-full hover:bg-primary/5 transition-colors active:scale-95"
                   data-testid={`quick-reply-${question.slice(0, 10)}`}
                 >
                   {question}
@@ -149,11 +153,9 @@ const HomePage: React.FC = () => {
               ))}
             </div>
 
-            {/* Main CTA Button */}
             <button
               onClick={goToMaria}
-              className="w-full py-3.5 text-base font-semibold text-white rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-              style={{ backgroundColor: '#12A152' }}
+              className="w-full py-3.5 text-base font-semibold text-white rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 jetup-gradient shadow-md"
               data-testid="cta-ask-maria"
             >
               <MessageCircle className="w-5 h-5" />

@@ -392,8 +392,8 @@ export function registerMariaChatRoutes(app: Express): void {
       const { messages, language = 'ru' } = req.body;
 
       const defaultSuggestions = language === 'en' 
-        ? ["What is Exfusion?", "How to start earning?", "Is it safe?"]
-        : ["Что такое Exfusion?", "Как начать зарабатывать?", "Это безопасно?"];
+        ? ["What is JetUP?", "How to get started?", "Is it safe?"]
+        : ["Что такое JetUP?", "Как начать?", "Это безопасно?"];
 
       if (!messages || !Array.isArray(messages) || messages.length === 0) {
         return res.json({ suggestions: defaultSuggestions });
@@ -456,8 +456,8 @@ Questions should be:
     } catch (error) {
       console.error("Maria suggestions error:", error);
       const fallback = req.body.language === 'en'
-        ? ["What is Exfusion?", "How to start earning?", "Is it safe?"]
-        : ["Что такое Exfusion?", "Как начать зарабатывать?", "Это безопасно?"];
+        ? ["What is JetUP?", "How to get started?", "Is it safe?"]
+        : ["Что такое JetUP?", "Как начать?", "Это безопасно?"];
       res.json({ suggestions: fallback });
     }
   });

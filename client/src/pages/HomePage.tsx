@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Layers, Shield, Sliders, GraduationCap, MessageCircle } from "lucide-react";
+import { Layers, Shield, Sliders, GraduationCap, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 
@@ -140,13 +140,41 @@ const HomePage: React.FC = () => {
           ))}
         </div>
 
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mt-3 flex-shrink-0"
+      >
         <button
           onClick={goToMaria}
-          className="w-full py-3 text-[14px] font-semibold text-white rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 jetup-gradient shadow-[0_4px_16px_rgba(124,58,237,0.25)] mt-auto flex-shrink-0"
+          className="w-full bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex items-center gap-3.5 active:scale-[0.98] transition-transform text-left"
           data-testid="cta-ask-maria"
         >
-          <MessageCircle className="w-[16px] h-[16px]" />
-          {t('home.askMaria')}
+          <div className="relative flex-shrink-0">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 via-pink-300 to-blue-300 flex items-center justify-center">
+              <span className="text-lg font-bold text-white">M</span>
+            </div>
+            <div className="absolute -left-0.5 bottom-0 flex items-center gap-1 bg-white rounded-full px-1.5 py-0.5 shadow-sm border border-gray-100">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-[9px] font-semibold text-gray-600">
+                {{ ru: 'онлайн', en: 'online', de: 'online' }[language]}
+              </span>
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-[15px] font-bold text-gray-900">
+              {{ ru: 'Live консультант', en: 'Live Consultant', de: 'Live-Beraterin' }[language]}
+            </h3>
+            <p className="text-[12px] text-gray-500 mt-0.5">
+              {{ ru: 'Нажмите для общения', en: 'Tap to start a conversation', de: 'Tippen Sie, um zu sprechen' }[language]}
+            </p>
+          </div>
+          <div className="w-11 h-11 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0">
+            <ArrowRight size={20} className="text-white" />
+          </div>
         </button>
       </motion.div>
     </div>

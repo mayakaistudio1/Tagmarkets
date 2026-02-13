@@ -21,16 +21,32 @@ export async function getSessionToken(language: string = "ru"): Promise<any> {
     throw new Error("Missing LIVEAVATAR_API_KEY in environment");
   }
 
-  // Use simple language codes for HeyGen API: "ru" or "en"
-  const heygenLanguage = language === "en" ? "en" : "ru";
-  
-  // Use English voice if available, otherwise default voice
   const LIVEAVATAR_VOICE_ID_EN = process.env.LIVEAVATAR_VOICE_ID_EN || LIVEAVATAR_VOICE_ID;
-  const voiceId = language === "en" ? LIVEAVATAR_VOICE_ID_EN : LIVEAVATAR_VOICE_ID;
+  const LIVEAVATAR_VOICE_ID_DE = process.env.LIVEAVATAR_VOICE_ID_DE || LIVEAVATAR_VOICE_ID;
+  const LIVEAVATAR_CONTEXT_ID_EN = process.env.LIVEAVATAR_CONTEXT_ID_EN || LIVEAVATAR_CONTEXT_ID;
+  const LIVEAVATAR_CONTEXT_ID_DE = process.env.LIVEAVATAR_CONTEXT_ID_DE || LIVEAVATAR_CONTEXT_ID;
 
-  // Use English context if available, otherwise use default (Russian) context
-  const LIVEAVATAR_CONTEXT_ID_EN = process.env.LIVEAVATAR_CONTEXT_ID_EN;
-  const contextId = language === "en" ? (LIVEAVATAR_CONTEXT_ID_EN || LIVEAVATAR_CONTEXT_ID) : LIVEAVATAR_CONTEXT_ID;
+  let heygenLanguage: string;
+  let voiceId: string;
+  let contextId: string;
+
+  switch (language) {
+    case "en":
+      heygenLanguage = "en";
+      voiceId = LIVEAVATAR_VOICE_ID_EN;
+      contextId = LIVEAVATAR_CONTEXT_ID_EN;
+      break;
+    case "de":
+      heygenLanguage = "de";
+      voiceId = LIVEAVATAR_VOICE_ID_DE;
+      contextId = LIVEAVATAR_CONTEXT_ID_DE;
+      break;
+    default:
+      heygenLanguage = "ru";
+      voiceId = LIVEAVATAR_VOICE_ID;
+      contextId = LIVEAVATAR_CONTEXT_ID;
+      break;
+  }
 
   const payload = {
     mode: "FULL",

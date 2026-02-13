@@ -72,7 +72,7 @@ server/replit_integrations/ - Replit-provided audio, chat, image, and batch util
 
 ### Third-Party Services
 - **Telegram WebApp SDK**: Client-side integration for theme, buttons, and native features
-- **HeyGen/LiveAvatar**: Video avatar streaming (requires LIVEAVATAR_API_KEY, LIVEAVATAR_AVATAR_ID, LIVEAVATAR_VOICE_ID, LIVEAVATAR_CONTEXT_ID)
+- **HeyGen/LiveAvatar**: Video avatar streaming (requires LIVEAVATAR_API_KEY, LIVEAVATAR_AVATAR_ID, LIVEAVATAR_VOICE_ID, LIVEAVATAR_CONTEXT_ID; optional per-language: LIVEAVATAR_VOICE_ID_EN, LIVEAVATAR_CONTEXT_ID_EN, LIVEAVATAR_VOICE_ID_DE, LIVEAVATAR_CONTEXT_ID_DE)
 - **LiveKit**: WebRTC infrastructure for real-time video/audio
 - **OpenAI**: Text generation via Replit AI Integrations (AI_INTEGRATIONS_OPENAI_API_KEY, AI_INTEGRATIONS_OPENAI_BASE_URL)
 

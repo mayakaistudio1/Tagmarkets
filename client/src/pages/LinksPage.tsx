@@ -8,13 +8,22 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const LinksPage: React.FC = () => {
   const { language } = useLanguage();
 
-  const links = language === 'ru' ? [
-    { title: 'Регистрация', desc: 'JetUP IB Portal', url: 'https://jetup.ibportal.io', icon: UserPlus, color: 'bg-primary/10 text-primary' },
-    { title: 'Презентация', desc: 'Скачать PDF', url: '#', icon: FileText, color: 'bg-red-500/10 text-red-500', showDownload: true },
-  ] : [
-    { title: 'Registration', desc: 'JetUP IB Portal', url: 'https://jetup.ibportal.io', icon: UserPlus, color: 'bg-primary/10 text-primary' },
-    { title: 'Presentation', desc: 'Download PDF', url: '#', icon: FileText, color: 'bg-red-500/10 text-red-500', showDownload: true },
-  ];
+  const links = {
+    ru: [
+      { title: 'Регистрация', desc: 'JetUP IB Portal', url: 'https://jetup.ibportal.io', icon: UserPlus, color: 'bg-primary/10 text-primary' },
+      { title: 'Презентация', desc: 'Скачать PDF', url: '#', icon: FileText, color: 'bg-red-500/10 text-red-500', showDownload: true },
+    ],
+    en: [
+      { title: 'Registration', desc: 'JetUP IB Portal', url: 'https://jetup.ibportal.io', icon: UserPlus, color: 'bg-primary/10 text-primary' },
+      { title: 'Presentation', desc: 'Download PDF', url: '#', icon: FileText, color: 'bg-red-500/10 text-red-500', showDownload: true },
+    ],
+    de: [
+      { title: 'Registrierung', desc: 'JetUP IB Portal', url: 'https://jetup.ibportal.io', icon: UserPlus, color: 'bg-primary/10 text-primary' },
+      { title: 'Präsentation', desc: 'PDF herunterladen', url: '#', icon: FileText, color: 'bg-red-500/10 text-red-500', showDownload: true },
+    ],
+  }[language];
+
+  const pageTitle = { ru: 'Полезные ссылки', en: 'Useful Links', de: 'Nützliche Links' }[language];
 
   return (
     <div className="p-4 pb-24 space-y-6">
@@ -24,7 +33,7 @@ const LinksPage: React.FC = () => {
             <ChevronLeft size={24} />
           </button>
         </Link>
-        <h1 className="text-2xl font-bold">{language === 'ru' ? 'Полезные ссылки' : 'Useful Links'}</h1>
+        <h1 className="text-2xl font-bold">{pageTitle}</h1>
       </div>
 
       <motion.div 

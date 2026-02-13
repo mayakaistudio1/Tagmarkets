@@ -38,8 +38,10 @@ const HomePage: React.FC = () => {
     setLocation('/maria');
   };
 
-  const toggleLanguage = () => {
-    setLanguage(language === 'ru' ? 'en' : 'ru');
+  const languages: Language[] = ['ru', 'en', 'de'];
+  const cycleLanguage = () => {
+    const idx = languages.indexOf(language);
+    setLanguage(languages[(idx + 1) % languages.length]);
   };
 
   const features = [
@@ -53,13 +55,15 @@ const HomePage: React.FC = () => {
     <div className="px-5 pt-4 pb-28 space-y-5">
       <div className="flex justify-end">
         <button
-          onClick={toggleLanguage}
+          onClick={cycleLanguage}
           className="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
           data-testid="language-toggle"
         >
           <span className={language === 'ru' ? 'font-bold text-primary' : 'text-gray-400'}>RU</span>
           <span className="text-gray-200">|</span>
           <span className={language === 'en' ? 'font-bold text-primary' : 'text-gray-400'}>EN</span>
+          <span className="text-gray-200">|</span>
+          <span className={language === 'de' ? 'font-bold text-primary' : 'text-gray-400'}>DE</span>
         </button>
       </div>
 

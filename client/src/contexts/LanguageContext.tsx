@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type Language = 'ru' | 'en';
+export type Language = 'ru' | 'en' | 'de';
 
 interface LanguageContextType {
   language: Language;
@@ -108,6 +108,55 @@ const translations: Record<Language, Record<string, string>> = {
     'jetup.startDesc': 'Register → TAG Markets → MetaTrader 5 → Deposit → Access tools',
     'jetup.minClient': 'Minimum for client: $100',
     'jetup.minPartner': 'Minimum for partner: $250',
+  },
+  de: {
+    'home.title': 'JetUP',
+    'home.subtitle': 'Ihr Zugang zu den Finanzmärkten',
+    'home.tagline': 'Struktur. Transparenz. Kontrolle.',
+    'home.ecosystem': 'Komplettes Ökosystem',
+    'home.broker': 'Zuverlässiger Broker',
+    'home.control': 'Volle Kontrolle',
+    'home.education': 'Ausbildung',
+    'home.mariaGreeting': 'Hallo! Ich bin Maria, die JetUP-Assistentin. Ich erzähle dir alles über das Ökosystem und helfe dir weiter. Was interessiert dich?',
+    'home.mariaOnline': 'Maria online',
+    'home.askMaria': 'Maria fragen',
+    'quick.whatIsJetup': 'Was ist JetUP?',
+    'quick.howToStart': 'Wie fange ich an?',
+    'quick.isSafe': 'Ist es sicher?',
+    'nav.home': 'Startseite',
+    'nav.jetup': 'JetUP',
+    'nav.chat': 'Chat',
+    'nav.application': 'Anfrage',
+    'chat.maria': 'Maria',
+    'chat.online': 'Online',
+    'chat.placeholder': 'Nachricht schreiben...',
+    'chat.greeting': 'Hallo! Ich bin Maria, die JetUP-Assistentin. Ich erzähle dir alles über das Ökosystem und helfe dir weiter. Was interessiert dich?',
+    'chat.typing': 'Maria tippt...',
+    'video.startCall': 'Videoanruf mit Maria',
+    'video.endCall': 'Beenden',
+    'video.connecting': 'Verbindung wird hergestellt...',
+    'app.title': 'Beratungsanfrage',
+    'app.name': 'Ihr Name',
+    'app.phone': 'Telefon',
+    'app.email': 'E-Mail',
+    'app.submit': 'Anfrage senden',
+    'app.success': 'Anfrage gesendet!',
+    'jetup.title': 'JetUP Ökosystem',
+    'jetup.desc': 'Eine moderne Plattform für den Einstieg in die Finanzmärkte',
+    'jetup.copyTrading': 'Copy-X Strategien',
+    'jetup.copyTradingDesc': 'Automatisches Kopieren professioneller Strategien mit voller Kontrolle',
+    'jetup.signals': 'Handelssignale',
+    'jetup.signalsDesc': 'Echtzeit-Signale mit präzisen Einstiegsniveaus und Analyse',
+    'jetup.academy': 'JetUP Akademie',
+    'jetup.academyDesc': 'Trading-Ausbildung, Risikomanagement und Systemdenken',
+    'jetup.partner': 'Partnerprogramm',
+    'jetup.partnerDesc': 'Strukturierte Einkommensmodelle basierend auf realem Handelsvolumen',
+    'jetup.tagMarkets': 'TAG Markets',
+    'jetup.tagMarketsDesc': 'Lizenzierter Broker — Ihr Kapital bleibt immer auf Ihrem Konto',
+    'jetup.howToStart': 'Wie starte ich?',
+    'jetup.startDesc': 'Registrierung → TAG Markets → MetaTrader 5 → Einzahlung → Zugang zu Tools',
+    'jetup.minClient': 'Minimum für Kunden: 100 $',
+    'jetup.minPartner': 'Minimum für Partner: 250 $',
   },
 };
 

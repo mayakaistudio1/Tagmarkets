@@ -26,9 +26,11 @@ export default function TextChat() {
     timestamp: 0,
   });
 
-  const getInitialQuickReplies = () => language === 'en' 
-    ? ['What is JetUP?', 'How to get started?', 'Is it safe?']
-    : ['Что такое JetUP?', 'Как начать?', 'Это безопасно?'];
+  const getInitialQuickReplies = () => {
+    if (language === 'en') return ['What is JetUP?', 'How to get started?', 'Is it safe?'];
+    if (language === 'de') return ['Was ist JetUP?', 'Wie fange ich an?', 'Ist es sicher?'];
+    return ['Что такое JetUP?', 'Как начать?', 'Это безопасно?'];
+  };
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -191,7 +193,7 @@ export default function TextChat() {
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: language === 'en' ? 'Sorry, something went wrong. Please try again.' : 'Извините, произошла ошибка. Попробуйте позже.',
+        content: language === 'en' ? 'Sorry, something went wrong. Please try again.' : language === 'de' ? 'Entschuldigung, etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.' : 'Извините, произошла ошибка. Попробуйте позже.',
         timestamp: Date.now(),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -276,7 +278,7 @@ export default function TextChat() {
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: language === 'en' ? 'Sorry, something went wrong. Please try again!' : 'Извини, что-то пошло не так. Попробуй еще раз!',
+        content: language === 'en' ? 'Sorry, something went wrong. Please try again!' : language === 'de' ? 'Entschuldigung, etwas ist schiefgelaufen. Bitte versuche es noch einmal!' : 'Извини, что-то пошло не так. Попробуй еще раз!',
         timestamp: Date.now(),
       };
       setMessages(prev => [...prev, errorMessage]);

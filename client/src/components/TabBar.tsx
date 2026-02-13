@@ -60,7 +60,7 @@ const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate, onOpenApplicat
             className="flex flex-col items-center justify-center flex-1 py-1.5 gap-1 text-gray-400 hover:text-primary transition-all active:scale-95"
             data-testid="tab-application"
           >
-            <div className="p-1.5 rounded-full" style={{ backgroundColor: 'rgba(30, 58, 95, 0.1)' }}>
+            <div className="p-1.5 rounded-full" style={{ backgroundColor: 'rgba(124, 58, 237, 0.1)' }}>
               <FileText size={22} className="text-primary" strokeWidth={2.5} />
             </div>
             <span className="text-[11px] font-semibold leading-none text-primary">{t('nav.application')}</span>

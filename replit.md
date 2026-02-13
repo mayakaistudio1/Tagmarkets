@@ -6,9 +6,11 @@ JetUP is a Telegram Mini App that serves as an online hub and onboarding tool fo
 
 ## Brand Identity
 
-- **Primary Color**: Navy blue #1E3A5F
-- **Accent Color**: Blue #3B82F6
-- **Gradient**: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%) — used via `.jetup-gradient` CSS class
+- **Primary Color**: Purple #7C3AED
+- **Accent Color**: Light purple #A855F7
+- **Gradient**: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%) — used via `.jetup-gradient` CSS class
+- **Font**: Roboto (400, 500, 700)
+- **Text Colors**: Primary #1F2937, Secondary #4B5563, Light #FFFFFF
 - **Tagline**: "Structure. Transparency. Control." / "Структура. Прозрачность. Контроль."
 - **Registration URL**: https://jetup.ibportal.io
 
@@ -85,7 +87,8 @@ server/replit_integrations/ - Replit-provided audio, chat, image, and batch util
 
 ## Recent Changes
 - Rebranded from Exfusion/XFusion to JetUP (Feb 2026)
-- Updated color scheme to navy blue (#1E3A5F) with blue accents (#3B82F6)
+- Updated color scheme to purple (#7C3AED) with light purple accents (#A855F7)
+- Switched font from Inter to Roboto (400, 500, 700)
 - Rebuilt HomePage as JetUP company card with ecosystem highlights
 - Rebuilt XFusionPage as JetUP ecosystem page with: Copy-X, Trading Signals, Academy, Partner Program, TAG Markets
 - Updated all translations (RU/EN) with JetUP content

@@ -11,16 +11,16 @@ const XFusionPage: React.FC = () => {
   const { language, t } = useLanguage();
 
   const ecosystemItems = language === 'ru' ? [
-    { icon: Copy, title: "Copy-X Стратегии", desc: "Автоматическое копирование профессиональных стратегий. 70% прибыли остаётся у клиента.", color: "bg-blue-500/10 text-blue-600" },
-    { icon: BarChart3, title: "Торговые сигналы", desc: "Сигналы в реальном времени с точными уровнями входа, Stop Loss/Take Profit и анализом.", color: "bg-indigo-500/10 text-indigo-600" },
-    { icon: GraduationCap, title: "JetUP Академия", desc: "Обучение трейдингу, управление рисками, построение систем и долгосрочный подход.", color: "bg-violet-500/10 text-violet-600" },
-    { icon: Users, title: "Партнёрская программа", desc: "Лот-комиссии, Profit Share, Infinity-бонус и Global Pools на основе реального объёма.", color: "bg-cyan-500/10 text-cyan-600" },
+    { icon: Copy, title: "Copy-X Стратегии", desc: "Автоматическое копирование профессиональных стратегий. 70% прибыли остаётся у клиента.", color: "bg-violet-500/10 text-violet-600" },
+    { icon: BarChart3, title: "Торговые сигналы", desc: "Сигналы в реальном времени с точными уровнями входа, Stop Loss/Take Profit и анализом.", color: "bg-purple-500/10 text-purple-600" },
+    { icon: GraduationCap, title: "JetUP Академия", desc: "Обучение трейдингу, управление рисками, построение систем и долгосрочный подход.", color: "bg-fuchsia-500/10 text-fuchsia-600" },
+    { icon: Users, title: "Партнёрская программа", desc: "Лот-комиссии, Profit Share, Infinity-бонус и Global Pools на основе реального объёма.", color: "bg-indigo-500/10 text-indigo-600" },
     { icon: Shield, title: "TAG Markets", desc: "Лицензированный брокер (FSC Mauritius). Ваш капитал всегда на вашем счёте.", color: "bg-emerald-500/10 text-emerald-600" },
   ] : [
-    { icon: Copy, title: "Copy-X Strategies", desc: "Automatically copy professional strategies. 70% of profits stay with the customer.", color: "bg-blue-500/10 text-blue-600" },
-    { icon: BarChart3, title: "Trading Signals", desc: "Real-time signals with precise entry levels, Stop Loss/Take Profit and analysis.", color: "bg-indigo-500/10 text-indigo-600" },
-    { icon: GraduationCap, title: "JetUP Academy", desc: "Trading education, risk management, systems thinking and long-term approach.", color: "bg-violet-500/10 text-violet-600" },
-    { icon: Users, title: "Partner Program", desc: "Lot commissions, Profit Share, Infinity Bonus and Global Pools based on real volume.", color: "bg-cyan-500/10 text-cyan-600" },
+    { icon: Copy, title: "Copy-X Strategies", desc: "Automatically copy professional strategies. 70% of profits stay with the customer.", color: "bg-violet-500/10 text-violet-600" },
+    { icon: BarChart3, title: "Trading Signals", desc: "Real-time signals with precise entry levels, Stop Loss/Take Profit and analysis.", color: "bg-purple-500/10 text-purple-600" },
+    { icon: GraduationCap, title: "JetUP Academy", desc: "Trading education, risk management, systems thinking and long-term approach.", color: "bg-fuchsia-500/10 text-fuchsia-600" },
+    { icon: Users, title: "Partner Program", desc: "Lot commissions, Profit Share, Infinity Bonus and Global Pools based on real volume.", color: "bg-indigo-500/10 text-indigo-600" },
     { icon: Shield, title: "TAG Markets", desc: "Licensed broker (FSC Mauritius). Your capital always stays in your account.", color: "bg-emerald-500/10 text-emerald-600" },
   ];
 

@@ -123,7 +123,7 @@ const HomePage: React.FC = () => {
                   <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center border border-primary/10">
                     <span className="text-xs font-bold text-primary">M</span>
                   </div>
-                  <div className="absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 bg-blue-500 border-2 border-white rounded-full" />
+                  <div className="absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full" />
                 </div>
                 <div className="chat-bubble chat-bubble-incoming !max-w-[85%] !p-3.5 !bg-gray-50 border border-gray-100 min-h-[60px]">
                   <p className="text-[14px] text-gray-800 leading-relaxed">
@@ -136,7 +136,7 @@ const HomePage: React.FC = () => {
               </div>
               
               <div className="flex items-center gap-2 ml-10">
-                <span className="text-[10px] font-semibold text-blue-500">{t('home.mariaOnline')}</span>
+                <span className="text-[10px] font-semibold text-green-500">{t('home.mariaOnline')}</span>
               </div>
             </div>
 

@@ -68,13 +68,11 @@ const HomePage: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
       >
-        <div className="flex items-center gap-4 mb-4">
-          <img src="/jetup-logo.png" alt="JetUP" className="w-12 h-12 object-contain" />
-          <div>
-            <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-primary/40">
-              {t('home.tagline')}
-            </p>
-          </div>
+        <div className="flex flex-col items-center text-center mb-5">
+          <img src="/jetup-logo.png" alt="JetUP" className="w-24 h-24 object-contain mb-3" />
+          <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-primary/50">
+            {t('home.tagline')}
+          </p>
         </div>
 
         <p className="text-[15px] font-medium text-gray-500 mb-5 leading-snug">

@@ -93,4 +93,5 @@ server/replit_integrations/ - Replit-provided audio, chat, image, and batch util
 - Rebuilt XFusionPage as JetUP ecosystem page with: Copy-X, Trading Signals, Academy, Partner Program, TAG Markets
 - Updated all translations (RU/EN) with JetUP content
 - Updated TabBar with JetUP branding and Rocket icon
-- Pending: Maria system prompts still reference Exfusion (to be updated next)
+- Updated Maria system prompts: replaced Exfusion with JetUP, removed Alexander Popov references, Maria is now JetUP support assistant
+- Polished HomePage UI: improved card spacing, feature grid, Maria chat block, and tab bar consistency (Feb 2026)

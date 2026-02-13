@@ -95,3 +95,8 @@ server/replit_integrations/ - Replit-provided audio, chat, image, and batch util
 - Updated TabBar with JetUP branding and Rocket icon
 - Updated Maria system prompts: replaced Exfusion with JetUP, removed Alexander Popov references, Maria is now JetUP support assistant
 - Polished HomePage UI: improved card spacing, feature grid, Maria chat block, and tab bar consistency (Feb 2026)
+- Restructured app to single-screen layouts using 100dvh + overflow-hidden (Feb 2026)
+- TabBar changed from fixed positioning to in-flow flex layout, hidden on Maria chat page
+- Added PDF presentations (RU/EN/DE) to public folder with language-specific download buttons
+- Redesigned VideoCallBar with prominent gradient banner, LIVE badge, and pulse animation
+- Added German (de) translations for VideoCallBar

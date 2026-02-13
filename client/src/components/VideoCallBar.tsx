@@ -36,31 +36,54 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
   const roomRef = useRef<Room | null>(null);
   const speakerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const texts = language === 'en' ? {
-    startVideoCall: 'Start video call with Maria',
-    maria: 'Maria',
-    readyToAnswer: 'Ready to answer your questions in real time',
-    startConversation: 'Start conversation',
-    connectingToMaria: 'Connecting to Maria...',
-    mariaSpeaking: 'Maria is speaking...',
-    micEnabled: 'Your microphone is on',
-    endCall: 'End call',
-    connectionError: 'Connection error',
-    close: 'Close',
-    tryAgain: 'Try again',
-  } : {
-    startVideoCall: 'Начать видеозвонок с Марией',
-    maria: 'Мария',
-    readyToAnswer: 'Готова ответить на ваши вопросы в режиме реального времени',
-    startConversation: 'Начать разговор',
-    connectingToMaria: 'Подключение к Марии...',
-    mariaSpeaking: 'Мария говорит...',
-    micEnabled: 'Ваш микрофон включён',
-    endCall: 'Завершить звонок',
-    connectionError: 'Ошибка подключения',
-    close: 'Закрыть',
-    tryAgain: 'Попробовать снова',
+  const allTexts = {
+    en: {
+      liveVideo: 'LIVE',
+      startVideoCall: 'Video call with Maria',
+      startVideoCallDesc: 'Talk face-to-face in real time',
+      maria: 'Maria',
+      readyToAnswer: 'Ready to answer your questions in real time',
+      startConversation: 'Start conversation',
+      connectingToMaria: 'Connecting to Maria...',
+      mariaSpeaking: 'Maria is speaking...',
+      micEnabled: 'Your microphone is on',
+      endCall: 'End call',
+      connectionError: 'Connection error',
+      close: 'Close',
+      tryAgain: 'Try again',
+    },
+    de: {
+      liveVideo: 'LIVE',
+      startVideoCall: 'Videoanruf mit Maria',
+      startVideoCallDesc: 'Persönlich in Echtzeit sprechen',
+      maria: 'Maria',
+      readyToAnswer: 'Bereit, Ihre Fragen in Echtzeit zu beantworten',
+      startConversation: 'Gespräch starten',
+      connectingToMaria: 'Verbindung zu Maria...',
+      mariaSpeaking: 'Maria spricht...',
+      micEnabled: 'Ihr Mikrofon ist an',
+      endCall: 'Anruf beenden',
+      connectionError: 'Verbindungsfehler',
+      close: 'Schließen',
+      tryAgain: 'Erneut versuchen',
+    },
+    ru: {
+      liveVideo: 'LIVE',
+      startVideoCall: 'Видеозвонок с Марией',
+      startVideoCallDesc: 'Общайтесь лично в реальном времени',
+      maria: 'Мария',
+      readyToAnswer: 'Готова ответить на ваши вопросы в режиме реального времени',
+      startConversation: 'Начать разговор',
+      connectingToMaria: 'Подключение к Марии...',
+      mariaSpeaking: 'Мария говорит...',
+      micEnabled: 'Ваш микрофон включён',
+      endCall: 'Завершить звонок',
+      connectionError: 'Ошибка подключения',
+      close: 'Закрыть',
+      tryAgain: 'Попробовать снова',
+    },
   };
+  const texts = allTexts[language] || allTexts.ru;
 
   const handleTrackSubscribed = useCallback(
     (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
@@ -302,17 +325,24 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="sticky top-0 z-40 bg-gradient-to-r from-primary/5 to-primary/10 border-b border-primary/10 p-3"
+          className="sticky top-0 z-40 p-3 flex-shrink-0"
         >
-          <Button
+          <button
             onClick={() => setIsOverlayVisible(true)}
-            variant="outline"
-            className="w-full h-12 rounded-xl border-primary/30 bg-white text-primary hover:bg-primary/5 font-bold gap-2"
+            className="w-full rounded-2xl jetup-gradient p-3.5 flex items-center gap-3 shadow-[0_4px_20px_rgba(124,58,237,0.3)] active:scale-[0.98] transition-transform"
             data-testid="button-start-video"
           >
-            <Video size={20} />
-            {texts.startVideoCall}
-          </Button>
+            <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <Video size={22} className="text-white" />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="flex items-center gap-2">
+                <span className="text-white font-bold text-[14px]">{texts.startVideoCall}</span>
+                <span className="px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-md animate-pulse">{texts.liveVideo}</span>
+              </div>
+              <p className="text-white/70 text-[11px] mt-0.5">{texts.startVideoCallDesc}</p>
+            </div>
+          </button>
         </motion.div>
 
         <AnimatePresence>

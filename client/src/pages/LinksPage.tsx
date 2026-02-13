@@ -8,18 +8,20 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const LinksPage: React.FC = () => {
   const { language } = useLanguage();
 
+  const pdfUrl = { ru: '/jetup-presentation-ru.pdf', en: '/jetup-presentation-en.pdf', de: '/jetup-presentation-de.pdf' }[language];
+
   const links = {
     ru: [
       { title: 'Регистрация', desc: 'JetUP IB Portal', url: 'https://jetup.ibportal.io', icon: UserPlus, color: 'bg-primary/10 text-primary' },
-      { title: 'Презентация', desc: 'Скачать PDF', url: '#', icon: FileText, color: 'bg-red-500/10 text-red-500', showDownload: true },
+      { title: 'Презентация', desc: 'Скачать PDF', url: pdfUrl, icon: FileText, color: 'bg-red-500/10 text-red-500', showDownload: true },
     ],
     en: [
       { title: 'Registration', desc: 'JetUP IB Portal', url: 'https://jetup.ibportal.io', icon: UserPlus, color: 'bg-primary/10 text-primary' },
-      { title: 'Presentation', desc: 'Download PDF', url: '#', icon: FileText, color: 'bg-red-500/10 text-red-500', showDownload: true },
+      { title: 'Presentation', desc: 'Download PDF', url: pdfUrl, icon: FileText, color: 'bg-red-500/10 text-red-500', showDownload: true },
     ],
     de: [
       { title: 'Registrierung', desc: 'JetUP IB Portal', url: 'https://jetup.ibportal.io', icon: UserPlus, color: 'bg-primary/10 text-primary' },
-      { title: 'Präsentation', desc: 'PDF herunterladen', url: '#', icon: FileText, color: 'bg-red-500/10 text-red-500', showDownload: true },
+      { title: 'Präsentation', desc: 'PDF herunterladen', url: pdfUrl, icon: FileText, color: 'bg-red-500/10 text-red-500', showDownload: true },
     ],
   }[language];
 
@@ -43,7 +45,7 @@ const LinksPage: React.FC = () => {
           className="space-y-3 pt-2"
         >
           {links.map((link, idx) => (
-            <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block group">
+            <a key={idx} href={link.url} {...(link.showDownload ? { download: true } : { target: "_blank", rel: "noopener noreferrer" })} className="block group">
               <Card className="p-4 flex items-center gap-4 border-none shadow-sm bg-card group-hover:bg-card/80 transition-all group-active:scale-98 rounded-2xl">
                 <div className={`w-12 h-12 rounded-xl ${link.color} flex items-center justify-center`}>
                   <link.icon size={24} />

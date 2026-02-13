@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ExternalLink, FileText, UserPlus, ChevronLeft, Copy, BarChart3, GraduationCap, Users, Shield } from "lucide-react";
+import { ExternalLink, FileText, UserPlus, ChevronLeft, Copy, BarChart3, GraduationCap, Users, Shield, Download } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -58,6 +58,9 @@ const XFusionPage: React.FC = () => {
     ],
   }[language];
 
+  const pdfUrl = { ru: '/jetup-presentation-ru.pdf', en: '/jetup-presentation-en.pdf', de: '/jetup-presentation-de.pdf' }[language];
+  const presentationLabel = { ru: 'Презентация JetUP', en: 'JetUP Presentation', de: 'JetUP Präsentation' }[language];
+  const downloadLabel = { ru: 'Скачать PDF', en: 'Download PDF', de: 'PDF herunterladen' }[language];
   const registrationLabel = { ru: 'Регистрация', en: 'Registration', de: 'Registrierung' }[language];
   const faqLabel = { ru: 'Частые вопросы', en: 'FAQ', de: 'Häufige Fragen' }[language];
   const questionsLabel = { ru: 'Остались вопросы?', en: 'Still have questions?', de: 'Noch Fragen?' }[language];
@@ -109,20 +112,30 @@ const XFusionPage: React.FC = () => {
           ))}
         </div>
 
-        <a href="https://jetup.ibportal.io" target="_blank" rel="noopener noreferrer" className="block">
-          <Card className="p-3 border border-gray-100 hover:border-primary/30 transition-colors flex items-center justify-between group rounded-2xl">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <UserPlus className="w-4.5 h-4.5" />
+        <div className="grid grid-cols-2 gap-2.5">
+          <a href="https://jetup.ibportal.io" target="_blank" rel="noopener noreferrer" className="block">
+            <Card className="p-3 border border-gray-100 hover:border-primary/30 transition-colors flex items-center gap-2.5 group rounded-2xl">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                <UserPlus className="w-4 h-4" />
               </div>
-              <div>
-                <p className="font-bold text-sm">{registrationLabel}</p>
-                <p className="text-xs text-gray-500">JetUP IB Portal</p>
+              <div className="min-w-0">
+                <p className="font-bold text-xs">{registrationLabel}</p>
+                <p className="text-[10px] text-gray-500 truncate">IB Portal</p>
               </div>
-            </div>
-            <ExternalLink className="w-4.5 h-4.5 text-gray-300 group-hover:text-primary transition-colors" />
-          </Card>
-        </a>
+            </Card>
+          </a>
+          <a href={pdfUrl} download className="block" data-testid="download-presentation">
+            <Card className="p-3 border border-gray-100 hover:border-red-300 transition-colors flex items-center gap-2.5 group rounded-2xl">
+              <div className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 flex-shrink-0">
+                <Download className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-xs">{presentationLabel}</p>
+                <p className="text-[10px] text-gray-500 truncate">{downloadLabel}</p>
+              </div>
+            </Card>
+          </a>
+        </div>
 
         <div>
           <h2 className="text-lg font-bold mb-3">{faqLabel}</h2>

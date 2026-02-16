@@ -6,6 +6,8 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 
 import HomePage from "@/pages/HomePage";
 import MariaPage from "@/pages/MariaPage";
+import TradingHubPage from "@/pages/TradingHubPage";
+import PartnerHubPage from "@/pages/PartnerHubPage";
 import TabBar from "@/components/TabBar";
 
 function AppContent() {
@@ -21,10 +23,16 @@ function AppContent() {
         return <HomePage />;
       case "/maria":
         return <MariaPage />;
+      case "/trading":
+        return <TradingHubPage />;
+      case "/partner":
+        return <PartnerHubPage />;
       default:
         return <HomePage />;
     }
   };
+
+  const showTabBar = location === "/" || location === "/maria";
 
   return (
     <div className="bg-background text-foreground h-[100dvh] font-sans flex justify-center w-full overflow-hidden">
@@ -44,7 +52,7 @@ function AppContent() {
           </AnimatePresence>
         </main>
 
-        {location !== '/maria' && (
+        {showTabBar && (
           <TabBar 
             currentPath={location} 
             onNavigate={setLocation} 

@@ -130,10 +130,10 @@ const HomePage: React.FC = () => {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-[16px] font-bold text-white leading-tight">
-                    Trading mit TAG Markets & Copy-X
+                    Trading & Strategien
                   </h3>
                   <p className="text-[12px] text-white/70 mt-1 leading-snug">
-                    Handel, Copy-Trading & Amplify in einem Bereich.
+                    Broker, Copy-Trading & Amplify — alles in einem Bereich.
                   </p>
                 </div>
                 <ArrowRight size={20} className="text-white/60 mt-2 flex-shrink-0" />

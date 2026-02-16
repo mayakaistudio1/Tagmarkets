@@ -27,9 +27,9 @@ export default function TextChat() {
   });
 
   const getInitialQuickReplies = () => {
-    if (language === 'en') return ['What is JetUP?', 'How to get started?', 'Is it safe?'];
-    if (language === 'de') return ['Was ist JetUP?', 'Wie fange ich an?', 'Ist es sicher?'];
-    return ['Что такое JetUP?', 'Как начать?', 'Это безопасно?'];
+    if (language === 'en') return ['How do I start trading?', 'What Copy-X strategies exist?', 'How do I earn as a partner?', 'Presentations & documents'];
+    if (language === 'de') return ['Wie starte ich mit Trading?', 'Welche Copy-X Strategien gibt es?', 'Wie verdiene ich als Partner?', 'Präsentationen & Unterlagen'];
+    return ['Как начать торговать?', 'Какие стратегии Copy-X есть?', 'Как заработать как партнёр?', 'Презентации и материалы'];
   };
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);

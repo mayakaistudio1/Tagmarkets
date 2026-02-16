@@ -33,7 +33,7 @@ const TradingHubPage: React.FC = () => {
           <ArrowLeft size={18} className="text-gray-600" />
         </button>
         <h1 className="text-[16px] font-bold text-gray-900 flex-1">
-          Trading mit TAG Markets & Copy-X
+          Trading & Strategien
         </h1>
       </div>
 
@@ -44,7 +44,7 @@ const TradingHubPage: React.FC = () => {
           className="space-y-4"
         >
           <p className="text-[13px] text-gray-500 leading-relaxed">
-            Hier verwaltest du alles rund um Trading: Broker TAG Markets, Copy-X Strategien und Amplify 12x.
+            Dein Trading-Bereich: Broker, Copy-Trading (Copy-X) und Amplify 12x in einem Ort.
           </p>
 
           <Accordion type="multiple" className="space-y-2.5">

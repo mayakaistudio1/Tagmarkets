@@ -581,10 +581,10 @@ export function registerMariaChatRoutes(app: Express): void {
       const { messages, language = 'ru' } = req.body;
 
       const defaultSuggestions = language === 'en' 
-        ? ["What is JetUP?", "How to get started?", "Is it safe?"]
+        ? ["How do I start trading?", "What Copy-X strategies exist?", "How do I earn as a partner?"]
         : language === 'de'
-        ? ["Was ist JetUP?", "Wie fange ich an?", "Ist es sicher?"]
-        : ["Что такое JetUP?", "Как начать?", "Это безопасно?"];
+        ? ["Wie starte ich mit Trading?", "Welche Copy-X Strategien gibt es?", "Wie verdiene ich als Partner?"]
+        : ["Как начать торговать?", "Какие стратегии Copy-X есть?", "Как заработать как партнёр?"];
 
       if (!messages || !Array.isArray(messages) || messages.length === 0) {
         return res.json({ suggestions: defaultSuggestions });

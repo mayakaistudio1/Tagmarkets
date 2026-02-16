@@ -1,20 +1,15 @@
 import React, { useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Users, MessageCircle, FileText } from "lucide-react";
 import { initTelegram } from "@/lib/telegram";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 
 import HomePage from "@/pages/HomePage";
-import XFusionPage from "@/pages/XFusionPage";
 import MariaPage from "@/pages/MariaPage";
-import LinksPage from "@/pages/LinksPage";
-import ApplicationModal from "@/components/ApplicationModal";
 import TabBar from "@/components/TabBar";
 
 function AppContent() {
   const [location, setLocation] = useLocation();
-  const [isAppModalOpen, setIsAppModalOpen] = React.useState(false);
 
   useEffect(() => {
     initTelegram();
@@ -24,15 +19,8 @@ function AppContent() {
     switch (location) {
       case "/":
         return <HomePage />;
-      case "/xfusion":
-        return <XFusionPage />;
-      case "/popp":
-        setLocation("/");
-        return <HomePage />;
       case "/maria":
         return <MariaPage />;
-      case "/links":
-        return <LinksPage />;
       default:
         return <HomePage />;
     }
@@ -62,11 +50,6 @@ function AppContent() {
             onNavigate={setLocation} 
           />
         )}
-        
-        <ApplicationModal 
-          isOpen={isAppModalOpen} 
-          onClose={() => setIsAppModalOpen(false)} 
-        />
       </div>
     </div>
   );

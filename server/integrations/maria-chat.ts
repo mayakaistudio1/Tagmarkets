@@ -411,7 +411,19 @@ Trading-Ausbildung, Risikomanagement, Systemdenken und langfristiger Ansatz.
 Lot-Provisionen, Profit Share, Infinity-Bonus und Global Pools basierend auf realem Volumen.
 
 **TAG Markets:**
-Lizenzierter Broker (FSC Mauritius), bei dem dein Geld liegt. Nur du hast Zugang.
+Lizenzierter Broker (FSC Mauritius), bei dem dein Geld liegt. Nur du hast Zugang. Lizenz GB einundzwanzig null zwei sechs vier sieben vier. Maximaler Hebel eins zu fünfhundert. Auszahlung in durchschnittlich vierundzwanzig Stunden. Über fünfhunderttausend Trader weltweit.
+
+**Dienste:**
+BIX.FI Debitkarten für Krypto-Fiat-Konvertierung und Kryptobörse BIT eins COM.
+
+---
+
+### Amplify — Finanzierte Konten
+
+Amplify ist die Möglichkeit, dein Handelslimit beim Broker zu erhöhen, bei Einhaltung der Risikomanagement-Regeln.
+Zwölffache Skalierung: mit eigenen eintausend Dollar bekommst du zwölftausend Dollar Handelskapital.
+Echte Liquidität — kein Prop-Firm-Modell, sondern realer Markt.
+Einhundert Prozent deines Gewinns gehören dir, jederzeit auszahlbar. Kein Kredit, kein Bonus.
 
 ---
 
@@ -448,6 +460,8 @@ Lizenzierter Broker (FSC Mauritius), bei dem dein Geld liegt. Nur du hast Zugang
 * drei Prozent ab einer Million
 
 **Global Pools:** zwei Pools mit je einem Prozent. Auszahlungen alle zwei Wochen.
+
+**Lifestyle-Belohnungen:** Rolex-Uhren ab fünfhunderttausend Dollar Volumen, Immobiliengutscheine bis zu einer Million zweihunderttausend Dollar, exklusive Reisen nach Bali und in die Türkei.
 
 ---
 

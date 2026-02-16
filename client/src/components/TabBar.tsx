@@ -1,7 +1,6 @@
 import React from "react";
-import { Home, Rocket, MessageCircle } from "lucide-react";
+import { Home, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TabBarProps {
   currentPath: string;
@@ -9,12 +8,9 @@ interface TabBarProps {
 }
 
 const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate }) => {
-  const { t } = useLanguage();
-  
   const tabs = [
-    { id: "home", labelKey: "nav.home", icon: Home, path: "/" },
-    { id: "jetup", labelKey: "nav.jetup", icon: Rocket, path: "/xfusion" },
-    { id: "maria", labelKey: "nav.chat", icon: MessageCircle, path: "/maria" },
+    { id: "home", label: "Hub", icon: Home, path: "/" },
+    { id: "maria", label: "Maria", icon: MessageCircle, path: "/maria" },
   ];
 
   return (
@@ -44,7 +40,7 @@ const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate }) => {
                   "text-[10px] leading-none transition-colors",
                   isActive ? "font-semibold text-primary" : "font-medium text-gray-400"
                 )}>
-                  {t(tab.labelKey)}
+                  {tab.label}
                 </span>
               </button>
             );

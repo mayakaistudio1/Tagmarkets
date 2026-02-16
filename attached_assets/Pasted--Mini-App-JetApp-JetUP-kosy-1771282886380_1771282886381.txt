@@ -1,0 +1,94 @@
+## Главный экран Mini App (очень просто)
+
+Сверху остаётся то же:
+
+- Шапка: `JetApp – JetUP Ökosystem`. [perplexity](https://www.perplexity.ai/search/5d658fec-a0a4-48b4-bd2e-51fd4c6f105a)
+- Карточка Марии (LiveAvatar + `Video` / `Chat`).
+
+Дальше сразу **две большие кнопки‑карточки** (money‑block):
+
+1. `📊 Trading mit TAG Markets & Copy-X`  
+   Саб: `Handel, Copy-Trading & Amplify in einem Bereich.`  
+   По клику → экран «Trading Hub».
+
+2. `💼 Partnerprogramm & Einkommen`  
+   Саб: `Provisionen, Profit-Share, Rewards (Rolex, Immobilien, Reisen).`
+   По клику → экран «Partner Hub».
+
+Ниже — блок **«Direkte Links»** как в обычном Linktree:
+
+- `📂 Google Drive – Präsentationen` (папка с презами, PDF).  
+- `📣 Telegram Kanal`, `💬 Telegram Chat`, `📸 Instagram`, `🌍 Website` и т.п. [perplexity](https://www.perplexity.ai/search/12728bd5-ad96-45a8-89d2-2be3dec49135)
+
+То есть: **Мария → 2 больших пути → ниже обычный набор ссылок.**
+
+***
+
+## Экран 1: Trading Hub (после клика по Trading)
+
+Очень компактный, но сразу показывает, что внутри трейдинг‑пути есть TAG, Copy‑X и Amplify. [perplexity](https://www.perplexity.ai/search/b64872a2-f7bd-413f-b9cd-50701511e00a)
+
+Структура:
+
+- Заголовок: `📊 Trading mit TAG Markets & Copy-X`
+- Короткое объяснение (1–2 строки):  
+  `Hier verwaltest du alles rund um Trading: Broker TAG Markets, Copy-X Strategien und Amplify 12x.` [perplexity](https://www.perplexity.ai/search/788ab77a-1e58-4daa-a1dc-8e248b6a80a6)
+
+Дальше 3 средние карточки:
+
+1. `🏦 TAG Markets Broker`
+   - Саб: `Regulierter Multi-Asset Broker mit MT5.`
+   - Клик → краткий TAG‑экран (регуляция, MT5, Auszahlung 24h, Hebel), с кнопкой `Mehr Details` на полноразмерный TAG‑вайрфрейм.
+
+2. `🤖 Copy-X Strategien`
+   - Саб: `Automatisches Copy-Trading für passives Einkommen.`
+   - Клик → мини‑экран с 2–3 стратегиями (карточки) + кнопка `Alle Strategien & Statistik` на большой Copy‑X‑экран. [perplexity](https://www.perplexity.ai/search/b64872a2-f7bd-413f-b9cd-50701511e00a)
+
+3. `🚀 Amplify 12x`
+   - Саб: `Dein Eigenkapital mit bis zu 12x skalieren.`
+   - Клик → упрощённый Amplify‑экран (цифры 1k→12k, 5% / 10% Drawdown, 100% Profit) + `Mehr zu Amplify`.
+
+Внизу Trading Hub ещё две маленькие кнопки:
+
+- `📘 Schnellstart in 5 Schritten` (ведёт на экран 5 шагов). [perplexity](https://www.perplexity.ai/search/788ab77a-1e58-4daa-a1dc-8e248b6a80a6)
+- `❓ FAQ zu Trading & TAG Markets` (сжатый FAQ, большой — отдельный).
+
+И в футере: `← Zurück zum Hub` и `💬 Frag Maria`.
+
+***
+
+## Экран 2: Partner Hub (после клика по Partnerprogramm)
+
+Здесь аналогично: один экран‑обзор всего партнёрского заработка.
+
+- Заголовок: `💼 Partnerprogramm & Einkommen`
+- Короткий текст:  
+  `Verdiene an echten Handelsvolumen: Provisionen, Profit-Share, Infinity Bonus und Global Pools – plus Lifestyle-Rewards.`
+
+Карточки:
+
+1. `1️⃣ Provisionen pro Lot`
+2. `2️⃣ Profit-Share vom Team`
+3. `3️⃣ Infinity Bonus`
+4. `4️⃣ Global Pools & Rewards (Rolex, Immobilien, Reisen)`
+
+Под ними:
+
+- Кнопка: `📊 Plan im Detail` → подробный партнёрский экран (таблицы, уровни, условия).  
+- Кнопка: `📅 Partner-Webinare & Trainings` → список зумов для партнёров.  
+- Кнопка: `📄 Partner PDF / Präsentation` → сразу на Google Drive/док.
+
+Футер: `← Zurück zum Hub` и `💬 Frag Maria`.
+
+***
+
+## Итого
+
+- На **главном экране** под Марией только две большие дорожки:  
+  `Trading mit TAG Markets & Copy-X` и `Partnerprogramm & Einkommen`,  
+  + блок прямых ссылок как классический Linktree (Drive, соцсети, сайт).  
+- Внутри Trading‑пути уже раскладываешь **TAG Markets, Copy‑X и Amplify** по отдельным карточкам/экранам, но логика для пользователя: «есть один вход в трейдинг, внутри всё, что связано с торговлей». [perplexity](https://www.perplexity.ai/search/428996cb-74d0-449f-ac14-813955bb89f2)
+
+Если хочешь, дальше могу расписать **конкретный упрощённый layout** для экрана `Trading Hub` и `Copy-X` уровня «готово к верстке» (как делали для TAG Markets).
+
+

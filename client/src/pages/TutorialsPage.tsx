@@ -5,8 +5,6 @@ import {
   MessageCircle,
   Play,
   FileText,
-  TrendingUp,
-  Users,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -171,7 +169,7 @@ const TutorialsPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <button className="w-full mt-3 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/10 text-primary text-[12px] font-semibold active:scale-[0.97] transition-transform">
+                <button className="w-full mt-3 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/10 text-primary text-[12px] font-semibold active:scale-[0.97] transition-transform" data-testid={`button-view-${tutorial.id}`}>
                   {tutorial.format === "video" ? <Play size={14} /> : <FileText size={14} />}
                   Ansehen
                 </button>

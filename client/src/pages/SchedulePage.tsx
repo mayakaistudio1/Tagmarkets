@@ -172,6 +172,7 @@ const SchedulePage: React.FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/10 text-primary text-[12px] font-semibold active:scale-[0.97] transition-transform"
+                      data-testid={`zoom-link-${event.id}`}
                     >
                       <ExternalLink size={14} />
                       Zum Zoom

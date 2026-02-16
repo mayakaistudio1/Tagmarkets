@@ -16,7 +16,7 @@ const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate }) => {
   return (
     <div className="z-50 flex justify-center flex-shrink-0">
       <div className="w-full max-w-[420px] bg-white/95 backdrop-blur-xl border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
-        <div className="flex items-center justify-around px-2 pt-2 pb-1.5">
+        <div className="flex items-center justify-around px-2 pt-2.5 pb-2">
           {tabs.map((tab) => {
             const isActive = currentPath === tab.path;
             return (
@@ -38,7 +38,7 @@ const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate }) => {
                 />
                 <span className={cn(
                   "text-[10px] leading-none transition-colors",
-                  isActive ? "font-semibold text-primary" : "font-medium text-gray-400"
+                  isActive ? "font-bold text-primary" : "font-semibold text-gray-400"
                 )}>
                   {tab.label}
                 </span>

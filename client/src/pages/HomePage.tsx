@@ -59,8 +59,9 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
+      <div className="purple-top-bar" />
       <div className="flex-1 overflow-y-auto">
-        <div className="px-4 pt-4 pb-6 space-y-4">
+        <div className="px-5 pt-5 pb-6 space-y-5">
 
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -70,16 +71,16 @@ const HomePage: React.FC = () => {
             <img
               src="/jetup-logo.png"
               alt="JetUP"
-              className="w-14 h-14 object-contain mb-1.5"
+              className="w-16 h-16 object-contain mb-2"
               data-testid="img-logo"
             />
-            <h1 className="text-[15px] font-bold text-gray-900">
+            <h1 className="text-[18px] font-extrabold text-gray-900 tracking-tight">
               JetApp – JetUP Ökosystem
             </h1>
-            <p className="text-[11px] font-medium tracking-[0.15em] uppercase text-primary/50 mt-0.5">
+            <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-gradient-purple mt-1">
               Struktur. Transparenz. Kontrolle.
             </p>
-            <p className="text-[12px] text-gray-500 mt-2 leading-snug max-w-[320px]">
+            <p className="text-[13px] text-gray-500 mt-2.5 leading-relaxed max-w-[320px] font-medium">
               Herzlich willkommen im JetApp Digital Hub – Trading & Partner-Einkommen mit Struktur und Transparenz.
             </p>
           </motion.div>
@@ -91,30 +92,30 @@ const HomePage: React.FC = () => {
           >
             <button
               onClick={goToMaria}
-              className="w-full bg-white rounded-2xl p-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex items-center gap-3.5 active:scale-[0.98] transition-transform text-left"
+              className="w-full bg-white rounded-2xl p-4 shadow-[0_2px_16px_rgba(0,0,0,0.06)] flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
               data-testid="cta-ask-maria"
             >
               <div className="relative flex-shrink-0">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 via-pink-300 to-blue-300 flex items-center justify-center">
-                  <span className="text-lg font-bold text-white">M</span>
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 via-pink-400 to-blue-400 flex items-center justify-center shadow-[0_4px_16px_rgba(124,58,237,0.3)]">
+                  <span className="text-lg font-extrabold text-white">M</span>
                 </div>
                 <div className="absolute -left-0.5 bottom-0 flex items-center gap-1 bg-white rounded-full px-1.5 py-0.5 shadow-sm border border-gray-100">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-[9px] font-semibold text-gray-600">online</span>
+                  <span className="text-[9px] font-bold text-gray-600">online</span>
                 </div>
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-[15px] font-bold text-gray-900">Maria – Live-Beraterin</h3>
                 <div className="flex gap-3 mt-1.5">
-                  <span className="flex items-center gap-1 text-[11px] text-gray-500">
-                    <Video size={12} /> Video
+                  <span className="flex items-center gap-1 text-[12px] text-gray-500 font-medium">
+                    <Video size={13} /> Video
                   </span>
-                  <span className="flex items-center gap-1 text-[11px] text-gray-500">
-                    <MessageCircle size={12} /> Chat
+                  <span className="flex items-center gap-1 text-[12px] text-gray-500 font-medium">
+                    <MessageCircle size={13} /> Chat
                   </span>
                 </div>
               </div>
-              <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-full jetup-gradient flex items-center justify-center flex-shrink-0 shadow-[0_2px_12px_rgba(124,58,237,0.3)]">
                 <ArrowRight size={18} className="text-white" />
               </div>
             </button>
@@ -128,43 +129,43 @@ const HomePage: React.FC = () => {
           >
             <button
               onClick={goToTrading}
-              className="w-full rounded-2xl p-5 text-left active:scale-[0.98] transition-transform shadow-[0_2px_12px_rgba(124,58,237,0.15)] bg-gradient-to-br from-purple-600 to-indigo-600"
+              className="w-full rounded-2xl p-5 text-left active:scale-[0.98] transition-transform bg-gradient-to-br from-[#7C3AED] to-[#A855F7] card-glow-strong"
               data-testid="card-trading-hub"
             >
               <div className="flex items-start gap-3">
-                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 mt-0.5 backdrop-blur-sm">
                   <TrendingUp size={22} className="text-white" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-[16px] font-bold text-white leading-tight">
                     Trading & Strategien
                   </h3>
-                  <p className="text-[12px] text-white/70 mt-1 leading-snug">
+                  <p className="text-[13px] text-white/80 mt-1.5 leading-snug font-medium">
                     Broker, Copy-Trading & Amplify — alles in einem Bereich.
                   </p>
                 </div>
-                <ArrowRight size={20} className="text-white/60 mt-2 flex-shrink-0" />
+                <ArrowRight size={20} className="text-white/70 mt-2 flex-shrink-0" />
               </div>
             </button>
 
             <button
               onClick={goToPartner}
-              className="w-full rounded-2xl p-5 text-left active:scale-[0.98] transition-transform shadow-[0_2px_12px_rgba(16,185,129,0.15)] bg-gradient-to-br from-emerald-600 to-teal-600"
+              className="w-full rounded-2xl p-5 text-left active:scale-[0.98] transition-transform bg-gradient-to-br from-emerald-600 to-teal-500 shadow-[0_4px_24px_rgba(16,185,129,0.2)]"
               data-testid="card-partner-hub"
             >
               <div className="flex items-start gap-3">
-                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 mt-0.5 backdrop-blur-sm">
                   <Users size={22} className="text-white" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-[16px] font-bold text-white leading-tight">
                     Partnerprogramm & Einkommen
                   </h3>
-                  <p className="text-[12px] text-white/70 mt-1 leading-snug">
+                  <p className="text-[13px] text-white/80 mt-1.5 leading-snug font-medium">
                     Provisionen, Profit-Share, Rewards (Rolex, Immobilien, Reisen).
                   </p>
                 </div>
-                <ArrowRight size={20} className="text-white/60 mt-2 flex-shrink-0" />
+                <ArrowRight size={20} className="text-white/70 mt-2 flex-shrink-0" />
               </div>
             </button>
           </motion.div>
@@ -173,32 +174,32 @@ const HomePage: React.FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="grid grid-cols-2 gap-2.5"
+            className="grid grid-cols-2 gap-3"
           >
             <button
               onClick={goToSchedule}
-              className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-[0_1px_6px_rgba(0,0,0,0.03)] active:scale-[0.97] transition-transform"
+              className="flex flex-col items-center gap-2.5 p-4 bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.05)] active:scale-[0.97] transition-transform"
               data-testid="card-schedule"
             >
-              <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                <Calendar size={20} className="text-orange-600" />
+              <div className="w-11 h-11 rounded-xl bg-orange-100 flex items-center justify-center">
+                <Calendar size={21} className="text-orange-600" />
               </div>
               <div className="text-center">
-                <span className="text-[13px] font-semibold text-gray-900 block">Webinare & Termine</span>
-                <span className="text-[10px] text-gray-400 mt-0.5 block">Live-Calls & Events</span>
+                <span className="text-[13px] font-bold text-gray-900 block">Webinare & Termine</span>
+                <span className="text-[11px] text-gray-400 mt-0.5 block font-medium">Live-Calls & Events</span>
               </div>
             </button>
             <button
               onClick={goToTutorials}
-              className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-[0_1px_6px_rgba(0,0,0,0.03)] active:scale-[0.97] transition-transform"
+              className="flex flex-col items-center gap-2.5 p-4 bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.05)] active:scale-[0.97] transition-transform"
               data-testid="card-tutorials"
             >
-              <div className="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center">
-                <GraduationCap size={20} className="text-cyan-600" />
+              <div className="w-11 h-11 rounded-xl bg-cyan-100 flex items-center justify-center">
+                <GraduationCap size={21} className="text-cyan-600" />
               </div>
               <div className="text-center">
-                <span className="text-[13px] font-semibold text-gray-900 block">Tutorials & Guides</span>
-                <span className="text-[10px] text-gray-400 mt-0.5 block">Videos & Anleitungen</span>
+                <span className="text-[13px] font-bold text-gray-900 block">Tutorials & Guides</span>
+                <span className="text-[11px] text-gray-400 mt-0.5 block font-medium">Videos & Anleitungen</span>
               </div>
             </button>
           </motion.div>
@@ -208,7 +209,7 @@ const HomePage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5 px-1">
               Direkte Links
             </p>
             <div className="space-y-2">
@@ -218,13 +219,13 @@ const HomePage: React.FC = () => {
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 shadow-[0_1px_6px_rgba(0,0,0,0.03)] active:scale-[0.98] transition-transform"
+                  className="flex items-center gap-3 bg-white rounded-xl px-4 py-3.5 shadow-[0_1px_8px_rgba(0,0,0,0.04)] active:scale-[0.98] transition-transform"
                   data-testid={`direct-link-${i}`}
                 >
-                  <div className={`w-9 h-9 rounded-lg ${link.bg} flex items-center justify-center flex-shrink-0`}>
-                    <link.icon size={18} className={link.color} />
+                  <div className={`w-10 h-10 rounded-xl ${link.bg} flex items-center justify-center flex-shrink-0`}>
+                    <link.icon size={19} className={link.color} />
                   </div>
-                  <span className="text-[13px] font-medium text-gray-800 flex-1">
+                  <span className="text-[13px] font-semibold text-gray-800 flex-1">
                     {link.label}
                   </span>
                   <ArrowRight size={16} className="text-gray-300 flex-shrink-0" />
@@ -234,7 +235,7 @@ const HomePage: React.FC = () => {
           </motion.div>
 
           <div className="text-center pt-2 pb-2">
-            <span className="text-[10px] text-gray-300 font-medium">@jetup</span>
+            <span className="text-[10px] text-gray-300 font-semibold tracking-wider">@jetup</span>
           </div>
         </div>
       </div>

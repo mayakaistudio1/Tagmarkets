@@ -91,7 +91,8 @@ const TutorialsPage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex items-center gap-3 px-4 pt-4 pb-2 flex-shrink-0">
+      <div className="purple-top-bar" />
+      <div className="flex items-center gap-3 px-5 pt-4 pb-2 flex-shrink-0">
         <button
           onClick={() => setLocation("/")}
           className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center active:scale-95 transition-transform"
@@ -99,18 +100,18 @@ const TutorialsPage: React.FC = () => {
         >
           <ArrowLeft size={18} className="text-gray-600" />
         </button>
-        <h1 className="text-[16px] font-bold text-gray-900 flex-1">
+        <h1 className="text-[17px] font-extrabold text-gray-900 flex-1 tracking-tight">
           Tutorials & Guides
         </h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-6">
+      <div className="flex-1 overflow-y-auto px-5 pb-6">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          <p className="text-[13px] text-gray-500 leading-relaxed">
+          <p className="text-[13px] text-gray-500 leading-relaxed font-medium">
             Kurzvideos & Schritt-für-Schritt Anleitungen für Trading und Partnerprogramm.
           </p>
 
@@ -119,9 +120,9 @@ const TutorialsPage: React.FC = () => {
               <button
                 key={tab.key}
                 onClick={() => setFilter(tab.key)}
-                className={`px-4 py-2 rounded-xl text-[12px] font-semibold transition-all ${
+                className={`px-4 py-2.5 rounded-xl text-[12px] font-bold transition-all ${
                   filter === tab.key
-                    ? "bg-primary text-white shadow-sm"
+                    ? "jetup-gradient text-white btn-glow"
                     : "bg-gray-100 text-gray-500"
                 }`}
                 data-testid={`tab-tutorials-${tab.key}`}
@@ -131,45 +132,45 @@ const TutorialsPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {filteredTutorials.map((tutorial) => (
               <div
                 key={tutorial.id}
-                className="bg-white rounded-2xl p-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"
+                className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.05)]"
                 data-testid={`tutorial-${tutorial.id}`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
                     tutorial.type === "trader" ? "bg-blue-100" : "bg-emerald-100"
                   }`}>
                     {tutorial.format === "video" ? (
-                      <Play size={18} className={tutorial.type === "trader" ? "text-blue-600" : "text-emerald-600"} />
+                      <Play size={19} className={tutorial.type === "trader" ? "text-blue-600" : "text-emerald-600"} />
                     ) : (
-                      <FileText size={18} className={tutorial.type === "trader" ? "text-blue-600" : "text-emerald-600"} />
+                      <FileText size={19} className={tutorial.type === "trader" ? "text-blue-600" : "text-emerald-600"} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                         tutorial.type === "trader"
                           ? "bg-blue-100 text-blue-600"
                           : "bg-emerald-100 text-emerald-600"
                       }`}>
                         {tutorial.type === "trader" ? "Trader" : "Partner"}
                       </span>
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500">
                         {tutorial.format === "video" ? `Video${tutorial.duration ? ` · ${tutorial.duration}` : ""}` : "Guide"}
                       </span>
                     </div>
-                    <h3 className="text-[14px] font-semibold text-gray-900 leading-tight">
+                    <h3 className="text-[14px] font-bold text-gray-900 leading-tight">
                       {tutorial.title}
                     </h3>
-                    <p className="text-[12px] text-gray-500 mt-0.5 leading-snug">
+                    <p className="text-[12px] text-gray-500 mt-1 leading-snug font-medium">
                       {tutorial.description}
                     </p>
                   </div>
                 </div>
-                <button className="w-full mt-3 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/10 text-primary text-[12px] font-semibold active:scale-[0.97] transition-transform" data-testid={`button-view-${tutorial.id}`}>
+                <button className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-primary/10 text-primary text-[12px] font-bold active:scale-[0.97] transition-transform" data-testid={`button-view-${tutorial.id}`}>
                   {tutorial.format === "video" ? <Play size={14} /> : <FileText size={14} />}
                   Ansehen
                 </button>
@@ -177,10 +178,10 @@ const TutorialsPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2.5 pt-2">
             <button
               onClick={() => setLocation("/")}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-100 text-[13px] font-medium text-gray-600 active:scale-[0.97] transition-transform"
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-100 text-[13px] font-semibold text-gray-600 active:scale-[0.97] transition-transform"
               data-testid="button-back-hub-tutorials"
             >
               <ArrowLeft size={16} />
@@ -188,7 +189,7 @@ const TutorialsPage: React.FC = () => {
             </button>
             <button
               onClick={() => setLocation("/maria")}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl jetup-gradient text-[13px] font-medium text-white active:scale-[0.97] transition-transform shadow-sm"
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl jetup-gradient-glow text-[13px] font-semibold text-white active:scale-[0.97] transition-transform"
               data-testid="button-frag-maria-tutorials"
             >
               <MessageCircle size={16} />

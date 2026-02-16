@@ -93,7 +93,8 @@ const SchedulePage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex items-center gap-3 px-4 pt-4 pb-2 flex-shrink-0">
+      <div className="purple-top-bar" />
+      <div className="flex items-center gap-3 px-5 pt-4 pb-2 flex-shrink-0">
         <button
           onClick={() => setLocation("/")}
           className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center active:scale-95 transition-transform"
@@ -101,18 +102,18 @@ const SchedulePage: React.FC = () => {
         >
           <ArrowLeft size={18} className="text-gray-600" />
         </button>
-        <h1 className="text-[16px] font-bold text-gray-900 flex-1">
+        <h1 className="text-[17px] font-extrabold text-gray-900 flex-1 tracking-tight">
           Webinare & Termine
         </h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-6">
+      <div className="flex-1 overflow-y-auto px-5 pb-6">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          <p className="text-[13px] text-gray-500 leading-relaxed">
+          <p className="text-[13px] text-gray-500 leading-relaxed font-medium">
             Nächste Live-Calls, Events & Schulungen.
           </p>
 
@@ -121,9 +122,9 @@ const SchedulePage: React.FC = () => {
               <button
                 key={tab.key}
                 onClick={() => setFilter(tab.key)}
-                className={`px-4 py-2 rounded-xl text-[12px] font-semibold transition-all ${
+                className={`px-4 py-2.5 rounded-xl text-[12px] font-bold transition-all ${
                   filter === tab.key
-                    ? "bg-primary text-white shadow-sm"
+                    ? "jetup-gradient text-white btn-glow"
                     : "bg-gray-100 text-gray-500"
                 }`}
                 data-testid={`tab-schedule-${tab.key}`}
@@ -133,20 +134,20 @@ const SchedulePage: React.FC = () => {
             ))}
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {filteredEvents.map((event) => (
               <div
                 key={event.id}
-                className="bg-white rounded-2xl p-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"
+                className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.05)]"
                 data-testid={`event-${event.id}`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-12 rounded-xl bg-primary/10 flex flex-col items-center justify-center flex-shrink-0">
-                    <Calendar size={16} className="text-primary" />
+                  <div className="w-11 h-12 rounded-xl bg-primary/10 flex flex-col items-center justify-center flex-shrink-0">
+                    <Calendar size={17} className="text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                         event.type === "trading"
                           ? "bg-blue-100 text-blue-600"
                           : "bg-emerald-100 text-emerald-600"
@@ -154,12 +155,12 @@ const SchedulePage: React.FC = () => {
                         {event.typeBadge}
                       </span>
                     </div>
-                    <h3 className="text-[14px] font-semibold text-gray-900 leading-tight">
+                    <h3 className="text-[14px] font-bold text-gray-900 leading-tight">
                       {event.title}
                     </h3>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <Clock size={12} className="text-gray-400" />
-                      <span className="text-[12px] text-gray-500">
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <Clock size={13} className="text-gray-400" />
+                      <span className="text-[12px] text-gray-500 font-medium">
                         {event.date} – {event.time} Uhr
                       </span>
                     </div>
@@ -171,7 +172,7 @@ const SchedulePage: React.FC = () => {
                       href={event.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/10 text-primary text-[12px] font-semibold active:scale-[0.97] transition-transform"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-primary/10 text-primary text-[12px] font-bold active:scale-[0.97] transition-transform"
                       data-testid={`zoom-link-${event.id}`}
                     >
                       <ExternalLink size={14} />
@@ -185,16 +186,16 @@ const SchedulePage: React.FC = () => {
 
           {filteredEvents.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-[13px] text-gray-400">
+              <p className="text-[13px] text-gray-400 font-medium">
                 Keine Termine in dieser Kategorie.
               </p>
             </div>
           )}
 
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2.5 pt-2">
             <button
               onClick={() => setLocation("/")}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-100 text-[13px] font-medium text-gray-600 active:scale-[0.97] transition-transform"
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-100 text-[13px] font-semibold text-gray-600 active:scale-[0.97] transition-transform"
               data-testid="button-back-hub-schedule"
             >
               <ArrowLeft size={16} />
@@ -202,7 +203,7 @@ const SchedulePage: React.FC = () => {
             </button>
             <button
               onClick={() => setLocation("/maria")}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl jetup-gradient text-[13px] font-medium text-white active:scale-[0.97] transition-transform shadow-sm"
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl jetup-gradient-glow text-[13px] font-semibold text-white active:scale-[0.97] transition-transform"
               data-testid="button-frag-maria-schedule"
             >
               <MessageCircle size={16} />

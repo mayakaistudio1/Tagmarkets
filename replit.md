@@ -8,8 +8,13 @@ JetUP is a Telegram Mini App that serves as an online hub and onboarding tool fo
 
 - **Primary Color**: Purple #7C3AED
 - **Accent Color**: Light purple #A855F7
+- **Light Purple**: #C084FC
 - **Gradient**: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%) — used via `.jetup-gradient` CSS class
-- **Font**: Roboto (400, 500, 700)
+- **Gradient Glow**: `.jetup-gradient-glow` adds purple box-shadow
+- **Gradient Soft**: `.jetup-gradient-soft` uses #A855F7 → #C084FC
+- **Text Gradient**: `.text-gradient-purple` uses #7C3AED → #C084FC
+- **Top Bar**: `.purple-top-bar` 4px gradient bar on every page
+- **Font**: Montserrat (400, 500, 600, 700, 800)
 - **Text Colors**: Primary #1F2937, Secondary #4B5563, Light #FFFFFF
 - **Tagline**: "Structure. Transparency. Control." / "Структура. Прозрачность. Контроль."
 - **Registration URL**: https://jetup.ibportal.io

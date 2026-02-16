@@ -9,7 +9,8 @@ import {
   ListOrdered,
   HelpCircle,
   ArrowRight,
-  ChevronDown,
+  Calendar,
+  GraduationCap,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import {
@@ -234,6 +235,25 @@ const TradingHubPage: React.FC = () => {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
+
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <button
+              onClick={() => setLocation("/schedule?filter=trading")}
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white shadow-[0_1px_6px_rgba(0,0,0,0.03)] text-[12px] font-medium text-gray-600 active:scale-[0.97] transition-transform"
+              data-testid="link-trading-call"
+            >
+              <Calendar size={14} className="text-orange-500" />
+              Trading-Calls
+            </button>
+            <button
+              onClick={() => setLocation("/tutorials?filter=trader")}
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white shadow-[0_1px_6px_rgba(0,0,0,0.03)] text-[12px] font-medium text-gray-600 active:scale-[0.97] transition-transform"
+              data-testid="link-trading-tutorials"
+            >
+              <GraduationCap size={14} className="text-cyan-500" />
+              Tutorials
+            </button>
+          </div>
 
           <div className="flex gap-2 pt-2">
             <button

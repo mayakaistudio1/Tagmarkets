@@ -10,6 +10,8 @@ import {
   Globe,
   Video,
   MessageCircle,
+  Calendar,
+  GraduationCap,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -21,6 +23,8 @@ const HomePage: React.FC = () => {
   const goToMaria = () => setLocation("/maria");
   const goToTrading = () => setLocation("/trading");
   const goToPartner = () => setLocation("/partner");
+  const goToSchedule = () => setLocation("/schedule");
+  const goToTutorials = () => setLocation("/tutorials");
 
   const directLinks = [
     {
@@ -74,6 +78,9 @@ const HomePage: React.FC = () => {
             </h1>
             <p className="text-[11px] font-medium tracking-[0.15em] uppercase text-primary/50 mt-0.5">
               Struktur. Transparenz. Kontrolle.
+            </p>
+            <p className="text-[12px] text-gray-500 mt-2 leading-snug max-w-[320px]">
+              Herzlich willkommen im JetApp Digital Hub – Trading & Partner-Einkommen mit Struktur und Transparenz.
             </p>
           </motion.div>
 
@@ -166,6 +173,40 @@ const HomePage: React.FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
+            className="grid grid-cols-2 gap-2.5"
+          >
+            <button
+              onClick={goToSchedule}
+              className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-[0_1px_6px_rgba(0,0,0,0.03)] active:scale-[0.97] transition-transform"
+              data-testid="card-schedule"
+            >
+              <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+                <Calendar size={20} className="text-orange-600" />
+              </div>
+              <div className="text-center">
+                <span className="text-[13px] font-semibold text-gray-900 block">Webinare & Termine</span>
+                <span className="text-[10px] text-gray-400 mt-0.5 block">Live-Calls & Events</span>
+              </div>
+            </button>
+            <button
+              onClick={goToTutorials}
+              className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-[0_1px_6px_rgba(0,0,0,0.03)] active:scale-[0.97] transition-transform"
+              data-testid="card-tutorials"
+            >
+              <div className="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center">
+                <GraduationCap size={20} className="text-cyan-600" />
+              </div>
+              <div className="text-center">
+                <span className="text-[13px] font-semibold text-gray-900 block">Tutorials & Guides</span>
+                <span className="text-[10px] text-gray-400 mt-0.5 block">Videos & Anleitungen</span>
+              </div>
+            </button>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
           >
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
               Direkte Links

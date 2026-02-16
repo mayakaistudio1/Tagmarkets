@@ -8,6 +8,8 @@ import HomePage from "@/pages/HomePage";
 import MariaPage from "@/pages/MariaPage";
 import TradingHubPage from "@/pages/TradingHubPage";
 import PartnerHubPage from "@/pages/PartnerHubPage";
+import SchedulePage from "@/pages/SchedulePage";
+import TutorialsPage from "@/pages/TutorialsPage";
 import TabBar from "@/components/TabBar";
 
 function AppContent() {
@@ -17,8 +19,10 @@ function AppContent() {
     initTelegram();
   }, []);
 
+  const basePath = location.split("?")[0];
+
   const renderPage = () => {
-    switch (location) {
+    switch (basePath) {
       case "/":
         return <HomePage />;
       case "/maria":
@@ -27,12 +31,16 @@ function AppContent() {
         return <TradingHubPage />;
       case "/partner":
         return <PartnerHubPage />;
+      case "/schedule":
+        return <SchedulePage />;
+      case "/tutorials":
+        return <TutorialsPage />;
       default:
         return <HomePage />;
     }
   };
 
-  const showTabBar = location === "/" || location === "/maria";
+  const showTabBar = basePath === "/" || basePath === "/maria";
 
   return (
     <div className="bg-background text-foreground h-[100dvh] font-sans flex justify-center w-full overflow-hidden">
@@ -40,7 +48,7 @@ function AppContent() {
         <main className="flex-1 overflow-hidden no-scrollbar relative">
           <AnimatePresence mode="wait">
             <motion.div
-              key={location}
+              key={basePath}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -54,7 +62,7 @@ function AppContent() {
 
         {showTabBar && (
           <TabBar 
-            currentPath={location} 
+            currentPath={basePath} 
             onNavigate={setLocation} 
           />
         )}

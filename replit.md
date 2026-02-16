@@ -88,9 +88,11 @@ server/replit_integrations/ - Replit-provided audio, chat, image, and batch util
 ## App Structure (Smart Linktree)
 
 ### Pages & Routing
-- `/` — **HomePage (Hub)**: Header "JetApp – JetUP Ökosystem", Maria live card, 2 big pathway cards (Trading Hub, Partner Hub), direct links block (Google Drive, Telegram, Instagram, Registration)
-- `/trading` — **TradingHubPage**: TAG Markets Broker, Copy-X Strategien, Amplify 12x (accordion cards), Schnellstart 5 Schritte, FAQ
-- `/partner` — **PartnerHubPage**: Provisionen, Profit-Share, Infinity Bonus, Global Pools & Rewards (accordion cards), Partner PDF link
+- `/` — **HomePage (Hub)**: Header "JetApp – JetUP Ökosystem", welcome text, Maria live card, 2 big pathway cards (Trading Hub, Partner Hub), Webinare & Tutorials buttons, direct links block (Google Drive, Telegram, Instagram, Registration)
+- `/trading` — **TradingHubPage**: TAG Markets Broker, Copy-X Strategien, Amplify 12x (accordion cards), Schnellstart 5 Schritte, FAQ, links to Trading-Calls & Tutorials
+- `/partner` — **PartnerHubPage**: Provisionen, Profit-Share, Infinity Bonus, Global Pools & Rewards (accordion cards), Partner PDF link, links to Partner-Calls & Tutorials
+- `/schedule` — **SchedulePage**: Event calendar with Alle/Trading/Partner tabs, Zoom links, filter via ?filter= query param
+- `/tutorials` — **TutorialsPage**: Video/guide cards for Trader and Partner, tabs with ?filter= query param
 - `/maria` — **MariaPage**: TextChat with VideoCallBar (video + text chat with AI assistant Maria)
 
 ### TabBar
@@ -105,9 +107,11 @@ server/replit_integrations/ - Replit-provided audio, chat, image, and batch util
 
 ## Recent Changes
 - Restructured app as Smart Linktree with 3-level navigation: Hub → Trading Hub / Partner Hub → details (Feb 2026)
-- HomePage: Maria card + 2 big pathway cards + direct links block
-- TradingHubPage: TAG Markets, Copy-X, Amplify 12x, Schnellstart, FAQ
-- PartnerHubPage: Provisionen, Profit-Share, Infinity Bonus, Global Pools & Lifestyle Rewards
-- TabBar shown only on Hub and Maria pages
+- HomePage: Maria card + 2 big pathway cards + Webinare/Tutorials buttons + direct links block + welcome text
+- TradingHubPage: TAG Markets, Copy-X, Amplify 12x, Schnellstart, FAQ + contextual links to Trading-Calls and Tutorials
+- PartnerHubPage: Provisionen, Profit-Share, Infinity Bonus, Global Pools & Lifestyle Rewards + contextual links to Partner-Calls and Tutorials
+- SchedulePage: event calendar with tabs (Alle/Trading/Partner), Zoom links, filter via URL query params
+- TutorialsPage: video/guide cards for Trader and Partner, tabs with URL query params
+- TabBar shown only on Hub and Maria pages; sub-pages have back + "Frag Maria" footer buttons
 - Updated Maria DE system prompt with Amplify, TAG Markets, BIX.FI/BIT1, Lifestyle rewards
 - Added German (de) translations for all components

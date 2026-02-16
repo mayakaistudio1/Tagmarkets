@@ -85,18 +85,29 @@ server/replit_integrations/ - Replit-provided audio, chat, image, and batch util
 - **Backend**: express, drizzle-orm, openai, connect-pg-simple
 - **Build**: vite, esbuild, tsx, drizzle-kit
 
+## App Structure (Smart Linktree)
+
+### Pages & Routing
+- `/` — **HomePage (Hub)**: Header "JetApp – JetUP Ökosystem", Maria live card, 2 big pathway cards (Trading Hub, Partner Hub), direct links block (Google Drive, Telegram, Instagram, Registration)
+- `/trading` — **TradingHubPage**: TAG Markets Broker, Copy-X Strategien, Amplify 12x (accordion cards), Schnellstart 5 Schritte, FAQ
+- `/partner` — **PartnerHubPage**: Provisionen, Profit-Share, Infinity Bonus, Global Pools & Rewards (accordion cards), Partner PDF link
+- `/maria` — **MariaPage**: TextChat with VideoCallBar (video + text chat with AI assistant Maria)
+
+### TabBar
+- Shown only on `/` (Hub) and `/maria` (Maria)
+- Hidden on `/trading` and `/partner` — these pages have their own back + "Frag Maria" footer buttons
+
+### Direct Links
+- Google Drive (Presentations): https://drive.google.com/drive/folders/156BMU0t-hniBTd13rQ_wofvV81ETE04R
+- Telegram: https://t.me/JetUpDach
+- Instagram: https://www.instagram.com/jetup.official
+- Registration: https://jetup.ibportal.io
+
 ## Recent Changes
-- Rebranded from Exfusion/XFusion to JetUP (Feb 2026)
-- Updated color scheme to purple (#7C3AED) with light purple accents (#A855F7)
-- Switched font from Inter to Roboto (400, 500, 700)
-- Rebuilt HomePage as JetUP company card with ecosystem highlights
-- Rebuilt XFusionPage as JetUP ecosystem page with: Copy-X, Trading Signals, Academy, Partner Program, TAG Markets
-- Updated all translations (RU/EN) with JetUP content
-- Updated TabBar with JetUP branding and Rocket icon
-- Updated Maria system prompts: replaced Exfusion with JetUP, removed Alexander Popov references, Maria is now JetUP support assistant
-- Polished HomePage UI: improved card spacing, feature grid, Maria chat block, and tab bar consistency (Feb 2026)
-- Restructured app to single-screen layouts using 100dvh + overflow-hidden (Feb 2026)
-- TabBar changed from fixed positioning to in-flow flex layout, hidden on Maria chat page
-- Added PDF presentations (RU/EN/DE) to public folder with language-specific download buttons
-- Redesigned VideoCallBar with prominent gradient banner, LIVE badge, and pulse animation
-- Added German (de) translations for VideoCallBar
+- Restructured app as Smart Linktree with 3-level navigation: Hub → Trading Hub / Partner Hub → details (Feb 2026)
+- HomePage: Maria card + 2 big pathway cards + direct links block
+- TradingHubPage: TAG Markets, Copy-X, Amplify 12x, Schnellstart, FAQ
+- PartnerHubPage: Provisionen, Profit-Share, Infinity Bonus, Global Pools & Lifestyle Rewards
+- TabBar shown only on Hub and Maria pages
+- Updated Maria DE system prompt with Amplify, TAG Markets, BIX.FI/BIT1, Lifestyle rewards
+- Added German (de) translations for all components

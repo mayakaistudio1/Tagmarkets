@@ -138,7 +138,7 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
             <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(9px,2.5vw,28px)" }}>
               Zoom Call
             </p>
-            <h3 className="text-[#7C3AED] font-bold leading-[1.1] uppercase break-words" style={{ 
+            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words" style={{ 
               fontFamily: "Montserrat, sans-serif", 
               fontSize: titleLen > 30 ? "clamp(10px, 3.2vw, 42px)" : titleSize,
               letterSpacing: "-0.02em" 

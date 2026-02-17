@@ -1248,7 +1248,7 @@ function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; spe
             <p className="text-[#1a1a1a] font-bold text-[8px] leading-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
               Zoom Call
             </p>
-            <h3 className="text-[#7C3AED] font-bold text-[12px] leading-[1.1] uppercase break-words" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "-0.02em" }}>
+            <h3 className="text-[#7C3AED] font-extrabold text-[12px] leading-[1.1] uppercase break-words line-clamp-2" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "-0.02em" }}>
               &ldquo;{event.title || "Webinar Titel"}&rdquo;
             </h3>
           </div>

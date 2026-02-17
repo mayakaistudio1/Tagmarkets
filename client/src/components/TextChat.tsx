@@ -307,6 +307,7 @@ export default function TextChat() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
 
   useEffect(() => {
     const updateLayout = () => {
@@ -314,19 +315,24 @@ export default function TextChat() {
       
       const vv = window.visualViewport;
       const height = vv ? vv.height : window.innerHeight;
-      const offsetTop = vv ? Math.max(0, vv.offsetTop) : 0;
       
-      containerRef.current.style.height = `${height}px`;
-      containerRef.current.style.top = `${offsetTop}px`;
+      setViewportHeight(height);
       
       const isKbOpen = height < window.innerHeight * 0.75;
       setKeyboardOpen(isKbOpen);
-      
-      if (isKbOpen) {
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-        }, 50);
+
+      if (vv) {
+        containerRef.current.style.height = `${height}px`;
+        containerRef.current.style.bottom = '0';
+        containerRef.current.style.top = 'auto';
+        containerRef.current.style.transform = `translateY(${vv.offsetTop}px)`;
+      } else {
+        containerRef.current.style.height = `${height}px`;
       }
+      
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 50);
     };
     
     updateLayout();
@@ -340,6 +346,8 @@ export default function TextChat() {
     
     const rootEl = document.getElementById('root');
     if (rootEl) rootEl.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     
     return () => {
       if (vv) {
@@ -348,18 +356,19 @@ export default function TextChat() {
       }
       window.removeEventListener('resize', updateLayout);
       if (rootEl) rootEl.style.overflow = '';
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, []);
 
   const handleInputFocus = () => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 300);
+    }, 350);
   };
 
   return (
-    <div ref={containerRef} className="fixed inset-x-0 top-0 z-[100] bg-white flex flex-col" style={{ height: '100dvh' }}>
+    <div ref={containerRef} className="fixed inset-x-0 bottom-0 z-[100] bg-white flex flex-col" style={{ height: '100dvh' }}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-3">

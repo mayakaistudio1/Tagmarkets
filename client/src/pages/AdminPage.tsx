@@ -308,12 +308,11 @@ function AdminPage() {
     }
   }, [headers]);
 
-  const savePromotion = async (promo: Promotion, autoTranslate: boolean) => {
+  const savePromotion = async (promo: Promotion) => {
     const method = promo.id ? "PUT" : "POST";
     const url = promo.id ? `/api/admin/promotions/${promo.id}` : "/api/admin/promotions";
     try {
-      const body = { ...promo, autoTranslate: !promo.id && autoTranslate };
-      const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(body) });
+      const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(promo) });
       if (handleAuthError(res)) return;
       if (res.ok) {
         setPromoFormOpen(false);
@@ -353,12 +352,11 @@ function AdminPage() {
     }
   }, [headers]);
 
-  const saveEvent = async (event: ScheduleEvent, autoTranslate: boolean) => {
+  const saveEvent = async (event: ScheduleEvent) => {
     const method = event.id ? "PUT" : "POST";
     const url = event.id ? `/api/admin/schedule-events/${event.id}` : "/api/admin/schedule-events";
     try {
-      const body = { ...event, autoTranslate: !event.id && autoTranslate };
-      const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(body) });
+      const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(event) });
       if (handleAuthError(res)) return;
       if (res.ok) {
         setEventFormOpen(false);
@@ -811,7 +809,7 @@ function PromotionsTab({
 }: {
   promotions: Promotion[]; loading: boolean; formOpen: boolean; setFormOpen: (v: boolean) => void;
   editing: Promotion | null; setEditing: (v: Promotion | null) => void;
-  onSave: (p: Promotion, autoTranslate: boolean) => void; onDelete: (id: number) => void; adminPassword: string;
+  onSave: (p: Promotion) => void; onDelete: (id: number) => void; adminPassword: string;
 }) {
   const openNew = () => { setEditing({ ...emptyPromotion }); setFormOpen(true); };
   const openEdit = (p: Promotion) => { setEditing({ ...p }); setFormOpen(true); };
@@ -887,9 +885,8 @@ function PromotionsTab({
 
 function PromotionForm({ promo, setPromo, onSave, onClose, adminPassword }: {
   promo: Promotion; setPromo: (p: Promotion) => void;
-  onSave: (p: Promotion, autoTranslate: boolean) => void; onClose: () => void; adminPassword: string;
+  onSave: (p: Promotion) => void; onClose: () => void; adminPassword: string;
 }) {
-  const [autoTranslate, setAutoTranslate] = useState(!promo.id);
   const [uploading, setUploading] = useState(false);
 
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -957,23 +954,10 @@ function PromotionForm({ promo, setPromo, onSave, onClose, adminPassword }: {
         </div>
         <InputField label="Deadline" value={promo.deadline} onChange={(v) => setPromo({ ...promo, deadline: v })} testId="input-promo-deadline" />
         <ToggleField label="Aktiv" value={promo.isActive} onChange={(v) => setPromo({ ...promo, isActive: v })} testId="toggle-promo-active" />
-        {!promo.id && (
-          <div className="bg-blue-50 rounded-xl p-3 space-y-2">
-            <ToggleField
-              label="Automatisch in alle Sprachen übersetzen"
-              value={autoTranslate}
-              onChange={setAutoTranslate}
-              testId="toggle-promo-auto-translate"
-            />
-            <p className="text-xs text-blue-600">
-              {autoTranslate ? "Wird automatisch in DE/EN/RU erstellt" : "Nur in der gewählten Sprache erstellt"}
-            </p>
-          </div>
-        )}
         <div className="flex justify-end gap-3 pt-2">
           <button data-testid="button-cancel-promo" onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Abbrechen</button>
-          <button data-testid="button-save-promo" onClick={() => onSave(promo, autoTranslate)}
+          <button data-testid="button-save-promo" onClick={() => onSave(promo)}
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
             <Check size={16} /> Speichern
           </button>
@@ -988,7 +972,7 @@ function ScheduleTab({
 }: {
   events: ScheduleEvent[]; loading: boolean; formOpen: boolean; setFormOpen: (v: boolean) => void;
   editing: ScheduleEvent | null; setEditing: (v: ScheduleEvent | null) => void;
-  onSave: (e: ScheduleEvent, autoTranslate: boolean) => void; onDelete: (id: number) => void;
+  onSave: (e: ScheduleEvent) => void; onDelete: (id: number) => void;
   speakers: Speaker[]; adminPassword: string;
 }) {
   const openNew = () => { setEditing({ ...emptyEvent }); setFormOpen(true); };
@@ -1067,10 +1051,9 @@ function ScheduleTab({
 
 function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }: {
   event: ScheduleEvent; setEvent: (e: ScheduleEvent) => void;
-  onSave: (e: ScheduleEvent, autoTranslate: boolean) => void; onClose: () => void;
+  onSave: (e: ScheduleEvent) => void; onClose: () => void;
   speakers: Speaker[]; adminPassword: string;
 }) {
-  const [autoTranslate, setAutoTranslate] = useState(!event.id);
 
   const handleSpeakerSelect = (speakerId: string) => {
     if (speakerId === "") {
@@ -1177,20 +1160,6 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 
         <ToggleField label="Aktiv" value={event.isActive} onChange={(v) => setEvent({ ...event, isActive: v })} testId="toggle-event-active" />
 
-        {!event.id && (
-          <div className="bg-blue-50 rounded-xl p-3 space-y-2">
-            <ToggleField
-              label="Automatisch in alle Sprachen übersetzen"
-              value={autoTranslate}
-              onChange={setAutoTranslate}
-              testId="toggle-event-auto-translate"
-            />
-            <p className="text-xs text-blue-600">
-              {autoTranslate ? "Wird automatisch in DE/EN/RU erstellt" : "Nur in der gewählten Sprache erstellt"}
-            </p>
-          </div>
-        )}
-
         {(selectedSpeaker?.photo || event.banner) && (
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-2">Banner Vorschau</label>
@@ -1201,7 +1170,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
         <div className="flex justify-end gap-3 pt-2">
           <button data-testid="button-cancel-event" onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Abbrechen</button>
-          <button data-testid="button-save-event" onClick={() => onSave(event, autoTranslate)}
+          <button data-testid="button-save-event" onClick={() => onSave(event)}
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
             <Check size={16} /> Speichern
           </button>

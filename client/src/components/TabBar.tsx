@@ -13,6 +13,13 @@ const TabBar: React.FC<TabBarProps> = ({ currentPath, onNavigate }) => {
     { id: "maria", label: "Maria", icon: MessageCircle, path: "/maria" },
   ];
 
+  React.useEffect(() => {
+    // Force redirect to home on initial load/refresh if not on a subpage
+    if (window.location.pathname === "/maria") {
+      onNavigate("/");
+    }
+  }, []);
+
   return (
     <div className="z-50 flex justify-center flex-shrink-0">
       <div className="w-full max-w-[420px] bg-white/95 backdrop-blur-xl border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">

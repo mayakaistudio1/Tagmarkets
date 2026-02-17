@@ -1212,65 +1212,79 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 }
 
 function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; speakerPhoto: string }) {
-  const TIMEZONE_OFFSETS: Record<string, number> = {
-    CET: 1, CEST: 2, MSK: 3, EST: -5, EDT: -4, PST: -8, PDT: -7, GST: 4, UTC: 0,
-  };
   const tz = event.timezone || "CET";
-  const convertTime = (time: string, fromTz: string, toTz: string): string => {
-    const [h, m] = time.split(":").map(Number);
-    const fromOff = TIMEZONE_OFFSETS[fromTz] ?? 1;
-    const toOff = TIMEZONE_OFFSETS[toTz] ?? 3;
-    let newH = h + (toOff - fromOff);
-    if (newH >= 24) newH -= 24;
-    if (newH < 0) newH += 24;
-    return `${String(newH).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
-  };
-  const mskTime = event.time ? convertTime(event.time, tz, "MSK") : "";
+  const tzLabel = tz === "CET" || tz === "CEST" ? "Berlin Zeit" : tz === "MSK" ? "Moskau Zeit" : tz;
+
+  const rows = 5;
+  const cols = 8;
+  const gridCells = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      gridCells.push(<div key={`${r}-${c}`} className="bg-[#f3f4f6] rounded-[2px]" style={{ opacity: 0.18 }} />);
+    }
+  }
 
   return (
     <div className="relative w-full aspect-[2/1] rounded-xl overflow-hidden shadow-lg"
-      style={{ background: "linear-gradient(135deg, #e8d5f5 0%, #f3e8ff 30%, #ede5f7 60%, #d8c4f0 100%)" }}>
-      <div className="absolute right-[8%] top-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(192,132,252,0.25) 0%, transparent 70%)" }} />
+      style={{ background: "linear-gradient(-29deg, rgb(182, 139, 255) 0%, rgb(255, 255, 255) 69%)" }}>
+      <div className="absolute inset-0 p-1 grid gap-[2px] pointer-events-none"
+        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}>
+        {gridCells}
+      </div>
 
       <div className="absolute inset-0 flex">
-        <div className="flex-1 flex flex-col justify-between py-3 px-4 z-10">
-          <div className="flex items-center gap-1">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center">
-              <span className="text-white text-[6px] font-extrabold">J</span>
-            </div>
-            <span className="text-[#7C3AED] font-extrabold text-[10px]">Jet<span className="text-[#A855F7]">UP</span></span>
-          </div>
+        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "62%" }}>
+          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[16%] w-auto object-contain self-start" />
 
-          <div className="space-y-0.5">
-            <p className="text-[#6B21A8] text-[9px] font-semibold">Zoom Call</p>
-            <h3 className="text-[#1a0533] font-extrabold text-[11px] leading-[1.2] uppercase">
+          <div className="space-y-[2%]">
+            <p className="text-[#1a1a1a] font-bold text-[9px] leading-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              Zoom Call
+            </p>
+            <h3 className="text-[#7C3AED] font-bold text-[11px] leading-[1.1] uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
               &ldquo;{event.title || "Webinar Titel"}&rdquo;
             </h3>
-            <p className="text-[#6B21A8] text-[9px] font-medium">
-              {event.date || "Datum"} · {event.day || "Tag"}, {event.time || "00:00"} <span className="text-[#8B5CF6]">({tz})</span>
-            </p>
-            {mskTime && <p className="text-[8px] text-[#7C3AED]/70 font-medium">{mskTime} MSK</p>}
           </div>
 
-          <p className="text-[6px] font-bold tracking-[0.15em] text-[#6B21A8]/60 uppercase">
-            Struktur &nbsp;•&nbsp; Transparenz &nbsp;•&nbsp; Kontrolle
-          </p>
+          <div className="flex items-center gap-1">
+            <img src="/calendar-icon-banner.png" alt="" className="h-[9px] w-auto opacity-80" />
+            <span className="text-black text-[8px]" style={{ fontFamily: "Inter, sans-serif" }}>
+              {event.date || "Datum"}
+            </span>
+            <span className="bg-black rounded-full w-[2px] h-[2px]" />
+            <span className="text-black text-[8px]" style={{ fontFamily: "Inter, sans-serif" }}>
+              {event.day || "Tag"}, {event.time || "00:00"}
+            </span>
+            <span className="text-[#aeaeae] text-[8px]" style={{ fontFamily: "Inter, sans-serif" }}>
+              ({tzLabel})
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <span className="font-bold text-[#111827] text-[5px] uppercase" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "2px" }}>STRUKTUR</span>
+            <span className="bg-[#a855f7] rounded-full w-[2px] h-[2px]" />
+            <span className="font-bold text-[#111827] text-[5px] uppercase" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "2px" }}>TRANSPARENZ</span>
+            <span className="bg-[#a855f7] rounded-full w-[2px] h-[2px]" />
+            <span className="font-bold text-[#111827] text-[5px] uppercase" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "2px" }}>KONTROLLE</span>
+          </div>
         </div>
 
-        {speakerPhoto && (
-          <div className="w-[38%] flex flex-col items-center justify-center pr-2 z-10">
-            <div className="relative w-[80%] aspect-square">
-              <div className="absolute inset-0 rounded-full border-2 border-[#C084FC]/40" />
-              <img src={speakerPhoto} alt="speaker" className="w-full h-full rounded-full object-cover object-top" />
-            </div>
-            <div className="mt-1 bg-white/90 rounded px-1.5 py-0.5 shadow-sm">
-              <p className="text-[7px] font-bold text-[#1a0533] text-center whitespace-nowrap">
-                Speaker: {event.speaker || "Name"}
-              </p>
-            </div>
-          </div>
-        )}
+        <div className="flex-1 flex flex-col items-center justify-center z-10 pr-[3%]">
+          {speakerPhoto ? (
+            <>
+              <div className="relative w-[75%] aspect-square">
+                <div className="absolute -inset-[4%] rounded-full border-2 border-[#C084FC]/40" />
+                <img src={speakerPhoto} alt="speaker" className="w-full h-full rounded-full object-cover object-top" />
+              </div>
+              <div className="mt-1 bg-white rounded px-1.5 py-0.5 shadow-sm">
+                <p className="font-semibold text-black text-[7px] text-center whitespace-nowrap" style={{ fontFamily: "Inter, sans-serif" }}>
+                  Speaker: {event.speaker || "Name"}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="w-[60%] aspect-square rounded-full bg-gradient-to-br from-[#C084FC]/20 to-[#A855F7]/10" />
+          )}
+        </div>
       </div>
     </div>
   );

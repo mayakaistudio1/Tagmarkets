@@ -73,64 +73,100 @@ function JetUpLogo({ size = 32 }: { size?: number }) {
   );
 }
 
+function BannerGridPattern() {
+  const rows = 5;
+  const cols = 8;
+  const cells = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      cells.push(
+        <div key={`${r}-${c}`} className="bg-[#f3f4f6] rounded-[3px]" style={{ opacity: 0.18 }} />
+      );
+    }
+  }
+  return (
+    <div className="absolute inset-0 p-2 grid gap-1 pointer-events-none"
+      style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}>
+      {cells}
+    </div>
+  );
+}
+
 function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPhoto?: string }) {
   if (event.banner) {
     return <img src={event.banner} alt={event.title} className="w-full h-auto object-cover" data-testid={`banner-${event.id}`} />;
   }
 
   const tz = event.timezone || "CET";
-  const mskTime = convertTime(event.time, tz, "MSK");
+  const tzLabel = tz === "CET" || tz === "CEST" ? "Berlin Zeit" : tz === "MSK" ? "Moskau Zeit" : tz;
 
   return (
     <div className="relative w-full aspect-[2/1] overflow-hidden" data-testid={`banner-${event.id}`}
-      style={{ background: "linear-gradient(135deg, #e8d5f5 0%, #f3e8ff 30%, #ede5f7 60%, #d8c4f0 100%)" }}>
-      <div className="absolute right-[8%] top-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(192,132,252,0.25) 0%, transparent 70%)" }} />
+      style={{ background: "linear-gradient(-29deg, rgb(182, 139, 255) 0%, rgb(255, 255, 255) 69%)" }}>
+      <BannerGridPattern />
 
       <div className="absolute inset-0 flex">
-        <div className="flex-1 flex flex-col justify-between py-3 px-4 z-10">
-          <JetUpLogo size={28} />
+        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "62%" }}>
+          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[16%] w-auto object-contain self-start" />
 
-          <div className="space-y-1">
-            <p className="text-[#6B21A8] text-[11px] font-semibold tracking-wide">Zoom Call</p>
-            <h3 className="text-[#1a0533] font-extrabold text-[14px] leading-[1.2] uppercase">
+          <div className="space-y-[2%]">
+            <p className="text-[#1a1a1a] font-bold text-[clamp(10px,3.2vw,32px)] leading-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              Zoom Call
+            </p>
+            <h3 className="text-[#7C3AED] font-bold leading-[1.1] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(12px,3.8vw,50px)" }}>
               &ldquo;{event.title}&rdquo;
             </h3>
-            <div className="flex items-center gap-1.5 text-[#6B21A8]">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M5 0v1H3.5A1.5 1.5 0 002 2.5v11A1.5 1.5 0 003.5 15h9a1.5 1.5 0 001.5-1.5v-11A1.5 1.5 0 0012.5 1H11V0h-1v1H6V0H5zm-2 4h10v9.5a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5V4z"/>
-              </svg>
-              <span className="text-[11px] font-medium">
-                {event.date} · {event.day}, {event.time}
-              </span>
-              <span className="text-[10px] text-[#8B5CF6] font-medium">
-                ({tz})
-              </span>
-            </div>
-            <p className="text-[10px] text-[#7C3AED]/70 font-medium">
-              {mskTime} MSK
-            </p>
           </div>
 
-          <p className="text-[8px] font-bold tracking-[0.15em] text-[#6B21A8]/60 uppercase">
-            Struktur &nbsp;•&nbsp; Transparenz &nbsp;•&nbsp; Kontrolle
-          </p>
+          <div className="flex items-center gap-[1.5%]">
+            <img src="/calendar-icon-banner.png" alt="" className="h-[clamp(10px,2.5vw,34px)] w-auto opacity-80" />
+            <span className="text-black text-[clamp(8px,2.8vw,36px)]" style={{ fontFamily: "Inter, sans-serif" }}>
+              {event.date}
+            </span>
+            <span className="bg-black rounded-full" style={{ width: "clamp(2px,0.4vw,5px)", height: "clamp(2px,0.4vw,5px)" }} />
+            <span className="text-black text-[clamp(8px,2.8vw,36px)]" style={{ fontFamily: "Inter, sans-serif" }}>
+              {event.day}, {event.time}
+            </span>
+            <span className="text-[#aeaeae] text-[clamp(8px,2.8vw,36px)]" style={{ fontFamily: "Inter, sans-serif" }}>
+              ({tzLabel})
+            </span>
+          </div>
+
+          <div className="flex items-center gap-[2%]">
+            <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(6px,1.2vw,16px)", letterSpacing: "3px" }}>
+              STRUKTUR
+            </span>
+            <span className="bg-[#a855f7] rounded-full" style={{ width: "clamp(2px,0.4vw,5px)", height: "clamp(2px,0.4vw,5px)" }} />
+            <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(6px,1.2vw,16px)", letterSpacing: "3px" }}>
+              TRANSPARENZ
+            </span>
+            <span className="bg-[#a855f7] rounded-full" style={{ width: "clamp(2px,0.4vw,5px)", height: "clamp(2px,0.4vw,5px)" }} />
+            <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(6px,1.2vw,16px)", letterSpacing: "3px" }}>
+              KONTROLLE
+            </span>
+          </div>
         </div>
 
-        {speakerPhoto && (
-          <div className="w-[38%] flex flex-col items-center justify-center pr-3 z-10">
-            <div className="relative w-[85%] aspect-square">
-              <div className="absolute inset-0 rounded-full border-[3px] border-[#C084FC]/40" />
-              <img src={speakerPhoto} alt={event.speaker}
-                className="w-full h-full rounded-full object-cover object-top" />
+        <div className="flex-1 flex flex-col items-center justify-center z-10 pr-[3%]">
+          {speakerPhoto ? (
+            <>
+              <div className="relative w-[75%] aspect-square">
+                <div className="absolute -inset-[4%] rounded-full border-[3px] border-[#C084FC]/40" />
+                <img src={speakerPhoto} alt={event.speaker}
+                  className="w-full h-full rounded-full object-cover object-top" />
+              </div>
+              <div className="mt-[4%] bg-white rounded px-[6%] py-[2%] shadow-sm">
+                <p className="font-semibold text-black text-center whitespace-nowrap" style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(7px,1.8vw,24px)" }}>
+                  Speaker: {event.speaker}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="w-[75%] aspect-square rounded-full bg-gradient-to-br from-[#C084FC]/20 to-[#A855F7]/10 flex items-center justify-center">
+              <Mic size={24} className="text-[#7C3AED]/30" />
             </div>
-            <div className="mt-1.5 bg-white/90 rounded-md px-2 py-0.5 shadow-sm">
-              <p className="text-[9px] font-bold text-[#1a0533] text-center whitespace-nowrap">
-                Speaker: {event.speaker}
-              </p>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

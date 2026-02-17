@@ -135,21 +135,16 @@ const HomePage: React.FC = () => {
           >
             <button
               onClick={goToTrading}
-              className="w-full rounded-2xl p-5 text-left active:scale-[0.98] transition-transform bg-gradient-to-br from-[#7C3AED] to-[#A855F7] card-glow-strong"
+              className="w-full rounded-2xl px-4 py-3.5 text-left active:scale-[0.98] transition-transform bg-gradient-to-br from-[#7C3AED] to-[#A855F7] card-glow-strong"
               data-testid="card-trading-hub"
             >
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
-                  <TrendingUp size={22} className="text-white" />
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
+                  <TrendingUp size={20} className="text-white" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-[16px] font-bold text-white leading-tight">
-                    Trading & Strategien
-                  </h3>
-                  <p className="text-[12px] text-white/75 mt-1 leading-snug font-medium">
-                    Broker, Copy-Trading & Amplify — alles in einem Bereich.
-                  </p>
-                </div>
+                <h3 className="text-[15px] font-bold text-white leading-tight flex-1">
+                  Trading & Strategien
+                </h3>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <span className="text-[11px] font-semibold text-white/60">Öffnen</span>
                   <ChevronRight size={18} className="text-white/80" />
@@ -159,21 +154,16 @@ const HomePage: React.FC = () => {
 
             <button
               onClick={goToPartner}
-              className="w-full rounded-2xl p-5 text-left active:scale-[0.98] transition-transform bg-gradient-to-br from-emerald-600 to-teal-500 shadow-[0_4px_24px_rgba(16,185,129,0.2)]"
+              className="w-full rounded-2xl px-4 py-3.5 text-left active:scale-[0.98] transition-transform bg-gradient-to-br from-emerald-600 to-teal-500 shadow-[0_4px_24px_rgba(16,185,129,0.2)]"
               data-testid="card-partner-hub"
             >
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
-                  <Users size={22} className="text-white" />
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
+                  <Users size={20} className="text-white" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-[16px] font-bold text-white leading-tight">
-                    Partnerprogramm & Einkommen
-                  </h3>
-                  <p className="text-[12px] text-white/75 mt-1 leading-snug font-medium">
-                    Provisionen, Profit-Share, Rewards (Rolex, Immobilien, Reisen).
-                  </p>
-                </div>
+                <h3 className="text-[15px] font-bold text-white leading-tight flex-1">
+                  Partnerprogramm & Einkommen
+                </h3>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <span className="text-[11px] font-semibold text-white/60">Öffnen</span>
                   <ChevronRight size={18} className="text-white/80" />
@@ -196,10 +186,7 @@ const HomePage: React.FC = () => {
               <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
                 <Calendar size={20} className="text-orange-600" />
               </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-[13px] font-bold text-gray-900 block">Webinare & Termine</span>
-                <span className="text-[11px] text-gray-400 font-medium">Live-Calls & Events</span>
-              </div>
+              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">Webinare & Termine</span>
               <ChevronRight size={18} className="text-gray-300 flex-shrink-0" />
             </button>
 
@@ -211,10 +198,7 @@ const HomePage: React.FC = () => {
               <div className="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center flex-shrink-0">
                 <GraduationCap size={20} className="text-cyan-600" />
               </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-[13px] font-bold text-gray-900 block">Tutorials & Guides</span>
-                <span className="text-[11px] text-gray-400 font-medium">Videos & Anleitungen</span>
-              </div>
+              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">Tutorials & Guides</span>
               <ChevronRight size={18} className="text-gray-300 flex-shrink-0" />
             </button>
           </motion.div>

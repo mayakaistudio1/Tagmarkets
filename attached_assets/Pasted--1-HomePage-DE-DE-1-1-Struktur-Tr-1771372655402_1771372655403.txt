@@ -1,0 +1,511 @@
+
+1. HomePage (/) — DE (исправлено)
+#МестоТекст DE (исправлено)
+1.1
+Слоган под логотипом
+Struktur. Transparenz. Kontrolle.
+1.2
+Подзаголовок
+JetUp Digital Hub: Trading und Partner‑Einkommen — strukturiert und transparent.
+1.3
+Карточка Мария: заголовок
+Maria – Live‑Beraterin
+1.4
+Карточка Мария: статус
+Online
+1.5
+Карточка Мария: тег 1
+Video
+1.6
+Карточка Мария: тег 2
+Chat
+1.7
+Кнопка: Trading
+Trading & Strategien
+1.8
+Кнопка: Partner
+Partnerprogramm & Einkommen
+1.9
+Кнопка: Промо
+Aktionen
+1.10
+Кнопка: Расписание
+Webinare & Termine
+1.11
+Кнопка: Обучение
+Tutorials & Guides
+1.12
+Заголовок блока ссылок
+Direkte Links
+1.13
+Ссылка: Google Drive
+Präsentationen
+1.14
+Ссылка: Telegram
+Telegram‑Kanal
+1.15
+Ссылка: Instagram
+Instagram
+2. TradingHubPage (/trading) — DE (исправлено)
+#МестоТекст DE (исправлено)
+2.1
+Заголовок страницы
+Trading & Strategien
+2.2
+Подзаголовок
+Dein Trading‑Bereich: Broker, Copy‑Trading (Copy‑X) und Amplify 12x — alles an einem Ort.
+2.3.1
+Заголовок
+Broker: TAG Markets
+2.3.2
+Подзаголовок
+Regulierte Multi‑Asset‑Plattform mit MT5.
+2.3.3
+Текст: Regulierung
+Lizenziert durch die FSC Mauritius (Lizenz GB21026474).
+2.3.4
+Текст: Handelsbedingungen
+Hebel bis 1:500. Über 400 Instrumente.
+2.3.5
+Текст: Auszahlung
+Im Durchschnitt innerhalb von 24 Stunden.
+2.3.6
+Текст: Umfang
+Über 500.000 Trader weltweit, monatliches Handelsvolumen über 200 Mrd. USD.
+2.3.7
+Текст: Sicherheit
+Schutz von Daten und Kundengeldern nach Bankstandards. Dein Geld bleibt auf deinem eigenen Konto.
+2.4.1
+Заголовок
+Copy‑X Strategien
+2.4.2
+Подзаголовок
+Automatisches Copy‑Trading für potenziell passives Einkommen.
+2.4.3
+Текст: Описание
+Professionelle Strategien automatisch kopieren. Du behältst 70% des Gewinns.
+2.4.4
+Текст: Statistik
+Transparente Performance‑Daten für jede Strategie.
+2.4.5
+Текст: Kontrolle
+Jederzeit pausierbar. Dein Geld bleibt auf deinem Konto.
+2.4.6
+Текст: Risikomanagement
+Konservativer Ansatz: max. 10% Drawdown und 0,3% Risiko pro Trade.
+2.5.1
+Заголовок
+Vortex Strategy
+2.5.2
+Подзаголовок
+Coming soon · exklusiv für die JetUP Community
+2.5.3
+Текст
+Coming soon — exklusiv für die JetUP Community.
+2.6.1
+Заголовок
+Amplify 12x
+2.6.2
+Подзаголовок
+Skaliere dein Eigenkapital um bis zu das 12‑Fache.
+2.6.3
+Текст: Описание
+Amplify erhöht dein Handelslimit beim Broker — sofern du die Risikomanagement‑Regeln einhältst.
+2.6.4
+Текст: 12x Skalierung
+Mit 1.000 USD eigenem Kapital erhältst du 12.000 USD Handelskapital.
+2.6.5
+Текст: Echte Liquidität
+Kein Prop‑Firm‑Modell — du handelst am realen Markt.
+2.6.6
+Текст: 100% Gewinn
+Dein gesamter Gewinn gehört dir und ist jederzeit auszahlbar.
+2.6.7
+Текст: Kein Kredit
+Kein Bonus, keine Drittparteien — volle Kontrolle.
+2.7.1
+Заголовок
+Schnellstart in 5 Schritten
+2.7.2
+Подзаголовок
+Von der Registrierung bis zum ersten Trade.
+2.7.3
+Schritt 1
+Erstelle ein Konto im JetUP IB‑Portal.
+2.7.4
+Schritt 2
+Registriere dich beim Partner‑Broker TAG Markets.
+2.7.5
+Schritt 3
+Lade MetaTrader 5 herunter und installiere die App.
+2.7.6
+Schritt 4
+Lade dein Handelskonto beim Broker auf (mind. 100 USD).
+2.7.7
+Schritt 5
+Erhalte Zugang zu Copy‑X, Signalen und Schulungen.
+2.8.1
+Заголовок
+FAQ zu Trading & TAG Markets
+2.8.2
+Подзаголовок
+Häufige Fragen auf einen Blick.
+2.8.3
+Вопрос 1
+Ist mein Geld sicher?
+2.8.4
+Ответ 1
+Ja. Dein Geld liegt auf deinem eigenen Konto bei TAG Markets. Nur du hast Zugriff. Jederzeit auszahlbar.
+2.8.5
+Вопрос 2
+Wie viel muss ich investieren?
+2.8.6
+Ответ 2
+Mindestens 100 USD als Kunde, 250 USD, wenn du zusätzlich Partner werden möchtest.
+2.8.7
+Вопрос 3
+Wie hoch ist das Risiko?
+2.8.8
+Ответ 3
+Konservativer Ansatz: max. 0,3% pro Trade und max. 10% Drawdown. Keine Garantien — aber klar definierte Regeln.
+2.8.9
+Вопрос 4
+Wie viel kann ich verdienen?
+2.8.10
+Ответ 4
+Bei Copy‑X‑Strategien werden oft 2–5% pro Monat angestrebt. Ergebnisse variieren; keine Garantien.
+2.9.1
+Кнопка: Расписание
+Trading‑Calls
+2.9.2
+Кнопка: Обучение
+Tutorials
+2.9.3
+Кнопка: Назад
+Zurück zum Hub
+2.9.4
+Кнопка: Мария
+Frag Maria
+3. PartnerHubPage (/partner) — DE (исправлено)
+#МестоТекст DE (исправлено)
+3.1
+Заголовок страницы
+Partnerprogramm & Einkommen
+3.2
+Подзаголовок
+Verdiene am realen Handelsvolumen: Provisionen, Profit‑Share, Infinity Bonus und Global Pools — plus Lifestyle‑Rewards.
+3.3.1
+Заголовок
+Dein Partner‑Toolkit
+3.3.2
+Подзаголовок
+Tools, Training und KI‑Power für deinen Erfolg.
+3.3.3
+Schulung & Wissen
+Zugang zu Webinaren, Tutorials und Trainings — vom Einstieg bis zum Expertenlevel.
+3.3.4
+Community & Support
+Aktive Telegram‑Gruppe, persönliche Ansprechpartner und Team‑Calls zum Austausch.
+3.3.5
+AI-Instrumente
+Als Partner kannst du deinen eigenen personalisierten Digital Hub mit KI‑Beraterin (wie Maria) erhalten — ein smartes Tool für dich, dein Team und deine Kunden.
+3.3.6
+Highlight-Box
+Genau das, was du hier siehst — diesen Digital Hub — kann jeder JetUP‑Partner für sich und sein Team personalisieren lassen.
+3.4.1
+Заголовок
+Provisionen pro Lot
+3.4.2
+Подзаголовок
+Verdienst pro gehandeltem Lot in deinem Team.
+3.4.3
+Текст: Betrag
+Du erhältst 10,50 USD pro gehandeltem Lot in deinem Team.
+3.4.4
+Текст: Ebenen
+Bis zu 10 Ebenen tief — je aktiver dein Team, desto mehr kannst du verdienen.
+3.4.5
+Текст: Basis
+Alle Provisionen basieren auf realem Handelsvolumen — nicht auf Einzahlungen.
+3.5.1
+Заголовок
+Profit‑Share aus dem Team
+3.5.2
+Подзаголовок
+Anteil an realen Handelsergebnissen.
+3.5.3
+Текст: Anteil
+Du erhältst einen Anteil an den realen Handelsergebnissen deines Teams.
+3.5.4
+Текст: Verteilung
+Gewinnverteilung: 70% Kunde, 30% werden auf Trader und die Partnerstruktur verteilt.
+3.5.5
+Текст: Basis
+Auszahlungen basieren auf echten Gewinnen — nicht auf Versprechen.
+3.6.1
+Заголовок
+Infinity Bonus
+3.6.2
+Подзаголовок
+Extra‑Prozente bei wachsendem Teamvolumen.
+3.6.3
+Текст: Beschreibung
+Zusätzlicher Bonus‑Prozentsatz, sobald bestimmte Teamvolumen‑Schwellen erreicht werden:
+3.6.4
+Stufe 1
+1% ab 100.000 EUR Volumen
+3.6.5
+Stufe 2
+2% ab 300.000 EUR Volumen
+3.6.6
+Stufe 3
+3% ab 1.000.000 EUR Volumen
+3.6.7
+Stufe 4
+Bis zu +5% bei einem Teamvolumen von 100k bis 20M USD
+3.7.1
+Заголовок
+Global Pools & Lifestyle‑Rewards
+3.7.2
+Подзаголовок
+Rolex, Immobilien, Reisen und mehr.
+3.7.3
+Global Pools
+Zwei Pools mit jeweils 1% des Unternehmensgewinns. Auszahlungen alle zwei Wochen.
+3.7.4
+Lifestyle-Belohnungen (заголовок)
+Lifestyle‑Belohnungen:
+3.7.5
+Reward 1
+Rolex‑Uhren ab 500k USD Teamvolumen
+3.7.6
+Reward 2
+Immobilien‑Gutscheine bis 1.200.000 USD
+3.7.7
+Reward 3
+Exklusive Reisen (z. B. Bali, Türkei)
+3.8.1
+Ссылка: PDF
+Partner‑PDF / Präsentation
+3.8.2
+Кнопка: Расписание
+Partner‑Calls
+3.8.3
+Кнопка: Обучение
+Partner‑Tutorials
+3.8.4
+Кнопка: Назад
+Zurück zum Hub
+3.8.5
+Кнопка: Мария
+Frag Maria
+4. SchedulePage (/schedule) — DE (исправлено)
+#МестоТекст DE (исправлено)
+4.1
+Заголовок страницы
+Webinare & Termine
+4.2
+Подзаголовок
+Wöchentliche Live‑Zoom‑Calls mit unseren Experten. Kostenlos und ohne Anmeldung.
+4.3
+Таб: Все
+Alle
+4.4
+Бейдж
+Zoom‑Call
+4.5
+Заголовок блока
+Das erwartet dich:
+4.6
+Кнопка Zoom
+Zum Zoom‑Call
+4.7
+Девиз баннера
+STRUKTUR · TRANSPARENZ · KONTROLLE
+4.8
+Баннер: "Zoom Call"
+Zoom‑Call
+4.9
+Баннер: Speaker
+Speaker: {Name}
+4.10
+Пусто
+Keine Termine in dieser Kategorie.
+4.11
+Кнопка: Назад
+Zurück zum Hub
+4.12
+Кнопка: Мария
+Frag Maria
+5. TutorialsPage (/tutorials) — DE (исправлено)
+#МестоТекст DE (исправлено)
+5.1
+Заголовок страницы
+Tutorials & Guides
+5.2
+Подзаголовок
+Kurzvideos und Schritt‑für‑Schritt‑Anleitungen für Trading und Partnerprogramm.
+5.3
+Таб: Alle
+Alle
+5.4
+Таб: Trader
+Für Trader
+5.5
+Таб: Partner
+Für Partner
+5.6.1
+Tutorial 1: Заголовок
+Erste Schritte mit TAG Markets
+5.6.2
+Tutorial 1: Описание
+Konto eröffnen, MT5 installieren und erste Einzahlung durchführen.
+5.6.3
+Tutorial 1: Формат
+Video · 5 Min.
+5.6.4
+Tutorial 2: Заголовок
+Copy‑X‑Strategie auswählen
+5.6.5
+Tutorial 2: Описание
+So findest du die passende Strategie und aktivierst sie.
+5.6.6
+Tutorial 2: Формат
+Video · 7 Min.
+5.6.7
+Tutorial 3: Заголовок
+Amplify verstehen
+5.6.8
+Tutorial 3: Описание
+12x‑Skalierung einfach erklärt: Ablauf, Regeln, Gewinn.
+5.6.9
+Tutorial 3: Формат
+Guide
+5.6.10
+Tutorial 4: Заголовок
+Partnerprogramm erklärt
+5.6.11
+Tutorial 4: Описание
+Provisionen, Profit‑Share und Bonusprogramme im Überblick.
+5.6.12
+Tutorial 4: Формат
+Video · 6 Min.
+5.6.13
+Tutorial 5: Заголовок
+Deinen Link richtig teilen
+5.6.14
+Tutorial 5: Описание
+Best Practices für Social Media, Telegram und persönliche Empfehlungen.
+5.6.15
+Tutorial 5: Формат
+Guide
+5.6.16
+Tutorial 6: Заголовок
+Lifestyle‑Rewards erreichen
+5.6.17
+Tutorial 6: Описание
+Volumenziele, Rolex, Immobilien und Reise‑Belohnungen.
+5.6.18
+Tutorial 6: Формат
+Guide
+5.7
+Бейдж: Trader
+Trader
+5.8
+Бейдж: Partner
+Partner
+5.9
+Кнопка (неактивна)
+Coming soon
+5.10
+Кнопка: Назад
+Zurück zum Hub
+5.11
+Кнопка: Мария
+Frag Maria
+6. PromoDetailPage (/promo) — DE (исправлено)
+#МестоТекст DE (исправлено)
+6.1
+Заголовок страницы
+Aktionen & Angebote
+6.2
+Пусто
+Aktuell sind keine Aktionen verfügbar.
+7. MariaPage — TextChat (/maria) — DE (исправлено)
+#МестоТекст DE (исправлено)
+7.1
+Заголовок чата
+Maria
+7.2
+Статус
+Online
+7.3
+Placeholder ввода
+Nachricht schreiben …
+7.4
+Приветствие
+Hallo! Ich bin Maria, deine JetUP‑Assistentin. Ich erkläre dir das Ökosystem und helfe dir weiter. Was möchtest du wissen?
+7.5
+Ошибка (текст)
+Entschuldigung, etwas ist schiefgelaufen. Bitte versuche es noch einmal.
+7.6.1
+Quick Reply 1
+Wie starte ich mit Trading?
+7.6.2
+Quick Reply 2
+Welche Copy‑X‑Strategien gibt es?
+7.6.3
+Quick Reply 3
+Wie verdiene ich als Partner?
+7.6.4
+Quick Reply 4
+Präsentationen & Unterlagen
+8. MariaPage — VideoCallBar — DE (исправлено)
+#МестоТекст DE (исправлено)
+8.1
+LIVE-бейдж
+LIVE
+8.2
+Заголовок кнопки
+Videoanruf mit Maria
+8.3
+Описание кнопки
+Sprich persönlich in Echtzeit mit Maria.
+8.4
+Оверлей: имя
+Maria
+8.5
+Оверлей: описание
+Bereit, deine Fragen in Echtzeit zu beantworten
+8.6
+Оверлей: кнопка
+Gespräch starten
+8.7
+Статус: подключение
+Verbindung zu Maria wird hergestellt …
+8.8
+Статус: Мария говорит
+Maria spricht …
+8.9
+Статус: микрофон
+Dein Mikrofon ist an
+8.10
+Кнопка: завершить
+Anruf beenden
+8.11
+Ошибка: заголовок
+Verbindungsfehler
+8.12
+Кнопка: закрыть
+Schließen
+8.13
+Кнопка: повторить
+Erneut versuchen
+9. TabBar — DE (исправлено)
+#МестоТекст DE (исправлено)
+9.1
+Tab: Главная
+Hub
+9.2
+Tab: Мария
+Maria

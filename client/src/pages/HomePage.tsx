@@ -7,7 +7,6 @@ import {
   FolderOpen,
   Send,
   Instagram,
-  Globe,
   Video,
   MessageCircle,
   Calendar,
@@ -49,13 +48,6 @@ const HomePage: React.FC = () => {
       href: "https://www.instagram.com/jetup.official?igsh=MjZwdXJpd2JsYmw1&utm_source=qr",
       color: "text-pink-500",
       bg: "bg-pink-50",
-    },
-    {
-      icon: Globe,
-      label: "Registrierung – IB Portal",
-      href: "https://jetup.ibportal.io",
-      color: "text-purple-600",
-      bg: "bg-purple-50",
     },
   ];
 

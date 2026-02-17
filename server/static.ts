@@ -10,6 +10,12 @@ export function serveStatic(app: Express) {
     );
   }
 
+  const uploadDir = path.join(process.cwd(), "client", "public", "uploads");
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+  app.use("/uploads", express.static(uploadDir));
+
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist

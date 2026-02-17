@@ -307,32 +307,37 @@ export default function TextChat() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
 
   useEffect(() => {
+    let rafId: number;
+    
     const updateLayout = () => {
-      if (!containerRef.current) return;
-      
-      const vv = window.visualViewport;
-      const height = vv ? vv.height : window.innerHeight;
-      
-      setViewportHeight(height);
-      
-      const isKbOpen = height < window.innerHeight * 0.75;
-      setKeyboardOpen(isKbOpen);
-
-      if (vv) {
-        containerRef.current.style.height = `${height}px`;
-        containerRef.current.style.bottom = '0';
-        containerRef.current.style.top = 'auto';
-        containerRef.current.style.transform = `translateY(${vv.offsetTop}px)`;
-      } else {
-        containerRef.current.style.height = `${height}px`;
-      }
-      
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-      }, 50);
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (!containerRef.current) return;
+        
+        const vv = window.visualViewport;
+        if (vv) {
+          const height = vv.height;
+          const top = vv.offsetTop;
+          containerRef.current.style.position = 'fixed';
+          containerRef.current.style.top = `${top}px`;
+          containerRef.current.style.left = '0';
+          containerRef.current.style.right = '0';
+          containerRef.current.style.height = `${height}px`;
+          containerRef.current.style.bottom = 'auto';
+          containerRef.current.style.transform = 'none';
+          
+          const isKbOpen = height < window.innerHeight * 0.75;
+          setKeyboardOpen(isKbOpen);
+        } else {
+          containerRef.current.style.height = `${window.innerHeight}px`;
+        }
+        
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+        }, 30);
+      });
     };
     
     updateLayout();
@@ -350,6 +355,7 @@ export default function TextChat() {
     document.documentElement.style.overflow = 'hidden';
     
     return () => {
+      cancelAnimationFrame(rafId);
       if (vv) {
         vv.removeEventListener('resize', updateLayout);
         vv.removeEventListener('scroll', updateLayout);
@@ -364,11 +370,11 @@ export default function TextChat() {
   const handleInputFocus = () => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 350);
+    }, 400);
   };
 
   return (
-    <div ref={containerRef} className="fixed inset-x-0 bottom-0 z-[100] bg-white flex flex-col" style={{ height: '100dvh' }}>
+    <div ref={containerRef} className="fixed inset-0 z-[100] bg-white flex flex-col" style={{ height: '100dvh' }}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-3">

@@ -128,7 +128,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePromotion(id: number, promo: any): Promise<any> {
-    const [updated] = await db.update(promotions).set(promo).where(eq(promotions.id, id)).returning();
+    const { id: _, createdAt, updatedAt, ...data } = promo;
+    const [updated] = await db.update(promotions).set(data).where(eq(promotions.id, id)).returning();
     return updated;
   }
 
@@ -154,7 +155,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateScheduleEvent(id: number, event: any): Promise<any> {
-    const [updated] = await db.update(scheduleEvents).set(event).where(eq(scheduleEvents.id, id)).returning();
+    const { id: _, createdAt, updatedAt, ...data } = event;
+    const [updated] = await db.update(scheduleEvents).set(data).where(eq(scheduleEvents.id, id)).returning();
     return updated;
   }
 
@@ -180,7 +182,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSpeaker(id: number, speaker: any): Promise<any> {
-    const [updated] = await db.update(speakers).set(speaker).where(eq(speakers.id, id)).returning();
+    const { id: _, createdAt, updatedAt, ...data } = speaker;
+    const [updated] = await db.update(speakers).set(data).where(eq(speakers.id, id)).returning();
     return updated;
   }
 

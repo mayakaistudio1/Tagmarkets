@@ -1076,26 +1076,28 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
           <h3 className="text-lg font-bold text-gray-900">{event.id ? "Event bearbeiten" : "Neues Event"}</h3>
           <button data-testid="button-close-event-form" onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
         </div>
 
+        <div className="p-5 space-y-3 overflow-y-auto flex-1 custom-scrollbar">
+
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Sprache</label>
+            <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Sprache</label>
             <select data-testid="select-event-language" value={event.language} onChange={(e) => setEvent({ ...event, language: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500">
               <option value="de">Deutsch</option>
               <option value="en">English</option>
               <option value="ru">Русский</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Typ</label>
+            <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Typ</label>
             <select data-testid="select-event-type" value={event.type} onChange={(e) => setEvent({ ...event, type: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500">
               <option value="trading">Trading</option>
               <option value="partner">Partner</option>
             </select>
@@ -1109,16 +1111,16 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Uhrzeit</label>
+            <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Uhrzeit</label>
             <input data-testid="input-event-time" type="time" value={event.time}
               onChange={(e) => setEvent({ ...event, time: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
+              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Zeitzone</label>
+            <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Zeitzone</label>
             <select data-testid="select-event-timezone" value={event.timezone || "CET"}
               onChange={(e) => setEvent({ ...event, timezone: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500">
               <option value="CET">CET (Berlin)</option>
               <option value="CEST">CEST (Berlin Sommer)</option>
               <option value="MSK">MSK (Moskau)</option>
@@ -1132,10 +1134,10 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
         <InputField label="Titel" value={event.title} onChange={(v) => setEvent({ ...event, title: v })} testId="input-event-title" />
 
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Sprecher</label>
+          <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Sprecher</label>
           <select data-testid="select-event-speaker" value={event.speakerId || ""}
             onChange={(e) => handleSpeakerSelect(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500">
             <option value="">-- Sprecher wählen --</option>
             {speakers.filter(s => s.isActive).map(s => (
               <option key={s.id} value={s.id}>{s.name} ({s.role})</option>
@@ -1143,8 +1145,8 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
           </select>
           {selectedSpeaker && selectedSpeaker.photo && (
             <div className="flex items-center gap-3 mt-2 p-2 bg-gray-50 rounded-lg">
-              <img src={selectedSpeaker.photo} alt={selectedSpeaker.name} className="w-10 h-10 rounded-lg object-cover" />
-              <span className="text-sm font-medium text-gray-700">{selectedSpeaker.name}</span>
+              <img src={selectedSpeaker.photo} alt={selectedSpeaker.name} className="w-8 h-8 rounded-lg object-cover" />
+              <span className="text-[13px] font-medium text-gray-700">{selectedSpeaker.name}</span>
             </div>
           )}
           {!event.speakerId && (
@@ -1155,7 +1157,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
         <InputField label="Typ Badge" value={event.typeBadge} onChange={(v) => setEvent({ ...event, typeBadge: v })} testId="input-event-type-badge" />
 
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Highlights (eine pro Zeile)</label>
+          <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Highlights (eine pro Zeile)</label>
           <textarea data-testid="textarea-event-highlights" value={(event.highlights || []).join("\n")}
             onChange={(e) => setEvent({ ...event, highlights: e.target.value.split("\n") })}
             onKeyDown={(e) => {
@@ -1163,7 +1165,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                 e.stopPropagation();
               }
             }}
-            rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
+            rows={2} className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500" />
         </div>
 
         <InputField label="Link" value={event.link} onChange={(v) => setEvent({ ...event, link: v })} testId="input-event-link" />
@@ -1177,7 +1179,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
           </div>
         )}
 
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex justify-end gap-3 p-4 border-t border-gray-100 flex-shrink-0 bg-gray-50/50">
           <button data-testid="button-cancel-event" onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Abbrechen</button>
           <button data-testid="button-save-event" onClick={() => onSave(event)}
@@ -1238,11 +1240,11 @@ function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; spe
       </div>
 
       <div className="absolute inset-0 flex">
-        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "70%" }}>
-          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[16%] w-auto object-contain self-start" />
+        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "62%" }}>
+          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[14%] w-auto object-contain self-start" />
 
-          <div className="space-y-[1%]">
-            <p className="text-[#1a1a1a] font-bold text-[9px] leading-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
+          <div className="space-y-0">
+            <p className="text-[#1a1a1a] font-bold text-[8px] leading-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
               Zoom Call
             </p>
             <h3 className="text-[#7C3AED] font-extrabold text-[12px] leading-[1.1] uppercase break-words line-clamp-2" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "-0.02em" }}>
@@ -1250,15 +1252,15 @@ function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; spe
             </h3>
           </div>
 
-          <div className="flex flex-col gap-[1%]">
+          <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-1 flex-wrap">
-              <img src="/calendar-icon-banner.png" alt="" className="h-[9px] w-auto opacity-80" />
-              <span className="text-[#1a1a1a] font-bold text-[8.5px]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              <img src="/calendar-icon-banner.png" alt="" className="h-[7px] w-auto opacity-80" />
+              <span className="text-[#1a1a1a] font-bold text-[8px]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                 {[formatDate(event.date), event.day].filter(Boolean).join(" · ") || "Datum"}
               </span>
             </div>
             {tripleTime && (
-              <span className="text-[#9ca3af] text-[7.5px] font-medium" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              <span className="text-[#9ca3af] text-[7px] font-medium" style={{ fontFamily: "Montserrat, sans-serif" }}>
                 ({tripleTime})
               </span>
             )}
@@ -1303,13 +1305,13 @@ function InputField({ label, value, onChange, testId }: {
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+      <label className="block text-[10px] font-medium text-gray-400 mb-0.5">{label}</label>
       <input 
         data-testid={testId} 
         type={label.toLowerCase().includes("datum") ? "date" : "text"} 
         value={value} 
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" 
+        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all" 
       />
     </div>
   );

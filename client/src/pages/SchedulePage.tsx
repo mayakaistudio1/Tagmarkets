@@ -121,33 +121,37 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
   const tz = event.timezone || "CET";
   const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
 
+  const titleLen = event.title?.length || 0;
+  const titleSize = titleLen > 40 ? "clamp(11px,3vw,42px)" : titleLen > 25 ? "clamp(13px,3.5vw,48px)" : "clamp(14px,4vw,54px)";
+
   return (
-    <div className="relative w-full aspect-[2/1] overflow-hidden" data-testid={`banner-${event.id}`}
-      style={{ background: "linear-gradient(-29deg, rgb(182, 139, 255) 0%, rgb(255, 255, 255) 69%)" }}>
+    <div className="relative w-full overflow-hidden" data-testid={`banner-${event.id}`}
+      style={{ background: "linear-gradient(-29deg, rgb(182, 139, 255) 0%, rgb(255, 255, 255) 69%)", aspectRatio: "auto" }}>
+      <div className="pt-[55%] sm:pt-[50%] md:pt-[50%]" />
       <BannerGridPattern />
 
       <div className="absolute inset-0 flex">
-        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "70%" }}>
-          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[16%] w-auto object-contain self-start" />
+        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "62%" }}>
+          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[14%] w-auto object-contain self-start" />
 
           <div className="space-y-[1%]">
-            <p className="text-[#1a1a1a] font-bold text-[clamp(10px,3.2vw,32px)] leading-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
+            <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(9px,2.5vw,28px)" }}>
               Zoom Call
             </p>
-            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words line-clamp-2" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(14px,4.2vw,54px)", letterSpacing: "-0.02em" }}>
+            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words line-clamp-3" style={{ fontFamily: "Montserrat, sans-serif", fontSize: titleSize, letterSpacing: "-0.02em" }}>
               &ldquo;{event.title}&rdquo;
             </h3>
           </div>
 
           <div className="flex flex-col gap-[1%]">
             <div className="flex items-center gap-[1.5%] flex-wrap">
-              <img src="/calendar-icon-banner.png" alt="" className="h-[clamp(10px,2.5vw,34px)] w-auto opacity-80" />
-              <span className="text-[#1a1a1a] font-bold text-[clamp(10px,2.8vw,36px)]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              <img src="/calendar-icon-banner.png" alt="" className="h-[clamp(8px,2vw,28px)] w-auto opacity-80" />
+              <span className="text-[#1a1a1a] font-bold" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(8px,2.2vw,28px)" }}>
                 {[formatDate(event.date), event.day].filter(Boolean).join(" · ")}
               </span>
             </div>
             {tripleTime && (
-              <span className="text-[#9ca3af] font-medium text-[clamp(9px,2.4vw,30px)]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              <span className="text-[#9ca3af] font-medium" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(7px,1.8vw,24px)" }}>
                 ({tripleTime})
               </span>
             )}
@@ -159,7 +163,7 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
               return motto.map((word, i) => (
                 <React.Fragment key={i}>
                   {i > 0 && <span className="bg-[#a855f7] rounded-full" style={{ width: "clamp(2px,0.4vw,5px)", height: "clamp(2px,0.4vw,5px)" }} />}
-                  <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(6px,1.2vw,16px)", letterSpacing: "3px" }}>
+                  <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(5px,1vw,14px)", letterSpacing: "2px" }}>
                     {word}
                   </span>
                 </React.Fragment>
@@ -171,19 +175,19 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
         <div className="flex-1 flex flex-col items-center justify-center z-10 pr-[3%]">
           {speakerPhoto ? (
             <>
-              <div className="relative w-[75%] aspect-square">
+              <div className="relative w-[70%] aspect-square">
                 <div className="absolute -inset-[4%] rounded-full border-[3px] border-[#C084FC]/40" />
                 <img src={speakerPhoto} alt={event.speaker}
                   className="w-full h-full rounded-full object-cover object-top" />
               </div>
               <div className="mt-[4%] bg-white rounded px-[6%] py-[2%] shadow-sm">
-                <p className="font-semibold text-black text-center whitespace-nowrap" style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(7px,1.8vw,24px)" }}>
+                <p className="font-semibold text-black text-center whitespace-nowrap" style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(6px,1.5vw,20px)" }}>
                   Speaker: {event.speaker}
                 </p>
               </div>
             </>
           ) : (
-            <div className="w-[75%] aspect-square rounded-full bg-gradient-to-br from-[#C084FC]/20 to-[#A855F7]/10 flex items-center justify-center">
+            <div className="w-[70%] aspect-square rounded-full bg-gradient-to-br from-[#C084FC]/20 to-[#A855F7]/10 flex items-center justify-center">
               <Mic size={24} className="text-[#7C3AED]/30" />
             </div>
           )}

@@ -11,6 +11,10 @@ import {
   ArrowRight,
   Calendar,
   GraduationCap,
+  Sparkles,
+  BookOpen,
+  Users,
+  BrainCircuit,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import {
@@ -50,6 +54,54 @@ const PartnerHubPage: React.FC = () => {
           </p>
 
           <Accordion type="multiple" className="space-y-2.5">
+            <AccordionItem
+              value="partner-toolkit"
+              className="border-none bg-white rounded-2xl px-4 shadow-[0_2px_12px_rgba(0,0,0,0.05)]"
+              data-testid="accordion-partner-toolkit"
+            >
+              <AccordionTrigger className="hover:no-underline py-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-[14px] font-bold text-gray-900 block">Dein Partner-Toolkit</span>
+                    <span className="text-[12px] text-gray-400 font-medium">Instrumente, Schulung & AI-Power für deinen Erfolg.</span>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="text-[13px] text-gray-600 leading-relaxed space-y-3 pb-2">
+                  <div className="flex items-start gap-2.5">
+                    <BookOpen className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <p>
+                      <span className="font-bold text-gray-800">Schulung & Wissen:</span>{" "}
+                      Zugang zu Webinaren, Tutorials und Trainings — vom Einstieg bis zur Expertenstufe.
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Users className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <p>
+                      <span className="font-bold text-gray-800">Community & Support:</span>{" "}
+                      Aktive Telegram-Gruppe, persönliche Ansprechpartner und Team-Calls für den Austausch.
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <BrainCircuit className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <p>
+                      <span className="font-bold text-gray-800">AI-Instrumente:</span>{" "}
+                      Jeder Partner kann seinen eigenen personalisierten Digital Hub mit eigener KI-Beraterin (wie Maria) erhalten — ein smartes Tool, das dir hilft, deinem Team und deinen Kunden voraus zu sein.
+                    </p>
+                  </div>
+                  <div className="mt-2 p-3 bg-purple-50 rounded-xl">
+                    <p className="text-[12px] text-purple-700 font-semibold leading-relaxed">
+                      Genau das, was du jetzt siehst — diesen Digital Hub — kann jeder JetUP-Partner personalisiert für sich und sein Team bekommen.
+                    </p>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
             <AccordionItem
               value="provisionen"
               className="border-none bg-white rounded-2xl px-4 shadow-[0_2px_12px_rgba(0,0,0,0.05)]"

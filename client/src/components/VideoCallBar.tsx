@@ -83,7 +83,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       tryAgain: 'Попробовать снова',
     },
   };
-  const texts = allTexts[language] || allTexts.ru;
+  const texts = allTexts[language] || allTexts.de;
 
   const handleTrackSubscribed = useCallback(
     (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {

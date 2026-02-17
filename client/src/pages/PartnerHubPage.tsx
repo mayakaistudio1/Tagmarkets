@@ -155,7 +155,7 @@ const PartnerHubPage: React.FC = () => {
                     Du erhältst einen <span className="font-bold text-gray-800">Anteil an den realen Handelsergebnissen</span> deines Teams.
                   </p>
                   <p>
-                    Die Gewinnverteilung: 70% Kunde, 18% Partner, 8% Trader, 4% Marketing.
+                    Die Gewinnverteilung: <span className="font-bold text-gray-800">70% Kunde</span>, 30% werden auf Trader und die Partnerprogramm-Struktur verteilt.
                   </p>
                   <p>
                     Auszahlungen basieren auf echten Gewinnen, nicht auf Versprechen.

@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Zap, Clock, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
-import { useLanguage } from "../contexts/LanguageContext";
-
 export interface PromoItem {
   id: number;
   badge: string;
@@ -20,17 +18,16 @@ export interface PromoItem {
 
 const PromoDetailPage: React.FC = () => {
   const [, setLocation] = useLocation();
-  const { language } = useLanguage();
   const [promoItems, setPromoItems] = useState<PromoItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/promotions?lang=${language}`)
+    fetch("/api/promotions")
       .then(r => r.json())
       .then(data => setPromoItems(data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [language]);
+  }, []);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">

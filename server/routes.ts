@@ -303,10 +303,8 @@ export async function registerRoutes(
 
   app.get("/api/promotions", async (req, res) => {
     try {
-      const lang = (req.query.lang as string) || "de";
       const promos = await storage.getPromotions(true);
-      const filtered = promos.filter((p: any) => p.language === lang);
-      res.json(filtered.length > 0 ? filtered : promos.filter((p: any) => p.language === "de"));
+      res.json(promos);
     } catch (error) {
       console.error("Error fetching promotions:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -408,10 +406,8 @@ export async function registerRoutes(
 
   app.get("/api/schedule-events", async (req, res) => {
     try {
-      const lang = (req.query.lang as string) || "de";
       const events = await storage.getScheduleEvents(true);
-      const filtered = events.filter((e: any) => e.language === lang);
-      res.json(filtered.length > 0 ? filtered : events.filter((e: any) => e.language === "de"));
+      res.json(events);
     } catch (error) {
       console.error("Error fetching schedule events:", error);
       res.status(500).json({ error: "Internal server error" });

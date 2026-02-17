@@ -23,6 +23,7 @@ interface ScheduleEvent {
   day: string;
   date: string;
   time: string;
+  timezone?: string;
   title: string;
   speaker: string;
   speakerId?: number | null;
@@ -31,6 +32,45 @@ interface ScheduleEvent {
   banner: string;
   highlights: string[];
   link: string;
+  language?: string;
+}
+
+const TIMEZONE_OFFSETS: Record<string, number> = {
+  CET: 1, CEST: 2, MSK: 3, EST: -5, EDT: -4, PST: -8, PDT: -7, GST: 4, UTC: 0,
+};
+
+function convertTime(time: string, fromTz: string, toTz: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const fromOffset = TIMEZONE_OFFSETS[fromTz] ?? 1;
+  const toOffset = TIMEZONE_OFFSETS[toTz] ?? 3;
+  let newH = h + (toOffset - fromOffset);
+  if (newH >= 24) newH -= 24;
+  if (newH < 0) newH += 24;
+  return `${String(newH).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
+}
+
+function JetUpLogo({ size = 32 }: { size?: number }) {
+  return (
+    <div className="flex items-center gap-1">
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="18" fill="url(#jetup-grad)" />
+        <path d="M14 12 L14 24 Q14 28 18 28 L20 28" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        <path d="M20 12 L20 28" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M20 12 L26 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M28 14 L28 28" stroke="#C084FC" strokeWidth="2.5" strokeLinecap="round" />
+        <circle cx="28" cy="11" r="2" fill="#C084FC" />
+        <defs>
+          <linearGradient id="jetup-grad" x1="0" y1="0" x2="40" y2="40">
+            <stop offset="0%" stopColor="#7C3AED" />
+            <stop offset="100%" stopColor="#A855F7" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <span className="text-[#7C3AED] font-extrabold text-[14px] tracking-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
+        Jet<span className="text-[#A855F7]">UP</span>
+      </span>
+    </div>
+  );
 }
 
 function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPhoto?: string }) {
@@ -38,30 +78,57 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
     return <img src={event.banner} alt={event.title} className="w-full h-auto object-cover" data-testid={`banner-${event.id}`} />;
   }
 
+  const tz = event.timezone || "CET";
+  const mskTime = convertTime(event.time, tz, "MSK");
+
   return (
-    <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-[#7C3AED] to-[#A855F7]" data-testid={`banner-${event.id}`}>
-      <div className="absolute inset-0 bg-black/10" />
+    <div className="relative w-full aspect-[2/1] overflow-hidden" data-testid={`banner-${event.id}`}
+      style={{ background: "linear-gradient(135deg, #e8d5f5 0%, #f3e8ff 30%, #ede5f7 60%, #d8c4f0 100%)" }}>
+      <div className="absolute right-[8%] top-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(192,132,252,0.25) 0%, transparent 70%)" }} />
+
       <div className="absolute inset-0 flex">
-        <div className="flex-1 flex flex-col justify-center px-5 py-4 z-10">
-          <span className={`self-start text-[10px] font-bold px-2.5 py-0.5 rounded-full mb-2 ${
-            event.type === "trading" ? "bg-blue-500 text-white" : "bg-emerald-500 text-white"
-          }`}>
-            {event.typeBadge}
-          </span>
-          <h3 className="text-white font-extrabold text-[15px] leading-tight mb-1.5">
-            {event.title}
-          </h3>
-          <p className="text-white/80 text-[12px] font-medium">
-            {event.date} | {event.time} Uhr
-          </p>
-          <p className="text-white/70 text-[11px] mt-0.5">
-            mit {event.speaker}
+        <div className="flex-1 flex flex-col justify-between py-3 px-4 z-10">
+          <JetUpLogo size={28} />
+
+          <div className="space-y-1">
+            <p className="text-[#6B21A8] text-[11px] font-semibold tracking-wide">Zoom Call</p>
+            <h3 className="text-[#1a0533] font-extrabold text-[14px] leading-[1.2] uppercase">
+              &ldquo;{event.title}&rdquo;
+            </h3>
+            <div className="flex items-center gap-1.5 text-[#6B21A8]">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M5 0v1H3.5A1.5 1.5 0 002 2.5v11A1.5 1.5 0 003.5 15h9a1.5 1.5 0 001.5-1.5v-11A1.5 1.5 0 0012.5 1H11V0h-1v1H6V0H5zm-2 4h10v9.5a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5V4z"/>
+              </svg>
+              <span className="text-[11px] font-medium">
+                {event.date} · {event.day}, {event.time}
+              </span>
+              <span className="text-[10px] text-[#8B5CF6] font-medium">
+                ({tz})
+              </span>
+            </div>
+            <p className="text-[10px] text-[#7C3AED]/70 font-medium">
+              {mskTime} MSK
+            </p>
+          </div>
+
+          <p className="text-[8px] font-bold tracking-[0.15em] text-[#6B21A8]/60 uppercase">
+            Struktur &nbsp;•&nbsp; Transparenz &nbsp;•&nbsp; Kontrolle
           </p>
         </div>
+
         {speakerPhoto && (
-          <div className="w-[40%] relative">
-            <img src={speakerPhoto} alt={event.speaker} className="absolute bottom-0 right-0 h-full w-full object-cover object-top" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#7C3AED] via-transparent to-transparent" />
+          <div className="w-[38%] flex flex-col items-center justify-center pr-3 z-10">
+            <div className="relative w-[85%] aspect-square">
+              <div className="absolute inset-0 rounded-full border-[3px] border-[#C084FC]/40" />
+              <img src={speakerPhoto} alt={event.speaker}
+                className="w-full h-full rounded-full object-cover object-top" />
+            </div>
+            <div className="mt-1.5 bg-white/90 rounded-md px-2 py-0.5 shadow-sm">
+              <p className="text-[9px] font-bold text-[#1a0533] text-center whitespace-nowrap">
+                Speaker: {event.speaker}
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -78,7 +145,7 @@ const SchedulePage: React.FC = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch(`/api/schedule-events?lang=${language}`).then(r => r.json()),
+      fetch("/api/schedule-events").then(r => r.json()),
       fetch("/api/speakers").then(r => r.json()),
     ])
       .then(([events, speakers]) => {
@@ -89,7 +156,7 @@ const SchedulePage: React.FC = () => {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [language]);
+  }, []);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -140,27 +207,38 @@ const SchedulePage: React.FC = () => {
 
                   <div className="p-4 space-y-3">
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                        event.type === "trading"
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-emerald-100 text-emerald-600"
-                      }`}>
-                        {event.typeBadge}
-                      </span>
+                      {event.typeBadge && (
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                          event.type === "trading"
+                            ? "bg-blue-100 text-blue-600"
+                            : "bg-emerald-100 text-emerald-600"
+                        }`}>
+                          {event.typeBadge}
+                        </span>
+                      )}
                       <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-600">
                         Zoom Call
                       </span>
+                      {event.language && (
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          event.language === "de" ? "bg-yellow-100 text-yellow-700" :
+                          event.language === "en" ? "bg-blue-100 text-blue-700" :
+                          "bg-red-100 text-red-700"
+                        }`}>
+                          {event.language === "de" ? "DE" : event.language === "en" ? "EN" : "RU"}
+                        </span>
+                      )}
                     </div>
 
                     <h3 className="text-[15px] font-bold text-gray-900 leading-tight">
                       "{event.title}"
                     </h3>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 flex-wrap">
                       <div className="flex items-center gap-1.5">
                         <Clock size={13} className="text-gray-400" />
                         <span className="text-[12px] text-gray-500 font-medium">
-                          {event.date}, {event.time} {t("scheduleUhr")}
+                          {event.date}, {event.time} {event.timezone || "CET"} | {convertTime(event.time, event.timezone || "CET", "MSK")} MSK
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">

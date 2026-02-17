@@ -123,10 +123,15 @@ server/replit_integrations/ - Replit-provided audio, chat, image, and batch util
 - `chat_sessions` — stores Maria chat sessions with sessionId, language, type
 - `chat_messages` — stores individual messages within sessions
 - `promotions` — managed promotions content (replaces hardcoded data)
-- `schedule_events` — managed schedule/webinar events (replaces hardcoded data)
+- `schedule_events` — managed schedule/webinar events with timezone field (CET default)
+- `speakers` — reusable speaker profiles with name, photo, role
 - Seed data loaded on first startup if tables are empty
 
 ## Recent Changes
+- Removed language filtering: all webinars/promotions visible to all users regardless of selected language, with language badges (DE/EN/RU) on event cards (Feb 2026)
+- Added timezone field to schedule_events with CET default, dual timezone display (CET + MSK) on schedule page
+- Redesigned EventBanner to match original Lorenz/Eddy design: purple-lavender gradient, JetUP logo, circular speaker photo with purple ring, STRUKTUR TRANSPARENZ KONTROLLE footer
+- Admin webinar form: time picker input, timezone dropdown (CET/CEST/MSK/EST/GST/UTC), EventBannerPreview matches new design
 - Added Admin Panel with password protection, chat logging, promotions/schedule CRUD (Feb 2026)
 - PostgreSQL database with Drizzle ORM replaces in-memory storage
 - Chat sessions now tracked with sessionId for full conversation history

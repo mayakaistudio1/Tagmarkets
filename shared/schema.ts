@@ -116,6 +116,7 @@ export const scheduleEvents = pgTable("schedule_events", {
   day: text("day").notNull(),
   date: text("date").notNull(),
   time: text("time").notNull(),
+  timezone: text("timezone").notNull().default("CET"),
   title: text("title").notNull(),
   speaker: text("speaker").notNull(),
   speakerId: integer("speaker_id"),

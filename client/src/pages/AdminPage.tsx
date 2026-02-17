@@ -68,6 +68,7 @@ interface ScheduleEvent {
   day: string;
   date: string;
   time: string;
+  timezone: string;
   title: string;
   speaker: string;
   speakerId?: number | null;
@@ -100,6 +101,7 @@ const emptyEvent: ScheduleEvent = {
   day: "",
   date: "",
   time: "",
+  timezone: "CET",
   title: "",
   speaker: "",
   speakerId: null,
@@ -1033,7 +1035,7 @@ function ScheduleTab({
                 </span>
               </div>
               <div className="text-sm text-gray-600 space-y-0.5">
-                <p>{event.day}, {event.date} - {event.time}</p>
+                <p>{event.day}, {event.date} - {event.time} {event.timezone || "CET"}</p>
               </div>
               {event.highlights && event.highlights.length > 0 && (
                 <ul className="text-sm text-gray-600 space-y-1">
@@ -1112,10 +1114,31 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <InputField label="Tag (z.B. Mo)" value={event.day} onChange={(v) => setEvent({ ...event, day: v })} testId="input-event-day" />
-          <InputField label="Datum" value={event.date} onChange={(v) => setEvent({ ...event, date: v })} testId="input-event-date" />
-          <InputField label="Uhrzeit" value={event.time} onChange={(v) => setEvent({ ...event, time: v })} testId="input-event-time" />
+        <div className="grid grid-cols-2 gap-3">
+          <InputField label="Tag (z.B. Mittwoch)" value={event.day} onChange={(v) => setEvent({ ...event, day: v })} testId="input-event-day" />
+          <InputField label="Datum (z.B. Jeden Mittwoch)" value={event.date} onChange={(v) => setEvent({ ...event, date: v })} testId="input-event-date" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Uhrzeit</label>
+            <input data-testid="input-event-time" type="time" value={event.time}
+              onChange={(e) => setEvent({ ...event, time: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Zeitzone</label>
+            <select data-testid="select-event-timezone" value={event.timezone || "CET"}
+              onChange={(e) => setEvent({ ...event, timezone: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+              <option value="CET">CET (Berlin)</option>
+              <option value="CEST">CEST (Berlin Sommer)</option>
+              <option value="MSK">MSK (Moskau)</option>
+              <option value="EST">EST (New York)</option>
+              <option value="GST">GST (Dubai)</option>
+              <option value="UTC">UTC</option>
+            </select>
+          </div>
         </div>
 
         <InputField label="Titel" value={event.title} onChange={(v) => setEvent({ ...event, title: v })} testId="input-event-title" />
@@ -1189,32 +1212,66 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 }
 
 function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; speakerPhoto: string }) {
+  const TIMEZONE_OFFSETS: Record<string, number> = {
+    CET: 1, CEST: 2, MSK: 3, EST: -5, EDT: -4, PST: -8, PDT: -7, GST: 4, UTC: 0,
+  };
+  const tz = event.timezone || "CET";
+  const convertTime = (time: string, fromTz: string, toTz: string): string => {
+    const [h, m] = time.split(":").map(Number);
+    const fromOff = TIMEZONE_OFFSETS[fromTz] ?? 1;
+    const toOff = TIMEZONE_OFFSETS[toTz] ?? 3;
+    let newH = h + (toOff - fromOff);
+    if (newH >= 24) newH -= 24;
+    if (newH < 0) newH += 24;
+    return `${String(newH).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
+  };
+  const mskTime = event.time ? convertTime(event.time, tz, "MSK") : "";
+
   return (
-    <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-gradient-to-br from-[#7C3AED] to-[#A855F7] shadow-lg">
-      <div className="absolute inset-0 bg-black/10" />
+    <div className="relative w-full aspect-[2/1] rounded-xl overflow-hidden shadow-lg"
+      style={{ background: "linear-gradient(135deg, #e8d5f5 0%, #f3e8ff 30%, #ede5f7 60%, #d8c4f0 100%)" }}>
+      <div className="absolute right-[8%] top-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(192,132,252,0.25) 0%, transparent 70%)" }} />
+
       <div className="absolute inset-0 flex">
-        <div className="flex-1 flex flex-col justify-center p-4 z-10">
-          <span className={`self-start text-[8px] font-bold px-2 py-0.5 rounded-full mb-1.5 ${event.type === "trading" ? "bg-blue-500 text-white" : "bg-emerald-500 text-white"}`}>
-            {event.typeBadge || event.type}
-          </span>
-          <h3 className="text-white font-extrabold text-sm leading-tight mb-1">
-            {event.title || "Webinar Titel"}
-          </h3>
-          <p className="text-white/80 text-[10px] font-medium">
-            {event.date || "Datum"} | {event.time || "Uhrzeit"} Uhr
-          </p>
-          <p className="text-white/70 text-[9px] mt-0.5">
-            mit {event.speaker || "Speaker"}
+        <div className="flex-1 flex flex-col justify-between py-3 px-4 z-10">
+          <div className="flex items-center gap-1">
+            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center">
+              <span className="text-white text-[6px] font-extrabold">J</span>
+            </div>
+            <span className="text-[#7C3AED] font-extrabold text-[10px]">Jet<span className="text-[#A855F7]">UP</span></span>
+          </div>
+
+          <div className="space-y-0.5">
+            <p className="text-[#6B21A8] text-[9px] font-semibold">Zoom Call</p>
+            <h3 className="text-[#1a0533] font-extrabold text-[11px] leading-[1.2] uppercase">
+              &ldquo;{event.title || "Webinar Titel"}&rdquo;
+            </h3>
+            <p className="text-[#6B21A8] text-[9px] font-medium">
+              {event.date || "Datum"} · {event.day || "Tag"}, {event.time || "00:00"} <span className="text-[#8B5CF6]">({tz})</span>
+            </p>
+            {mskTime && <p className="text-[8px] text-[#7C3AED]/70 font-medium">{mskTime} MSK</p>}
+          </div>
+
+          <p className="text-[6px] font-bold tracking-[0.15em] text-[#6B21A8]/60 uppercase">
+            Struktur &nbsp;•&nbsp; Transparenz &nbsp;•&nbsp; Kontrolle
           </p>
         </div>
+
         {speakerPhoto && (
-          <div className="w-[40%] relative">
-            <img src={speakerPhoto} alt="speaker" className="absolute bottom-0 right-0 h-full w-full object-cover object-top" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#7C3AED] via-transparent to-transparent" />
+          <div className="w-[38%] flex flex-col items-center justify-center pr-2 z-10">
+            <div className="relative w-[80%] aspect-square">
+              <div className="absolute inset-0 rounded-full border-2 border-[#C084FC]/40" />
+              <img src={speakerPhoto} alt="speaker" className="w-full h-full rounded-full object-cover object-top" />
+            </div>
+            <div className="mt-1 bg-white/90 rounded px-1.5 py-0.5 shadow-sm">
+              <p className="text-[7px] font-bold text-[#1a0533] text-center whitespace-nowrap">
+                Speaker: {event.speaker || "Name"}
+              </p>
+            </div>
           </div>
         )}
       </div>
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20" />
     </div>
   );
 }

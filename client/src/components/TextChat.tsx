@@ -306,75 +306,41 @@ export default function TextChat() {
   };
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputAreaRef = useRef<HTMLDivElement>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useEffect(() => {
-    let rafId: number;
-    
-    const updateLayout = () => {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        if (!containerRef.current) return;
-        
-        const vv = window.visualViewport;
-        if (vv) {
-          const height = vv.height;
-          const top = vv.offsetTop;
-          containerRef.current.style.position = 'fixed';
-          containerRef.current.style.top = `${top}px`;
-          containerRef.current.style.left = '0';
-          containerRef.current.style.right = '0';
-          containerRef.current.style.height = `${height}px`;
-          containerRef.current.style.bottom = 'auto';
-          containerRef.current.style.transform = 'none';
-          
-          const isKbOpen = height < window.innerHeight * 0.75;
-          setKeyboardOpen(isKbOpen);
-        } else {
-          containerRef.current.style.height = `${window.innerHeight}px`;
-        }
-        
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-        }, 30);
-      });
+    const detectKeyboard = () => {
+      const vv = window.visualViewport;
+      if (vv) {
+        const isKbOpen = vv.height < window.innerHeight * 0.75;
+        setKeyboardOpen(isKbOpen);
+      }
     };
-    
-    updateLayout();
-    
+
     const vv = window.visualViewport;
     if (vv) {
-      vv.addEventListener('resize', updateLayout);
-      vv.addEventListener('scroll', updateLayout);
+      vv.addEventListener('resize', detectKeyboard);
     }
-    window.addEventListener('resize', updateLayout);
-    
-    const rootEl = document.getElementById('root');
-    if (rootEl) rootEl.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    
+
     return () => {
-      cancelAnimationFrame(rafId);
       if (vv) {
-        vv.removeEventListener('resize', updateLayout);
-        vv.removeEventListener('scroll', updateLayout);
+        vv.removeEventListener('resize', detectKeyboard);
       }
-      window.removeEventListener('resize', updateLayout);
-      if (rootEl) rootEl.style.overflow = '';
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
     };
   }, []);
 
   const handleInputFocus = () => {
     setTimeout(() => {
+      inputAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 300);
+    setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 400);
+    }, 500);
   };
 
   return (
-    <div ref={containerRef} className="fixed inset-0 z-[100] bg-white flex flex-col" style={{ height: '100dvh' }}>
+    <div ref={containerRef} className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -494,7 +460,7 @@ export default function TextChat() {
       )}
 
       {/* Input */}
-      <div className="p-4 bg-white safe-area-bottom border-t border-gray-100 flex-shrink-0">
+      <div ref={inputAreaRef} className="p-4 bg-white safe-area-bottom border-t border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-2">
           <input
             ref={inputRef}

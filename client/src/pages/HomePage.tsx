@@ -62,8 +62,8 @@ const HomePage: React.FC = () => {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="purple-top-bar" />
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-5 pt-3 pb-6 space-y-3">
+      <div className="flex-1 overflow-y-auto bg-gray-50/50">
+        <div className="px-5 pt-3 pb-6 space-y-3 min-h-full">
 
           <motion.div
             initial={{ opacity: 0, y: -10 }}

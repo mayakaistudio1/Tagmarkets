@@ -93,7 +93,7 @@ JetUP — это платформа, которая объединяет про�
 ### Прибыль и безопасность
 
 **Доход клиента:** семьдесят процентов всей прибыли.
-**Остальное:** восемнадцать процентов — партнёрам, восемь — трейдерам, четыре — маркетинг.
+**Остальное:** тридцать процентов распределяются на трейдера и партнёрскую программу.
 
 **Безопасность:** Деньги лежат на твоём счёте в TAG Markets. Ты можешь вывести в любое время (если нет сделки).
 
@@ -261,7 +261,7 @@ A licensed broker (FSC Mauritius) where your money is kept. Only you have access
 ### Profit and Safety
 
 **Client income:** seventy percent of all profits.
-**The rest:** eighteen percent to partners, eight to traders, four to marketing.
+**The rest:** thirty percent is distributed to traders and the partner program.
 
 **Safety:** Your money is in your own account at TAG Markets. You can withdraw anytime (if no trade is open).
 
@@ -440,7 +440,7 @@ Einhundert Prozent deines Gewinns gehören dir, jederzeit auszahlbar. Kein Kredi
 ### Gewinn und Sicherheit
 
 **Kundenanteil:** siebzig Prozent aller Gewinne.
-**Der Rest:** achtzehn Prozent an Partner, acht an Trader, vier an Marketing.
+**Der Rest:** dreißig Prozent werden auf Trader und die Partnerprogramm-Struktur verteilt.
 
 **Sicherheit:** Dein Geld liegt auf deinem eigenen Konto bei TAG Markets. Du kannst jederzeit abheben (wenn kein Trade offen ist).
 

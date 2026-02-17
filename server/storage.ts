@@ -1,7 +1,7 @@
 import {
   type User, type InsertUser,
   type Application, type InsertApplication,
-  users, applications, chatSessions, chatMessages, promotions, scheduleEvents,
+  users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
 import { db } from "./db";
@@ -29,6 +29,12 @@ export interface IStorage {
   createScheduleEvent(event: any): Promise<any>;
   updateScheduleEvent(id: number, event: any): Promise<any>;
   deleteScheduleEvent(id: number): Promise<void>;
+
+  getSpeakers(activeOnly?: boolean): Promise<any[]>;
+  getSpeaker(id: number): Promise<any | undefined>;
+  createSpeaker(speaker: any): Promise<any>;
+  updateSpeaker(id: number, speaker: any): Promise<any>;
+  deleteSpeaker(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -154,6 +160,32 @@ export class DatabaseStorage implements IStorage {
 
   async deleteScheduleEvent(id: number): Promise<void> {
     await db.delete(scheduleEvents).where(eq(scheduleEvents.id, id));
+  }
+
+  async getSpeakers(activeOnly?: boolean): Promise<any[]> {
+    if (activeOnly) {
+      return db.select().from(speakers).where(eq(speakers.isActive, true)).orderBy(speakers.name);
+    }
+    return db.select().from(speakers).orderBy(speakers.name);
+  }
+
+  async getSpeaker(id: number): Promise<any | undefined> {
+    const [speaker] = await db.select().from(speakers).where(eq(speakers.id, id));
+    return speaker;
+  }
+
+  async createSpeaker(speaker: any): Promise<any> {
+    const [created] = await db.insert(speakers).values(speaker).returning();
+    return created;
+  }
+
+  async updateSpeaker(id: number, speaker: any): Promise<any> {
+    const [updated] = await db.update(speakers).set(speaker).where(eq(speakers.id, id)).returning();
+    return updated;
+  }
+
+  async deleteSpeaker(id: number): Promise<void> {
+    await db.delete(speakers).where(eq(speakers.id, id));
   }
 }
 

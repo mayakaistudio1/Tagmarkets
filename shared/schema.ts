@@ -67,6 +67,23 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 
+export const speakers = pgTable("speakers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  photo: text("photo").notNull().default(""),
+  role: text("role").notNull().default(""),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertSpeakerSchema = createInsertSchema(speakers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertSpeaker = z.infer<typeof insertSpeakerSchema>;
+export type Speaker = typeof speakers.$inferSelect;
+
 export const promotions = pgTable("promotions", {
   id: serial("id").primaryKey(),
   badge: text("badge").notNull(),
@@ -81,6 +98,8 @@ export const promotions = pgTable("promotions", {
   badgeColor: text("badge_color").notNull().default("bg-orange-500"),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
+  language: text("language").notNull().default("de"),
+  translationGroup: text("translation_group"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -99,6 +118,7 @@ export const scheduleEvents = pgTable("schedule_events", {
   time: text("time").notNull(),
   title: text("title").notNull(),
   speaker: text("speaker").notNull(),
+  speakerId: integer("speaker_id"),
   type: text("type").notNull(),
   typeBadge: text("type_badge").notNull(),
   banner: text("banner").notNull().default(""),
@@ -106,6 +126,8 @@ export const scheduleEvents = pgTable("schedule_events", {
   link: text("link").notNull(),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
+  language: text("language").notNull().default("de"),
+  translationGroup: text("translation_group"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -945,8 +945,12 @@ function PromotionForm({ promo, setPromo, onSave, onClose, adminPassword }: {
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Highlights (eine pro Zeile)</label>
           <textarea data-testid="textarea-promo-highlights" value={(promo.highlights || []).join("\n")}
-            onChange={(e) => setPromo({ ...promo, highlights: e.target.value.split("\n").filter((l) => l.trim()) })}
-            onKeyDown={(e) => e.key === "Enter" && e.stopPropagation()}
+            onChange={(e) => setPromo({ ...promo, highlights: e.target.value.split("\n") })}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.stopPropagation();
+              }
+            }}
             rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -1153,8 +1157,12 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Highlights (eine pro Zeile)</label>
           <textarea data-testid="textarea-event-highlights" value={(event.highlights || []).join("\n")}
-            onChange={(e) => setEvent({ ...event, highlights: e.target.value.split("\n").filter((l) => l.trim()) })}
-            onKeyDown={(e) => e.key === "Enter" && e.stopPropagation()}
+            onChange={(e) => setEvent({ ...event, highlights: e.target.value.split("\n") })}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.stopPropagation();
+              }
+            }}
             rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
         </div>
 

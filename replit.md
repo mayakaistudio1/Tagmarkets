@@ -110,7 +110,27 @@ server/replit_integrations/ - Replit-provided audio, chat, image, and batch util
 - Instagram: https://www.instagram.com/jetup.official
 - Registration: https://jetup.ibportal.io
 
+### Admin Panel
+- `/admin` — **AdminPage**: Password-protected admin dashboard (ADMIN_PASSWORD env secret)
+- **Chat Logs Tab**: View all Maria conversations, filter by type/date, expand to see full transcript, CSV export
+- **Aktionen Tab**: CRUD for promotions (create, edit, toggle active/inactive, delete)
+- **Webinare Tab**: CRUD for schedule events (create, edit, toggle active/inactive, delete)
+- Rate-limited login (5 attempts per 15 min), auth error auto-logout, error banner for failed operations
+- All admin API routes protected via `x-admin-password` header
+
+### Database Tables
+- `users`, `applications` — existing
+- `chat_sessions` — stores Maria chat sessions with sessionId, language, type
+- `chat_messages` — stores individual messages within sessions
+- `promotions` — managed promotions content (replaces hardcoded data)
+- `schedule_events` — managed schedule/webinar events (replaces hardcoded data)
+- Seed data loaded on first startup if tables are empty
+
 ## Recent Changes
+- Added Admin Panel with password protection, chat logging, promotions/schedule CRUD (Feb 2026)
+- PostgreSQL database with Drizzle ORM replaces in-memory storage
+- Chat sessions now tracked with sessionId for full conversation history
+- SchedulePage and PromoDetailPage now fetch from API instead of hardcoded data
 - Restructured app as Smart Linktree with 3-level navigation: Hub → Trading Hub / Partner Hub → details (Feb 2026)
 - HomePage: Maria card + 2 big pathway cards + Webinare/Tutorials buttons + direct links block + welcome text
 - TradingHubPage: TAG Markets, Copy-X, Amplify 12x, Schnellstart, FAQ + contextual links to Trading-Calls and Tutorials

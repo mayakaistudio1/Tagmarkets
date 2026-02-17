@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -6,11 +6,12 @@ import {
   ExternalLink,
   Clock,
   Mic,
+  Loader2,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
 interface ScheduleEvent {
-  id: string;
+  id: number;
   day: string;
   date: string;
   time: string;
@@ -23,47 +24,18 @@ interface ScheduleEvent {
   link: string;
 }
 
-const events: ScheduleEvent[] = [
-  {
-    id: "lorenz",
-    day: "Mittwoch",
-    date: "Jeden Mittwoch",
-    time: "19:00",
-    title: "Dein klarer Einstieg in die Finanzmärkte",
-    speaker: "Lorenz Brunner",
-    type: "trading",
-    typeBadge: "Trading",
-    banner: "/webinar-lorenz.png",
-    highlights: [
-      "Einstieg in die Finanzmärkte — strukturiert und verständlich",
-      "Transparenz und Kontrolle über dein Kapital",
-      "Praxisnahe Strategien für deinen Start",
-    ],
-    link: "https://us05web.zoom.us/j/83031264996?pwd=XG7QRgjUPi6qTet3jWybMf9OJu8IQi.1",
-  },
-  {
-    id: "eddy",
-    day: "Donnerstag",
-    date: "Jeden Donnerstag",
-    time: "19:00",
-    title: "JetUP Ökosystem: Deine Möglichkeiten im Überblick",
-    speaker: "Eddy Kanke",
-    type: "partner",
-    typeBadge: "Partner",
-    banner: "/webinar-eddy.png",
-    highlights: [
-      "Überblick über das JetUP Ökosystem",
-      "Deine Möglichkeiten als Investor",
-      "Partnerprogramm & zusätzliche Einkommensmöglichkeiten",
-    ],
-    link: "https://us02web.zoom.us/j/87966496089?pwd=wn9dtI4JKkSow8shBHE3bNsj2IIImt.1",
-  },
-];
-
 const SchedulePage: React.FC = () => {
   const [, setLocation] = useLocation();
+  const [filteredEvents, setFilteredEvents] = useState<ScheduleEvent[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredEvents = events;
+  useEffect(() => {
+    fetch("/api/schedule-events")
+      .then(r => r.json())
+      .then(data => setFilteredEvents(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -82,7 +54,11 @@ const SchedulePage: React.FC = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 pb-6">
-        <motion.div
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 size={24} className="animate-spin text-purple-500" />
+          </div>
+        ) : (<motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
@@ -195,7 +171,7 @@ const SchedulePage: React.FC = () => {
               Frag Maria
             </button>
           </div>
-        </motion.div>
+        </motion.div>)}
       </div>
     </div>
   );

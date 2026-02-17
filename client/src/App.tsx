@@ -12,6 +12,7 @@ import SchedulePage from "@/pages/SchedulePage";
 import TutorialsPage from "@/pages/TutorialsPage";
 import PromoDetailPage from "@/pages/PromoDetailPage";
 import TabBar from "@/components/TabBar";
+import AdminPage from "@/pages/AdminPage";
 
 function AppContent() {
   const [location, setLocation] = useLocation();
@@ -21,6 +22,10 @@ function AppContent() {
   }, []);
 
   const basePath = location.split("?")[0];
+
+  if (basePath === "/admin") {
+    return <AdminPage />;
+  }
 
   const renderPage = () => {
     switch (basePath) {

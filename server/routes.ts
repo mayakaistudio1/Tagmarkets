@@ -18,6 +18,23 @@ function requireAdmin(req: any, res: any): boolean {
   return true;
 }
 
+const loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
+const LOGIN_RATE_LIMIT = 5;
+const LOGIN_RATE_WINDOW = 15 * 60 * 1000;
+
+function checkLoginRate(ip: string): boolean {
+  const now = Date.now();
+  const entry = loginAttempts.get(ip);
+  if (!entry || now - entry.lastAttempt > LOGIN_RATE_WINDOW) {
+    loginAttempts.set(ip, { count: 1, lastAttempt: now });
+    return true;
+  }
+  if (entry.count >= LOGIN_RATE_LIMIT) return false;
+  entry.count++;
+  entry.lastAttempt = now;
+  return true;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -53,6 +70,10 @@ export async function registerRoutes(
 
   app.post("/api/admin/login", async (req, res) => {
     try {
+      const ip = req.ip || req.socket.remoteAddress || "unknown";
+      if (!checkLoginRate(ip)) {
+        return res.status(429).json({ error: "Zu viele Versuche. Bitte warten Sie 15 Minuten." });
+      }
       const { password } = req.body;
       if (password !== process.env.ADMIN_PASSWORD) {
         return res.status(401).json({ error: "Invalid password" });

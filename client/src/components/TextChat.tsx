@@ -15,9 +15,20 @@ interface ChatMessage {
 }
 
 const STORAGE_KEY = 'maria-chat-history';
+const SESSION_KEY = 'maria-session-id';
+
+function getOrCreateSessionId(): string {
+  let sid = localStorage.getItem(SESSION_KEY);
+  if (!sid) {
+    sid = crypto.randomUUID();
+    localStorage.setItem(SESSION_KEY, sid);
+  }
+  return sid;
+}
 
 export default function TextChat() {
   const { language, t } = useLanguage();
+  const sessionIdRef = useRef(getOrCreateSessionId());
   
   const getInitialGreeting = (): ChatMessage => ({
     id: 'greeting',
@@ -143,6 +154,7 @@ export default function TextChat() {
             .filter(m => m.id !== 'greeting')
             .map(m => ({ role: m.role, content: m.content })),
           language,
+          sessionId: sessionIdRef.current,
         }),
       });
 
@@ -228,6 +240,7 @@ export default function TextChat() {
             .filter(m => m.id !== 'greeting')
             .map(m => ({ role: m.role, content: m.content })),
           language,
+          sessionId: sessionIdRef.current,
         }),
       });
 
@@ -292,6 +305,9 @@ export default function TextChat() {
     setMessages([{ ...getInitialGreeting(), timestamp: Date.now() }]);
     setQuickReplies(getInitialQuickReplies());
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(SESSION_KEY);
+    sessionIdRef.current = crypto.randomUUID();
+    localStorage.setItem(SESSION_KEY, sessionIdRef.current);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

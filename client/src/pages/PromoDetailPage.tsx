@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ExternalLink, Zap, Clock, ChevronRight } from "lucide-react";
+import { ArrowLeft, ExternalLink, Zap, Clock, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 
 export interface PromoItem {
-  id: string;
+  id: number;
   badge: string;
   title: string;
   subtitle: string;
@@ -12,33 +12,23 @@ export interface PromoItem {
   highlights: string[];
   ctaText: string;
   ctaLink: string;
-  deadline?: string;
+  deadline?: string | null;
   gradient: string;
   badgeColor: string;
 }
 
-export const promoItems: PromoItem[] = [
-  {
-    id: "24x-boost",
-    badge: "SPEZIALAKTION",
-    title: "24X Trading-Boost aktivieren",
-    subtitle: "Normalerweise 12X Multiplikator, jetzt 24X. Doppeltes Kapital & Gewinn aus denselben Trades!",
-    banner: "/promo-24x-boost.png",
-    highlights: [
-      "24X statt 12X Multiplikator auf deine Trades",
-      "Doppeltes Kapital & Gewinnpotenzial",
-      "Gleiche Strategie, doppelter Hebel",
-    ],
-    ctaText: "Jetzt aktivieren",
-    ctaLink: "https://jetup.ibportal.io",
-    deadline: "Zeitlich begrenzt verfügbar",
-    gradient: "from-[#7C3AED] to-[#A855F7]",
-    badgeColor: "bg-orange-500",
-  },
-];
-
 const PromoDetailPage: React.FC = () => {
   const [, setLocation] = useLocation();
+  const [promoItems, setPromoItems] = useState<PromoItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/promotions")
+      .then(r => r.json())
+      .then(data => setPromoItems(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -57,7 +47,11 @@ const PromoDetailPage: React.FC = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 pb-6">
-        <div className="space-y-4 pt-2">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 size={24} className="animate-spin text-purple-500" />
+          </div>
+        ) : (<div className="space-y-4 pt-2">
           {promoItems.map((promo, idx) => (
             <motion.div
               key={promo.id}
@@ -126,7 +120,7 @@ const PromoDetailPage: React.FC = () => {
               <p className="text-[14px] text-gray-400 font-medium">Aktuell keine Aktionen verfügbar.</p>
             </div>
           )}
-        </div>
+        </div>)}
       </div>
     </div>
   );

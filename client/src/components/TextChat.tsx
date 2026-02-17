@@ -305,31 +305,61 @@ export default function TextChat() {
     sendMessage(reply);
   };
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
   useEffect(() => {
-    const handleResize = () => {
-      const vh = window.visualViewport?.height || window.innerHeight;
-      document.documentElement.style.setProperty('--chat-vh', `${vh}px`);
+    const updateLayout = () => {
+      if (!containerRef.current) return;
+      
+      const vv = window.visualViewport;
+      const height = vv ? vv.height : window.innerHeight;
+      const offsetTop = vv ? Math.max(0, vv.offsetTop) : 0;
+      
+      containerRef.current.style.height = `${height}px`;
+      containerRef.current.style.top = `${offsetTop}px`;
+      
+      const isKbOpen = height < window.innerHeight * 0.75;
+      setKeyboardOpen(isKbOpen);
+      
+      if (isKbOpen) {
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+        }, 50);
+      }
     };
     
-    handleResize();
+    updateLayout();
     
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleResize);
-      window.visualViewport.addEventListener('scroll', handleResize);
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener('resize', updateLayout);
+      vv.addEventListener('scroll', updateLayout);
     }
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', updateLayout);
+    
+    const rootEl = document.getElementById('root');
+    if (rootEl) rootEl.style.overflow = 'hidden';
     
     return () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleResize);
-        window.visualViewport.removeEventListener('scroll', handleResize);
+      if (vv) {
+        vv.removeEventListener('resize', updateLayout);
+        vv.removeEventListener('scroll', updateLayout);
       }
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', updateLayout);
+      if (rootEl) rootEl.style.overflow = '';
     };
   }, []);
 
+  const handleInputFocus = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 300);
+  };
+
   return (
-    <div className="fixed inset-x-0 top-0 z-[100] bg-white flex flex-col" style={{ height: 'var(--chat-vh, 100dvh)' }}>
+    <div ref={containerRef} className="fixed inset-x-0 top-0 z-[100] bg-white flex flex-col" style={{ height: '100dvh' }}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -430,8 +460,8 @@ export default function TextChat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Replies - Fixed above input */}
-      {!isLoading && quickReplies.length > 0 && (
+      {/* Quick Replies - Hidden when keyboard is open to save space */}
+      {!isLoading && quickReplies.length > 0 && !keyboardOpen && (
         <div className="px-4 py-2.5 bg-white border-t border-gray-50 flex-shrink-0">
           <div className="flex flex-wrap gap-2">
             {quickReplies.map((reply) => (
@@ -457,6 +487,7 @@ export default function TextChat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={handleInputFocus}
             placeholder={t('chat.placeholder')}
             disabled={isLoading}
             className="flex-1 h-12 px-5 rounded-full bg-gray-50 border-none text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary/20"

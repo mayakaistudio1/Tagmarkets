@@ -1174,10 +1174,11 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 
         {(selectedSpeaker?.photo || event.banner) && (
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-2">Banner Vorschau</label>
+            <label className="block text-[10px] font-medium text-gray-400 mb-2">Banner Vorschau</label>
             <EventBannerPreview event={event} speakerPhoto={selectedSpeaker?.photo || ""} />
           </div>
         )}
+        </div>
 
         <div className="flex justify-end gap-3 p-4 border-t border-gray-100 flex-shrink-0 bg-gray-50/50">
           <button data-testid="button-cancel-event" onClick={onClose}

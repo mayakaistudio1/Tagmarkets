@@ -93,9 +93,11 @@ const HomePage: React.FC = () => {
               data-testid="cta-ask-maria"
             >
               <div className="relative flex-shrink-0">
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-purple-500 via-pink-400 to-blue-400 flex items-center justify-center shadow-[0_4px_16px_rgba(124,58,237,0.3)]">
-                  <span className="text-sm font-extrabold text-white">M</span>
-                </div>
+                <img
+                  src="/maria-avatar.png"
+                  alt="Maria"
+                  className="w-11 h-11 rounded-full object-cover shadow-[0_4px_16px_rgba(124,58,237,0.3)]"
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">

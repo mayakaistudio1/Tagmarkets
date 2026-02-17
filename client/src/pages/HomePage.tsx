@@ -76,9 +76,6 @@ const HomePage: React.FC = () => {
               className="w-12 h-12 object-contain mb-1"
               data-testid="img-logo"
             />
-            <h1 className="text-[16px] font-extrabold text-gray-900 tracking-tight">
-              JetApp – JetUP Ökosystem
-            </h1>
             <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-gradient-purple mt-0.5">
               Struktur. Transparenz. Kontrolle.
             </p>

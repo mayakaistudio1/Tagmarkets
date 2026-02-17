@@ -122,11 +122,12 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
   const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
 
   const titleLen = event.title?.length || 0;
-  const titleSize = titleLen > 40 ? "3.2cqw" : titleLen > 25 ? "3.8cqw" : "4.5cqw";
+  const titleSize = titleLen > 40 ? "3cqw" : titleLen > 25 ? "3.5cqw" : "4cqw";
 
   return (
     <div className="relative w-full overflow-hidden" data-testid={`banner-${event.id}`}
-      style={{ background: "linear-gradient(-29deg, rgb(182, 139, 255) 0%, rgb(255, 255, 255) 69%)", aspectRatio: "2/1", containerType: "inline-size" }}>
+      style={{ background: "linear-gradient(-29deg, rgb(182, 139, 255) 0%, rgb(255, 255, 255) 69%)", containerType: "inline-size" }}>
+      <div className="pt-[55%]" />
       <BannerGridPattern />
 
       <div className="absolute inset-0 flex">
@@ -134,10 +135,10 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
           <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[14%] w-auto object-contain self-start" />
 
           <div className="space-y-[1%]">
-            <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.8cqw" }}>
+            <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.7cqw" }}>
               Zoom Call
             </p>
-            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words line-clamp-3" style={{ 
+            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words" style={{ 
               fontFamily: "Montserrat, sans-serif", 
               fontSize: titleSize,
               letterSpacing: "-0.02em" 
@@ -149,7 +150,7 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
           <div className="flex flex-col gap-[1%]">
             <div className="flex items-center gap-[1.5%] flex-wrap">
               <img src="/calendar-icon-banner.png" alt="" style={{ height: "2.2cqw" }} className="w-auto opacity-80" />
-              <span className="text-[#1a1a1a] font-bold" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.4cqw" }}>
+              <span className="text-[#1a1a1a] font-bold" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.5cqw" }}>
                 {[formatDate(event.date), event.day].filter(Boolean).join(" · ")}
               </span>
             </div>

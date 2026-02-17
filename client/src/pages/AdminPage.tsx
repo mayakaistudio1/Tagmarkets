@@ -1233,8 +1233,9 @@ function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; spe
   }
 
   return (
-    <div className="relative w-full aspect-[2/1] rounded-xl overflow-hidden shadow-lg"
-      style={{ background: "linear-gradient(-29deg, rgb(182, 139, 255) 0%, rgb(255, 255, 255) 69%)" }}>
+    <div className="relative w-full rounded-xl overflow-hidden shadow-lg"
+      style={{ background: "linear-gradient(-29deg, rgb(182, 139, 255) 0%, rgb(255, 255, 255) 69%)", containerType: "inline-size" }}>
+      <div className="pt-[55%]" />
       <div className="absolute inset-0 p-1 grid gap-[2px] pointer-events-none"
         style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}>
         {gridCells}
@@ -1244,36 +1245,36 @@ function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; spe
         <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "62%" }}>
           <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[14%] w-auto object-contain self-start" />
 
-          <div className="space-y-0">
-            <p className="text-[#1a1a1a] font-bold text-[8px] leading-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
+          <div className="space-y-[1%]">
+            <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.7cqw" }}>
               Zoom Call
             </p>
-            <h3 className="text-[#7C3AED] font-extrabold text-[12px] leading-[1.1] uppercase break-words line-clamp-2" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "-0.02em" }}>
+            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words" style={{ fontFamily: "Montserrat, sans-serif", fontSize: ((event.title?.length || 0) > 40 ? "3cqw" : (event.title?.length || 0) > 25 ? "3.5cqw" : "4cqw"), letterSpacing: "-0.02em" }}>
               &ldquo;{event.title || "Webinar Titel"}&rdquo;
             </h3>
           </div>
 
-          <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-1 flex-wrap">
-              <img src="/calendar-icon-banner.png" alt="" className="h-[7px] w-auto opacity-80" />
-              <span className="text-[#1a1a1a] font-bold text-[8px]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+          <div className="flex flex-col gap-[1%]">
+            <div className="flex items-center gap-[1.5%] flex-wrap">
+              <img src="/calendar-icon-banner.png" alt="" style={{ height: "2.2cqw" }} className="w-auto opacity-80" />
+              <span className="text-[#1a1a1a] font-bold" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.5cqw" }}>
                 {[formatDate(event.date), event.day].filter(Boolean).join(" · ") || "Datum"}
               </span>
             </div>
             {tripleTime && (
-              <span className="text-[#9ca3af] text-[7px] font-medium" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              <span className="text-[#9ca3af] font-medium" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2cqw" }}>
                 ({tripleTime})
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-[2%]">
             {(event.language === "ru" ? ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] :
               event.language === "en" ? ["STRUCTURE", "TRANSPARENCY", "CONTROL"] :
               ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"]).map((word, i) => (
               <React.Fragment key={i}>
-                {i > 0 && <span className="bg-[#a855f7] rounded-full w-[2px] h-[2px]" />}
-                <span className="font-bold text-[#111827] text-[5px] uppercase" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "2px" }}>{word}</span>
+                {i > 0 && <span className="bg-[#a855f7] rounded-full" style={{ width: "0.7cqw", height: "0.7cqw" }} />}
+                <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "1.5cqw", letterSpacing: "0.3cqw" }}>{word}</span>
               </React.Fragment>
             ))}
           </div>
@@ -1282,12 +1283,12 @@ function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; spe
         <div className="flex-1 flex flex-col items-center justify-center z-10 pr-[3%]">
           {speakerPhoto ? (
             <>
-              <div className="relative w-[75%] aspect-square">
-                <div className="absolute -inset-[4%] rounded-full border-2 border-[#C084FC]/40" />
+              <div className="relative w-[70%] aspect-square">
+                <div className="absolute -inset-[4%] rounded-full border-[3px] border-[#C084FC]/40" />
                 <img src={speakerPhoto} alt="speaker" className="w-full h-full rounded-full object-cover object-top" />
               </div>
-              <div className="mt-1 bg-white rounded px-1.5 py-0.5 shadow-sm">
-                <p className="font-semibold text-black text-[7px] text-center whitespace-nowrap" style={{ fontFamily: "Inter, sans-serif" }}>
+              <div className="mt-[4%] bg-white rounded px-[6%] py-[2%] shadow-sm w-fit max-w-[90%] overflow-hidden">
+                <p className="font-semibold text-black text-center truncate" style={{ fontFamily: "Inter, sans-serif", fontSize: "2.2cqw" }}>
                   Speaker: {event.speaker || "Name"}
                 </p>
               </div>

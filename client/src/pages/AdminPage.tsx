@@ -1190,9 +1190,35 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
   );
 }
 
+function formatDate(dateStr: string): string {
+  if (!dateStr) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [y, m, d] = dateStr.split("-");
+    return `${d}.${m}.${y}`;
+  }
+  return dateStr;
+}
+
+function convertTripleTime(time: string, fromTz: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const TIMEZONE_OFFSETS: Record<string, number> = {
+    CET: 1, CEST: 2, MSK: 3, GST: 4, UTC: 0
+  };
+  const fromOffset = TIMEZONE_OFFSETS[fromTz] ?? 1;
+  
+  const getZonedTime = (offset: number) => {
+    let newH = h + (offset - fromOffset);
+    if (newH >= 24) newH -= 24;
+    if (newH < 0) newH += 24;
+    return `${String(newH).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
+  };
+
+  return `${getZonedTime(1)} BER | ${getZonedTime(3)} MSK | ${getZonedTime(4)} DXB`;
+}
+
 function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; speakerPhoto: string }) {
   const tz = event.timezone || "CET";
-  const tzLabel = tz === "CET" || tz === "CEST" ? "Berlin Zeit" : tz === "MSK" ? "Moskau Zeit" : tz;
+  const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
 
   const rows = 5;
   const cols = 8;
@@ -1212,34 +1238,30 @@ function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; spe
       </div>
 
       <div className="absolute inset-0 flex">
-        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "62%" }}>
+        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "70%" }}>
           <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[16%] w-auto object-contain self-start" />
 
-          <div className="space-y-[2%]">
+          <div className="space-y-[1%]">
             <p className="text-[#1a1a1a] font-bold text-[9px] leading-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
               Zoom Call
             </p>
-            <h3 className="text-[#7C3AED] font-bold text-[11px] leading-[1.1] uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
+            <h3 className="text-[#7C3AED] font-bold text-[11px] leading-[1.1] uppercase break-words line-clamp-2" style={{ fontFamily: "Montserrat, sans-serif" }}>
               &ldquo;{event.title || "Webinar Titel"}&rdquo;
             </h3>
           </div>
 
-          <div className="flex items-center gap-1 flex-wrap">
-            <img src="/calendar-icon-banner.png" alt="" className="h-[9px] w-auto opacity-80" />
-            <span className="text-black text-[8px]" style={{ fontFamily: "Inter, sans-serif" }}>
-              {[event.date, event.day].filter(Boolean).join(" · ") || "Datum"}
-            </span>
-            {event.time && (
-              <>
-                <span className="bg-black rounded-full w-[2px] h-[2px]" />
-                <span className="text-black text-[8px]" style={{ fontFamily: "Inter, sans-serif" }}>
-                  {event.time}
-                </span>
-              </>
+          <div className="flex flex-col gap-[1%]">
+            <div className="flex items-center gap-1 flex-wrap">
+              <img src="/calendar-icon-banner.png" alt="" className="h-[9px] w-auto opacity-80" />
+              <span className="text-black text-[8px]" style={{ fontFamily: "Inter, sans-serif" }}>
+                {[formatDate(event.date), event.day].filter(Boolean).join(" · ") || "Datum"}
+              </span>
+            </div>
+            {tripleTime && (
+              <span className="text-black text-[7px] font-semibold" style={{ fontFamily: "Inter, sans-serif" }}>
+                {tripleTime}
+              </span>
             )}
-            <span className="text-[#aeaeae] text-[8px]" style={{ fontFamily: "Inter, sans-serif" }}>
-              ({tzLabel})
-            </span>
           </div>
 
           <div className="flex items-center gap-1">

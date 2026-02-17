@@ -66,38 +66,32 @@ function sortEvents(events: ScheduleEvent[]): ScheduleEvent[] {
   });
 }
 
-function convertTime(time: string, fromTz: string, toTz: string): string {
+function convertTripleTime(time: string, fromTz: string): string {
   const [h, m] = time.split(":").map(Number);
   const fromOffset = TIMEZONE_OFFSETS[fromTz] ?? 1;
-  const toOffset = TIMEZONE_OFFSETS[toTz] ?? 3;
-  let newH = h + (toOffset - fromOffset);
-  if (newH >= 24) newH -= 24;
-  if (newH < 0) newH += 24;
-  return `${String(newH).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
+  
+  const getZonedTime = (offset: number) => {
+    let newH = h + (offset - fromOffset);
+    if (newH >= 24) newH -= 24;
+    if (newH < 0) newH += 24;
+    return `${String(newH).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
+  };
+
+  const berlin = getZonedTime(1);
+  const msk = getZonedTime(3);
+  const dubai = getZonedTime(4);
+  
+  return `${berlin} BER | ${msk} MSK | ${dubai} DXB`;
 }
 
-function JetUpLogo({ size = 32 }: { size?: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
-        <circle cx="20" cy="20" r="18" fill="url(#jetup-grad)" />
-        <path d="M14 12 L14 24 Q14 28 18 28 L20 28" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-        <path d="M20 12 L20 28" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M20 12 L26 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M28 14 L28 28" stroke="#C084FC" strokeWidth="2.5" strokeLinecap="round" />
-        <circle cx="28" cy="11" r="2" fill="#C084FC" />
-        <defs>
-          <linearGradient id="jetup-grad" x1="0" y1="0" x2="40" y2="40">
-            <stop offset="0%" stopColor="#7C3AED" />
-            <stop offset="100%" stopColor="#A855F7" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <span className="text-[#7C3AED] font-extrabold text-[14px] tracking-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
-        Jet<span className="text-[#A855F7]">UP</span>
-      </span>
-    </div>
-  );
+function formatDate(dateStr: string): string {
+  if (!dateStr) return "";
+  // Check if it's YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [y, m, d] = dateStr.split("-");
+    return `${d}.${m}.${y}`;
+  }
+  return dateStr;
 }
 
 function BannerGridPattern() {
@@ -125,7 +119,7 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
   }
 
   const tz = event.timezone || "CET";
-  const tzLabel = tz === "CET" || tz === "CEST" ? "Berlin Zeit" : tz === "MSK" ? "Moskau Zeit" : tz;
+  const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
 
   return (
     <div className="relative w-full aspect-[2/1] overflow-hidden" data-testid={`banner-${event.id}`}
@@ -133,34 +127,30 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
       <BannerGridPattern />
 
       <div className="absolute inset-0 flex">
-        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "62%" }}>
+        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "70%" }}>
           <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[16%] w-auto object-contain self-start" />
 
-          <div className="space-y-[2%]">
+          <div className="space-y-[1%]">
             <p className="text-[#1a1a1a] font-bold text-[clamp(10px,3.2vw,32px)] leading-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
               Zoom Call
             </p>
-            <h3 className="text-[#7C3AED] font-bold leading-[1.1] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(12px,3.8vw,50px)" }}>
+            <h3 className="text-[#7C3AED] font-bold leading-[1.1] uppercase break-words line-clamp-2" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(12px,3.5vw,40px)" }}>
               &ldquo;{event.title}&rdquo;
             </h3>
           </div>
 
-          <div className="flex items-center gap-[1.5%] flex-wrap">
-            <img src="/calendar-icon-banner.png" alt="" className="h-[clamp(10px,2.5vw,34px)] w-auto opacity-80" />
-            <span className="text-black text-[clamp(8px,2.8vw,36px)]" style={{ fontFamily: "Inter, sans-serif" }}>
-              {[event.date, event.day].filter(Boolean).join(" · ")}
-            </span>
-            {event.time && (
-              <>
-                <span className="bg-black rounded-full" style={{ width: "clamp(2px,0.4vw,5px)", height: "clamp(2px,0.4vw,5px)" }} />
-                <span className="text-black text-[clamp(8px,2.8vw,36px)]" style={{ fontFamily: "Inter, sans-serif" }}>
-                  {event.time}
-                </span>
-              </>
+          <div className="flex flex-col gap-[1%]">
+            <div className="flex items-center gap-[1.5%] flex-wrap">
+              <img src="/calendar-icon-banner.png" alt="" className="h-[clamp(10px,2.5vw,34px)] w-auto opacity-80" />
+              <span className="text-black font-medium text-[clamp(8px,2.5vw,32px)]" style={{ fontFamily: "Inter, sans-serif" }}>
+                {[formatDate(event.date), event.day].filter(Boolean).join(" · ")}
+              </span>
+            </div>
+            {tripleTime && (
+              <span className="text-black font-semibold text-[clamp(7px,2.2vw,28px)]" style={{ fontFamily: "Inter, sans-serif" }}>
+                {tripleTime}
+              </span>
             )}
-            <span className="text-[#aeaeae] text-[clamp(8px,2.8vw,36px)]" style={{ fontFamily: "Inter, sans-serif" }}>
-              ({tzLabel})
-            </span>
           </div>
 
           <div className="flex items-center gap-[2%]">
@@ -305,7 +295,7 @@ const SchedulePage: React.FC = () => {
                       <div className="flex items-center gap-1.5">
                         <Clock size={13} className="text-gray-400" />
                         <span className="text-[12px] text-gray-500 font-medium">
-                          {[event.date, event.day].filter(Boolean).join(", ")}{event.time ? `, ${event.time} ${event.timezone || "CET"} | ${convertTime(event.time, event.timezone || "CET", "MSK")} MSK` : ""}
+                          {[formatDate(event.date), event.day].filter(Boolean).join(", ")}{event.time ? `, ${convertTripleTime(event.time, event.timezone || "CET")}` : ""}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">

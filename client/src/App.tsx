@@ -10,6 +10,7 @@ import TradingHubPage from "@/pages/TradingHubPage";
 import PartnerHubPage from "@/pages/PartnerHubPage";
 import SchedulePage from "@/pages/SchedulePage";
 import TutorialsPage from "@/pages/TutorialsPage";
+import PromoDetailPage from "@/pages/PromoDetailPage";
 import TabBar from "@/components/TabBar";
 
 function AppContent() {
@@ -35,6 +36,8 @@ function AppContent() {
         return <SchedulePage />;
       case "/tutorials":
         return <TutorialsPage />;
+      case "/promo":
+        return <PromoDetailPage />;
       default:
         return <HomePage />;
     }

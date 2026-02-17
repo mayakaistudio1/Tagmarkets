@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -13,13 +13,17 @@ import {
   Calendar,
   GraduationCap,
   ChevronRight,
+  Zap,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { promoItems } from "./PromoDetailPage";
 
 const HomePage: React.FC = () => {
   const [, setLocation] = useLocation();
   const { language } = useLanguage();
+  const [activePromo, setActivePromo] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const goToMaria = () => setLocation("/maria");
   const goToTrading = () => setLocation("/trading");
@@ -86,10 +90,70 @@ const HomePage: React.FC = () => {
             </p>
           </motion.div>
 
+          {promoItems.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+            >
+              <div
+                ref={scrollRef}
+                className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-5 px-5"
+                onScroll={() => {
+                  if (!scrollRef.current) return;
+                  const el = scrollRef.current;
+                  const idx = Math.round(el.scrollLeft / (el.offsetWidth * 0.85));
+                  setActivePromo(Math.min(idx, promoItems.length - 1));
+                }}
+              >
+                {promoItems.map((promo) => (
+                  <button
+                    key={promo.id}
+                    onClick={() => setLocation(`/promo?id=${promo.id}`)}
+                    className="snap-start flex-shrink-0 rounded-2xl overflow-hidden shadow-[0_2px_16px_rgba(0,0,0,0.08)] active:scale-[0.98] transition-transform text-left"
+                    style={{ width: promoItems.length === 1 ? '100%' : '85%' }}
+                    data-testid={`promo-card-${promo.id}`}
+                  >
+                    <div className={`relative bg-gradient-to-br ${promo.gradient} p-4`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${promo.badgeColor} text-white flex items-center gap-1`}>
+                          <Zap size={8} />
+                          {promo.badge}
+                        </span>
+                      </div>
+                      <h3 className="text-[15px] font-extrabold text-white leading-tight">
+                        {promo.title}
+                      </h3>
+                      <p className="text-[11px] text-white/80 mt-1.5 font-medium leading-snug line-clamp-2">
+                        {promo.subtitle}
+                      </p>
+                      <div className="flex items-center gap-1 mt-2">
+                        <span className="text-[11px] font-bold text-white/90">Mehr erfahren</span>
+                        <ChevronRight size={14} className="text-white/70" />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {promoItems.length > 1 && (
+                <div className="flex justify-center gap-1.5 mt-2.5">
+                  {promoItems.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === activePromo ? "w-5 bg-primary" : "w-1.5 bg-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
+            transition={{ delay: 0.1 }}
           >
             <button
               onClick={goToMaria}
@@ -130,7 +194,7 @@ const HomePage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ delay: 0.15 }}
             className="space-y-3"
           >
             <button
@@ -175,7 +239,7 @@ const HomePage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
+            transition={{ delay: 0.2 }}
             className="space-y-2.5"
           >
             <button
@@ -206,7 +270,7 @@ const HomePage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.25 }}
           >
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5 px-1">
               Direkte Links

@@ -226,7 +226,7 @@ const SchedulePage: React.FC = () => {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="purple-top-bar" />
-      <div className="flex items-center gap-3 px-5 pt-4 pb-2 flex-shrink-0">
+      <div className="flex items-center gap-3 px-5 pt-4 pb-2 flex-shrink-0 mx-auto w-full" style={{ maxWidth: "480px" }}>
         <button
           onClick={() => setLocation("/")}
           className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center active:scale-95 transition-transform"
@@ -239,7 +239,7 @@ const SchedulePage: React.FC = () => {
         </h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 pb-6">
+      <div className="flex-1 overflow-y-auto px-5 pb-6 mx-auto w-full" style={{ maxWidth: "480px" }}>
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={24} className="animate-spin text-purple-500" />

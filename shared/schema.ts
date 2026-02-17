@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, serial, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, serial, timestamp, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -32,3 +32,87 @@ export const insertApplicationSchema = createInsertSchema(applications).omit({
 
 export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 export type Application = typeof applications.$inferSelect;
+
+export const chatSessions = pgTable("chat_sessions", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull(),
+  language: text("language").notNull().default("de"),
+  type: text("type").notNull().default("text"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertChatSessionSchema = createInsertSchema(chatSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
+export type ChatSession = typeof chatSessions.$inferSelect;
+
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull(),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+
+export const promotions = pgTable("promotions", {
+  id: serial("id").primaryKey(),
+  badge: text("badge").notNull(),
+  title: text("title").notNull(),
+  subtitle: text("subtitle").notNull(),
+  banner: text("banner").notNull().default(""),
+  highlights: text("highlights").array().notNull(),
+  ctaText: text("cta_text").notNull(),
+  ctaLink: text("cta_link").notNull(),
+  deadline: text("deadline"),
+  gradient: text("gradient").notNull().default("from-[#7C3AED] to-[#A855F7]"),
+  badgeColor: text("badge_color").notNull().default("bg-orange-500"),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPromotionSchema = createInsertSchema(promotions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPromotion = z.infer<typeof insertPromotionSchema>;
+export type Promotion = typeof promotions.$inferSelect;
+
+export const scheduleEvents = pgTable("schedule_events", {
+  id: serial("id").primaryKey(),
+  day: text("day").notNull(),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  title: text("title").notNull(),
+  speaker: text("speaker").notNull(),
+  type: text("type").notNull(),
+  typeBadge: text("type_badge").notNull(),
+  banner: text("banner").notNull().default(""),
+  highlights: text("highlights").array().notNull(),
+  link: text("link").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertScheduleEventSchema = createInsertSchema(scheduleEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
+export type ScheduleEvent = typeof scheduleEvents.$inferSelect;

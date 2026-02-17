@@ -1,5 +1,6 @@
 import type { Express, Request, Response } from "express";
 import OpenAI from "openai";
+import { storage } from "../storage";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -525,10 +526,22 @@ Schlage vor, eine Anfrage zu stellen: "Willst du hier direkt eine Anfrage hinter
 export function registerMariaChatRoutes(app: Express): void {
   app.post("/api/maria/chat", async (req: Request, res: Response) => {
     try {
-      const { messages, language = 'ru' } = req.body;
+      const { messages, language = 'ru', sessionId } = req.body;
 
       if (!messages || !Array.isArray(messages)) {
         return res.status(400).json({ error: "Messages array is required" });
+      }
+
+      if (sessionId) {
+        try {
+          await storage.createChatSession({ sessionId, language, type: "text" });
+          const lastUserMessage = [...messages].reverse().find((m: any) => m.role === "user");
+          if (lastUserMessage) {
+            await storage.saveChatMessage({ sessionId, role: "user", content: lastUserMessage.content });
+          }
+        } catch (e) {
+          console.error("Error saving chat session/message:", e);
+        }
       }
 
       const systemPrompt = language === 'en' ? MARIA_SYSTEM_PROMPT_EN : language === 'de' ? MARIA_SYSTEM_PROMPT_DE : MARIA_SYSTEM_PROMPT_RU;
@@ -560,6 +573,14 @@ export function registerMariaChatRoutes(app: Express): void {
         if (content) {
           fullResponse += content;
           res.write(`data: ${JSON.stringify({ content })}\n\n`);
+        }
+      }
+
+      if (sessionId && fullResponse) {
+        try {
+          await storage.saveChatMessage({ sessionId, role: "assistant", content: fullResponse });
+        } catch (e) {
+          console.error("Error saving assistant message:", e);
         }
       }
 

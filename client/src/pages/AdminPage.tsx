@@ -32,7 +32,7 @@ interface ChatSession {
   type: string;
   language: string;
   createdAt: string;
-  messages: ChatMessage[];
+  messageCount: number;
 }
 
 interface Promotion {
@@ -444,6 +444,7 @@ function AdminPage() {
             onExport={exportCSV}
             expandedSession={expandedSession}
             setExpandedSession={setExpandedSession}
+            headers={headers}
           />
         )}
         {activeTab === "promotions" && (
@@ -488,6 +489,7 @@ function ChatLogsTab({
   onExport,
   expandedSession,
   setExpandedSession,
+  headers,
 }: {
   sessions: ChatSession[];
   loading: boolean;
@@ -501,7 +503,29 @@ function ChatLogsTab({
   onExport: () => void;
   expandedSession: string | null;
   setExpandedSession: (v: string | null) => void;
+  headers: () => Record<string, string>;
 }) {
+  const [loadedMessages, setLoadedMessages] = useState<Record<string, any[]>>({});
+  const [messagesLoading, setMessagesLoading] = useState<string | null>(null);
+
+  const handleExpand = async (sessionId: string) => {
+    if (expandedSession === sessionId) {
+      setExpandedSession(null);
+      return;
+    }
+    setExpandedSession(sessionId);
+    if (!loadedMessages[sessionId]) {
+      setMessagesLoading(sessionId);
+      try {
+        const res = await fetch(`/api/admin/chat-sessions/${sessionId}/messages`, { headers: headers() });
+        if (res.ok) {
+          const msgs = await res.json();
+          setLoadedMessages((prev) => ({ ...prev, [sessionId]: msgs }));
+        }
+      } catch {}
+      setMessagesLoading(null);
+    }
+  };
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -583,11 +607,7 @@ function ChatLogsTab({
                   <tr
                     data-testid={`row-session-${session.sessionId}`}
                     className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() =>
-                      setExpandedSession(
-                        expandedSession === session.sessionId ? null : session.sessionId
-                      )
-                    }
+                    onClick={() => handleExpand(session.sessionId)}
                   >
                     <td className="px-4 py-3 text-sm font-mono text-gray-700">
                       {session.sessionId.substring(0, 12)}...
@@ -607,7 +627,7 @@ function ChatLogsTab({
                     <td className="px-4 py-3 text-sm text-gray-600">
                       {new Date(session.createdAt).toLocaleDateString("de-DE")}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{session.messages?.length || 0}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{session.messageCount || 0}</td>
                     <td className="px-4 py-3 text-gray-400">
                       {expandedSession === session.sessionId ? (
                         <ChevronUp size={16} />
@@ -620,26 +640,29 @@ function ChatLogsTab({
                     <tr>
                       <td colSpan={6} className="px-4 py-4 bg-gray-50">
                         <div className="max-h-96 overflow-y-auto space-y-2 px-2">
-                          {session.messages?.map((msg, i) => (
-                            <div
-                              key={i}
-                              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                            >
+                          {messagesLoading === session.sessionId ? (
+                            <p className="text-sm text-gray-400 text-center py-4">Laden...</p>
+                          ) : (loadedMessages[session.sessionId] || []).length > 0 ? (
+                            (loadedMessages[session.sessionId] || []).map((msg, i) => (
                               <div
-                                className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm ${
-                                  msg.role === "user"
-                                    ? "bg-purple-600 text-white rounded-br-md"
-                                    : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"
-                                }`}
+                                key={i}
+                                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                               >
-                                <p className="text-xs font-semibold mb-1 opacity-70">
-                                  {msg.role === "user" ? "User" : "Maria"}
-                                </p>
-                                <p className="whitespace-pre-wrap">{msg.content}</p>
+                                <div
+                                  className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm ${
+                                    msg.role === "user"
+                                      ? "bg-purple-600 text-white rounded-br-md"
+                                      : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"
+                                  }`}
+                                >
+                                  <p className="text-xs font-semibold mb-1 opacity-70">
+                                    {msg.role === "user" ? "User" : "Maria"}
+                                  </p>
+                                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                          {(!session.messages || session.messages.length === 0) && (
+                            ))
+                          ) : (
                             <p className="text-sm text-gray-400 text-center py-4">Keine Nachrichten</p>
                           )}
                         </div>

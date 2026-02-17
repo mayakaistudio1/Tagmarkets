@@ -3,7 +3,7 @@ import {
   type Application, type InsertApplication,
   users, applications, chatSessions, chatMessages, promotions, scheduleEvents,
 } from "@shared/schema";
-import { eq, desc, and, gte, lte } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
 import { db } from "./db";
 
 export interface IStorage {
@@ -82,10 +82,22 @@ export class DatabaseStorage implements IStorage {
     if (filters?.dateTo) {
       conditions.push(lte(chatSessions.createdAt, new Date(filters.dateTo)));
     }
+    const query = db
+      .select({
+        id: chatSessions.id,
+        sessionId: chatSessions.sessionId,
+        language: chatSessions.language,
+        type: chatSessions.type,
+        createdAt: chatSessions.createdAt,
+        updatedAt: chatSessions.updatedAt,
+        messageCount: sql<number>`(SELECT COUNT(*) FROM chat_messages WHERE chat_messages.session_id = ${chatSessions.sessionId})`.as('messageCount'),
+      })
+      .from(chatSessions)
+      .orderBy(desc(chatSessions.createdAt));
     if (conditions.length > 0) {
-      return db.select().from(chatSessions).where(and(...conditions)).orderBy(desc(chatSessions.createdAt));
+      return query.where(and(...conditions));
     }
-    return db.select().from(chatSessions).orderBy(desc(chatSessions.createdAt));
+    return query;
   }
 
   async getChatSessionMessages(sessionId: string): Promise<any[]> {

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -13,17 +13,14 @@ import {
   Calendar,
   GraduationCap,
   ChevronRight,
-  Zap,
+  Megaphone,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { promoItems } from "./PromoDetailPage";
 
 const HomePage: React.FC = () => {
   const [, setLocation] = useLocation();
   const { language } = useLanguage();
-  const [activePromo, setActivePromo] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const goToMaria = () => setLocation("/maria");
   const goToTrading = () => setLocation("/trading");
@@ -90,65 +87,26 @@ const HomePage: React.FC = () => {
             </p>
           </motion.div>
 
-          {promoItems.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <button
+              onClick={() => setLocation("/promo")}
+              className="w-full flex items-center gap-3 bg-gradient-to-r from-orange-500 to-amber-400 rounded-xl px-4 py-2.5 active:scale-[0.98] transition-transform shadow-[0_2px_12px_rgba(245,158,11,0.25)]"
+              data-testid="button-aktionen"
             >
-              <div
-                ref={scrollRef}
-                className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-5 px-5"
-                onScroll={() => {
-                  if (!scrollRef.current) return;
-                  const el = scrollRef.current;
-                  const idx = Math.round(el.scrollLeft / (el.offsetWidth * 0.85));
-                  setActivePromo(Math.min(idx, promoItems.length - 1));
-                }}
-              >
-                {promoItems.map((promo) => (
-                  <button
-                    key={promo.id}
-                    onClick={() => setLocation(`/promo?id=${promo.id}`)}
-                    className="snap-start flex-shrink-0 rounded-2xl overflow-hidden shadow-[0_2px_16px_rgba(0,0,0,0.08)] active:scale-[0.98] transition-transform text-left"
-                    style={{ width: promoItems.length === 1 ? '100%' : '85%' }}
-                    data-testid={`promo-card-${promo.id}`}
-                  >
-                    <div className={`relative bg-gradient-to-br ${promo.gradient} p-4`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${promo.badgeColor} text-white flex items-center gap-1`}>
-                          <Zap size={8} />
-                          {promo.badge}
-                        </span>
-                      </div>
-                      <h3 className="text-[15px] font-extrabold text-white leading-tight">
-                        {promo.title}
-                      </h3>
-                      <p className="text-[11px] text-white/80 mt-1.5 font-medium leading-snug line-clamp-2">
-                        {promo.subtitle}
-                      </p>
-                      <div className="flex items-center gap-1 mt-2">
-                        <span className="text-[11px] font-bold text-white/90">Mehr erfahren</span>
-                        <ChevronRight size={14} className="text-white/70" />
-                      </div>
-                    </div>
-                  </button>
-                ))}
+              <div className="w-8 h-8 rounded-lg bg-white/25 flex items-center justify-center flex-shrink-0">
+                <Megaphone size={16} className="text-white" />
               </div>
-              {promoItems.length > 1 && (
-                <div className="flex justify-center gap-1.5 mt-2.5">
-                  {promoItems.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-1.5 rounded-full transition-all ${
-                        i === activePromo ? "w-5 bg-primary" : "w-1.5 bg-gray-300"
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          )}
+              <span className="text-[13px] font-bold text-white flex-1 text-left">Aktionen & Angebote</span>
+              <div className="flex items-center gap-1 bg-white/20 rounded-full px-2 py-0.5">
+                <span className="text-[10px] font-bold text-white">NEU</span>
+              </div>
+              <ChevronRight size={16} className="text-white/80 flex-shrink-0" />
+            </button>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}

@@ -170,9 +170,8 @@ const TutorialsPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <button className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-primary/10 text-primary text-[12px] font-bold active:scale-[0.97] transition-transform" data-testid={`button-view-${tutorial.id}`}>
-                  {tutorial.format === "video" ? <Play size={14} /> : <FileText size={14} />}
-                  Ansehen
+                <button className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gray-100 text-gray-400 text-[12px] font-bold cursor-not-allowed" disabled data-testid={`button-view-${tutorial.id}`}>
+                  Coming soon
                 </button>
               </div>
             ))}

@@ -39,6 +39,33 @@ const TIMEZONE_OFFSETS: Record<string, number> = {
   CET: 1, CEST: 2, MSK: 3, EST: -5, EDT: -4, PST: -8, PDT: -7, GST: 4, UTC: 0,
 };
 
+const EVENT_LABELS: Record<string, { expect: string; joinZoom: string; motto: [string, string, string] }> = {
+  de: { expect: "Das erwartet dich:", joinZoom: "Zum Zoom Call", motto: ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"] },
+  en: { expect: "What to expect:", joinZoom: "Join Zoom Call", motto: ["STRUCTURE", "TRANSPARENCY", "CONTROL"] },
+  ru: { expect: "Что тебя ждёт:", joinZoom: "Присоединиться к Zoom", motto: ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] },
+};
+
+const DAY_ORDER: Record<string, number> = {
+  montag: 0, monday: 0, понедельник: 0,
+  dienstag: 1, tuesday: 1, вторник: 1,
+  mittwoch: 2, wednesday: 2, среда: 2,
+  donnerstag: 3, thursday: 3, четверг: 3,
+  freitag: 4, friday: 4, пятница: 4,
+  samstag: 5, saturday: 5, суббота: 5,
+  sonntag: 6, sunday: 6, воскресенье: 6,
+};
+
+function sortEvents(events: ScheduleEvent[]): ScheduleEvent[] {
+  return [...events].sort((a, b) => {
+    const dayA = DAY_ORDER[a.day.toLowerCase()] ?? 99;
+    const dayB = DAY_ORDER[b.day.toLowerCase()] ?? 99;
+    if (dayA !== dayB) return dayA - dayB;
+    const [hA, mA] = (a.time || "00:00").split(":").map(Number);
+    const [hB, mB] = (b.time || "00:00").split(":").map(Number);
+    return (hA * 60 + (mA || 0)) - (hB * 60 + (mB || 0));
+  });
+}
+
 function convertTime(time: string, fromTz: string, toTz: string): string {
   const [h, m] = time.split(":").map(Number);
   const fromOffset = TIMEZONE_OFFSETS[fromTz] ?? 1;
@@ -118,32 +145,36 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
             </h3>
           </div>
 
-          <div className="flex items-center gap-[1.5%]">
+          <div className="flex items-center gap-[1.5%] flex-wrap">
             <img src="/calendar-icon-banner.png" alt="" className="h-[clamp(10px,2.5vw,34px)] w-auto opacity-80" />
             <span className="text-black text-[clamp(8px,2.8vw,36px)]" style={{ fontFamily: "Inter, sans-serif" }}>
-              {event.date}
+              {[event.date, event.day].filter(Boolean).join(" · ")}
             </span>
-            <span className="bg-black rounded-full" style={{ width: "clamp(2px,0.4vw,5px)", height: "clamp(2px,0.4vw,5px)" }} />
-            <span className="text-black text-[clamp(8px,2.8vw,36px)]" style={{ fontFamily: "Inter, sans-serif" }}>
-              {event.day}, {event.time}
-            </span>
+            {event.time && (
+              <>
+                <span className="bg-black rounded-full" style={{ width: "clamp(2px,0.4vw,5px)", height: "clamp(2px,0.4vw,5px)" }} />
+                <span className="text-black text-[clamp(8px,2.8vw,36px)]" style={{ fontFamily: "Inter, sans-serif" }}>
+                  {event.time}
+                </span>
+              </>
+            )}
             <span className="text-[#aeaeae] text-[clamp(8px,2.8vw,36px)]" style={{ fontFamily: "Inter, sans-serif" }}>
               ({tzLabel})
             </span>
           </div>
 
           <div className="flex items-center gap-[2%]">
-            <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(6px,1.2vw,16px)", letterSpacing: "3px" }}>
-              STRUKTUR
-            </span>
-            <span className="bg-[#a855f7] rounded-full" style={{ width: "clamp(2px,0.4vw,5px)", height: "clamp(2px,0.4vw,5px)" }} />
-            <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(6px,1.2vw,16px)", letterSpacing: "3px" }}>
-              TRANSPARENZ
-            </span>
-            <span className="bg-[#a855f7] rounded-full" style={{ width: "clamp(2px,0.4vw,5px)", height: "clamp(2px,0.4vw,5px)" }} />
-            <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(6px,1.2vw,16px)", letterSpacing: "3px" }}>
-              KONTROLLE
-            </span>
+            {(() => {
+              const motto = (EVENT_LABELS[event.language || "de"] || EVENT_LABELS.de).motto;
+              return motto.map((word, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && <span className="bg-[#a855f7] rounded-full" style={{ width: "clamp(2px,0.4vw,5px)", height: "clamp(2px,0.4vw,5px)" }} />}
+                  <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(6px,1.2vw,16px)", letterSpacing: "3px" }}>
+                    {word}
+                  </span>
+                </React.Fragment>
+              ));
+            })()}
           </div>
         </div>
 
@@ -185,7 +216,7 @@ const SchedulePage: React.FC = () => {
       fetch("/api/speakers").then(r => r.json()),
     ])
       .then(([events, speakers]) => {
-        setFilteredEvents(events);
+        setFilteredEvents(sortEvents(events));
         const map: Record<number, Speaker> = {};
         for (const s of speakers) { map[s.id] = s; }
         setSpeakersMap(map);
@@ -274,7 +305,7 @@ const SchedulePage: React.FC = () => {
                       <div className="flex items-center gap-1.5">
                         <Clock size={13} className="text-gray-400" />
                         <span className="text-[12px] text-gray-500 font-medium">
-                          {event.date}, {event.time} {event.timezone || "CET"} | {convertTime(event.time, event.timezone || "CET", "MSK")} MSK
+                          {[event.date, event.day].filter(Boolean).join(", ")}{event.time ? `, ${event.time} ${event.timezone || "CET"} | ${convertTime(event.time, event.timezone || "CET", "MSK")} MSK` : ""}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -286,7 +317,7 @@ const SchedulePage: React.FC = () => {
                     </div>
 
                     <div className="bg-gray-50 rounded-xl p-3 space-y-1.5">
-                      <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{t("scheduleExpect")}</p>
+                      <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{(EVENT_LABELS[event.language || "de"] || EVENT_LABELS.de).expect}</p>
                       {event.highlights.map((h, i) => (
                         <p key={i} className="text-[12px] text-gray-600 font-medium leading-snug flex items-start gap-1.5">
                           <span className="text-purple-400 mt-0.5 flex-shrink-0">•</span>
@@ -303,7 +334,7 @@ const SchedulePage: React.FC = () => {
                       data-testid={`zoom-link-${event.id}`}
                     >
                       <ExternalLink size={15} />
-                      {t("scheduleJoinZoom")}
+                      {(EVENT_LABELS[event.language || "de"] || EVENT_LABELS.de).joinZoom}
                     </a>
                   </div>
                 </div>

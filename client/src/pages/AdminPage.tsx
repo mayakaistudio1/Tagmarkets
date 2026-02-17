@@ -1224,26 +1224,33 @@ function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; spe
             </h3>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-wrap">
             <img src="/calendar-icon-banner.png" alt="" className="h-[9px] w-auto opacity-80" />
             <span className="text-black text-[8px]" style={{ fontFamily: "Inter, sans-serif" }}>
-              {event.date || "Datum"}
+              {[event.date, event.day].filter(Boolean).join(" · ") || "Datum"}
             </span>
-            <span className="bg-black rounded-full w-[2px] h-[2px]" />
-            <span className="text-black text-[8px]" style={{ fontFamily: "Inter, sans-serif" }}>
-              {event.day || "Tag"}, {event.time || "00:00"}
-            </span>
+            {event.time && (
+              <>
+                <span className="bg-black rounded-full w-[2px] h-[2px]" />
+                <span className="text-black text-[8px]" style={{ fontFamily: "Inter, sans-serif" }}>
+                  {event.time}
+                </span>
+              </>
+            )}
             <span className="text-[#aeaeae] text-[8px]" style={{ fontFamily: "Inter, sans-serif" }}>
               ({tzLabel})
             </span>
           </div>
 
           <div className="flex items-center gap-1">
-            <span className="font-bold text-[#111827] text-[5px] uppercase" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "2px" }}>STRUKTUR</span>
-            <span className="bg-[#a855f7] rounded-full w-[2px] h-[2px]" />
-            <span className="font-bold text-[#111827] text-[5px] uppercase" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "2px" }}>TRANSPARENZ</span>
-            <span className="bg-[#a855f7] rounded-full w-[2px] h-[2px]" />
-            <span className="font-bold text-[#111827] text-[5px] uppercase" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "2px" }}>KONTROLLE</span>
+            {(event.language === "ru" ? ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] :
+              event.language === "en" ? ["STRUCTURE", "TRANSPARENCY", "CONTROL"] :
+              ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"]).map((word, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <span className="bg-[#a855f7] rounded-full w-[2px] h-[2px]" />}
+                <span className="font-bold text-[#111827] text-[5px] uppercase" style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "2px" }}>{word}</span>
+              </React.Fragment>
+            ))}
           </div>
         </div>
 

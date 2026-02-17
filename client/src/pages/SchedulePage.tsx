@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -8,8 +8,6 @@ import {
   Mic,
 } from "lucide-react";
 import { useLocation } from "wouter";
-
-type FilterTab = "alle" | "trading" | "partner";
 
 interface ScheduleEvent {
   id: string;
@@ -65,24 +63,7 @@ const events: ScheduleEvent[] = [
 const SchedulePage: React.FC = () => {
   const [, setLocation] = useLocation();
 
-  const getInitialFilter = (): FilterTab => {
-    const params = new URLSearchParams(window.location.search);
-    const f = params.get("filter");
-    if (f === "trading" || f === "partner") return f;
-    return "alle";
-  };
-
-  const [filter, setFilter] = useState<FilterTab>(getInitialFilter);
-
-  const filteredEvents = filter === "alle"
-    ? events
-    : events.filter((e) => e.type === filter);
-
-  const tabs: { key: FilterTab; label: string }[] = [
-    { key: "alle", label: "Alle" },
-    { key: "trading", label: "Trading" },
-    { key: "partner", label: "Partner" },
-  ];
+  const filteredEvents = events;
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -111,20 +92,9 @@ const SchedulePage: React.FC = () => {
           </p>
 
           <div className="flex gap-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`px-4 py-2.5 rounded-xl text-[12px] font-bold transition-all ${
-                  filter === tab.key
-                    ? "jetup-gradient text-white btn-glow"
-                    : "bg-gray-100 text-gray-500"
-                }`}
-                data-testid={`tab-schedule-${tab.key}`}
-              >
-                {tab.label}
-              </button>
-            ))}
+            <span className="px-4 py-2.5 rounded-xl text-[12px] font-bold jetup-gradient text-white btn-glow" data-testid="tab-schedule-alle">
+              Alle
+            </span>
           </div>
 
           <div className="space-y-4">

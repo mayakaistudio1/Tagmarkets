@@ -305,10 +305,33 @@ export default function TextChat() {
     sendMessage(reply);
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      const vh = window.visualViewport?.height || window.innerHeight;
+      document.documentElement.style.setProperty('--chat-vh', `${vh}px`);
+    };
+    
+    handleResize();
+    
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+      window.visualViewport.addEventListener('scroll', handleResize);
+    }
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+        window.visualViewport.removeEventListener('scroll', handleResize);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+    <div className="fixed inset-x-0 top-0 z-[100] bg-white flex flex-col" style={{ height: 'var(--chat-vh, 100dvh)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-white border-b border-gray-100">
+      <div className="flex items-center justify-between p-4 bg-white border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-3">
           <Link href="/">
             <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors" data-testid="button-back">
@@ -409,7 +432,7 @@ export default function TextChat() {
 
       {/* Quick Replies - Fixed above input */}
       {!isLoading && quickReplies.length > 0 && (
-        <div className="px-4 py-2.5 bg-white border-t border-gray-50">
+        <div className="px-4 py-2.5 bg-white border-t border-gray-50 flex-shrink-0">
           <div className="flex flex-wrap gap-2">
             {quickReplies.map((reply) => (
               <button
@@ -426,7 +449,7 @@ export default function TextChat() {
       )}
 
       {/* Input */}
-      <div className="p-4 bg-white safe-area-bottom border-t border-gray-100">
+      <div className="p-4 bg-white safe-area-bottom border-t border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-2">
           <input
             ref={inputRef}

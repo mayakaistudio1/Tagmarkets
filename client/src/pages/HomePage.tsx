@@ -30,7 +30,7 @@ const HomePage: React.FC = () => {
   const directLinks = [
     {
       icon: FolderOpen,
-      label: "Google Drive – Präsentationen",
+      label: "Präsentationen",
       href: "https://drive.google.com/drive/folders/156BMU0t-hniBTd13rQ_wofvV81ETE04R?usp=sharing",
       color: "text-yellow-600",
       bg: "bg-yellow-50",

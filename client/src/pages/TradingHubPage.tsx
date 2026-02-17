@@ -5,6 +5,7 @@ import {
   MessageCircle,
   Shield,
   Bot,
+  Zap,
   Rocket,
   ListOrdered,
   HelpCircle,
@@ -125,6 +126,31 @@ const TradingHubPage: React.FC = () => {
                   <p>
                     <span className="font-bold text-gray-800">Risikomanagement:</span>{" "}
                     Konservative Strategien mit max. 10% Drawdown, 0,3% Risiko pro Trade.
+                  </p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem
+              value="vortex"
+              className="border-none bg-white rounded-2xl px-4 shadow-[0_2px_12px_rgba(0,0,0,0.05)]"
+              data-testid="accordion-vortex"
+            >
+              <AccordionTrigger className="hover:no-underline py-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-5 h-5 text-violet-600" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-[14px] font-bold text-gray-900 block">Vortex Strategy</span>
+                    <span className="text-[12px] text-purple-500 font-semibold">coming soon · EXCLUSIVE for JetUP Community</span>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="text-[13px] text-gray-600 leading-relaxed space-y-2.5 pb-2">
+                  <p className="text-purple-600 font-semibold">
+                    Coming soon — exklusiv für die JetUP Community!
                   </p>
                 </div>
               </AccordionContent>

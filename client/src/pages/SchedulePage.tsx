@@ -138,9 +138,9 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
             <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(9px,2.5vw,28px)" }}>
               Zoom Call
             </p>
-            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words line-clamp-3" style={{ 
+            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words" style={{ 
               fontFamily: "Montserrat, sans-serif", 
-              fontSize: titleLen > 30 ? "clamp(11px, 3.2vw, 42px)" : titleSize,
+              fontSize: titleLen > 30 ? "clamp(10px, 3.2vw, 42px)" : titleSize,
               letterSpacing: "-0.02em" 
             }}>
               &ldquo;{event.title}&rdquo;
@@ -178,18 +178,18 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
 
         <div className="flex-1 flex flex-col items-center justify-center z-10 pr-[3%]">
           {speakerPhoto ? (
-            <>
+            <div className="flex flex-col items-center w-full">
               <div className="relative w-[70%] aspect-square">
                 <div className="absolute -inset-[4%] rounded-full border-[3px] border-[#C084FC]/40" />
                 <img src={speakerPhoto} alt={event.speaker}
                   className="w-full h-full rounded-full object-cover object-top" />
               </div>
-              <div className="mt-[4%] bg-white rounded px-[6%] py-[2%] shadow-sm">
-                <p className="font-semibold text-black text-center whitespace-nowrap" style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(6px,1.5vw,20px)" }}>
+              <div className="mt-[4%] bg-white rounded px-[6%] py-[2%] shadow-sm w-fit max-w-[90%] overflow-hidden">
+                <p className="font-semibold text-black text-center truncate" style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(6px,1.5vw,20px)" }}>
                   Speaker: {event.speaker}
                 </p>
               </div>
-            </>
+            </div>
           ) : (
             <div className="w-[70%] aspect-square rounded-full bg-gradient-to-br from-[#C084FC]/20 to-[#A855F7]/10 flex items-center justify-center">
               <Mic size={24} className="text-[#7C3AED]/30" />

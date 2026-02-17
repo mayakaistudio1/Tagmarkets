@@ -249,9 +249,6 @@ const HomePage: React.FC = () => {
             </div>
           </motion.div>
 
-          <div className="text-center pt-2 pb-2">
-            <span className="text-[10px] text-gray-300 font-semibold tracking-wider">@jetup</span>
-          </div>
         </div>
       </div>
     </div>

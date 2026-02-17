@@ -134,7 +134,7 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
             <p className="text-[#1a1a1a] font-bold text-[clamp(10px,3.2vw,32px)] leading-tight" style={{ fontFamily: "Montserrat, sans-serif" }}>
               Zoom Call
             </p>
-            <h3 className="text-[#7C3AED] font-bold leading-[1.1] uppercase break-words line-clamp-2" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(12px,3.5vw,40px)" }}>
+            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words line-clamp-2" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(14px,4.2vw,54px)", letterSpacing: "-0.02em" }}>
               &ldquo;{event.title}&rdquo;
             </h3>
           </div>
@@ -142,13 +142,13 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
           <div className="flex flex-col gap-[1%]">
             <div className="flex items-center gap-[1.5%] flex-wrap">
               <img src="/calendar-icon-banner.png" alt="" className="h-[clamp(10px,2.5vw,34px)] w-auto opacity-80" />
-              <span className="text-black font-medium text-[clamp(8px,2.5vw,32px)]" style={{ fontFamily: "Inter, sans-serif" }}>
+              <span className="text-[#1a1a1a] font-bold text-[clamp(10px,2.8vw,36px)]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                 {[formatDate(event.date), event.day].filter(Boolean).join(" · ")}
               </span>
             </div>
             {tripleTime && (
-              <span className="text-black font-semibold text-[clamp(7px,2.2vw,28px)]" style={{ fontFamily: "Inter, sans-serif" }}>
-                {tripleTime}
+              <span className="text-[#9ca3af] font-medium text-[clamp(9px,2.4vw,30px)]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                ({tripleTime})
               </span>
             )}
           </div>

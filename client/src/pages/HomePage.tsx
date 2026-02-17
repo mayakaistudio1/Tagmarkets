@@ -79,9 +79,7 @@ const HomePage: React.FC = () => {
             <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-gradient-purple mt-0.5">
               Struktur. Transparenz. Kontrolle.
             </p>
-            <p className="text-[12px] text-gray-500 mt-1.5 leading-relaxed max-w-[320px] font-medium">
-              Herzlich willkommen im JetApp Digital Hub – Trading & Partner-Einkommen mit Struktur und Transparenz.
-            </p>
+            <p className="text-[12px] text-gray-500 mt-1.5 leading-relaxed max-w-[320px] font-bold">JetUp Digital Hub – Trading & Partner-Einkommen mit Struktur und Transparenz.</p>
           </motion.div>
 
           <motion.div

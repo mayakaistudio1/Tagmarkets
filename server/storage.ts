@@ -138,10 +138,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getScheduleEvents(activeOnly?: boolean): Promise<any[]> {
+    const query = db
+      .select({
+        id: scheduleEvents.id,
+        day: scheduleEvents.day,
+        date: scheduleEvents.date,
+        time: scheduleEvents.time,
+        timezone: scheduleEvents.timezone,
+        title: scheduleEvents.title,
+        speaker: scheduleEvents.speaker,
+        speakerId: scheduleEvents.speakerId,
+        type: scheduleEvents.type,
+        typeBadge: scheduleEvents.typeBadge,
+        banner: scheduleEvents.banner,
+        highlights: scheduleEvents.highlights,
+        link: scheduleEvents.link,
+        isActive: scheduleEvents.isActive,
+        sortOrder: scheduleEvents.sortOrder,
+        language: scheduleEvents.language,
+        translationGroup: scheduleEvents.translationGroup,
+        createdAt: scheduleEvents.createdAt,
+        speakerPhoto: speakers.photo,
+      })
+      .from(scheduleEvents)
+      .leftJoin(speakers, eq(scheduleEvents.speakerId, speakers.id))
+      .orderBy(scheduleEvents.sortOrder);
+
     if (activeOnly) {
-      return db.select().from(scheduleEvents).where(eq(scheduleEvents.isActive, true)).orderBy(scheduleEvents.sortOrder);
+      return query.where(eq(scheduleEvents.isActive, true));
     }
-    return db.select().from(scheduleEvents).orderBy(scheduleEvents.sortOrder);
+    return query;
   }
 
   async getScheduleEvent(id: number): Promise<any | undefined> {

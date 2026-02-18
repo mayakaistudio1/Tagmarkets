@@ -11,13 +11,6 @@ import {
 import { useLocation } from "wouter";
 import { useLanguage } from "../contexts/LanguageContext";
 
-interface Speaker {
-  id: number;
-  name: string;
-  photo: string;
-  role: string;
-}
-
 interface ScheduleEvent {
   id: number;
   day: string;
@@ -27,6 +20,7 @@ interface ScheduleEvent {
   title: string;
   speaker: string;
   speakerId?: number | null;
+  speakerPhoto?: string | null;
   type: "trading" | "partner";
   typeBadge: string;
   banner: string;
@@ -206,19 +200,12 @@ const SchedulePage: React.FC = () => {
   const [, setLocation] = useLocation();
   const { language, t } = useLanguage();
   const [filteredEvents, setFilteredEvents] = useState<ScheduleEvent[]>([]);
-  const [speakersMap, setSpeakersMap] = useState<Record<number, Speaker>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/schedule-events").then(r => r.json()),
-      fetch("/api/speakers").then(r => r.json()),
-    ])
-      .then(([events, speakers]) => {
+    fetch("/api/schedule-events").then(r => r.json())
+      .then((events) => {
         setFilteredEvents(sortEvents(events));
-        const map: Record<number, Speaker> = {};
-        for (const s of speakers) { map[s.id] = s; }
-        setSpeakersMap(map);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -262,14 +249,13 @@ const SchedulePage: React.FC = () => {
 
           <div className="space-y-4">
             {filteredEvents.map((event) => {
-              const speaker = event.speakerId ? speakersMap[event.speakerId] : undefined;
               return (
                 <div
                   key={event.id}
                   className="bg-white rounded-2xl overflow-hidden shadow-[0_2px_16px_rgba(0,0,0,0.06)]"
                   data-testid={`event-${event.id}`}
                 >
-                  <EventBanner event={event} speakerPhoto={speaker?.photo} />
+                  <EventBanner event={event} speakerPhoto={event.speakerPhoto || undefined} />
 
                   <div className="p-4 space-y-3">
                     <div className="flex items-center gap-2">

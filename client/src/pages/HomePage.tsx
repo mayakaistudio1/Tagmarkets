@@ -19,7 +19,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const HomePage: React.FC = () => {
   const [, setLocation] = useLocation();
-  const { language, t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
 
   const goToMaria = () => setLocation("/maria");
   const goToTrading = () => setLocation("/trading");
@@ -72,6 +72,22 @@ const HomePage: React.FC = () => {
               {t("home.tagline")}
             </p>
             <p className="text-[12px] text-gray-500 mt-1.5 leading-relaxed max-w-[320px] font-bold">{t("home.subtitle")}</p>
+            <div className="flex items-center gap-1 mt-2" data-testid="language-switcher">
+              {(["de", "en", "ru"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  data-testid={`btn-lang-${lang}`}
+                  className={`px-3 py-1 rounded-full text-[11px] font-semibold uppercase transition-all ${
+                    language === lang
+                      ? "jetup-gradient text-white shadow-sm"
+                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  }`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
           </motion.div>
 
           <motion.div

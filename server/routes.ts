@@ -12,20 +12,10 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-const uploadDir = path.join(process.cwd(), "client", "public", "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+import { objectStorageClient } from "./replit_integrations/object_storage";
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, uploadDir),
-    filename: (_req, file, cb) => {
-      const ext = path.extname(file.originalname);
-      const name = crypto.randomBytes(8).toString("hex");
-      cb(null, `${name}${ext}`);
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const allowed = [".jpg", ".jpeg", ".png", ".webp"];
@@ -33,6 +23,20 @@ const upload = multer({
     cb(null, allowed.includes(ext));
   },
 });
+
+function getUploadBucketName(): string {
+  const publicPaths = (process.env.PUBLIC_OBJECT_SEARCH_PATHS || "").split(",").map(p => p.trim()).filter(Boolean);
+  if (publicPaths.length === 0) throw new Error("PUBLIC_OBJECT_SEARCH_PATHS not set");
+  const parts = publicPaths[0].split("/").filter(Boolean);
+  return parts[0];
+}
+
+function getUploadPrefix(): string {
+  const publicPaths = (process.env.PUBLIC_OBJECT_SEARCH_PATHS || "").split(",").map(p => p.trim()).filter(Boolean);
+  if (publicPaths.length === 0) throw new Error("PUBLIC_OBJECT_SEARCH_PATHS not set");
+  const parts = publicPaths[0].split("/").filter(Boolean);
+  return parts.slice(1).join("/");
+}
 
 function requireAdmin(req: any, res: any): boolean {
   const password = req.headers['x-admin-password'] || req.body?.adminPassword;
@@ -67,7 +71,24 @@ export async function registerRoutes(
   
   registerLiveAvatarRoutes(app);
   registerMariaChatRoutes(app);
-  
+
+  const objectStorage = new (await import("./replit_integrations/object_storage")).ObjectStorageService();
+  app.get("/uploads/:filename", async (req, res, next) => {
+    try {
+      const filename = req.params.filename;
+      const file = await objectStorage.searchPublicObject(`uploads/${filename}`);
+      if (!file) {
+        return next();
+      }
+      await objectStorage.downloadObject(file, res, 86400);
+    } catch (error) {
+      console.error("Error serving upload:", error);
+      if (!res.headersSent) {
+        next(error);
+      }
+    }
+  });
+
   app.post("/api/applications", async (req, res) => {
     try {
       const validatedData = insertApplicationSchema.parse(req.body);
@@ -116,7 +137,18 @@ export async function registerRoutes(
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
-      const filePath = `/uploads/${req.file.filename}`;
+      const ext = path.extname(req.file.originalname).toLowerCase();
+      const filename = `${crypto.randomBytes(8).toString("hex")}${ext}`;
+      const bucketName = getUploadBucketName();
+      const prefix = getUploadPrefix();
+      const objectName = prefix ? `${prefix}/uploads/${filename}` : `uploads/${filename}`;
+      const bucket = objectStorageClient.bucket(bucketName);
+      const file = bucket.file(objectName);
+      await file.save(req.file.buffer, {
+        contentType: req.file.mimetype,
+        metadata: { contentType: req.file.mimetype },
+      });
+      const filePath = `/uploads/${filename}`;
       res.json({ url: filePath });
     } catch (error) {
       console.error("Upload error:", error);

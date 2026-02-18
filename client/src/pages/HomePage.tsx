@@ -37,7 +37,7 @@ const HomePage: React.FC = () => {
     },
     {
       icon: Send,
-      label: "Telegram Kanal",
+      label: "Telegram‑Kanal",
       href: "https://t.me/JetUpDach",
       color: "text-blue-500",
       bg: "bg-blue-50",
@@ -71,7 +71,7 @@ const HomePage: React.FC = () => {
             <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-gradient-purple mt-0.5">
               Struktur. Transparenz. Kontrolle.
             </p>
-            <p className="text-[12px] text-gray-500 mt-1.5 leading-relaxed max-w-[320px] font-bold">JetUp Digital Hub – Trading & Partner-Einkommen mit Struktur und Transparenz.</p>
+            <p className="text-[12px] text-gray-500 mt-1.5 leading-relaxed max-w-[320px] font-bold">JetUp Digital Hub: Trading und Partner‑Einkommen — strukturiert und transparent.</p>
           </motion.div>
 
           <motion.div
@@ -93,7 +93,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-[14px] font-bold text-gray-900">Maria – Live-Beraterin</h3>
+                  <h3 className="text-[14px] font-bold text-gray-900">Maria – Live‑Beraterin</h3>
                   <div className="flex items-center gap-1 bg-green-50 rounded-full px-1.5 py-0.5">
                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                     <span className="text-[9px] font-bold text-green-600">online</span>
@@ -167,7 +167,7 @@ const HomePage: React.FC = () => {
               <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
                 <Megaphone size={18} className="text-purple-600" />
               </div>
-              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">Promotions</span>
+              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">Aktionen</span>
               <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />
             </button>
 

@@ -23,33 +23,33 @@ const tutorials: Tutorial[] = [
   {
     id: "1",
     title: "Erste Schritte mit TAG Markets",
-    description: "Kontoeröffnung, MT5 Installation und erste Einzahlung.",
+    description: "Konto eröffnen, MT5 installieren und erste Einzahlung durchführen.",
     type: "trader",
     format: "video",
-    duration: "5 Min",
+    duration: "5 Min.",
   },
   {
     id: "2",
-    title: "Copy-X Strategie auswählen",
-    description: "Wie du die passende Strategie findest und aktivierst.",
+    title: "Copy‑X‑Strategie auswählen",
+    description: "So findest du die passende Strategie und aktivierst sie.",
     type: "trader",
     format: "video",
-    duration: "7 Min",
+    duration: "7 Min.",
   },
   {
     id: "3",
     title: "Amplify verstehen",
-    description: "12x Skalierung einfach erklärt: Ablauf, Regeln, Gewinn.",
+    description: "12x‑Skalierung einfach erklärt: Ablauf, Regeln, Gewinn.",
     type: "trader",
     format: "guide",
   },
   {
     id: "4",
     title: "Partnerprogramm erklärt",
-    description: "Provisionen, Profit-Share und Bonusprogramme im Überblick.",
+    description: "Provisionen, Profit‑Share und Bonusprogramme im Überblick.",
     type: "partner",
     format: "video",
-    duration: "6 Min",
+    duration: "6 Min.",
   },
   {
     id: "5",
@@ -60,8 +60,8 @@ const tutorials: Tutorial[] = [
   },
   {
     id: "6",
-    title: "Lifestyle-Rewards erreichen",
-    description: "Volumen-Ziele, Rolex, Immobilien und Reise-Belohnungen.",
+    title: "Lifestyle‑Rewards erreichen",
+    description: "Volumenziele, Rolex, Immobilien und Reise‑Belohnungen.",
     type: "partner",
     format: "guide",
   },
@@ -112,7 +112,7 @@ const TutorialsPage: React.FC = () => {
           className="space-y-4"
         >
           <p className="text-[13px] text-gray-500 leading-relaxed font-medium">
-            Kurzvideos & Schritt-für-Schritt Anleitungen für Trading und Partnerprogramm.
+            Kurzvideos und Schritt‑für‑Schritt‑Anleitungen für Trading und Partnerprogramm.
           </p>
 
           <div className="flex gap-2">

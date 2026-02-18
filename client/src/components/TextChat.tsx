@@ -39,7 +39,7 @@ export default function TextChat() {
 
   const getInitialQuickReplies = () => {
     if (language === 'en') return ['How do I start trading?', 'What Copy-X strategies exist?', 'How do I earn as a partner?', 'Presentations & documents'];
-    if (language === 'de') return ['Wie starte ich mit Trading?', 'Welche Copy-X Strategien gibt es?', 'Wie verdiene ich als Partner?', 'Präsentationen & Unterlagen'];
+    if (language === 'de') return ['Wie starte ich mit Trading?', 'Welche Copy‑X‑Strategien gibt es?', 'Wie verdiene ich als Partner?', 'Präsentationen & Unterlagen'];
     return ['Как начать торговать?', 'Какие стратегии Copy-X есть?', 'Как заработать как партнёр?', 'Презентации и материалы'];
   };
 
@@ -205,7 +205,7 @@ export default function TextChat() {
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: language === 'en' ? 'Sorry, something went wrong. Please try again.' : language === 'de' ? 'Entschuldigung, etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.' : 'Извините, произошла ошибка. Попробуйте позже.',
+        content: language === 'en' ? 'Sorry, something went wrong. Please try again.' : language === 'de' ? 'Entschuldigung, etwas ist schiefgelaufen. Bitte versuche es noch einmal.' : 'Извините, произошла ошибка. Попробуйте позже.',
         timestamp: Date.now(),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -291,7 +291,7 @@ export default function TextChat() {
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: language === 'en' ? 'Sorry, something went wrong. Please try again!' : language === 'de' ? 'Entschuldigung, etwas ist schiefgelaufen. Bitte versuche es noch einmal!' : 'Извини, что-то пошло не так. Попробуй еще раз!',
+        content: language === 'en' ? 'Sorry, something went wrong. Please try again!' : language === 'de' ? 'Entschuldigung, etwas ist schiefgelaufen. Bitte versuche es noch einmal.' : 'Извини, что-то пошло не так. Попробуй еще раз!',
         timestamp: Date.now(),
       };
       setMessages(prev => [...prev, errorMessage]);

@@ -47,7 +47,7 @@ const TradingHubPage: React.FC = () => {
           className="space-y-4"
         >
           <p className="text-[13px] text-gray-500 leading-relaxed font-medium">
-            Dein Trading-Bereich: Broker, Copy-Trading (Copy-X) und Amplify 12x in einem Ort.
+            Dein Trading‑Bereich: Broker, Copy‑Trading (Copy‑X) und Amplify 12x — alles an einem Ort.
           </p>
 
           <Accordion type="multiple" className="space-y-2.5">
@@ -62,8 +62,8 @@ const TradingHubPage: React.FC = () => {
                     <Shield className="w-5 h-5 text-blue-600" />
                   </div>
                   <div className="text-left">
-                    <span className="text-[14px] font-bold text-gray-900 block">TAG Markets Broker</span>
-                    <span className="text-[12px] text-gray-400 font-medium">Regulierter Multi-Asset Broker mit MT5.</span>
+                    <span className="text-[14px] font-bold text-gray-900 block">Broker: TAG Markets</span>
+                    <span className="text-[12px] text-gray-400 font-medium">Regulierte Multi‑Asset‑Plattform mit MT5.</span>
                   </div>
                 </div>
               </AccordionTrigger>
@@ -71,23 +71,23 @@ const TradingHubPage: React.FC = () => {
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-2.5 pb-2">
                   <p>
                     <span className="font-bold text-gray-800">Regulierung:</span>{" "}
-                    Lizenziert durch FSC Mauritius (Lizenz GB21026474).
+                    Lizenziert durch die FSC Mauritius (Lizenz GB21026474).
                   </p>
                   <p>
                     <span className="font-bold text-gray-800">Handelsbedingungen:</span>{" "}
-                    Maximaler Hebel 1:500. Über 400 Instrumente.
+                    Hebel bis 1:500. Über 400 Instrumente.
                   </p>
                   <p>
                     <span className="font-bold text-gray-800">Auszahlung:</span>{" "}
-                    Durchschnittlich in 24 Stunden.
+                    Im Durchschnitt innerhalb von 24 Stunden.
                   </p>
                   <p>
                     <span className="font-bold text-gray-800">Umfang:</span>{" "}
-                    Über 500.000 Trader weltweit, monatliches Handelsvolumen über 200 Mrd. $.
+                    Über 500.000 Trader weltweit, monatliches Handelsvolumen über 200 Mrd. USD.
                   </p>
                   <p>
                     <span className="font-bold text-gray-800">Sicherheit:</span>{" "}
-                    Schutz von Daten und Mitteln nach Bankstandards. Dein Geld liegt auf deinem eigenen Konto.
+                    Schutz von Daten und Kundengeldern nach Bankstandards. Dein Geld bleibt auf deinem eigenen Konto.
                   </p>
                 </div>
               </AccordionContent>
@@ -105,27 +105,27 @@ const TradingHubPage: React.FC = () => {
                   </div>
                   <div className="text-left">
                     <span className="text-[14px] font-bold text-gray-900 block">Copy-X Strategien</span>
-                    <span className="text-[12px] text-gray-400 font-medium">Automatisches Copy-Trading für passives Einkommen.</span>
+                    <span className="text-[12px] text-gray-400 font-medium">Automatisches Copy‑Trading für potenziell passives Einkommen.</span>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-2.5 pb-2">
                   <p>
-                    Automatisches Kopieren professioneller Strategien. Der Kunde behält
+                    Professionelle Strategien automatisch kopieren. Du behältst
                     <span className="font-bold text-gray-800"> 70% des Gewinns</span>.
                   </p>
                   <p>
                     <span className="font-bold text-gray-800">Volle Statistik:</span>{" "}
-                    Transparente Performance-Daten für jede Strategie.
+                    Transparente Performance‑Daten für jede Strategie.
                   </p>
                   <p>
                     <span className="font-bold text-gray-800">Kontrolle:</span>{" "}
-                    Jederzeit abschaltbar. Dein Geld bleibt auf deinem Konto.
+                    Jederzeit pausierbar. Dein Geld bleibt auf deinem Konto.
                   </p>
                   <p>
                     <span className="font-bold text-gray-800">Risikomanagement:</span>{" "}
-                    Konservative Strategien mit max. 10% Drawdown, 0,3% Risiko pro Trade.
+                    Konservativer Ansatz: max. 10% Drawdown und 0,3% Risiko pro Trade.
                   </p>
                 </div>
               </AccordionContent>
@@ -143,14 +143,14 @@ const TradingHubPage: React.FC = () => {
                   </div>
                   <div className="text-left">
                     <span className="text-[14px] font-bold text-gray-900 block">Vortex Strategy</span>
-                    <span className="text-[12px] text-purple-500 font-semibold">coming soon · EXCLUSIVE for JetUP Community</span>
+                    <span className="text-[12px] text-purple-500 font-semibold">Coming soon · exklusiv für die JetUP Community</span>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-2.5 pb-2">
                   <p className="text-purple-600 font-semibold">
-                    Coming soon — exklusiv für die JetUP Community!
+                    Coming soon — exklusiv für die JetUP Community.
                   </p>
                 </div>
               </AccordionContent>
@@ -168,18 +168,18 @@ const TradingHubPage: React.FC = () => {
                   </div>
                   <div className="text-left">
                     <span className="text-[14px] font-bold text-gray-900 block">Amplify 12x</span>
-                    <span className="text-[12px] text-gray-400 font-medium">Dein Eigenkapital mit bis zu 12x skalieren.</span>
+                    <span className="text-[12px] text-gray-400 font-medium">Skaliere dein Eigenkapital um bis zu das 12‑Fache.</span>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-2.5 pb-2">
                   <p>
-                    Amplify ist die Möglichkeit, dein Handelslimit beim Broker zu erhöhen — bei Einhaltung der Risikomanagement-Regeln.
+                    Amplify erhöht dein Handelslimit beim Broker — sofern du die Risikomanagement‑Regeln einhältst.
                   </p>
                   <p>
                     <span className="font-bold text-gray-800">12x Skalierung:</span>{" "}
-                    Mit eigenen 1.000 $ erhältst du 12.000 $ Handelskapital.
+                    Mit 1.000 USD eigenem Kapital erhältst du 12.000 USD Handelskapital.
                   </p>
                   <p>
                     <span className="font-bold text-gray-800">Echte Liquidität:</span>{" "}
@@ -187,11 +187,11 @@ const TradingHubPage: React.FC = () => {
                   </p>
                   <p>
                     <span className="font-bold text-gray-800">100% Gewinn:</span>{" "}
-                    Dein gesamter Gewinn gehört dir, jederzeit auszahlbar.
+                    Dein gesamter Gewinn gehört dir und ist jederzeit auszahlbar.
                   </p>
                   <p>
                     <span className="font-bold text-gray-800">Kein Kredit:</span>{" "}
-                    Kein Bonus, keine Drittparteien. Volle Kontrolle.
+                    Kein Bonus, keine Drittparteien — volle Kontrolle.
                   </p>
                 </div>
               </AccordionContent>
@@ -215,10 +215,10 @@ const TradingHubPage: React.FC = () => {
               </AccordionTrigger>
               <AccordionContent>
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-2.5 pb-2">
-                  <p><span className="font-bold text-gray-800">1. Registrierung:</span> Erstelle ein Konto auf dem JetUP IB Portal.</p>
+                  <p><span className="font-bold text-gray-800">1. Registrierung:</span> Erstelle ein Konto im JetUP IB‑Portal.</p>
                   <p><span className="font-bold text-gray-800">2. Verbindung:</span> Registriere dich beim Partner-Broker TAG Markets.</p>
-                  <p><span className="font-bold text-gray-800">3. Installation:</span> Lade MetaTrader 5 herunter und installiere es.</p>
-                  <p><span className="font-bold text-gray-800">4. Einzahlung:</span> Fülle dein Handelskonto beim Broker auf (min. 100 $).</p>
+                  <p><span className="font-bold text-gray-800">3. Installation:</span> Lade MetaTrader 5 herunter und installiere die App.</p>
+                  <p><span className="font-bold text-gray-800">4. Einzahlung:</span> Lade dein Handelskonto beim Broker auf (mind. 100 USD).</p>
                   <p><span className="font-bold text-gray-800">5. Zugang:</span> Erhalte Zugang zu Copy-X, Signalen und Schulungen.</p>
                 </div>
               </AccordionContent>
@@ -236,7 +236,7 @@ const TradingHubPage: React.FC = () => {
                   </div>
                   <div className="text-left">
                     <span className="text-[14px] font-bold text-gray-900 block">FAQ zu Trading & TAG Markets</span>
-                    <span className="text-[12px] text-gray-400 font-medium">Häufig gestellte Fragen.</span>
+                    <span className="text-[12px] text-gray-400 font-medium">Häufige Fragen auf einen Blick.</span>
                   </div>
                 </div>
               </AccordionTrigger>
@@ -244,19 +244,19 @@ const TradingHubPage: React.FC = () => {
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-3 pb-2">
                   <div>
                     <p className="font-bold text-gray-800">Ist mein Geld sicher?</p>
-                    <p>Ja. Dein Geld liegt auf deinem eigenen Konto bei TAG Markets. Nur du hast Zugang. Jederzeit auszahlbar.</p>
+                    <p>Ja. Dein Geld liegt auf deinem eigenen Konto bei TAG Markets. Nur du hast Zugriff. Jederzeit auszahlbar.</p>
                   </div>
                   <div>
                     <p className="font-bold text-gray-800">Wie viel muss ich investieren?</p>
-                    <p>Mindestens 100 $ als Kunde, 250 $ wenn du auch Partner werden möchtest.</p>
+                    <p>Mindestens 100 USD als Kunde, 250 USD, wenn du zusätzlich Partner werden möchtest.</p>
                   </div>
                   <div>
                     <p className="font-bold text-gray-800">Wie hoch ist das Risiko?</p>
-                    <p>Konservative Strategie: max. 0,3% pro Trade, max. 10% Drawdown. Keine Garantien, aber kontrolliertes Risiko.</p>
+                    <p>Konservativer Ansatz: max. 0,3% pro Trade und max. 10% Drawdown. Keine Garantien — aber klar definierte Regeln.</p>
                   </div>
                   <div>
                     <p className="font-bold text-gray-800">Wie viel kann ich verdienen?</p>
-                    <p>2–5% pro Monat bei Copy-X Strategien. Ergebnisse variieren, keine Garantien.</p>
+                    <p>Bei Copy‑X‑Strategien werden oft 2–5% pro Monat angestrebt. Ergebnisse variieren; keine Garantien.</p>
                   </div>
                 </div>
               </AccordionContent>
@@ -270,7 +270,7 @@ const TradingHubPage: React.FC = () => {
               data-testid="link-trading-call"
             >
               <Calendar size={15} className="text-orange-500" />
-              Trading-Calls
+              Trading‑Calls
             </button>
             <button
               onClick={() => setLocation("/tutorials?filter=trader")}

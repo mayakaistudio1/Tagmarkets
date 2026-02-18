@@ -116,7 +116,7 @@ const PromoDetailPage: React.FC = () => {
 
           {promoItems.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-[14px] text-gray-400 font-medium">Aktuell keine Aktionen verfügbar.</p>
+              <p className="text-[14px] text-gray-400 font-medium">Aktuell sind keine Aktionen verfügbar.</p>
             </div>
           )}
         </div>)}

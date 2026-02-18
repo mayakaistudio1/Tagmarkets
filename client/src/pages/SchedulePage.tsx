@@ -40,7 +40,7 @@ const TIMEZONE_OFFSETS: Record<string, number> = {
 };
 
 const EVENT_LABELS: Record<string, { expect: string; joinZoom: string; motto: [string, string, string] }> = {
-  de: { expect: "Das erwartet dich:", joinZoom: "Zum Zoom Call", motto: ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"] },
+  de: { expect: "Das erwartet dich:", joinZoom: "Zum Zoom‑Call", motto: ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"] },
   en: { expect: "What to expect:", joinZoom: "Join Zoom Call", motto: ["STRUCTURE", "TRANSPARENCY", "CONTROL"] },
   ru: { expect: "Что тебя ждёт:", joinZoom: "Присоединиться к Zoom", motto: ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] },
 };
@@ -136,7 +136,7 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
 
           <div className="space-y-[1%]">
             <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.7cqw" }}>
-              Zoom Call
+              Zoom‑Call
             </p>
             <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words" style={{ 
               fontFamily: "Montserrat, sans-serif", 
@@ -282,7 +282,7 @@ const SchedulePage: React.FC = () => {
                         </span>
                       )}
                       <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-600">
-                        Zoom Call
+                        Zoom‑Call
                       </span>
                       {event.language && (
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${

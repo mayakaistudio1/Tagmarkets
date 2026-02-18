@@ -263,7 +263,7 @@ const PartnerHubPage: React.FC = () => {
               data-testid="link-partner-tutorials"
             >
               <GraduationCap size={15} className="text-cyan-500" />
-              {t("tutorials.forPartners")}
+              {t("home.tutorials")}
             </button>
           </div>
 

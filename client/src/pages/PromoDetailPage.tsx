@@ -103,16 +103,26 @@ const PromoDetailPage: React.FC = () => {
                   </div>
                 )}
 
-                <a
-                  href={promo.ctaLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl jetup-gradient text-white text-[13px] font-bold active:scale-[0.97] transition-transform shadow-[0_2px_12px_rgba(124,58,237,0.3)]"
-                  data-testid={`button-promo-cta-${promo.id}`}
-                >
-                  <ExternalLink size={14} />
-                  {promo.ctaText}
-                </a>
+                {promo.ctaLink ? (
+                  <a
+                    href={promo.ctaLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl jetup-gradient text-white text-[13px] font-bold active:scale-[0.97] transition-transform shadow-[0_2px_12px_rgba(124,58,237,0.3)]"
+                    data-testid={`button-promo-cta-${promo.id}`}
+                  >
+                    <ExternalLink size={14} />
+                    {promo.ctaText}
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gray-200 text-gray-400 text-[13px] font-bold cursor-not-allowed"
+                    data-testid={`button-promo-cta-disabled-${promo.id}`}
+                  >
+                    {promo.ctaText}
+                  </button>
+                )}
               </div>
             </motion.div>
           ))}

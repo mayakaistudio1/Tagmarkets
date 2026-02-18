@@ -181,7 +181,7 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
               </div>
               <div className="mt-[4%] bg-white rounded px-[6%] py-[2%] shadow-sm w-fit max-w-[90%] overflow-hidden">
                 <p className="font-semibold text-black text-center truncate" style={{ fontFamily: "Inter, sans-serif", fontSize: "2.2cqw" }}>
-                  {t("common.speaker") || "Спикер"}: {event.speaker}
+                  Speaker: {event.speaker}
                 </p>
               </div>
             </div>

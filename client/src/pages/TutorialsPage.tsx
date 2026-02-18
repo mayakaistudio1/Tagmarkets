@@ -7,6 +7,7 @@ import {
   FileText,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type FilterTab = "alle" | "trader" | "partner";
 
@@ -69,6 +70,7 @@ const tutorials: Tutorial[] = [
 
 const TutorialsPage: React.FC = () => {
   const [, setLocation] = useLocation();
+  const { t } = useLanguage();
 
   const getInitialFilter = (): FilterTab => {
     const params = new URLSearchParams(window.location.search);
@@ -84,9 +86,9 @@ const TutorialsPage: React.FC = () => {
     : tutorials.filter((t) => t.type === filter);
 
   const tabs: { key: FilterTab; label: string }[] = [
-    { key: "alle", label: "Alle" },
-    { key: "trader", label: "Für Trader" },
-    { key: "partner", label: "Für Partner" },
+    { key: "alle", label: t("tutorials.all") },
+    { key: "trader", label: t("tutorials.forTraders") },
+    { key: "partner", label: t("tutorials.forPartners") },
   ];
 
   return (
@@ -101,7 +103,7 @@ const TutorialsPage: React.FC = () => {
           <ArrowLeft size={18} className="text-gray-600" />
         </button>
         <h1 className="text-[17px] font-extrabold text-gray-900 flex-1 tracking-tight">
-          Tutorials & Guides
+          {t("tutorials.title")}
         </h1>
       </div>
 
@@ -112,7 +114,7 @@ const TutorialsPage: React.FC = () => {
           className="space-y-4"
         >
           <p className="text-[13px] text-gray-500 leading-relaxed font-medium">
-            Kurzvideos und Schritt‑für‑Schritt‑Anleitungen für Trading und Partnerprogramm.
+            {t("tutorials.subtitle")}
           </p>
 
           <div className="flex gap-2">
@@ -156,10 +158,10 @@ const TutorialsPage: React.FC = () => {
                           ? "bg-blue-100 text-blue-600"
                           : "bg-emerald-100 text-emerald-600"
                       }`}>
-                        {tutorial.type === "trader" ? "Trader" : "Partner"}
+                        {tutorial.type === "trader" ? t("tutorials.forTraders") : t("tutorials.forPartners")}
                       </span>
                       <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                        {tutorial.format === "video" ? `Video${tutorial.duration ? ` · ${tutorial.duration}` : ""}` : "Guide"}
+                        {tutorial.format === "video" ? `${t("common.video")}${tutorial.duration ? ` · ${tutorial.duration}` : ""}` : t("common.guide")}
                       </span>
                     </div>
                     <h3 className="text-[14px] font-bold text-gray-900 leading-tight">
@@ -171,7 +173,7 @@ const TutorialsPage: React.FC = () => {
                   </div>
                 </div>
                 <button className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gray-100 text-gray-400 text-[12px] font-bold cursor-not-allowed" disabled data-testid={`button-view-${tutorial.id}`}>
-                  Coming soon
+                  {t("common.comingSoon")}
                 </button>
               </div>
             ))}
@@ -184,7 +186,7 @@ const TutorialsPage: React.FC = () => {
               data-testid="button-back-hub-tutorials"
             >
               <ArrowLeft size={16} />
-              Zurück zum Hub
+              {t("common.backToHub")}
             </button>
             <button
               onClick={() => setLocation("/maria")}
@@ -192,7 +194,7 @@ const TutorialsPage: React.FC = () => {
               data-testid="button-frag-maria-tutorials"
             >
               <MessageCircle size={16} />
-              Frag Maria
+              {t("common.askMaria")}
             </button>
           </div>
         </motion.div>

@@ -42,7 +42,7 @@ const TIMEZONE_OFFSETS: Record<string, number> = {
 const EVENT_LABELS: Record<string, { expect: string; joinZoom: string; motto: [string, string, string] }> = {
   de: { expect: "Das erwartet dich:", joinZoom: "Zum Zoom‑Call", motto: ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"] },
   en: { expect: "What to expect:", joinZoom: "Join Zoom Call", motto: ["STRUCTURE", "TRANSPARENCY", "CONTROL"] },
-  ru: { expect: "Что тебя ждёт:", joinZoom: "Присоединиться к Zoom", motto: ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] },
+  ru: { expect: "Что вас ждёт:", joinZoom: "Перейти в Zoom", motto: ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] },
 };
 
 const DAY_ORDER: Record<string, number> = {
@@ -114,6 +114,7 @@ function BannerGridPattern() {
 }
 
 function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPhoto?: string }) {
+  const { language, t } = useLanguage();
   if (event.banner) {
     return <img src={event.banner} alt={event.title} className="w-full h-auto object-cover" data-testid={`banner-${event.id}`} />;
   }
@@ -163,7 +164,7 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
 
           <div className="flex items-center gap-[2%]">
             {(() => {
-              const motto = (EVENT_LABELS[event.language || "de"] || EVENT_LABELS.de).motto;
+              const motto = (EVENT_LABELS[language] || EVENT_LABELS.de).motto;
               return motto.map((word, i) => (
                 <React.Fragment key={i}>
                   {i > 0 && <span className="bg-[#a855f7] rounded-full" style={{ width: "0.7cqw", height: "0.7cqw" }} />}
@@ -186,7 +187,7 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
               </div>
               <div className="mt-[4%] bg-white rounded px-[6%] py-[2%] shadow-sm w-fit max-w-[90%] overflow-hidden">
                 <p className="font-semibold text-black text-center truncate" style={{ fontFamily: "Inter, sans-serif", fontSize: "2.2cqw" }}>
-                  Speaker: {event.speaker}
+                  {t("common.speaker") || "Спикер"}: {event.speaker}
                 </p>
               </div>
             </div>
@@ -315,7 +316,7 @@ const SchedulePage: React.FC = () => {
                     </div>
 
                     <div className="bg-gray-50 rounded-xl p-3 space-y-1.5">
-                      <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{(EVENT_LABELS[event.language || "de"] || EVENT_LABELS.de).expect}</p>
+                      <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{(EVENT_LABELS[language] || EVENT_LABELS.de).expect}</p>
                       {event.highlights.map((h, i) => (
                         <p key={i} className="text-[12px] text-gray-600 font-medium leading-snug flex items-start gap-1.5">
                           <span className="text-purple-400 mt-0.5 flex-shrink-0">•</span>
@@ -332,7 +333,7 @@ const SchedulePage: React.FC = () => {
                       data-testid={`zoom-link-${event.id}`}
                     >
                       <ExternalLink size={15} />
-                      {(EVENT_LABELS[event.language || "de"] || EVENT_LABELS.de).joinZoom}
+                      {(EVENT_LABELS[language] || EVENT_LABELS.de).joinZoom}
                     </a>
                   </div>
                 </div>

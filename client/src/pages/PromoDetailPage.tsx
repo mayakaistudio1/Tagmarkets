@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Zap, Clock, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useLanguage } from "@/contexts/LanguageContext";
+
 export interface PromoItem {
   id: number;
   badge: string;
@@ -18,6 +20,7 @@ export interface PromoItem {
 
 const PromoDetailPage: React.FC = () => {
   const [, setLocation] = useLocation();
+  const { t } = useLanguage();
   const [promoItems, setPromoItems] = useState<PromoItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +44,7 @@ const PromoDetailPage: React.FC = () => {
           <ArrowLeft size={18} className="text-gray-600" />
         </button>
         <h1 className="text-[17px] font-extrabold text-gray-900 flex-1 tracking-tight">
-          Aktionen & Angebote
+          {t("promo.title")}
         </h1>
       </div>
 
@@ -116,7 +119,7 @@ const PromoDetailPage: React.FC = () => {
 
           {promoItems.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-[14px] text-gray-400 font-medium">Aktuell sind keine Aktionen verfügbar.</p>
+              <p className="text-[14px] text-gray-400 font-medium">{t("promo.noPromos")}</p>
             </div>
           )}
         </div>)}

@@ -20,9 +20,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const TradingHubPage: React.FC = () => {
   const [, setLocation] = useLocation();
+  const { t } = useLanguage();
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -36,7 +38,7 @@ const TradingHubPage: React.FC = () => {
           <ArrowLeft size={18} className="text-gray-600" />
         </button>
         <h1 className="text-[17px] font-extrabold text-gray-900 flex-1 tracking-tight">
-          Trading & Strategien
+          {t("trading.title")}
         </h1>
       </div>
 
@@ -47,7 +49,7 @@ const TradingHubPage: React.FC = () => {
           className="space-y-4"
         >
           <p className="text-[13px] text-gray-500 leading-relaxed font-medium">
-            Dein Trading‑Bereich: Broker, Copy‑Trading (Copy‑X) und Amplify 12x — alles an einem Ort.
+            {t("trading.subtitle")}
           </p>
 
           <Accordion type="multiple" className="space-y-2.5">
@@ -62,32 +64,32 @@ const TradingHubPage: React.FC = () => {
                     <Shield className="w-5 h-5 text-blue-600" />
                   </div>
                   <div className="text-left">
-                    <span className="text-[14px] font-bold text-gray-900 block">Broker: TAG Markets</span>
-                    <span className="text-[12px] text-gray-400 font-medium">Regulierte Multi‑Asset‑Plattform mit MT5.</span>
+                    <span className="text-[14px] font-bold text-gray-900 block">{t("trading.tagMarkets")}</span>
+                    <span className="text-[12px] text-gray-400 font-medium">{t("trading.tagMarketsSubtitle")}</span>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-2.5 pb-2">
                   <p>
-                    <span className="font-bold text-gray-800">Regulierung:</span>{" "}
-                    Lizenziert durch die FSC Mauritius (Lizenz GB21026474).
+                    <span className="font-bold text-gray-800">{t("trading.regulation")}</span>{" "}
+                    {t("trading.regulationDesc")}
                   </p>
                   <p>
-                    <span className="font-bold text-gray-800">Handelsbedingungen:</span>{" "}
-                    Hebel bis 1:500. Über 400 Instrumente.
+                    <span className="font-bold text-gray-800">{t("trading.conditions")}</span>{" "}
+                    {t("trading.conditionsDesc")}
                   </p>
                   <p>
-                    <span className="font-bold text-gray-800">Auszahlung:</span>{" "}
-                    Im Durchschnitt innerhalb von 24 Stunden.
+                    <span className="font-bold text-gray-800">{t("trading.payouts")}</span>{" "}
+                    {t("trading.payoutsDesc")}
                   </p>
                   <p>
-                    <span className="font-bold text-gray-800">Umfang:</span>{" "}
-                    Über 500.000 Trader weltweit, monatliches Handelsvolumen über 200 Mrd. USD.
+                    <span className="font-bold text-gray-800">{t("trading.scale")}</span>{" "}
+                    {t("trading.scaleDesc")}
                   </p>
                   <p>
-                    <span className="font-bold text-gray-800">Sicherheit:</span>{" "}
-                    Schutz von Daten und Kundengeldern nach Bankstandards. Dein Geld bleibt auf deinem eigenen Konto.
+                    <span className="font-bold text-gray-800">{t("trading.security")}</span>{" "}
+                    {t("trading.securityDesc")}
                   </p>
                 </div>
               </AccordionContent>
@@ -104,28 +106,27 @@ const TradingHubPage: React.FC = () => {
                     <Bot className="w-5 h-5 text-fuchsia-600" />
                   </div>
                   <div className="text-left">
-                    <span className="text-[14px] font-bold text-gray-900 block">Copy-X Strategien</span>
-                    <span className="text-[12px] text-gray-400 font-medium">Automatisches Copy‑Trading für potenziell passives Einkommen.</span>
+                    <span className="text-[14px] font-bold text-gray-900 block">{t("trading.copyX")}</span>
+                    <span className="text-[12px] text-gray-400 font-medium">{t("trading.copyXSubtitle")}</span>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-2.5 pb-2">
                   <p>
-                    Professionelle Strategien automatisch kopieren. Du behältst
-                    <span className="font-bold text-gray-800"> 70% des Gewinns</span>.
+                    {t("trading.copyXDesc")}
                   </p>
                   <p>
-                    <span className="font-bold text-gray-800">Volle Statistik:</span>{" "}
-                    Transparente Performance‑Daten für jede Strategie.
+                    <span className="font-bold text-gray-800">{t("trading.stats")}</span>{" "}
+                    {t("trading.statsDesc")}
                   </p>
                   <p>
-                    <span className="font-bold text-gray-800">Kontrolle:</span>{" "}
-                    Jederzeit pausierbar. Dein Geld bleibt auf deinem Konto.
+                    <span className="font-bold text-gray-800">{t("trading.control")}</span>{" "}
+                    {t("trading.controlDesc")}
                   </p>
                   <p>
-                    <span className="font-bold text-gray-800">Risikomanagement:</span>{" "}
-                    Konservativer Ansatz: max. 10% Drawdown und 0,3% Risiko pro Trade.
+                    <span className="font-bold text-gray-800">{t("trading.risk")}</span>{" "}
+                    {t("trading.riskDesc")}
                   </p>
                 </div>
               </AccordionContent>
@@ -142,15 +143,15 @@ const TradingHubPage: React.FC = () => {
                     <Zap className="w-5 h-5 text-violet-600" />
                   </div>
                   <div className="text-left">
-                    <span className="text-[14px] font-bold text-gray-900 block">Vortex Strategy</span>
-                    <span className="text-[12px] text-purple-500 font-semibold">Coming soon · exklusiv für die JetUP Community</span>
+                    <span className="text-[14px] font-bold text-gray-900 block">{t("trading.vortex")}</span>
+                    <span className="text-[12px] text-purple-500 font-semibold">{t("trading.vortexSubtitle")}</span>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-2.5 pb-2">
                   <p className="text-purple-600 font-semibold">
-                    Coming soon — exklusiv für die JetUP Community.
+                    {t("trading.vortexComing")}
                   </p>
                 </div>
               </AccordionContent>
@@ -167,31 +168,31 @@ const TradingHubPage: React.FC = () => {
                     <Rocket className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div className="text-left">
-                    <span className="text-[14px] font-bold text-gray-900 block">Amplify 12x</span>
-                    <span className="text-[12px] text-gray-400 font-medium">Skaliere dein Eigenkapital um bis zu das 12‑Fache.</span>
+                    <span className="text-[14px] font-bold text-gray-900 block">{t("trading.amplify")}</span>
+                    <span className="text-[12px] text-gray-400 font-medium">{t("trading.amplifySubtitle")}</span>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-2.5 pb-2">
                   <p>
-                    Amplify erhöht dein Handelslimit beim Broker — sofern du die Risikomanagement‑Regeln einhältst.
+                    {t("trading.amplifyDesc")}
                   </p>
                   <p>
-                    <span className="font-bold text-gray-800">12x Skalierung:</span>{" "}
-                    Mit 1.000 USD eigenem Kapital erhältst du 12.000 USD Handelskapital.
+                    <span className="font-bold text-gray-800">{t("trading.amplify12x")}</span>{" "}
+                    {t("trading.amplify12xDesc")}
                   </p>
                   <p>
-                    <span className="font-bold text-gray-800">Echte Liquidität:</span>{" "}
-                    Kein Prop-Firm-Modell — du handelst am realen Markt.
+                    <span className="font-bold text-gray-800">{t("trading.liquidity")}</span>{" "}
+                    {t("trading.liquidityDesc")}
                   </p>
                   <p>
-                    <span className="font-bold text-gray-800">100% Gewinn:</span>{" "}
-                    Dein gesamter Gewinn gehört dir und ist jederzeit auszahlbar.
+                    <span className="font-bold text-gray-800">{t("trading.profit")}</span>{" "}
+                    {t("trading.profitDesc")}
                   </p>
                   <p>
-                    <span className="font-bold text-gray-800">Kein Kredit:</span>{" "}
-                    Kein Bonus, keine Drittparteien — volle Kontrolle.
+                    <span className="font-bold text-gray-800">{t("trading.noCredit")}</span>{" "}
+                    {t("trading.noCreditDesc")}
                   </p>
                 </div>
               </AccordionContent>
@@ -208,18 +209,18 @@ const TradingHubPage: React.FC = () => {
                     <ListOrdered className="w-5 h-5 text-purple-600" />
                   </div>
                   <div className="text-left">
-                    <span className="text-[14px] font-bold text-gray-900 block">Schnellstart in 5 Schritten</span>
-                    <span className="text-[12px] text-gray-400 font-medium">Von der Registrierung bis zum ersten Trade.</span>
+                    <span className="text-[14px] font-bold text-gray-900 block">{t("trading.start")}</span>
+                    <span className="text-[12px] text-gray-400 font-medium">{t("trading.startSubtitle")}</span>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-2.5 pb-2">
-                  <p><span className="font-bold text-gray-800">1. Registrierung:</span> Erstelle ein Konto im JetUP IB‑Portal.</p>
-                  <p><span className="font-bold text-gray-800">2. Verbindung:</span> Registriere dich beim Partner-Broker TAG Markets.</p>
-                  <p><span className="font-bold text-gray-800">3. Installation:</span> Lade MetaTrader 5 herunter und installiere die App.</p>
-                  <p><span className="font-bold text-gray-800">4. Einzahlung:</span> Lade dein Handelskonto beim Broker auf (mind. 100 USD).</p>
-                  <p><span className="font-bold text-gray-800">5. Zugang:</span> Erhalte Zugang zu Copy-X, Signalen und Schulungen.</p>
+                  <p><span className="font-bold text-gray-800">{t("trading.startStep1")}</span> {t("trading.startStep1Desc")}</p>
+                  <p><span className="font-bold text-gray-800">{t("trading.startStep2")}</span> {t("trading.startStep2Desc")}</p>
+                  <p><span className="font-bold text-gray-800">{t("trading.startStep3")}</span> {t("trading.startStep3Desc")}</p>
+                  <p><span className="font-bold text-gray-800">{t("trading.startStep4")}</span> {t("trading.startStep4Desc")}</p>
+                  <p><span className="font-bold text-gray-800">{t("trading.startStep5")}</span> {t("trading.startStep5Desc")}</p>
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -235,28 +236,28 @@ const TradingHubPage: React.FC = () => {
                     <HelpCircle className="w-5 h-5 text-amber-600" />
                   </div>
                   <div className="text-left">
-                    <span className="text-[14px] font-bold text-gray-900 block">FAQ zu Trading & TAG Markets</span>
-                    <span className="text-[12px] text-gray-400 font-medium">Häufige Fragen auf einen Blick.</span>
+                    <span className="text-[14px] font-bold text-gray-900 block">{t("trading.faq")}</span>
+                    <span className="text-[12px] text-gray-400 font-medium">{t("trading.faqSubtitle")}</span>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="text-[13px] text-gray-600 leading-relaxed space-y-3 pb-2">
                   <div>
-                    <p className="font-bold text-gray-800">Ist mein Geld sicher?</p>
-                    <p>Ja. Dein Geld liegt auf deinem eigenen Konto bei TAG Markets. Nur du hast Zugriff. Jederzeit auszahlbar.</p>
+                    <p className="font-bold text-gray-800">{t("trading.faqQ1")}</p>
+                    <p>{t("trading.faqA1")}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-800">Wie viel muss ich investieren?</p>
-                    <p>Mindestens 100 USD als Kunde, 250 USD, wenn du zusätzlich Partner werden möchtest.</p>
+                    <p className="font-bold text-gray-800">{t("trading.faqQ2")}</p>
+                    <p>{t("trading.faqA2")}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-800">Wie hoch ist das Risiko?</p>
-                    <p>Konservativer Ansatz: max. 0,3% pro Trade und max. 10% Drawdown. Keine Garantien — aber klar definierte Regeln.</p>
+                    <p className="font-bold text-gray-800">{t("trading.faqQ3")}</p>
+                    <p>{t("trading.faqA3")}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-800">Wie viel kann ich verdienen?</p>
-                    <p>Bei Copy‑X‑Strategien werden oft 2–5% pro Monat angestrebt. Ergebnisse variieren; keine Garantien.</p>
+                    <p className="font-bold text-gray-800">{t("trading.faqQ4")}</p>
+                    <p>{t("trading.faqA4")}</p>
                   </div>
                 </div>
               </AccordionContent>
@@ -270,7 +271,7 @@ const TradingHubPage: React.FC = () => {
               data-testid="link-trading-call"
             >
               <Calendar size={15} className="text-orange-500" />
-              Trading‑Calls
+              {t("home.trading")}
             </button>
             <button
               onClick={() => setLocation("/tutorials?filter=trader")}
@@ -278,7 +279,7 @@ const TradingHubPage: React.FC = () => {
               data-testid="link-trading-tutorials"
             >
               <GraduationCap size={15} className="text-cyan-500" />
-              Tutorials
+              {t("home.tutorials")}
             </button>
           </div>
 
@@ -289,7 +290,7 @@ const TradingHubPage: React.FC = () => {
               data-testid="button-back-hub"
             >
               <ArrowLeft size={16} />
-              Zurück zum Hub
+              {t("common.backToHub")}
             </button>
             <button
               onClick={() => setLocation("/maria")}
@@ -297,7 +298,7 @@ const TradingHubPage: React.FC = () => {
               data-testid="button-frag-maria"
             >
               <MessageCircle size={16} />
-              Frag Maria
+              {t("common.askMaria")}
             </button>
           </div>
         </motion.div>

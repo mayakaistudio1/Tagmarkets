@@ -19,7 +19,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const HomePage: React.FC = () => {
   const [, setLocation] = useLocation();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   const goToMaria = () => setLocation("/maria");
   const goToTrading = () => setLocation("/trading");
@@ -30,21 +30,21 @@ const HomePage: React.FC = () => {
   const directLinks = [
     {
       icon: FolderOpen,
-      label: "Präsentationen",
+      label: t("home.presentations"),
       href: "https://drive.google.com/drive/folders/156BMU0t-hniBTd13rQ_wofvV81ETE04R?usp=sharing",
       color: "text-yellow-600",
       bg: "bg-yellow-50",
     },
     {
       icon: Send,
-      label: "Telegram‑Kanal",
+      label: t("home.telegram"),
       href: "https://t.me/JetUpDach",
       color: "text-blue-500",
       bg: "bg-blue-50",
     },
     {
       icon: Instagram,
-      label: "Instagram",
+      label: t("home.instagram"),
       href: "https://www.instagram.com/jetup.official?igsh=MjZwdXJpd2JsYmw1&utm_source=qr",
       color: "text-pink-500",
       bg: "bg-pink-50",
@@ -69,9 +69,9 @@ const HomePage: React.FC = () => {
               data-testid="img-logo"
             />
             <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-gradient-purple mt-0.5">
-              Struktur. Transparenz. Kontrolle.
+              {t("home.tagline")}
             </p>
-            <p className="text-[12px] text-gray-500 mt-1.5 leading-relaxed max-w-[320px] font-bold">JetUp Digital Hub: Trading und Partner‑Einkommen — strukturiert und transparent.</p>
+            <p className="text-[12px] text-gray-500 mt-1.5 leading-relaxed max-w-[320px] font-bold">{t("home.subtitle")}</p>
           </motion.div>
 
           <motion.div
@@ -93,18 +93,18 @@ const HomePage: React.FC = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-[14px] font-bold text-gray-900">Maria – Live‑Beraterin</h3>
+                  <h3 className="text-[14px] font-bold text-gray-900">{t("home.mariaOnline")}</h3>
                   <div className="flex items-center gap-1 bg-green-50 rounded-full px-1.5 py-0.5">
                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-[9px] font-bold text-green-600">online</span>
+                    <span className="text-[9px] font-bold text-green-600">{t("home.online")}</span>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-1">
                   <span className="flex items-center gap-1 text-[10px] text-gray-500 font-semibold bg-gray-50 rounded-md px-2 py-0.5">
-                    <Video size={10} className="text-purple-500" /> Video
+                    <Video size={10} className="text-purple-500" /> {t("home.video")}
                   </span>
                   <span className="flex items-center gap-1 text-[10px] text-gray-500 font-semibold bg-gray-50 rounded-md px-2 py-0.5">
-                    <MessageCircle size={10} className="text-purple-500" /> Chat
+                    <MessageCircle size={10} className="text-purple-500" /> {t("home.chat")}
                   </span>
                 </div>
               </div>
@@ -130,7 +130,7 @@ const HomePage: React.FC = () => {
                   <TrendingUp size={18} className="text-white" />
                 </div>
                 <h3 className="text-[14px] font-bold text-white leading-tight flex-1">
-                  Trading & Strategien
+                  {t("home.trading")}
                 </h3>
                 <ChevronRight size={18} className="text-white/80 flex-shrink-0" />
               </div>
@@ -146,7 +146,7 @@ const HomePage: React.FC = () => {
                   <Users size={18} className="text-white" />
                 </div>
                 <h3 className="text-[14px] font-bold text-white leading-tight flex-1">
-                  Partnerprogramm & Einkommen
+                  {t("home.partner")}
                 </h3>
                 <ChevronRight size={18} className="text-white/80 flex-shrink-0" />
               </div>
@@ -167,7 +167,7 @@ const HomePage: React.FC = () => {
               <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
                 <Megaphone size={18} className="text-purple-600" />
               </div>
-              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">Aktionen</span>
+              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">{t("home.promo")}</span>
               <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />
             </button>
 
@@ -179,7 +179,7 @@ const HomePage: React.FC = () => {
               <div className="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
                 <Calendar size={18} className="text-orange-600" />
               </div>
-              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">Webinare & Termine</span>
+              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">{t("home.schedule")}</span>
               <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />
             </button>
 
@@ -191,7 +191,7 @@ const HomePage: React.FC = () => {
               <div className="w-9 h-9 rounded-lg bg-cyan-100 flex items-center justify-center flex-shrink-0">
                 <GraduationCap size={18} className="text-cyan-600" />
               </div>
-              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">Tutorials & Guides</span>
+              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">{t("home.tutorials")}</span>
               <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />
             </button>
           </motion.div>
@@ -202,7 +202,7 @@ const HomePage: React.FC = () => {
             transition={{ delay: 0.25 }}
           >
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5 px-1">
-              Direkte Links
+              {t("home.directLinks")}
             </p>
             <div className="space-y-2">
               {directLinks.map((link, i) => (

@@ -255,7 +255,7 @@ const PartnerHubPage: React.FC = () => {
               data-testid="link-partner-call"
             >
               <Calendar size={15} className="text-orange-500" />
-              {t("partner.title")}
+              {t("home.schedule")}
             </button>
             <button
               onClick={() => setLocation("/tutorials?filter=partner")}

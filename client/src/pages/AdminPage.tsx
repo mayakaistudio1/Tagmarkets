@@ -72,6 +72,7 @@ interface ScheduleEvent {
   title: string;
   speaker: string;
   speakerId?: number | null;
+  speakerPhoto?: string | null;
   type: string;
   typeBadge: string;
   banner: string;
@@ -1062,17 +1063,17 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 
   const handleSpeakerSelect = (speakerId: string) => {
     if (speakerId === "") {
-      setEvent({ ...event, speakerId: null, speaker: "" });
+      setEvent({ ...event, speakerId: null, speaker: "", speakerPhoto: null });
       return;
     }
     const id = parseInt(speakerId);
     const found = speakers.find(s => s.id === id);
     if (found) {
-      setEvent({ ...event, speakerId: found.id, speaker: found.name });
+      setEvent({ ...event, speakerId: found.id, speaker: found.name, speakerPhoto: found.photo || null });
     }
   };
 
-  const selectedSpeaker = speakers.find(s => s.id === event.speakerId);
+  const currentSpeakerPhoto = event.speakerPhoto || speakers.find(s => s.id === event.speakerId)?.photo || "";
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
@@ -1143,10 +1144,10 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
               <option key={s.id} value={s.id}>{s.name} ({s.role})</option>
             ))}
           </select>
-          {selectedSpeaker && selectedSpeaker.photo && (
+          {event.speakerId && currentSpeakerPhoto && (
             <div className="flex items-center gap-3 mt-2 p-2 bg-gray-50 rounded-lg">
-              <img src={selectedSpeaker.photo} alt={selectedSpeaker.name} className="w-8 h-8 rounded-lg object-cover" />
-              <span className="text-[13px] font-medium text-gray-700">{selectedSpeaker.name}</span>
+              <img src={currentSpeakerPhoto} alt={event.speaker} className="w-8 h-8 rounded-lg object-cover" />
+              <span className="text-[13px] font-medium text-gray-700">{event.speaker}</span>
             </div>
           )}
           {!event.speakerId && (
@@ -1172,10 +1173,10 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 
         <ToggleField label="Aktiv" value={event.isActive} onChange={(v) => setEvent({ ...event, isActive: v })} testId="toggle-event-active" />
 
-        {(selectedSpeaker?.photo || event.banner) && (
+        {(currentSpeakerPhoto || event.banner) && (
           <div>
             <label className="block text-[10px] font-medium text-gray-400 mb-2">Banner Vorschau</label>
-            <EventBannerPreview event={event} speakerPhoto={selectedSpeaker?.photo || ""} />
+            <EventBannerPreview event={event} speakerPhoto={currentSpeakerPhoto} />
           </div>
         )}
         </div>

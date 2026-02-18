@@ -145,3 +145,5 @@ server/replit_integrations/ - Replit-provided audio, chat, image, and batch util
 - TabBar shown only on Hub and Maria pages; sub-pages have back + "Frag Maria" footer buttons
 - Updated Maria DE system prompt with Amplify, TAG Markets, BIX.FI/BIT1, Lifestyle rewards
 - Added German (de) translations for all components
+- Migrated file uploads to Replit Object Storage for persistent storage across deployments (Feb 2026)
+- Upload route uses Object Storage instead of local disk; serving route reads from Object Storage at /uploads/:filename

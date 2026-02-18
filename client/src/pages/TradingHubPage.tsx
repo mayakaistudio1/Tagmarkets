@@ -271,7 +271,7 @@ const TradingHubPage: React.FC = () => {
               data-testid="link-trading-call"
             >
               <Calendar size={15} className="text-orange-500" />
-              {t("home.trading")}
+              {t("home.schedule")}
             </button>
             <button
               onClick={() => setLocation("/tutorials?filter=trader")}

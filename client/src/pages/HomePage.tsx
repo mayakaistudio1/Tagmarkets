@@ -73,7 +73,7 @@ const HomePage: React.FC = () => {
             </p>
             <p className="text-[12px] text-gray-500 mt-1.5 leading-relaxed max-w-[320px] font-bold">{t("home.subtitle")}</p>
             <div className="flex items-center gap-1 mt-2" data-testid="language-switcher">
-              {(["de", "en", "ru"] as const).map((lang) => (
+              {(["de", "ru"] as const).map((lang) => (
                 <button
                   key={lang}
                   onClick={() => setLanguage(lang)}

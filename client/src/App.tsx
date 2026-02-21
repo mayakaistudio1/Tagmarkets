@@ -13,6 +13,7 @@ import TutorialsPage from "@/pages/TutorialsPage";
 import PromoDetailPage from "@/pages/PromoDetailPage";
 import TabBar from "@/components/TabBar";
 import AdminPage from "@/pages/AdminPage";
+import TurkeyPromoPreview from "@/pages/TurkeyPromoPreview";
 
 function AppContent() {
   const [location, setLocation] = useLocation();
@@ -25,6 +26,10 @@ function AppContent() {
 
   if (basePath === "/admin") {
     return <AdminPage />;
+  }
+
+  if (basePath === "/promo-preview") {
+    return <TurkeyPromoPreview />;
   }
 
   const renderPage = () => {

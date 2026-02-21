@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ExternalLink, Zap, Clock, Loader2, Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, ExternalLink, Zap, Clock, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -23,27 +23,6 @@ const PromoDetailPage: React.FC = () => {
   const { t, language } = useLanguage();
   const [promoItems, setPromoItems] = useState<PromoItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
 
   useEffect(() => {
     fetch("/api/promotions")
@@ -75,80 +54,6 @@ const PromoDetailPage: React.FC = () => {
             <Loader2 size={24} className="animate-spin text-purple-500" />
           </div>
         ) : (<div className="space-y-4 pt-2">
-          {language === "ru" && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white rounded-2xl overflow-hidden shadow-[0_4px_24px_rgba(124,58,237,0.18)]"
-              data-testid="video-turkey-promo"
-            >
-              <div className="relative">
-                <video
-                  ref={videoRef}
-                  src="/videos/turkey-heroes-promo.mp4"
-                  className="w-full aspect-video object-cover"
-                  muted={isMuted}
-                  loop
-                  playsInline
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  {!isPlaying && (
-                    <button
-                      onClick={togglePlay}
-                      className="w-16 h-16 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-xl active:scale-95 transition-all hover:scale-105"
-                      data-testid="button-play-turkey"
-                    >
-                      <Play size={28} className="text-purple-600 ml-1" />
-                    </button>
-                  )}
-                </div>
-                {isPlaying && (
-                  <div className="absolute top-3 left-3">
-                    <span className="flex items-center gap-1.5 bg-red-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                      LIVE PROMO
-                    </span>
-                  </div>
-                )}
-                <div className="absolute bottom-3 right-3 flex gap-2">
-                  {isPlaying && (
-                    <button
-                      onClick={togglePlay}
-                      className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center active:scale-95 transition-transform"
-                      data-testid="button-pause-turkey"
-                    >
-                      <Pause size={16} className="text-white" />
-                    </button>
-                  )}
-                  <button
-                    onClick={toggleMute}
-                    className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center active:scale-95 transition-transform"
-                    data-testid="button-mute-turkey"
-                  >
-                    {isMuted ? <VolumeX size={16} className="text-white" /> : <Volume2 size={16} className="text-white" />}
-                  </button>
-                </div>
-              </div>
-              <div className="p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-600 to-violet-500 text-white flex items-center gap-1">
-                    <Zap size={8} />
-                    PROMO VIDEO
-                  </span>
-                  <span className="text-[10px] text-gray-400 font-medium">20.02 — 20.04.2026</span>
-                </div>
-                <h3 className="text-[15px] font-extrabold text-gray-900 leading-tight">
-                  🇹🇷 TURKEY CALLS THE HEROES
-                </h3>
-                <p className="text-[12px] text-gray-500 leading-relaxed font-medium">
-                  Достигни объёма команды $150,000 и выиграй эксклюзивную поездку в Стамбул. 14–17 мая 2026.
-                </p>
-              </div>
-            </motion.div>
-          )}
           {promoItems.map((promo, idx) => (
             <motion.div
               key={promo.id}

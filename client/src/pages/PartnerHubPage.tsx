@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -15,10 +15,6 @@ import {
   BookOpen,
   Users,
   BrainCircuit,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import {
@@ -32,27 +28,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const PartnerHubPage: React.FC = () => {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -79,53 +54,6 @@ const PartnerHubPage: React.FC = () => {
           <p className="text-[13px] text-gray-500 leading-relaxed font-medium">
             {t("partner.subtitle")}
           </p>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="relative rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(124,58,237,0.15)]"
-            data-testid="video-partner-bonuses"
-          >
-            <video
-              ref={videoRef}
-              src="/videos/partner-bonuses.mp4"
-              className="w-full aspect-video object-cover"
-              muted={isMuted}
-              loop
-              playsInline
-              onEnded={() => setIsPlaying(false)}
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              {!isPlaying && (
-                <button
-                  onClick={togglePlay}
-                  className="w-14 h-14 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-                  data-testid="button-play-video"
-                >
-                  <Play size={24} className="text-purple-600 ml-1" />
-                </button>
-              )}
-            </div>
-            <div className="absolute bottom-3 right-3 flex gap-2">
-              {isPlaying && (
-                <button
-                  onClick={togglePlay}
-                  className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center"
-                  data-testid="button-pause-video"
-                >
-                  <Pause size={14} className="text-white" />
-                </button>
-              )}
-              <button
-                onClick={toggleMute}
-                className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center"
-                data-testid="button-mute-video"
-              >
-                {isMuted ? <VolumeX size={14} className="text-white" /> : <Volume2 size={14} className="text-white" />}
-              </button>
-            </div>
-          </motion.div>
 
           <Accordion type="multiple" className="space-y-2.5">
             <AccordionItem

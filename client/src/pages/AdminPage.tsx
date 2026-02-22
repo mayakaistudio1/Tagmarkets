@@ -855,12 +855,8 @@ function PromotionsTab({
                   {promo.isActive ? "Aktiv" : "Inaktiv"}
                 </span>
               </div>
-              {promo.highlights && promo.highlights.length > 0 && (
-                <ul className="text-sm text-gray-600 space-y-1">
-                  {promo.highlights.map((h, i) => (
-                    <li key={i} className="flex items-start gap-1.5"><Check size={14} className="text-purple-500 mt-0.5 flex-shrink-0" />{h}</li>
-                  ))}
-                </ul>
+              {promo.highlights && promo.highlights.length > 0 && promo.highlights.some(h => h.trim()) && (
+                <p className="text-sm text-gray-600 whitespace-pre-line">{promo.highlights.join("\n")}</p>
               )}
               {promo.deadline && <p className="text-xs text-gray-400">Deadline: {promo.deadline}</p>}
               {promo.translationGroup && (
@@ -944,7 +940,7 @@ function PromotionForm({ promo, setPromo, onSave, onClose, adminPassword }: {
           <InputField label="oder Banner URL" value={promo.banner} onChange={(v) => setPromo({ ...promo, banner: v })} testId="input-promo-banner" />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Highlights (eine pro Zeile)</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Text</label>
           <textarea data-testid="textarea-promo-highlights" value={(promo.highlights || []).join("\n")}
             onChange={(e) => setPromo({ ...promo, highlights: e.target.value.split("\n") })}
             onKeyDown={(e) => {
@@ -952,7 +948,7 @@ function PromotionForm({ promo, setPromo, onSave, onClose, adminPassword }: {
                 e.stopPropagation();
               }
             }}
-            rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
+            rows={5} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <InputField label="CTA Text" value={promo.ctaText} onChange={(v) => setPromo({ ...promo, ctaText: v })} testId="input-promo-cta-text" />

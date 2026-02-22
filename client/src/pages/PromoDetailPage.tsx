@@ -85,14 +85,11 @@ const PromoDetailPage: React.FC = () => {
                   {promo.subtitle}
                 </p>
 
-                <div className="space-y-1.5">
-                  {promo.highlights.map((h, i) => (
-                    <p key={i} className="text-[12px] text-gray-600 font-medium flex items-start gap-2">
-                      <span className="text-purple-500 mt-0.5 flex-shrink-0">&#10003;</span>
-                      {h}
-                    </p>
-                  ))}
-                </div>
+                {promo.highlights && promo.highlights.length > 0 && promo.highlights.some(h => h.trim()) && (
+                  <p className="text-[12px] text-gray-600 font-medium leading-relaxed whitespace-pre-line">
+                    {promo.highlights.join("\n")}
+                  </p>
+                )}
 
                 {promo.deadline && (
                   <div className="flex items-center gap-2 bg-orange-50 rounded-lg px-3 py-2">
@@ -103,7 +100,7 @@ const PromoDetailPage: React.FC = () => {
                   </div>
                 )}
 
-                {promo.ctaLink ? (
+                {promo.ctaLink && promo.ctaText && (
                   <a
                     href={promo.ctaLink}
                     target="_blank"
@@ -114,14 +111,6 @@ const PromoDetailPage: React.FC = () => {
                     <ExternalLink size={14} />
                     {promo.ctaText}
                   </a>
-                ) : (
-                  <button
-                    disabled
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gray-200 text-gray-400 text-[13px] font-bold cursor-not-allowed"
-                    data-testid={`button-promo-cta-disabled-${promo.id}`}
-                  >
-                    {promo.ctaText}
-                  </button>
                 )}
               </div>
             </motion.div>

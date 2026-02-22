@@ -1038,6 +1038,21 @@ function ScheduleTab({
                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                   <Edit size={14} /> Bearbeiten
                 </button>
+                {event.banner && (
+                  <button data-testid={`button-download-banner-${event.id}`} onClick={() => {
+                    fetch(event.banner).then(r => r.blob()).then(blob => {
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `banner-${event.id}.png`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    });
+                  }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                    <Download size={14} /> Banner
+                  </button>
+                )}
                 <button data-testid={`button-delete-event-${event.id}`} onClick={() => event.id && onDelete(event.id)}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                   <Trash2 size={14} /> Löschen

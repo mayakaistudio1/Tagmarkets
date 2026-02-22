@@ -332,7 +332,12 @@ export async function registerRoutes(
   app.get("/api/schedule-events", async (req, res) => {
     try {
       const events = await storage.getScheduleEvents(true);
-      res.json(events);
+      const today = new Date().toISOString().split("T")[0];
+      const filtered = events.filter((e: any) => {
+        if (!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) return true;
+        return e.date >= today;
+      });
+      res.json(filtered);
     } catch (error) {
       console.error("Error fetching schedule events:", error);
       res.status(500).json({ error: "Internal server error" });

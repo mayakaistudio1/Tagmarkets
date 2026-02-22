@@ -334,7 +334,7 @@ export async function registerRoutes(
       const events = await storage.getScheduleEvents(true);
       const today = new Date().toISOString().split("T")[0];
       const filtered = events.filter((e: any) => {
-        if (!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) return true;
+        if (!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) return false;
         return e.date >= today;
       });
       res.json(filtered);

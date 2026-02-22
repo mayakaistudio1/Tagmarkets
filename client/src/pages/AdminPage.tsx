@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import html2canvas from "html2canvas";
 import {
   Shield,
   LogOut,
@@ -1072,6 +1073,8 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
   speakers: Speaker[]; adminPassword: string;
 }) {
 
+  const bannerRef = useRef<HTMLDivElement>(null);
+
   const handleSpeakerSelect = (speakerId: string) => {
     if (speakerId === "") {
       setEvent({ ...event, speakerId: null, speaker: "", speakerPhoto: null });
@@ -1186,8 +1189,26 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 
         {(currentSpeakerPhoto || event.banner) && (
           <div>
-            <label className="block text-[10px] font-medium text-gray-400 mb-2">Banner Vorschau</label>
-            <EventBannerPreview event={event} speakerPhoto={currentSpeakerPhoto} />
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-[10px] font-medium text-gray-400">Banner Vorschau</label>
+              <button
+                data-testid="button-download-banner-preview"
+                onClick={() => {
+                  if (bannerRef.current) {
+                    html2canvas(bannerRef.current, { useCORS: true, scale: 3, backgroundColor: null }).then(canvas => {
+                      const a = document.createElement("a");
+                      a.href = canvas.toDataURL("image/png");
+                      a.download = `banner-${event.title?.replace(/\s+/g, "-") || "webinar"}.png`;
+                      a.click();
+                    });
+                  }
+                }}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+              >
+                <Download size={12} /> Banner herunterladen
+              </button>
+            </div>
+            <EventBannerPreview ref={bannerRef} event={event} speakerPhoto={currentSpeakerPhoto} />
           </div>
         )}
         </div>
@@ -1231,7 +1252,7 @@ function convertTripleTime(time: string, fromTz: string): string {
   return `${getZonedTime(1)} BER | ${getZonedTime(3)} MSK | ${getZonedTime(4)} DXB`;
 }
 
-function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; speakerPhoto: string }) {
+const EventBannerPreview = React.forwardRef<HTMLDivElement, { event: ScheduleEvent; speakerPhoto: string }>(({ event, speakerPhoto }, ref) => {
   const tz = event.timezone || "CET";
   const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
 
@@ -1245,7 +1266,7 @@ function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; spe
   }
 
   return (
-    <div className="relative w-full rounded-xl overflow-hidden shadow-lg"
+    <div ref={ref} className="relative w-full rounded-xl overflow-hidden shadow-lg"
       style={{ background: "linear-gradient(-29deg, rgb(182, 139, 255) 0%, rgb(255, 255, 255) 69%)", containerType: "inline-size" }}>
       <div className="pt-[55%]" />
       <div className="absolute inset-0 p-1 grid gap-[2px] pointer-events-none"
@@ -1312,7 +1333,7 @@ function EventBannerPreview({ event, speakerPhoto }: { event: ScheduleEvent; spe
       </div>
     </div>
   );
-}
+});
 
 function InputField({ label, value, onChange, testId }: {
   label: string; value: string; onChange: (v: string) => void; testId: string;

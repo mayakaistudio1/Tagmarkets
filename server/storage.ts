@@ -18,7 +18,7 @@ export interface IStorage {
   getChatSessions(filters?: { type?: string; dateFrom?: string; dateTo?: string }): Promise<any[]>;
   getChatSessionMessages(sessionId: string): Promise<any[]>;
 
-  getPromotions(activeOnly?: boolean): Promise<any[]>;
+  getPromotions(activeOnly?: boolean, language?: string): Promise<any[]>;
   getPromotion(id: number): Promise<any | undefined>;
   createPromotion(promo: any): Promise<any>;
   updatePromotion(id: number, promo: any): Promise<any>;
@@ -110,9 +110,16 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(chatMessages).where(eq(chatMessages.sessionId, sessionId)).orderBy(chatMessages.timestamp);
   }
 
-  async getPromotions(activeOnly?: boolean): Promise<any[]> {
+  async getPromotions(activeOnly?: boolean, language?: string): Promise<any[]> {
+    const conditions = [];
     if (activeOnly) {
-      return db.select().from(promotions).where(eq(promotions.isActive, true)).orderBy(promotions.sortOrder);
+      conditions.push(eq(promotions.isActive, true));
+    }
+    if (language) {
+      conditions.push(eq(promotions.language, language));
+    }
+    if (conditions.length > 0) {
+      return db.select().from(promotions).where(and(...conditions)).orderBy(promotions.sortOrder);
     }
     return db.select().from(promotions).orderBy(promotions.sortOrder);
   }

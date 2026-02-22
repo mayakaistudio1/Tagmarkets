@@ -25,12 +25,12 @@ const PromoDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/promotions")
+    fetch(`/api/promotions?language=${language}`)
       .then(r => r.json())
       .then(data => setPromoItems(data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [language]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">

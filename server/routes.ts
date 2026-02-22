@@ -270,7 +270,8 @@ export async function registerRoutes(
 
   app.get("/api/promotions", async (req, res) => {
     try {
-      const promos = await storage.getPromotions(true);
+      const language = req.query.language as string | undefined;
+      const promos = await storage.getPromotions(true, language);
       res.json(promos);
     } catch (error) {
       console.error("Error fetching promotions:", error);

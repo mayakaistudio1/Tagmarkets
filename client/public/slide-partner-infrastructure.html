@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JetUP — Partner Infrastructure Slide</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .slide {
+    width: 1456px;
+    height: 840px;
+    background: #ffffff;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .top-bar {
+    height: 4px;
+    background: linear-gradient(90deg, #7C3AED, #A855F7, #7C3AED);
+    flex-shrink: 0;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 40px 0 40px;
+    flex-shrink: 0;
+  }
+
+  .header img {
+    height: 36px;
+    width: auto;
+  }
+
+  .header-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #7C3AED;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+
+  .main-content {
+    display: flex;
+    flex: 1;
+    padding: 0;
+    min-height: 0;
+  }
+
+  .left-panel {
+    flex: 1;
+    background: linear-gradient(135deg, #FAFAFA 0%, #F0ECFF 100%);
+    padding: 32px 36px 28px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ECFDF5;
+    border: 1px solid #A7F3D0;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #059669;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    width: fit-content;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: #10B981;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .left-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+
+  .left-subtitle {
+    font-size: 15px;
+    font-weight: 500;
+    color: #6B7280;
+    margin-bottom: 28px;
+    font-style: italic;
+  }
+
+  .feature-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .check-icon {
+    width: 22px;
+    height: 22px;
+    background: #7C3AED;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .check-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .feature-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1F2937;
+    line-height: 1.4;
+  }
+
+  .feature-desc {
+    font-weight: 400;
+    color: #6B7280;
+    font-size: 13px;
+  }
+
+  .right-panel {
+    flex: 1;
+    background: linear-gradient(160deg, #7C3AED 0%, #4C1D95 50%, #1E1040 100%);
+    padding: 32px 40px 28px 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .right-panel::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .right-panel::after {
+    content: '';
+    position: absolute;
+    bottom: -80px;
+    left: -60px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .coming-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #E9D5FF;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    width: fit-content;
+    position: relative;
+    z-index: 1;
+  }
+
+  .right-title {
+    font-size: 32px;
+    font-weight: 900;
+    color: #ffffff;
+    margin-bottom: 4px;
+    position: relative;
+    z-index: 1;
+    line-height: 1.1;
+  }
+
+  .right-subtitle {
+    font-size: 14px;
+    font-weight: 500;
+    color: #C4B5FD;
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .future-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .future-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .arrow-icon {
+    color: #A855F7;
+    font-size: 16px;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 1px;
+    width: 20px;
+  }
+
+  .future-text {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #F3F4F6;
+    line-height: 1.4;
+  }
+
+  .future-desc {
+    font-weight: 400;
+    color: #A5B4FC;
+    font-size: 12.5px;
+  }
+
+  .avatar-visual {
+    position: absolute;
+    bottom: 24px;
+    right: 28px;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    opacity: 0.18;
+    z-index: 0;
+  }
+
+  .avatar-figure {
+    width: 60px;
+    height: 80px;
+    border-radius: 30px 30px 4px 4px;
+    background: rgba(255,255,255,0.5);
+  }
+
+  .avatar-figure.ai {
+    background: linear-gradient(180deg, rgba(168,85,247,0.8) 0%, rgba(124,58,237,0.5) 100%);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+
+  .bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #111827;
+    padding: 14px 40px;
+    flex-shrink: 0;
+  }
+
+  .bottom-tagline {
+    font-size: 14px;
+    color: #D1D5DB;
+    font-weight: 500;
+  }
+
+  .bottom-tagline em {
+    color: #A855F7;
+    font-style: normal;
+    font-weight: 700;
+  }
+
+  .bottom-brand {
+    font-size: 18px;
+    font-weight: 800;
+    color: #A855F7;
+    letter-spacing: 1px;
+  }
+
+  .download-btn {
+    margin-top: 28px;
+    padding: 14px 36px;
+    background: linear-gradient(135deg, #7C3AED, #A855F7);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+  }
+  .download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(124,58,237,0.5);
+  }
+</style>
+</head>
+<body>
+
+<div class="slide" id="slide">
+  <div class="top-bar"></div>
+
+  <div class="header">
+    <img src="/jetup-logo-banner.png" alt="JetUP" />
+    <span class="header-title">Your Partner Infrastructure</span>
+  </div>
+
+  <div class="main-content">
+    <div class="left-panel">
+      <div class="live-badge">
+        <span class="live-dot"></span> Live Now
+      </div>
+
+      <div class="left-title">jet-up.ai — Digital Hub</div>
+      <div class="left-subtitle">The smarter alternative to Linktree — built on AI.</div>
+
+      <ul class="feature-list">
+        <li class="feature-item">
+          <div class="check-icon">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="feature-text">AI Assistant Maria</div>
+            <div class="feature-desc">24/7 real-time support in German & Russian</div>
+          </div>
+        </li>
+        <li class="feature-item">
+          <div class="check-icon">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="feature-text">Full Ecosystem in One Link</div>
+            <div class="feature-desc">Schedule, tutorials, promotions & more</div>
+          </div>
+        </li>
+        <li class="feature-item">
+          <div class="check-icon">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="feature-text">Telegram Mini App</div>
+            <div class="feature-desc">Always in your pocket, instant access</div>
+          </div>
+        </li>
+        <li class="feature-item">
+          <div class="check-icon">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="feature-text">Auto-Generated Banners</div>
+            <div class="feature-desc">One-click webinar visuals for instant sharing</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="right-panel">
+      <div class="coming-badge">
+        &#x1F680; Coming Soon for Leaders
+      </div>
+
+      <div class="right-title">Your Digital Twin</div>
+      <div class="right-subtitle">Personal Mini-App — powered by AI</div>
+
+      <ul class="future-list">
+        <li class="future-item">
+          <span class="arrow-icon">&rarr;</span>
+          <div>
+            <div class="future-text">Your Own AI Avatar</div>
+            <div class="future-desc">Looks like you. Talks like you.</div>
+          </div>
+        </li>
+        <li class="future-item">
+          <span class="arrow-icon">&rarr;</span>
+          <div>
+            <div class="future-text">24/7 Team Support</div>
+            <div class="future-desc">Answers your team's questions — even while you sleep</div>
+          </div>
+        </li>
+        <li class="future-item">
+          <span class="arrow-icon">&rarr;</span>
+          <div>
+            <div class="future-text">Automated Recruiting</div>
+            <div class="future-desc">AI qualifies and onboards new leads for you</div>
+          </div>
+        </li>
+        <li class="future-item">
+          <span class="arrow-icon">&rarr;</span>
+          <div>
+            <div class="future-text">AI Video Messages</div>
+            <div class="future-desc">Personalized videos — generated in your voice & style</div>
+          </div>
+        </li>
+        <li class="future-item">
+          <span class="arrow-icon">&rarr;</span>
+          <div>
+            <div class="future-text">One Branded Link</div>
+            <div class="future-desc">Your entire business — professional, always updated</div>
+          </div>
+        </li>
+        <li class="future-item">
+          <span class="arrow-icon">&rarr;</span>
+          <div>
+            <div class="future-text">Smart Language Detection</div>
+            <div class="future-desc">Content adapts automatically to your audience</div>
+          </div>
+        </li>
+      </ul>
+
+      <div class="avatar-visual">
+        <div class="avatar-figure"></div>
+        <div class="avatar-figure ai"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="bottom-tagline">From generic team tool &rarr; <em>personalized partner machine.</em> The competitive advantage no one else has.</div>
+    <div class="bottom-brand">jet-up.ai</div>
+  </div>
+</div>
+
+<button class="download-btn" onclick="downloadSlide()">&#x2B07; Download as PNG (1456x840)</button>
+
+<script>
+function downloadSlide() {
+  const slide = document.getElementById('slide');
+  html2canvas(slide, {
+    scale: 2,
+    backgroundColor: '#ffffff',
+    width: 1456,
+    height: 840,
+    windowWidth: 1456,
+    windowHeight: 840,
+    useCORS: true,
+    logging: false,
+  }).then(function(canvas) {
+    var a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'JetUP-Partner-Infrastructure-Slide.png';
+    a.click();
+  });
+}
+</script>
+
+</body>
+</html>

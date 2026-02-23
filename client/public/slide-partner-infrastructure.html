@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JetUP — Partner Infrastructure Slide</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<title>JetUP — Partner Infrastructure</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: 'Montserrat', sans-serif;
-    background: #1a1a2e;
+    background: #0a0a12;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -22,468 +22,650 @@
   .slide {
     width: 1456px;
     height: 840px;
-    background: #ffffff;
     position: relative;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    background: #06060e;
   }
 
-  .top-bar {
-    height: 4px;
-    background: linear-gradient(90deg, #7C3AED, #A855F7, #7C3AED);
-    flex-shrink: 0;
+  .top-accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #7C3AED 0%, #A855F7 30%, #C084FC 50%, #A855F7 70%, #7C3AED 100%);
+    z-index: 50;
   }
 
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 40px 0 40px;
-    flex-shrink: 0;
-  }
-
-  .header img {
-    height: 36px;
-    width: auto;
-  }
-
-  .header-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #7C3AED;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-  }
-
-  .main-content {
+  .main-wrap {
     display: flex;
     flex: 1;
-    padding: 0;
     min-height: 0;
   }
 
-  .left-panel {
-    flex: 1;
-    background: linear-gradient(135deg, #FAFAFA 0%, #F0ECFF 100%);
-    padding: 32px 36px 28px 40px;
+  /* ===== LEFT PANEL ===== */
+  .left {
+    width: 52%;
+    background: linear-gradient(165deg, #ffffff 0%, #f8f5ff 40%, #f0eaff 100%);
+    padding: 52px 44px 36px 52px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    position: relative;
-  }
-
-  .live-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #ECFDF5;
-    border: 1px solid #A7F3D0;
-    border-radius: 20px;
-    padding: 4px 14px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #059669;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-    width: fit-content;
-  }
-
-  .live-dot {
-    width: 8px;
-    height: 8px;
-    background: #10B981;
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  .left-title {
-    font-size: 28px;
-    font-weight: 800;
-    color: #111827;
-    margin-bottom: 4px;
-  }
-
-  .left-subtitle {
-    font-size: 15px;
-    font-weight: 500;
-    color: #6B7280;
-    margin-bottom: 28px;
-    font-style: italic;
-  }
-
-  .feature-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .feature-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .check-icon {
-    width: 22px;
-    height: 22px;
-    background: #7C3AED;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  .check-icon svg {
-    width: 12px;
-    height: 12px;
-  }
-
-  .feature-text {
-    font-size: 15px;
-    font-weight: 600;
-    color: #1F2937;
-    line-height: 1.4;
-  }
-
-  .feature-desc {
-    font-weight: 400;
-    color: #6B7280;
-    font-size: 13px;
-  }
-
-  .right-panel {
-    flex: 1;
-    background: linear-gradient(160deg, #7C3AED 0%, #4C1D95 50%, #1E1040 100%);
-    padding: 32px 40px 28px 36px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
     position: relative;
     overflow: hidden;
   }
 
-  .right-panel::before {
+  .left::after {
     content: '';
     position: absolute;
-    top: -100px;
-    right: -100px;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);
+    bottom: -120px;
+    right: -80px;
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%);
     border-radius: 50%;
+    pointer-events: none;
   }
 
-  .right-panel::after {
-    content: '';
-    position: absolute;
-    bottom: -80px;
-    left: -60px;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%);
-    border-radius: 50%;
-  }
-
-  .coming-badge {
-    display: inline-flex;
+  .left-header {
+    display: flex;
     align-items: center;
-    gap: 6px;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 20px;
-    padding: 4px 14px;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .logo {
+    height: 38px;
+    width: auto;
+  }
+
+  .live-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 1.5px solid #6ee7b7;
+    border-radius: 24px;
+    padding: 5px 16px 5px 12px;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #047857;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+  }
+
+  .live-dot {
+    width: 9px;
+    height: 9px;
+    background: #10B981;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(16,185,129,0.6);
+  }
+
+  .left-eyebrow {
     font-size: 11px;
     font-weight: 700;
-    color: #E9D5FF;
-    letter-spacing: 2px;
+    color: #7C3AED;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    margin-bottom: 20px;
-    width: fit-content;
+    margin-bottom: 8px;
+  }
+
+  .left-title {
+    font-size: 34px;
+    font-weight: 900;
+    color: #111827;
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+
+  .left-title span {
+    background: linear-gradient(135deg, #7C3AED, #A855F7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .left-sub {
+    font-size: 15px;
+    font-weight: 400;
+    color: #6B7280;
+    margin-bottom: 36px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+  }
+
+  .feat {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .feat-check {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #7C3AED, #9333EA);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(124,58,237,0.25);
+  }
+
+  .feat-check svg { width: 14px; height: 14px; }
+
+  .feat-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1F2937;
+    line-height: 1.3;
+  }
+
+  .feat-desc {
+    font-size: 12.5px;
+    font-weight: 400;
+    color: #9CA3AF;
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  .left-footer {
+    margin-top: auto;
+    padding-top: 16px;
+  }
+
+  .left-url {
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #7C3AED, #A855F7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== RIGHT PANEL ===== */
+  .right {
+    width: 48%;
+    background: linear-gradient(155deg, #4C1D95 0%, #2E1065 35%, #1a0a3e 65%, #0f0520 100%);
+    padding: 52px 44px 36px 40px;
+    display: flex;
+    flex-direction: column;
     position: relative;
-    z-index: 1;
+    overflow: hidden;
+  }
+
+  .glow-1 {
+    position: absolute;
+    top: -60px;
+    right: -40px;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .glow-2 {
+    position: absolute;
+    bottom: 40px;
+    left: -60px;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .glow-3 {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 60%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    opacity: 0.04;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .coming-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 24px;
+    padding: 6px 18px 6px 14px;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #E9D5FF;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    width: fit-content;
+    margin-bottom: 24px;
+    backdrop-filter: blur(8px);
+    position: relative;
+    z-index: 2;
+  }
+
+  .rocket { font-size: 14px; }
+
+  .right-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    color: #C4B5FD;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 2;
   }
 
   .right-title {
-    font-size: 32px;
+    font-size: 40px;
     font-weight: 900;
     color: #ffffff;
-    margin-bottom: 4px;
+    line-height: 1.05;
+    margin-bottom: 6px;
     position: relative;
-    z-index: 1;
-    line-height: 1.1;
+    z-index: 2;
   }
 
-  .right-subtitle {
+  .right-title .glow-text {
+    background: linear-gradient(135deg, #C084FC 0%, #E9D5FF 50%, #A855F7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .right-sub {
     font-size: 14px;
-    font-weight: 500;
-    color: #C4B5FD;
-    margin-bottom: 28px;
+    font-weight: 400;
+    color: #A78BFA;
+    margin-bottom: 30px;
     position: relative;
-    z-index: 1;
+    z-index: 2;
+    line-height: 1.5;
   }
 
   .future-list {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
     position: relative;
-    z-index: 1;
+    z-index: 2;
+    flex: 1;
   }
 
-  .future-item {
+  .fut {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
+    gap: 12px;
   }
 
-  .arrow-icon {
-    color: #A855F7;
-    font-size: 16px;
-    font-weight: 800;
+  .fut-arrow {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, rgba(168,85,247,0.3), rgba(124,58,237,0.15));
+    border: 1px solid rgba(168,85,247,0.3);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-    margin-top: 1px;
-    width: 20px;
+    color: #C084FC;
+    font-size: 13px;
+    font-weight: 800;
   }
 
-  .future-text {
-    font-size: 14.5px;
-    font-weight: 600;
+  .fut-label {
+    font-size: 15px;
+    font-weight: 700;
     color: #F3F4F6;
-    line-height: 1.4;
+    line-height: 1.3;
   }
 
-  .future-desc {
+  .fut-desc {
+    font-size: 11.5px;
     font-weight: 400;
-    color: #A5B4FC;
-    font-size: 12.5px;
+    color: #8B8BA7;
+    margin-top: 1px;
   }
 
-  .avatar-visual {
+  /* ===== TWIN VISUAL ===== */
+  .twin-visual {
     position: absolute;
-    bottom: 24px;
-    right: 28px;
+    bottom: 28px;
+    right: 32px;
     display: flex;
     align-items: flex-end;
-    gap: 6px;
-    opacity: 0.18;
-    z-index: 0;
+    gap: 4px;
+    z-index: 1;
+    opacity: 0.25;
   }
 
-  .avatar-figure {
-    width: 60px;
-    height: 80px;
-    border-radius: 30px 30px 4px 4px;
-    background: rgba(255,255,255,0.5);
+  .twin-human {
+    width: 50px;
+    height: 72px;
+    border-radius: 25px 25px 6px 6px;
+    background: rgba(255,255,255,0.35);
+    position: relative;
+  }
+  .twin-human::before {
+    content: '';
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
-  .avatar-figure.ai {
-    background: linear-gradient(180deg, rgba(168,85,247,0.8) 0%, rgba(124,58,237,0.5) 100%);
-    border: 1px solid rgba(255,255,255,0.3);
+  .twin-ai {
+    width: 50px;
+    height: 72px;
+    border-radius: 25px 25px 6px 6px;
+    background: linear-gradient(180deg, rgba(168,85,247,0.7) 0%, rgba(124,58,237,0.3) 100%);
+    border: 1px solid rgba(192,132,252,0.4);
+    position: relative;
+  }
+  .twin-ai::before {
+    content: '';
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(168,85,247,0.8), rgba(192,132,252,0.4));
+    border: 1px solid rgba(192,132,252,0.5);
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
-  .bottom-bar {
+  .twin-link {
+    position: absolute;
+    width: 30px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(192,132,252,0.5), transparent);
+    top: 30px;
+    left: -18px;
+  }
+
+  /* ===== BOTTOM BAR ===== */
+  .bottom-strip {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #111827;
-    padding: 14px 40px;
+    background: linear-gradient(90deg, #111827 0%, #1a1033 50%, #111827 100%);
+    padding: 16px 52px;
     flex-shrink: 0;
+    border-top: 1px solid rgba(124,58,237,0.2);
+    position: relative;
   }
 
-  .bottom-tagline {
-    font-size: 14px;
-    color: #D1D5DB;
+  .bottom-strip::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 20%;
+    right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(168,85,247,0.4), transparent);
+  }
+
+  .bottom-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13.5px;
+    color: #9CA3AF;
     font-weight: 500;
   }
 
-  .bottom-tagline em {
-    color: #A855F7;
-    font-style: normal;
+  .bottom-left .dim { color: #6B7280; }
+
+  .bottom-left .hl {
+    color: #C084FC;
     font-weight: 700;
+  }
+
+  .bottom-left .arr {
+    color: #7C3AED;
+    font-size: 16px;
+  }
+
+  .bottom-tagline {
+    font-size: 12px;
+    color: #6B7280;
+    font-weight: 500;
+    font-style: italic;
   }
 
   .bottom-brand {
-    font-size: 18px;
-    font-weight: 800;
-    color: #A855F7;
+    font-size: 20px;
+    font-weight: 900;
     letter-spacing: 1px;
+    background: linear-gradient(135deg, #A855F7, #C084FC);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .download-btn {
-    margin-top: 28px;
-    padding: 14px 36px;
+  /* ===== DOWNLOAD ===== */
+  .dl-wrap {
+    margin-top: 32px;
+    display: flex;
+    gap: 16px;
+  }
+
+  .dl-btn {
+    padding: 14px 40px;
     background: linear-gradient(135deg, #7C3AED, #A855F7);
     color: white;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     font-family: 'Montserrat', sans-serif;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+    letter-spacing: 0.5px;
+    transition: all 0.25s;
+    box-shadow: 0 4px 24px rgba(124,58,237,0.45);
   }
-  .download-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(124,58,237,0.5);
+  .dl-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 36px rgba(124,58,237,0.55);
   }
 </style>
 </head>
 <body>
 
 <div class="slide" id="slide">
-  <div class="top-bar"></div>
+  <div class="top-accent"></div>
 
-  <div class="header">
-    <img src="/jetup-logo-banner.png" alt="JetUP" />
-    <span class="header-title">Your Partner Infrastructure</span>
-  </div>
-
-  <div class="main-content">
-    <div class="left-panel">
-      <div class="live-badge">
-        <span class="live-dot"></span> Live Now
+  <div class="main-wrap">
+    <!-- LEFT -->
+    <div class="left">
+      <div class="left-header">
+        <img class="logo" src="/jetup-logo-banner.png" alt="JetUP" />
+        <div class="live-pill"><span class="live-dot"></span>LIVE</div>
       </div>
 
-      <div class="left-title">jet-up.ai — Digital Hub</div>
-      <div class="left-subtitle">The smarter alternative to Linktree — built on AI.</div>
+      <div class="left-eyebrow">Digital Hub</div>
+      <div class="left-title"><span>jet-up.ai</span></div>
+      <div class="left-sub">The smarter alternative to Linktree — built on AI.</div>
 
-      <ul class="feature-list">
-        <li class="feature-item">
-          <div class="check-icon">
-            <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <ul class="features">
+        <li class="feat">
+          <div class="feat-check">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M3 7L6 10L11 4" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <div>
-            <div class="feature-text">AI Assistant Maria</div>
-            <div class="feature-desc">24/7 real-time support in German & Russian</div>
+            <div class="feat-label">AI Assistant Maria</div>
+            <div class="feat-desc">24/7 real-time support in German & Russian</div>
           </div>
         </li>
-        <li class="feature-item">
-          <div class="check-icon">
-            <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <li class="feat">
+          <div class="feat-check">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M3 7L6 10L11 4" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <div>
-            <div class="feature-text">Full Ecosystem in One Link</div>
-            <div class="feature-desc">Schedule, tutorials, promotions & more</div>
+            <div class="feat-label">Full Ecosystem in One Link</div>
+            <div class="feat-desc">Schedule, tutorials, promotions & webinars</div>
           </div>
         </li>
-        <li class="feature-item">
-          <div class="check-icon">
-            <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <li class="feat">
+          <div class="feat-check">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M3 7L6 10L11 4" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <div>
-            <div class="feature-text">Telegram Mini App</div>
-            <div class="feature-desc">Always in your pocket, instant access</div>
+            <div class="feat-label">Telegram Mini App</div>
+            <div class="feat-desc">Always in your pocket — instant access</div>
           </div>
         </li>
-        <li class="feature-item">
-          <div class="check-icon">
-            <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <li class="feat">
+          <div class="feat-check">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M3 7L6 10L11 4" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <div>
-            <div class="feature-text">Auto-Generated Banners</div>
-            <div class="feature-desc">One-click webinar visuals for instant sharing</div>
+            <div class="feat-label">Auto-Generated Banners</div>
+            <div class="feat-desc">One-click webinar visuals for instant sharing</div>
           </div>
         </li>
       </ul>
+
+      <div class="left-footer">
+        <span class="left-url">jet-up.ai</span>
+      </div>
     </div>
 
-    <div class="right-panel">
-      <div class="coming-badge">
-        &#x1F680; Coming Soon for Leaders
+    <!-- RIGHT -->
+    <div class="right">
+      <div class="glow-1"></div>
+      <div class="glow-2"></div>
+      <div class="glow-3"></div>
+      <div class="grid-bg"></div>
+
+      <div class="coming-pill">
+        <span class="rocket">&#x1F680;</span> Coming Soon for Leaders
       </div>
 
-      <div class="right-title">Your Digital Twin</div>
-      <div class="right-subtitle">Personal Mini-App — powered by AI</div>
+      <div class="right-eyebrow">Personal Mini-App</div>
+      <div class="right-title">Your <span class="glow-text">Digital Twin</span></div>
+      <div class="right-sub">Looks like you. Talks like you. Works for you — 24/7.</div>
 
       <ul class="future-list">
-        <li class="future-item">
-          <span class="arrow-icon">&rarr;</span>
+        <li class="fut">
+          <div class="fut-arrow">&rarr;</div>
           <div>
-            <div class="future-text">Your Own AI Avatar</div>
-            <div class="future-desc">Looks like you. Talks like you.</div>
+            <div class="fut-label">Your Own AI Avatar</div>
+            <div class="fut-desc">Video avatar with your face, voice & personality</div>
           </div>
         </li>
-        <li class="future-item">
-          <span class="arrow-icon">&rarr;</span>
+        <li class="fut">
+          <div class="fut-arrow">&rarr;</div>
           <div>
-            <div class="future-text">24/7 Team Support</div>
-            <div class="future-desc">Answers your team's questions — even while you sleep</div>
+            <div class="fut-label">24/7 Team Support</div>
+            <div class="fut-desc">Answers questions while you sleep</div>
           </div>
         </li>
-        <li class="future-item">
-          <span class="arrow-icon">&rarr;</span>
+        <li class="fut">
+          <div class="fut-arrow">&rarr;</div>
           <div>
-            <div class="future-text">Automated Recruiting</div>
-            <div class="future-desc">AI qualifies and onboards new leads for you</div>
+            <div class="fut-label">Automated Recruiting</div>
+            <div class="fut-desc">AI qualifies & onboards new leads for you</div>
           </div>
         </li>
-        <li class="future-item">
-          <span class="arrow-icon">&rarr;</span>
+        <li class="fut">
+          <div class="fut-arrow">&rarr;</div>
           <div>
-            <div class="future-text">AI Video Messages</div>
-            <div class="future-desc">Personalized videos — generated in your voice & style</div>
+            <div class="fut-label">AI Video Messages</div>
+            <div class="fut-desc">Personalized outreach in your voice & style</div>
           </div>
         </li>
-        <li class="future-item">
-          <span class="arrow-icon">&rarr;</span>
+        <li class="fut">
+          <div class="fut-arrow">&rarr;</div>
           <div>
-            <div class="future-text">One Branded Link</div>
-            <div class="future-desc">Your entire business — professional, always updated</div>
+            <div class="fut-label">One Branded Link</div>
+            <div class="fut-desc">Professional, always updated, uniquely yours</div>
           </div>
         </li>
-        <li class="future-item">
-          <span class="arrow-icon">&rarr;</span>
+        <li class="fut">
+          <div class="fut-arrow">&rarr;</div>
           <div>
-            <div class="future-text">Smart Language Detection</div>
-            <div class="future-desc">Content adapts automatically to your audience</div>
+            <div class="fut-label">Smart Language Detection</div>
+            <div class="fut-desc">Content adapts to your audience automatically</div>
           </div>
         </li>
       </ul>
 
-      <div class="avatar-visual">
-        <div class="avatar-figure"></div>
-        <div class="avatar-figure ai"></div>
+      <div class="twin-visual">
+        <div class="twin-human"></div>
+        <div class="twin-ai">
+          <div class="twin-link"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="bottom-bar">
-    <div class="bottom-tagline">From generic team tool &rarr; <em>personalized partner machine.</em> The competitive advantage no one else has.</div>
+  <!-- BOTTOM -->
+  <div class="bottom-strip">
+    <div class="bottom-left">
+      <span class="dim">From generic team tool</span>
+      <span class="arr">&#x2192;</span>
+      <span class="hl">personalized partner machine</span>
+    </div>
+    <div class="bottom-tagline">The competitive advantage no one else has.</div>
     <div class="bottom-brand">jet-up.ai</div>
   </div>
 </div>
 
-<button class="download-btn" onclick="downloadSlide()">&#x2B07; Download as PNG (1456x840)</button>
+<div class="dl-wrap">
+  <button class="dl-btn" onclick="downloadSlide()">&#x2B07; Download as PNG</button>
+</div>
 
 <script>
 function downloadSlide() {
-  const slide = document.getElementById('slide');
+  var slide = document.getElementById('slide');
   html2canvas(slide, {
     scale: 2,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#06060e',
     width: 1456,
     height: 840,
     windowWidth: 1456,
     windowHeight: 840,
     useCORS: true,
     logging: false,
+    imageTimeout: 5000,
   }).then(function(canvas) {
     var a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
-    a.download = 'JetUP-Partner-Infrastructure-Slide.png';
+    a.download = 'JetUP-Partner-Infrastructure.png';
     a.click();
   });
 }

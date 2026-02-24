@@ -54,6 +54,7 @@ Preferred communication style: Simple, everyday language.
 - **Production**: `npm run build` for client (Vite) and server (esbuild) bundling, followed by `npm start`.
 
 ### Core Features
+- **Social Sharing**: Reusable ShareMenu component on Promotions and Schedule pages — supports Telegram, WhatsApp, clipboard copy, and native Web Share API. Trilingual labels (DE/RU/EN).
 - **Smart Linktree Navigation**: Multi-level navigation including Hub, Trading Hub, Partner Hub, Schedule, Tutorials, and Promotions.
 - **Admin Panel**: Password-protected (`/admin`) for managing chat logs, promotions, schedule events, and speakers with CRUD operations. Includes rate-limited login.
 

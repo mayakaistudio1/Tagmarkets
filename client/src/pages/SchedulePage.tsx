@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "../contexts/LanguageContext";
+import ShareMenu from "@/components/ShareMenu";
 
 interface ScheduleEvent {
   id: number;
@@ -280,6 +281,14 @@ const SchedulePage: React.FC = () => {
                           {event.language === "de" ? "DE" : event.language === "en" ? "EN" : "RU"}
                         </span>
                       )}
+                      <div className="ml-auto">
+                        <ShareMenu
+                          title={event.title}
+                          text={`${event.speaker} — ${event.day}, ${event.date}${event.time ? `, ${event.time}` : ""}`}
+                          url={event.link}
+                          testId={`button-share-event-${event.id}`}
+                        />
+                      </div>
                     </div>
 
                     <h3 className="text-[15px] font-bold text-gray-900 leading-tight">

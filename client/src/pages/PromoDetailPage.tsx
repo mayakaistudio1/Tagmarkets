@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Zap, Clock, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
+import ShareMenu from "@/components/ShareMenu";
 
 export interface PromoItem {
   id: number;
@@ -75,6 +76,14 @@ const PromoDetailPage: React.FC = () => {
                     <Zap size={8} />
                     {promo.badge}
                   </span>
+                  <div className="ml-auto">
+                    <ShareMenu
+                      title={promo.title}
+                      text={promo.subtitle}
+                      url={promo.ctaLink}
+                      testId={`button-share-promo-${promo.id}`}
+                    />
+                  </div>
                 </div>
 
                 <h3 className="text-[16px] font-extrabold text-gray-900 leading-tight" data-testid={`text-promo-title-${promo.id}`}>

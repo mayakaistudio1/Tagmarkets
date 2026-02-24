@@ -9,6 +9,7 @@
  */
 
 import type { Express, Request, Response } from "express";
+import { storage } from "../storage";
 
 const LIVEAVATAR_API_KEY = process.env.LIVEAVATAR_API_KEY;
 const LIVEAVATAR_AVATAR_ID = process.env.LIVEAVATAR_AVATAR_ID || "YOUR_AVATAR_ID";
@@ -270,6 +271,36 @@ export function registerLiveAvatarRoutes(app: Express): void {
       res.status(500).json({
         error: "End session failed",
         details: error?.message || String(error)
+      });
+    }
+  });
+
+  app.post("/api/liveavatar/sessions/:id/transcript", async (req: Request, res: Response) => {
+    try {
+      const sessionId = req.params.id as string;
+      const { language = "de", messages = [] } = req.body || {};
+
+      if (!messages.length) {
+        return res.status(200).json({ ok: true, saved: 0 });
+      }
+
+      await storage.createChatSession({ sessionId, language, type: "video" });
+
+      for (const msg of messages) {
+        const role = msg.sender === "avatar" ? "assistant" : "user";
+        await storage.saveChatMessage({
+          sessionId,
+          role,
+          content: msg.text || "",
+        });
+      }
+
+      res.status(200).json({ ok: true, saved: messages.length });
+    } catch (error: any) {
+      console.error("Save video transcript error:", error);
+      res.status(500).json({
+        error: "Save transcript failed",
+        details: error?.message || String(error),
       });
     }
   });

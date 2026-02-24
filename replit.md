@@ -29,7 +29,7 @@ Preferred communication style: Simple, everyday language.
     - **Color Scheme**: Primary purple (`#7C3AED`), accent light purple (`#A855F7`), gradient effects.
     - **Typography**: Montserrat font (400-800 weight).
     - **Mobile-First Design**: Responsive layout for optimal mobile experience.
-    - **Multilingual Support**: German (de) and Russian (ru) languages managed via `LanguageContext.tsx`.
+    - **Multilingual Support**: German (de), Russian (ru), and English (en) languages managed via `LanguageContext.tsx`.
 
 ### Backend
 - **Runtime**: Node.js 20 with Express 5.
@@ -43,8 +43,8 @@ Preferred communication style: Simple, everyday language.
 - **Data Management**: Drizzle-kit for migrations; seed data loaded on first startup.
 
 ### AI Integrations
-- **Maria Text Chat**: Utilizes OpenAI API via Replit AI Integrations for streaming SSE responses. Includes system prompts tailored per language (RU/DE) with integrated JetUP knowledge base.
-- **Maria Video Avatar**: HeyGen LiveAvatar integration via LiveKit WebRTC for real-time video streaming with voice.
+- **Maria Text Chat**: Utilizes OpenAI API via Replit AI Integrations for streaming SSE responses. Includes system prompts tailored per language (RU/DE/EN) with integrated JetUP knowledge base. Text transcripts saved to DB.
+- **Maria Video Avatar**: HeyGen LiveAvatar integration via LiveKit WebRTC for real-time video streaming with voice. Video call transcriptions are saved to the database on session end and viewable in the admin panel.
 
 ### File Storage
 - **Platform**: Replit Object Storage for persistent file uploads (e.g., speaker photos, banners).

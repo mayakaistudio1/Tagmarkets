@@ -330,6 +330,21 @@ export default function LiveAvatarChat({ language = "de", onSessionEnd, onClose 
         body: JSON.stringify({ session_token: sessionToken }),
       });
 
+      if (messagesRef.current.length > 0) {
+        try {
+          await fetch(`/api/liveavatar/sessions/${sessionId}/transcript`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              language,
+              messages: messagesRef.current,
+            }),
+          });
+        } catch (e) {
+          console.error('Failed to save video transcript:', e);
+        }
+      }
+
       console.log('LiveAvatar session finished');
       
       if (onSessionEnd) {

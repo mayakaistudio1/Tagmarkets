@@ -96,7 +96,7 @@ export class DatabaseStorage implements IStorage {
         type: chatSessions.type,
         createdAt: chatSessions.createdAt,
         updatedAt: chatSessions.updatedAt,
-        messageCount: sql<number>`(SELECT COUNT(*) FROM chat_messages WHERE chat_messages.session_id = ${chatSessions.sessionId})`.as('messageCount'),
+        messageCount: sql<number>`(SELECT COUNT(*) FROM chat_messages WHERE chat_messages.session_id = chat_sessions.session_id)`.as('messageCount'),
       })
       .from(chatSessions)
       .orderBy(desc(chatSessions.createdAt));

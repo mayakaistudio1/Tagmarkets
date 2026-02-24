@@ -580,6 +580,22 @@ function ChatLogsTab({
     }
   };
 
+  const handleExportSession = async (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch(`/api/admin/chat-sessions/${sessionId}/export`, { headers: headers() });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `chat-${sessionId.substring(0, 8)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch {}
+  };
+
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -644,7 +660,17 @@ function ChatLogsTab({
                     <td className="px-4 py-3 text-sm text-gray-600">{session.language}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">{new Date(session.createdAt).toLocaleDateString("de-DE")}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">{session.messageCount || 0}</td>
-                    <td className="px-4 py-3 text-gray-400">{expandedSession === session.sessionId ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</td>
+                    <td className="px-4 py-3 flex items-center gap-2">
+                      <button
+                        data-testid={`button-export-session-${session.sessionId}`}
+                        onClick={(e) => handleExportSession(e, session.sessionId)}
+                        className="text-gray-400 hover:text-purple-600 transition-colors"
+                        title="Download CSV"
+                      >
+                        <Download size={14} />
+                      </button>
+                      <span className="text-gray-400">{expandedSession === session.sessionId ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</span>
+                    </td>
                   </tr>
                   {expandedSession === session.sessionId && (
                     <tr>

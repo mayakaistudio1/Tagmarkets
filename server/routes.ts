@@ -252,6 +252,27 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/admin/chat-sessions/:sessionId/export", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const sessionId = req.params.sessionId;
+      const messages = await storage.getChatSessionMessages(sessionId);
+
+      let csv = "session_id,role,content,timestamp\n";
+      for (const msg of messages) {
+        const escapedContent = `"${(msg.content || "").replace(/"/g, '""')}"`;
+        csv += `${sessionId},${msg.role},${escapedContent},${msg.timestamp?.toISOString() || ""}\n`;
+      }
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename=chat-${sessionId.substring(0, 8)}.csv`);
+      res.send(csv);
+    } catch (error) {
+      console.error("Export session error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.get("/api/admin/chat-sessions", async (req, res) => {
     if (!requireAdmin(req, res)) return;
     try {

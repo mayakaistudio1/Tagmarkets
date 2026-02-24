@@ -289,6 +289,28 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/promotions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const promo = await storage.getPromotion(id);
+      if (!promo) return res.status(404).json({ error: "Not found" });
+      res.json(promo);
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/schedule-events/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const event = await storage.getScheduleEvent(id);
+      if (!event) return res.status(404).json({ error: "Not found" });
+      res.json(event);
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.get("/api/promotions", async (req, res) => {
     try {
       const language = req.query.language as string | undefined;

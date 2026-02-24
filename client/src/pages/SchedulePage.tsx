@@ -284,8 +284,8 @@ const SchedulePage: React.FC = () => {
                       <div className="ml-auto">
                         <ShareMenu
                           title={event.title}
-                          text={`${event.speaker} — ${event.day}, ${event.date}${event.time ? `, ${event.time}` : ""}`}
-                          url={event.link}
+                          shareBody={`🎯 JetUP Webinar\n\n«${event.title}»\n\n🎙 ${event.speaker}\n📅 ${formatDate(event.date)}, ${event.day}\n🕐 ${event.time ? convertTripleTime(event.time, event.timezone || "CET") : ""}\n\n👉 ${window.location.origin}/event/${event.id}`}
+                          shareUrl={`${window.location.origin}/event/${event.id}`}
                           testId={`button-share-event-${event.id}`}
                         />
                       </div>

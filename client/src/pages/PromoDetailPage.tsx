@@ -79,8 +79,8 @@ const PromoDetailPage: React.FC = () => {
                   <div className="ml-auto">
                     <ShareMenu
                       title={promo.title}
-                      text={promo.subtitle}
-                      url={promo.ctaLink}
+                      shareBody={`🔥 JetUP\n\n${promo.title}\n\n${promo.subtitle}\n\n👉 ${window.location.origin}/promo/${promo.id}`}
+                      shareUrl={`${window.location.origin}/promo/${promo.id}`}
                       testId={`button-share-promo-${promo.id}`}
                     />
                   </div>

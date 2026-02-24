@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ShareMenuProps {
-  title: string;
-  text: string;
+  title?: string;
+  text?: string;
   url?: string;
+  shareBody?: string;
+  shareUrl?: string;
   className?: string;
   testId?: string;
 }
@@ -17,16 +19,15 @@ const LABELS: Record<string, { share: string; telegram: string; whatsapp: string
   ru: { share: "Поделиться", telegram: "Telegram", whatsapp: "WhatsApp", copy: "Скопировать", copied: "Скопировано!" },
 };
 
-export default function ShareMenu({ title, text, url, className = "", testId }: ShareMenuProps) {
+export default function ShareMenu({ title, text, url, shareBody, shareUrl, className = "", testId }: ShareMenuProps) {
   const { language } = useLanguage();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const labels = LABELS[language] || LABELS.de;
 
-  const shareText = `${title}\n\n${text}`;
-  const shareUrl = url || window.location.href;
-  const fullShareText = url ? `${shareText}\n\n${shareUrl}` : shareText;
+  const resolvedShareUrl = shareUrl || url || window.location.href;
+  const resolvedBody = shareBody || `${title || ""}\n\n${text || ""}\n\n${resolvedShareUrl}`;
 
   useEffect(() => {
     if (!open) return;
@@ -46,27 +47,27 @@ export default function ShareMenu({ title, text, url, className = "", testId }: 
   const handleNativeShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title, text: text, url: shareUrl });
+        await navigator.share({ title: title || "", text: resolvedBody });
       } catch {}
     }
     setOpen(false);
   };
 
   const handleTelegram = () => {
-    const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+    const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(resolvedShareUrl)}&text=${encodeURIComponent(resolvedBody)}`;
     window.open(tgUrl, "_blank");
     setOpen(false);
   };
 
   const handleWhatsApp = () => {
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(fullShareText)}`;
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(resolvedBody)}`;
     window.open(waUrl, "_blank");
     setOpen(false);
   };
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(fullShareText);
+      await navigator.clipboard.writeText(resolvedBody);
       setCopied(true);
       setTimeout(() => {
         setCopied(false);

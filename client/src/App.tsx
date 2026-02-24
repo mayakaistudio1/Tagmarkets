@@ -14,6 +14,8 @@ import PromoDetailPage from "@/pages/PromoDetailPage";
 import TabBar from "@/components/TabBar";
 import AdminPage from "@/pages/AdminPage";
 import TurkeyPromoPreview from "@/pages/TurkeyPromoPreview";
+import EventDetailPage from "@/pages/EventDetailPage";
+import PromoSinglePage from "@/pages/PromoSinglePage";
 
 function AppContent() {
   const [location, setLocation] = useLocation();
@@ -32,7 +34,13 @@ function AppContent() {
     return <TurkeyPromoPreview />;
   }
 
+  const eventMatch = basePath.match(/^\/event\/(\d+)$/);
+  const promoSingleMatch = basePath.match(/^\/promo\/(\d+)$/);
+
   const renderPage = () => {
+    if (eventMatch) return <EventDetailPage />;
+    if (promoSingleMatch) return <PromoSinglePage />;
+
     switch (basePath) {
       case "/":
         return <HomePage />;

@@ -62,12 +62,17 @@ const HomePage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center text-center"
           >
-            <img
-              src="/jetup-logo.png"
-              alt="JetUP"
-              className="w-12 h-12 object-contain mb-1"
-              data-testid="img-logo"
-            />
+            <div className="relative inline-flex items-center">
+              <img
+                src="/jetup-logo.png"
+                alt="JetUP"
+                className="w-12 h-12 object-contain mb-1"
+                data-testid="img-logo"
+              />
+              <span className="absolute -top-1 -right-8 bg-purple-500 text-white text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-full tracking-wider" data-testid="badge-beta">
+                beta
+              </span>
+            </div>
             <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-gradient-purple mt-0.5">
               {t("home.tagline")}
             </p>

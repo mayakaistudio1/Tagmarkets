@@ -35,6 +35,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const roomRef = useRef<Room | null>(null);
   const speakerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const transcriptRef = useRef<{ sender: string; text: string; timestamp: number }[]>([]);
 
   const allTexts = {
     en: {
@@ -180,6 +181,12 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       const eventType = data?.type || data?.event || data?.action;
       console.log("Data event type:", eventType);
 
+      if (data.event_type === 'avatar.transcription' && data.text) {
+        transcriptRef.current.push({ sender: 'avatar', text: data.text, timestamp: Date.now() });
+      } else if (data.event_type === 'user.transcription' && data.text) {
+        transcriptRef.current.push({ sender: 'user', text: data.text, timestamp: Date.now() });
+      }
+
       if (eventType === "avatar_start_talking" || eventType === "agent_start_talking" || 
           eventType === "start_talking" || eventType === "speaking_started") {
         console.log("Avatar started talking (data event)");
@@ -204,6 +211,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
     try {
       setStatus('connecting');
       setError(null);
+      transcriptRef.current = [];
 
       const tokenResponse = await fetch('/api/liveavatar/token', {
         method: 'POST',
@@ -296,10 +304,26 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ session_id: sessionId, session_token: sessionToken }),
         });
+
+        if (transcriptRef.current.length > 0) {
+          try {
+            await fetch(`/api/liveavatar/sessions/${sessionId}/transcript`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                language,
+                messages: transcriptRef.current,
+              }),
+            });
+          } catch (e) {
+            console.error('Failed to save video transcript:', e);
+          }
+        }
       }
     } catch (err) {
       console.error('End session error:', err);
     } finally {
+      transcriptRef.current = [];
       setStatus('idle');
       setSessionId(null);
       setSessionToken(null);

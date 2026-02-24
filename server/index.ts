@@ -84,32 +84,22 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
-  const { injectOgTags } = await import("./og-inject");
-  app.use((req, res, next) => {
-    const originalPath = req.path;
-    const eventMatch = originalPath.match(/^\/event\/(\d+)$/);
-    const promoMatch = originalPath.match(/^\/promo\/(\d+)$/);
-    if (!eventMatch && !promoMatch) return next();
-
-    const originalEnd = res.end.bind(res);
-
-    res.end = function (chunk?: any, ...args: any[]) {
-      const ct = res.getHeader("content-type")?.toString() || "";
-      if (chunk && ct.includes("text/html")) {
-        const html = typeof chunk === "string" ? chunk : Buffer.isBuffer(chunk) ? chunk.toString("utf-8") : String(chunk);
-        const protocol = req.headers["x-forwarded-proto"] || "https";
-        const host = req.headers.host || "";
-        const baseUrl = `${protocol}://${host}`;
-        injectOgTags(originalPath, html, baseUrl).then((modified) => {
-          res.setHeader("content-length", Buffer.byteLength(modified, "utf-8"));
-          originalEnd(modified, "utf-8");
-        }).catch(() => {
-          originalEnd(chunk, ...args);
-        });
-        return res;
+  const { buildCrawlerHtml } = await import("./og-inject");
+  const BOT_UA = /TelegramBot|WhatsApp|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|Discordbot/i;
+  app.get(["/event/:id", "/promo/:id"], async (req, res, next) => {
+    const ua = req.headers["user-agent"] || "";
+    if (!BOT_UA.test(ua)) return next();
+    try {
+      const protocol = req.headers["x-forwarded-proto"] || "https";
+      const host = req.headers.host || "";
+      const baseUrl = `${protocol}://${host}`;
+      const html = await buildCrawlerHtml(req.path, baseUrl);
+      if (html) {
+        return res.status(200).set({ "Content-Type": "text/html; charset=utf-8" }).end(html);
       }
-      return originalEnd(chunk, ...args);
-    } as any;
+    } catch (e) {
+      console.error("Crawler OG error:", e);
+    }
     next();
   });
 

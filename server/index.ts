@@ -84,26 +84,39 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
+  const { injectOgTags } = await import("./og-inject");
+  app.use((req, res, next) => {
+    const originalPath = req.path;
+    const eventMatch = originalPath.match(/^\/event\/(\d+)$/);
+    const promoMatch = originalPath.match(/^\/promo\/(\d+)$/);
+    if (!eventMatch && !promoMatch) return next();
+
+    const originalEnd = res.end.bind(res);
+
+    res.end = function (chunk?: any, ...args: any[]) {
+      const ct = res.getHeader("content-type")?.toString() || "";
+      if (chunk && ct.includes("text/html")) {
+        const html = typeof chunk === "string" ? chunk : Buffer.isBuffer(chunk) ? chunk.toString("utf-8") : String(chunk);
+        const protocol = req.headers["x-forwarded-proto"] || "https";
+        const host = req.headers.host || "";
+        const baseUrl = `${protocol}://${host}`;
+        injectOgTags(originalPath, html, baseUrl).then((modified) => {
+          res.setHeader("content-length", Buffer.byteLength(modified, "utf-8"));
+          originalEnd(modified, "utf-8");
+        }).catch(() => {
+          originalEnd(chunk, ...args);
+        });
+        return res;
+      }
+      return originalEnd(chunk, ...args);
+    } as any;
+    next();
+  });
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
-    const { injectOgTags } = await import("./og-inject");
-    app.get(["/event/:id", "/promo/:id"], async (req, res) => {
-      try {
-        const url = req.originalUrl;
-        const distPath = path.resolve(__dirname, "public");
-        const template = await fs.promises.readFile(path.resolve(distPath, "index.html"), "utf-8");
-        const protocol = req.headers["x-forwarded-proto"] || "https";
-        const host = req.headers.host || "";
-        const baseUrl = `${protocol}://${host}`;
-        const html = await injectOgTags(url, template, baseUrl);
-        res.status(200).set({ "Content-Type": "text/html" }).end(html);
-      } catch (e) {
-        console.error("OG inject error:", e);
-        res.status(500).send("Internal server error");
-      }
-    });
     serveStatic(app);
   } else {
     const { setupVite } = await import("./vite");

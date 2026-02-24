@@ -27,10 +27,10 @@ const TIMEZONE_OFFSETS: Record<string, number> = {
   CET: 1, CEST: 2, MSK: 3, EST: -5, EDT: -4, PST: -8, PDT: -7, GST: 4, UTC: 0,
 };
 
-const EVENT_LABELS: Record<string, { expect: string; joinZoom: string }> = {
-  de: { expect: "Das erwartet dich:", joinZoom: "Zum Zoom‑Call" },
-  en: { expect: "What to expect:", joinZoom: "Join Zoom Call" },
-  ru: { expect: "Что вас ждёт:", joinZoom: "Перейти в Zoom" },
+const EVENT_LABELS: Record<string, { expect: string; joinZoom: string; motto: [string, string, string] }> = {
+  de: { expect: "Das erwartet dich:", joinZoom: "Zum Zoom‑Call", motto: ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"] },
+  en: { expect: "What to expect:", joinZoom: "Join Zoom Call", motto: ["STRUCTURE", "TRANSPARENCY", "CONTROL"] },
+  ru: { expect: "Что вас ждёт:", joinZoom: "Перейти в Zoom", motto: ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] },
 };
 
 function convertTripleTime(time: string, fromTz: string): string {
@@ -52,6 +52,113 @@ function formatDate(dateStr: string): string {
     return `${d}.${m}.${y}`;
   }
   return dateStr;
+}
+
+function BannerGridPattern() {
+  const rows = 5;
+  const cols = 8;
+  const cells = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      cells.push(
+        <div key={`${r}-${c}`} className="bg-[#f3f4f6] rounded-[3px]" style={{ opacity: 0.18 }} />
+      );
+    }
+  }
+  return (
+    <div className="absolute inset-0 p-2 grid gap-1 pointer-events-none"
+      style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}>
+      {cells}
+    </div>
+  );
+}
+
+function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPhoto?: string }) {
+  const { language } = useLanguage();
+  if (event.banner) {
+    return <img src={event.banner} alt={event.title} className="w-full h-auto object-cover" data-testid={`banner-${event.id}`} />;
+  }
+
+  const tz = event.timezone || "CET";
+  const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
+  const titleLen = event.title?.length || 0;
+  const titleSize = titleLen > 40 ? "3cqw" : titleLen > 25 ? "3.5cqw" : "4cqw";
+
+  return (
+    <div className="relative w-full overflow-hidden" data-testid={`banner-${event.id}`}
+      style={{ background: "linear-gradient(-29deg, rgb(182, 139, 255) 0%, rgb(255, 255, 255) 69%)", containerType: "inline-size" }}>
+      <div className="pt-[55%]" />
+      <BannerGridPattern />
+
+      <div className="absolute inset-0 flex">
+        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "62%" }}>
+          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[14%] w-auto object-contain self-start" />
+
+          <div className="space-y-[1%]">
+            <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.7cqw" }}>
+              Zoom‑Call
+            </p>
+            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words" style={{
+              fontFamily: "Montserrat, sans-serif",
+              fontSize: titleSize,
+              letterSpacing: "-0.02em"
+            }}>
+              &ldquo;{event.title}&rdquo;
+            </h3>
+          </div>
+
+          <div className="flex flex-col gap-[1%]">
+            <div className="flex items-center gap-[1.5%] flex-wrap">
+              <img src="/calendar-icon-banner.png" alt="" style={{ height: "2.2cqw" }} className="w-auto opacity-80" />
+              <span className="text-[#1a1a1a] font-bold" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.5cqw" }}>
+                {[formatDate(event.date), event.day].filter(Boolean).join(" · ")}
+              </span>
+            </div>
+            {tripleTime && (
+              <span className="text-[#9ca3af] font-medium" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2cqw" }}>
+                ({tripleTime})
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-[2%]">
+            {(() => {
+              const motto = (EVENT_LABELS[language] || EVENT_LABELS.de).motto;
+              return motto.map((word, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && <span className="bg-[#a855f7] rounded-full" style={{ width: "0.7cqw", height: "0.7cqw" }} />}
+                  <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "1.5cqw", letterSpacing: "0.3cqw" }}>
+                    {word}
+                  </span>
+                </React.Fragment>
+              ));
+            })()}
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center z-10 pr-[3%]">
+          {speakerPhoto ? (
+            <div className="flex flex-col items-center w-full">
+              <div className="relative w-[70%] aspect-square">
+                <div className="absolute -inset-[4%] rounded-full border-[3px] border-[#C084FC]/40" />
+                <img src={speakerPhoto} alt={event.speaker}
+                  className="w-full h-full rounded-full object-cover object-top" />
+              </div>
+              <div className="mt-[4%] bg-white rounded px-[6%] py-[2%] shadow-sm w-fit max-w-[90%] overflow-hidden">
+                <p className="font-semibold text-black text-center truncate" style={{ fontFamily: "Inter, sans-serif", fontSize: "2.2cqw" }}>
+                  Speaker: {event.speaker}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="w-[50%] aspect-square rounded-full bg-gradient-to-br from-[#C084FC] to-[#7C3AED] flex items-center justify-center shadow-lg">
+              <Mic className="text-white" style={{ width: "30%", height: "30%" }} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function EventDetailPage() {
@@ -117,9 +224,7 @@ export default function EventDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl overflow-hidden shadow-[0_2px_16px_rgba(0,0,0,0.06)] mt-2"
         >
-          {event.banner && (
-            <img src={event.banner} alt={event.title} className="w-full h-auto object-cover" data-testid={`banner-event-${event.id}`} />
-          )}
+          <EventBanner event={event} speakerPhoto={event.speakerPhoto || undefined} />
 
           <div className="p-4 space-y-3">
             <div className="flex items-center gap-2">

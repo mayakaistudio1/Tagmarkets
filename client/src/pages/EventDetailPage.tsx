@@ -93,7 +93,7 @@ export default function EventDetailPage() {
 
   const tripleTime = event.time ? convertTripleTime(event.time, event.timezone || "CET") : "";
   const shareUrl = `${window.location.origin}/event/${event.id}`;
-  const shareBody = `🎯 JetUP Webinar\n\n«${event.title}»\n\n🎙 ${event.speaker}\n📅 ${formatDate(event.date)}, ${event.day}\n🕐 ${tripleTime}\n\n👉 ${shareUrl}`;
+  const shareBody = `🎯 JetUP Webinar\n\n«${event.title}»\n\n🎙 ${event.speaker}\n📅 ${formatDate(event.date)}, ${event.day}\n🕐 ${tripleTime}`;
 
   return (
     <div className="h-full flex flex-col overflow-hidden">

@@ -55,7 +55,7 @@ export default function PromoSinglePage() {
   }
 
   const shareUrl = `${window.location.origin}/promo/${promo.id}`;
-  const shareBody = `🔥 JetUP\n\n${promo.title}\n\n${promo.subtitle}\n\n👉 ${shareUrl}`;
+  const shareBody = `🔥 JetUP\n\n${promo.title}\n\n${promo.subtitle}`;
 
   return (
     <div className="h-full flex flex-col overflow-hidden">

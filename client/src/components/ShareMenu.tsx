@@ -27,7 +27,8 @@ export default function ShareMenu({ title, text, url, shareBody, shareUrl, class
   const labels = LABELS[language] || LABELS.de;
 
   const resolvedShareUrl = shareUrl || url || window.location.href;
-  const resolvedBody = shareBody || `${title || ""}\n\n${text || ""}\n\n${resolvedShareUrl}`;
+  const resolvedBody = shareBody || `${title || ""}\n\n${text || ""}`;
+  const resolvedBodyWithUrl = `${resolvedBody}\n\n👉 ${resolvedShareUrl}`;
 
   useEffect(() => {
     if (!open) return;
@@ -47,7 +48,7 @@ export default function ShareMenu({ title, text, url, shareBody, shareUrl, class
   const handleNativeShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: title || "", text: resolvedBody });
+        await navigator.share({ title: title || "", text: resolvedBody, url: resolvedShareUrl });
       } catch {}
     }
     setOpen(false);
@@ -60,14 +61,14 @@ export default function ShareMenu({ title, text, url, shareBody, shareUrl, class
   };
 
   const handleWhatsApp = () => {
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(resolvedBody)}`;
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(resolvedBodyWithUrl)}`;
     window.open(waUrl, "_blank");
     setOpen(false);
   };
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(resolvedBody);
+      await navigator.clipboard.writeText(resolvedBodyWithUrl);
       setCopied(true);
       setTimeout(() => {
         setCopied(false);

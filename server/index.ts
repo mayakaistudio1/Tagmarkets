@@ -84,33 +84,26 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
-  const { injectOgTags } = await import("./og-inject");
-  app.get(["/event/:id", "/promo/:id"], async (req, res) => {
-    try {
-      const url = req.originalUrl;
-      let template: string;
-      if (process.env.NODE_ENV === "production") {
-        const distPath = path.resolve(__dirname, "public");
-        template = await fs.promises.readFile(path.resolve(distPath, "index.html"), "utf-8");
-      } else {
-        const clientTemplate = path.resolve(import.meta.dirname, "..", "client", "index.html");
-        template = await fs.promises.readFile(clientTemplate, "utf-8");
-      }
-      const protocol = req.headers["x-forwarded-proto"] || "https";
-      const host = req.headers.host || "";
-      const baseUrl = `${protocol}://${host}`;
-      const html = await injectOgTags(url, template, baseUrl);
-      res.status(200).set({ "Content-Type": "text/html" }).end(html);
-    } catch (e) {
-      console.error("OG inject error:", e);
-      res.status(500).send("Internal server error");
-    }
-  });
-
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
+    const { injectOgTags } = await import("./og-inject");
+    app.get(["/event/:id", "/promo/:id"], async (req, res) => {
+      try {
+        const url = req.originalUrl;
+        const distPath = path.resolve(__dirname, "public");
+        const template = await fs.promises.readFile(path.resolve(distPath, "index.html"), "utf-8");
+        const protocol = req.headers["x-forwarded-proto"] || "https";
+        const host = req.headers.host || "";
+        const baseUrl = `${protocol}://${host}`;
+        const html = await injectOgTags(url, template, baseUrl);
+        res.status(200).set({ "Content-Type": "text/html" }).end(html);
+      } catch (e) {
+        console.error("OG inject error:", e);
+        res.status(500).send("Internal server error");
+      }
+    });
     serveStatic(app);
   } else {
     const { setupVite } = await import("./vite");

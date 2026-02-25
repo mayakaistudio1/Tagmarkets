@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Zap, Clock, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
-import ShareMenu from "@/components/ShareMenu";
+import ShareMenu, { SHARE_ORIGIN } from "@/components/ShareMenu";
 
 export interface PromoItem {
   id: number;
@@ -80,7 +80,7 @@ const PromoDetailPage: React.FC = () => {
                     <ShareMenu
                       title={promo.title}
                       shareBody={`🔥 JetUP\n\n${promo.title}\n\n${promo.subtitle}`}
-                      shareUrl={`${window.location.origin}/promo/${promo.id}`}
+                      shareUrl={`${SHARE_ORIGIN}/promo/${promo.id}`}
                       testId={`button-share-promo-${promo.id}`}
                     />
                   </div>

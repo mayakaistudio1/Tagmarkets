@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Clock, Mic, Loader2 } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
-import ShareMenu from "@/components/ShareMenu";
+import ShareMenu, { SHARE_ORIGIN } from "@/components/ShareMenu";
 
 interface ScheduleEvent {
   id: number;
@@ -199,7 +199,7 @@ export default function EventDetailPage() {
   }
 
   const tripleTime = event.time ? convertTripleTime(event.time, event.timezone || "CET") : "";
-  const shareUrl = `${window.location.origin}/event/${event.id}`;
+  const shareUrl = `${SHARE_ORIGIN}/event/${event.id}`;
   const shareBody = `🎯 JetUP Webinar\n\n«${event.title}»\n\n🎙 ${event.speaker}\n📅 ${formatDate(event.date)}, ${event.day}\n🕐 ${tripleTime}`;
 
   return (

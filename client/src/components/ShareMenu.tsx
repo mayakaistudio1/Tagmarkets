@@ -5,6 +5,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const tg = window.Telegram?.WebApp;
 
+export const SHARE_ORIGIN = "https://jet-up.ai";
+
 function openExternalUrl(url: string) {
   if (tg?.openLink) {
     tg.openLink(url);

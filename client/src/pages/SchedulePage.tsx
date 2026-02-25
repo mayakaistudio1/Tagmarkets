@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "../contexts/LanguageContext";
-import ShareMenu from "@/components/ShareMenu";
+import ShareMenu, { SHARE_ORIGIN } from "@/components/ShareMenu";
 
 interface ScheduleEvent {
   id: number;
@@ -285,7 +285,7 @@ const SchedulePage: React.FC = () => {
                         <ShareMenu
                           title={event.title}
                           shareBody={`🎯 JetUP Webinar\n\n«${event.title}»\n\n🎙 ${event.speaker}\n📅 ${formatDate(event.date)}, ${event.day}\n🕐 ${event.time ? convertTripleTime(event.time, event.timezone || "CET") : ""}`}
-                          shareUrl={`${window.location.origin}/event/${event.id}`}
+                          shareUrl={`${SHARE_ORIGIN}/event/${event.id}`}
                           testId={`button-share-event-${event.id}`}
                         />
                       </div>

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Zap, Clock, Loader2 } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
-import ShareMenu from "@/components/ShareMenu";
+import ShareMenu, { SHARE_ORIGIN } from "@/components/ShareMenu";
 
 interface PromoItem {
   id: number;
@@ -54,7 +54,7 @@ export default function PromoSinglePage() {
     );
   }
 
-  const shareUrl = `${window.location.origin}/promo/${promo.id}`;
+  const shareUrl = `${SHARE_ORIGIN}/promo/${promo.id}`;
   const shareBody = `🔥 JetUP\n\n${promo.title}\n\n${promo.subtitle}`;
 
   return (

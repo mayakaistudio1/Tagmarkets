@@ -4,6 +4,8 @@ function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+const CANONICAL_ORIGIN = "https://jet-up.ai";
+
 function toAbsoluteUrl(urlPath: string, baseUrl: string): string {
   if (!urlPath) return "";
   if (urlPath.startsWith("http")) return urlPath;
@@ -21,7 +23,7 @@ export async function injectOgTags(url: string, html: string, baseUrl: string): 
       if (event) {
         const title = escapeHtml(event.title);
         const desc = escapeHtml(`${event.speaker} — ${event.day || ""}, ${event.date || ""}${event.time ? `, ${event.time}` : ""}`);
-        const image = toAbsoluteUrl(event.banner || event.speakerPhoto || "", baseUrl);
+        const image = toAbsoluteUrl(event.banner || event.speakerPhoto || "", CANONICAL_ORIGIN);
         return replaceOgTags(html, `JetUP: ${title}`, desc, image);
       }
     } catch {}
@@ -34,7 +36,7 @@ export async function injectOgTags(url: string, html: string, baseUrl: string): 
       if (promo) {
         const title = escapeHtml(promo.title);
         const desc = escapeHtml(promo.subtitle || "");
-        const image = toAbsoluteUrl(promo.banner || "", baseUrl);
+        const image = toAbsoluteUrl(promo.banner || "", CANONICAL_ORIGIN);
         return replaceOgTags(html, `JetUP: ${title}`, desc, image);
       }
     } catch {}
@@ -86,7 +88,7 @@ export async function buildCrawlerHtml(url: string, baseUrl: string): Promise<st
   let title = "JetUP";
   let description = "Your clear entry into the financial markets. Structure. Transparency. Control.";
   let image = "";
-  let pageUrl = `${baseUrl}${url}`;
+  let pageUrl = `${CANONICAL_ORIGIN}${url}`;
 
   if (eventMatch) {
     const id = parseInt(eventMatch[1]);
@@ -94,14 +96,14 @@ export async function buildCrawlerHtml(url: string, baseUrl: string): Promise<st
     if (!event) return null;
     title = `JetUP: ${escapeHtml(event.title)}`;
     description = escapeHtml(`${event.speaker} — ${event.day || ""}, ${event.date || ""}${event.time ? `, ${event.time}` : ""}`);
-    image = toAbsoluteUrl(event.banner || event.speakerPhoto || "", baseUrl);
+    image = toAbsoluteUrl(event.banner || event.speakerPhoto || "", CANONICAL_ORIGIN);
   } else if (promoMatch) {
     const id = parseInt(promoMatch[1]);
     const promo = await storage.getPromotion(id);
     if (!promo) return null;
     title = `JetUP: ${escapeHtml(promo.title)}`;
     description = escapeHtml(promo.subtitle || "");
-    image = toAbsoluteUrl(promo.banner || "", baseUrl);
+    image = toAbsoluteUrl(promo.banner || "", CANONICAL_ORIGIN);
   } else {
     return null;
   }

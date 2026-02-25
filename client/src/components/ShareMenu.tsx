@@ -3,6 +3,24 @@ import { Share2, X, Copy, Check, MessageCircle, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+const tg = window.Telegram?.WebApp;
+
+function openExternalUrl(url: string) {
+  if (tg?.openLink) {
+    tg.openLink(url);
+  } else {
+    window.open(url, "_blank");
+  }
+}
+
+function openTelegramUrl(url: string) {
+  if (tg?.openTelegramLink) {
+    tg.openTelegramLink(url);
+  } else {
+    window.open(url, "_blank");
+  }
+}
+
 interface ShareMenuProps {
   title?: string;
   text?: string;
@@ -56,13 +74,13 @@ export default function ShareMenu({ title, text, url, shareBody, shareUrl, class
 
   const handleTelegram = () => {
     const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(resolvedShareUrl)}&text=${encodeURIComponent(resolvedBody)}`;
-    window.open(tgUrl, "_blank");
+    openTelegramUrl(tgUrl);
     setOpen(false);
   };
 
   const handleWhatsApp = () => {
     const waUrl = `https://wa.me/?text=${encodeURIComponent(resolvedBodyWithUrl)}`;
-    window.open(waUrl, "_blank");
+    openExternalUrl(waUrl);
     setOpen(false);
   };
 

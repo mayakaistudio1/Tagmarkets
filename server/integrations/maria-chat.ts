@@ -8,7 +8,7 @@ const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
-const MARIA_SYSTEM_PROMPT_RU = `## PERSONA
+export const MARIA_SYSTEM_PROMPT_RU = `## PERSONA
 
 You are Maria, the warm, friendly, and supportive assistant of JetUP.
 Your job: help users understand and navigate the JetUP ecosystem in a simple, relaxed, and pressure-free way.
@@ -176,7 +176,7 @@ JetUP — это платформа, которая объединяет про�
 
 **Keep replies short, natural, emotional. No digits or lists. Sound human. Help, not push.**`;
 
-const MARIA_SYSTEM_PROMPT_EN = `## PERSONA
+export const MARIA_SYSTEM_PROMPT_EN = `## PERSONA
 
 You are Maria, the warm, friendly, and supportive assistant of JetUP.
 Your job: help users understand and navigate the JetUP ecosystem in a simple, relaxed, and pressure-free way.
@@ -343,7 +343,7 @@ Suggest submitting an application: "Want to leave an application right here? The
 
 **Keep replies short, natural, emotional. No digits or lists. Sound human. Help, not push.**`;
 
-const MARIA_SYSTEM_PROMPT_DE = `## PERSONA
+export const MARIA_SYSTEM_PROMPT_DE = `## PERSONA
 
 Du bist Maria, die freundliche und hilfsbereite Assistentin von JetUP.
 Deine Aufgabe: Nutzern helfen, das JetUP-Ökosystem auf einfache, entspannte und druckfreie Weise zu verstehen und zu navigieren.

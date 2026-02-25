@@ -14,6 +14,8 @@ import fs from "fs";
 import crypto from "crypto";
 import { objectStorageClient } from "./replit_integrations/object_storage";
 import { syncAllChatSessions } from "./googleSheets";
+import { MARIA_SYSTEM_PROMPT_DE, MARIA_SYSTEM_PROMPT_EN, MARIA_SYSTEM_PROMPT_RU } from "./integrations/maria-chat";
+import OpenAI from "openai";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -435,6 +437,111 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting schedule event:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/admin/analyze-maria", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { language } = req.body || {};
+      const langFilter = language && language !== "all" ? language : undefined;
+
+      const allSessions = await storage.getChatSessions(langFilter ? { type: undefined } : {});
+      const filtered = langFilter
+        ? allSessions.filter((s: any) => s.language === langFilter)
+        : allSessions;
+      const limitedSessions = filtered.slice(0, 50);
+
+      if (limitedSessions.length === 0) {
+        return res.json({
+          summary: "Keine Chat-Sitzungen gefunden für die gewählte Sprache.",
+          sections: [],
+          sessionsAnalyzed: 0,
+        });
+      }
+
+      const dialogues: string[] = [];
+      for (const session of limitedSessions) {
+        const msgs = await db
+          .select()
+          .from(chatMessages)
+          .where(eq(chatMessages.sessionId, session.sessionId))
+          .orderBy(chatMessages.timestamp);
+        if (msgs.length === 0) continue;
+        const lines = msgs.map((m) => `${m.role === "user" ? "User" : "Maria"}: ${m.content}`);
+        dialogues.push(
+          `--- Session ${session.sessionId.substring(0, 8)} (${session.language}, ${session.type}) ---\n${lines.join("\n")}`
+        );
+      }
+
+      if (dialogues.length === 0) {
+        return res.json({
+          summary: "Keine Nachrichten in den Sitzungen gefunden.",
+          sections: [],
+          sessionsAnalyzed: 0,
+        });
+      }
+
+      const mariaPrompt =
+        langFilter === "en"
+          ? MARIA_SYSTEM_PROMPT_EN
+          : langFilter === "ru"
+          ? MARIA_SYSTEM_PROMPT_RU
+          : MARIA_SYSTEM_PROMPT_DE;
+
+      const reportLang =
+        langFilter === "en" ? "English" : langFilter === "ru" ? "Russian" : "German";
+
+      const analysisSystemPrompt = `You are an expert AI assistant analyst. You will analyze chat dialogues between users and an AI assistant named Maria.
+
+Below is Maria's current system prompt (her instructions):
+=== MARIA SYSTEM PROMPT START ===
+${mariaPrompt}
+=== MARIA SYSTEM PROMPT END ===
+
+Analyze ALL the dialogues below and produce a detailed report IN ${reportLang} language with exactly these 5 sections:
+
+1. **Top user questions** — The most frequent topics/questions users ask (list each with approximate count)
+2. **Problematic answers** — Cases where Maria answered poorly: too long, inaccurate, off-topic, violated her prompt rules (cite specific examples with session IDs)
+3. **Drop-off points** — Topics or moments where users leave the conversation or Maria cannot help (patterns)
+4. **Conversion analysis** — How many dialogues lead to a registration/application/next step vs. users leaving without action
+5. **Prompt improvement recommendations** — Specific, actionable suggestions for improving Maria's system prompt (with exact wording changes where possible)
+
+Return ONLY valid JSON in this format:
+{
+  "summary": "Brief 2-3 sentence executive summary",
+  "sections": [
+    { "title": "Section title", "items": ["item 1", "item 2", ...] }
+  ]
+}`;
+
+      const openai = new OpenAI({
+        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      });
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: analysisSystemPrompt },
+          { role: "user", content: `Here are ${dialogues.length} dialogues to analyze:\n\n${dialogues.join("\n\n")}` },
+        ],
+        temperature: 0.3,
+        max_tokens: 4000,
+      });
+
+      const raw = completion.choices[0]?.message?.content || "{}";
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : "{}");
+
+      res.json({
+        summary: parsed.summary || "Analysis complete",
+        sections: parsed.sections || [],
+        sessionsAnalyzed: dialogues.length,
+      });
+    } catch (error: any) {
+      console.error("Maria analysis error:", error);
+      res.status(500).json({ error: error.message || "Analysis failed" });
     }
   });
 

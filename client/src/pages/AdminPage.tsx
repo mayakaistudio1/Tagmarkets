@@ -24,9 +24,22 @@ import {
   Image as ImageIcon,
   FileSpreadsheet,
   ExternalLink,
+  BarChart3,
+  Brain,
 } from "lucide-react";
 
 type Tab = "chat" | "promotions" | "schedule" | "speakers";
+
+interface AnalysisSection {
+  title: string;
+  items: string[];
+}
+
+interface AnalysisReport {
+  summary: string;
+  sections: AnalysisSection[];
+  sessionsAnalyzed: number;
+}
 
 interface ChatMessage {
   role: string;
@@ -568,6 +581,11 @@ function ChatLogsTab({
   const [sheetsSyncing, setSheetsSyncing] = useState(false);
   const [sheetsUrl, setSheetsUrl] = useState<string | null>(null);
   const [sheetsError, setSheetsError] = useState<string | null>(null);
+  const [analysisLang, setAnalysisLang] = useState<string>("all");
+  const [analysisRunning, setAnalysisRunning] = useState(false);
+  const [analysisReport, setAnalysisReport] = useState<AnalysisReport | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<number, boolean>>({});
 
   const handleSyncSheets = async () => {
     setSheetsSyncing(true);
@@ -587,6 +605,38 @@ function ChatLogsTab({
     } finally {
       setSheetsSyncing(false);
     }
+  };
+
+  const handleAnalyze = async () => {
+    setAnalysisRunning(true);
+    setAnalysisError(null);
+    setAnalysisReport(null);
+    setExpandedSections({});
+    try {
+      const res = await fetch("/api/admin/analyze-maria", {
+        method: "POST",
+        headers: { ...headers(), "Content-Type": "application/json" },
+        body: JSON.stringify({ language: analysisLang }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAnalysisReport(data);
+        const initial: Record<number, boolean> = {};
+        data.sections?.forEach((_: any, i: number) => { initial[i] = true; });
+        setExpandedSections(initial);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setAnalysisError(err.error || "Analyse fehlgeschlagen");
+      }
+    } catch {
+      setAnalysisError("Verbindungsfehler");
+    } finally {
+      setAnalysisRunning(false);
+    }
+  };
+
+  const toggleSection = (idx: number) => {
+    setExpandedSections((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
   const handleExpand = async (sessionId: string) => {
@@ -673,7 +723,72 @@ function ChatLogsTab({
             {sheetsError}
           </div>
         )}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="flex items-center gap-3">
+            <select data-testid="select-analysis-lang" value={analysisLang} onChange={(e) => setAnalysisLang(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="all">Alle Sprachen</option>
+              <option value="de">Deutsch</option>
+              <option value="ru">Russisch</option>
+              <option value="en">English</option>
+            </select>
+            <button data-testid="button-analyze-maria" onClick={handleAnalyze} disabled={analysisRunning}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              {analysisRunning ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
+              {analysisRunning ? "Analyse läuft..." : "Analyse Марии"}
+            </button>
+          </div>
+          {analysisError && (
+            <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              {analysisError}
+            </div>
+          )}
+        </div>
       </div>
+
+      {analysisReport && (
+        <div className="bg-white rounded-xl border border-indigo-200 overflow-hidden">
+          <div className="p-4 bg-indigo-50 border-b border-indigo-200 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BarChart3 size={20} className="text-indigo-600" />
+              <div>
+                <h3 className="font-semibold text-indigo-900" data-testid="text-analysis-title">Analyse Марии</h3>
+                <p className="text-xs text-indigo-600" data-testid="text-analysis-count">{analysisReport.sessionsAnalyzed} Sitzungen analysiert</p>
+              </div>
+            </div>
+            <button data-testid="button-close-analysis" onClick={() => setAnalysisReport(null)}
+              className="p-1 text-indigo-400 hover:text-indigo-600 transition-colors">
+              <X size={18} />
+            </button>
+          </div>
+          <div className="p-4">
+            <div className="mb-4 p-3 bg-indigo-50 rounded-lg text-sm text-indigo-800" data-testid="text-analysis-summary">
+              {analysisReport.summary}
+            </div>
+            <div className="space-y-3">
+              {analysisReport.sections.map((section, idx) => (
+                <div key={idx} className="border border-gray-200 rounded-lg overflow-hidden">
+                  <button data-testid={`button-section-${idx}`} onClick={() => toggleSection(idx)}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left">
+                    <span className="font-medium text-sm text-gray-800">{section.title}</span>
+                    {expandedSections[idx] ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                  </button>
+                  {expandedSections[idx] && (
+                    <div className="p-3 space-y-2">
+                      {section.items.map((item, iIdx) => (
+                        <div key={iIdx} className="flex gap-2 text-sm text-gray-700" data-testid={`text-analysis-item-${idx}-${iIdx}`}>
+                          <span className="text-indigo-400 mt-0.5 shrink-0">&#8226;</span>
+                          <span className="whitespace-pre-wrap">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (

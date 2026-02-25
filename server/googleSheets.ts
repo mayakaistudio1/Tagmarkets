@@ -166,14 +166,13 @@ export async function getOrCreateSpreadsheet(): Promise<string> {
 }
 
 function buildSessionRows(messages: Array<{ role: string; content: string; timestamp: Date | string | null }>): any[][] {
-  const headerRow = ['Zeit', 'Rolle', 'Nachricht'];
+  const headerRow = ['Dialog', 'Notizen'];
   const rows: any[][] = [headerRow];
   for (const msg of messages) {
-    rows.push([
-      formatTime(msg.timestamp),
-      roleLabel(msg.role || 'user'),
-      (msg.content || '').trim(),
-    ]);
+    const time = formatTime(msg.timestamp);
+    const label = roleLabel(msg.role || 'user');
+    const content = (msg.content || '').trim();
+    rows.push([`[${time}] ${label}: ${content}`]);
   }
   return rows;
 }
@@ -243,7 +242,7 @@ export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; se
     const msgRows = buildSessionRows(msgs);
 
     const sheetData: any[][] = [
-      [headerInfo, '', 'Notizen'],
+      [headerInfo],
       [],
       ...msgRows,
     ];
@@ -356,27 +355,13 @@ export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; se
         {
           updateDimensionProperties: {
             range: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 },
-            properties: { pixelSize: 60 },
+            properties: { pixelSize: 700 },
             fields: 'pixelSize',
           }
         },
         {
           updateDimensionProperties: {
             range: { sheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
-            properties: { pixelSize: 70 },
-            fields: 'pixelSize',
-          }
-        },
-        {
-          updateDimensionProperties: {
-            range: { sheetId, dimension: 'COLUMNS', startIndex: 2, endIndex: 3 },
-            properties: { pixelSize: 600 },
-            fields: 'pixelSize',
-          }
-        },
-        {
-          updateDimensionProperties: {
-            range: { sheetId, dimension: 'COLUMNS', startIndex: 3, endIndex: 4 },
             properties: { pixelSize: 300 },
             fields: 'pixelSize',
           }
@@ -417,10 +402,10 @@ export async function appendChatMessageToSheet(
     if (found) {
       await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: `'${found.title}'!A:C`,
+        range: `'${found.title}'!A:B`,
         valueInputOption: 'RAW',
         insertDataOption: 'INSERT_ROWS',
-        requestBody: { values: [[time, label, msgContent]] },
+        requestBody: { values: [[`[${time}] ${label}: ${msgContent}`]] },
       });
     } else {
       const sheetName = sessionSheetName(sessionId, type);
@@ -445,10 +430,10 @@ export async function appendChatMessageToSheet(
         valueInputOption: 'RAW',
         requestBody: {
           values: [
-            [headerInfo, '', 'Notizen'],
+            [headerInfo],
             [],
-            ['Zeit', 'Rolle', 'Nachricht'],
-            [time, label, msgContent],
+            ['Dialog', 'Notizen'],
+            [`[${time}] ${label}: ${msgContent}`],
           ]
         },
       });
@@ -484,27 +469,13 @@ export async function appendChatMessageToSheet(
               {
                 updateDimensionProperties: {
                   range: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 },
-                  properties: { pixelSize: 60 },
+                  properties: { pixelSize: 700 },
                   fields: 'pixelSize',
                 }
               },
               {
                 updateDimensionProperties: {
                   range: { sheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
-                  properties: { pixelSize: 70 },
-                  fields: 'pixelSize',
-                }
-              },
-              {
-                updateDimensionProperties: {
-                  range: { sheetId, dimension: 'COLUMNS', startIndex: 2, endIndex: 3 },
-                  properties: { pixelSize: 600 },
-                  fields: 'pixelSize',
-                }
-              },
-              {
-                updateDimensionProperties: {
-                  range: { sheetId, dimension: 'COLUMNS', startIndex: 3, endIndex: 4 },
                   properties: { pixelSize: 300 },
                   fields: 'pixelSize',
                 }

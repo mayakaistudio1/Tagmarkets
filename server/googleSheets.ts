@@ -101,25 +101,20 @@ function shortId(sessionId: string): string {
   return sessionId.substring(0, 8);
 }
 
-function typeLabel(type: string): string {
+function typeLabelShort(type: string): string {
   return type === 'video' ? 'Live' : 'Text';
 }
 
+function typeLabelLong(type: string): string {
+  return type === 'video' ? 'Live Maria' : 'Text Chat';
+}
+
 function sessionSheetName(sessionId: string, type: string): string {
-  return `${shortId(sessionId)} ${typeLabel(type)}`;
+  return `${shortId(sessionId)} ${typeLabelShort(type)}`;
 }
 
 function roleLabel(role: string): string {
   return role === 'assistant' ? 'Maria' : 'User';
-}
-
-function buildDialogText(messages: Array<{ role: string; content: string; timestamp: Date | string | null }>): string {
-  return messages.map(msg => {
-    const time = formatTime(msg.timestamp);
-    const label = roleLabel(msg.role || 'user');
-    const content = (msg.content || '').trim();
-    return `[${time}] ${label}: ${content}`;
-  }).join('\n\n');
 }
 
 function findSheetBySessionId(sheets: any[], sessionId: string): { title: string; sheetId: number } | null {
@@ -168,6 +163,19 @@ export async function getOrCreateSpreadsheet(): Promise<string> {
 
   setCachedId(createRes.data.spreadsheetId!);
   return getCachedId()!;
+}
+
+function buildSessionRows(messages: Array<{ role: string; content: string; timestamp: Date | string | null }>): any[][] {
+  const headerRow = ['Zeit', 'Rolle', 'Nachricht'];
+  const rows: any[][] = [headerRow];
+  for (const msg of messages) {
+    rows.push([
+      formatTime(msg.timestamp),
+      roleLabel(msg.role || 'user'),
+      (msg.content || '').trim(),
+    ]);
+  }
+  return rows;
 }
 
 export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; sessionCount: number }> {
@@ -227,36 +235,25 @@ export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; se
   for (const session of limitedSessions) {
     const sheetName = sessionSheetName(session.sessionId, session.type || 'text');
     const msgs = messagesBySession.get(session.sessionId) || [];
-    const dialogText = buildDialogText(msgs);
 
     const langLabel = (session.language || 'de').toUpperCase();
-    const tLabel = session.type === 'video' ? 'Live Maria' : 'Text Chat';
+    const tLabel = typeLabelLong(session.type || 'text');
     const headerInfo = `Session: ${shortId(session.sessionId)} | ${langLabel} | ${tLabel} | ${formatDate(session.createdAt)}`;
+
+    const msgRows = buildSessionRows(msgs);
+
+    const sheetData: any[][] = [
+      [headerInfo, '', 'Notizen'],
+      [],
+      ...msgRows,
+    ];
 
     await sheets.spreadsheets.values.update({
       spreadsheetId,
       range: `'${sheetName}'!A1`,
       valueInputOption: 'RAW',
-      requestBody: {
-        values: [
-          [headerInfo, 'Notizen'],
-          [],
-          [dialogText],
-        ]
-      },
+      requestBody: { values: sheetData },
     });
-  }
-
-  const updatedSpreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
-  const updatedSheets = updatedSpreadsheet.data.sheets || [];
-
-  const sheetGids = new Map<string, number>();
-  for (const sheet of updatedSheets) {
-    const title = sheet.properties?.title || '';
-    const gid = sheet.properties?.sheetId;
-    if (gid !== undefined) {
-      sheetGids.set(title, gid);
-    }
   }
 
   const overviewHeaders = ['Nr', 'Session ID', 'Sprache', 'Typ', 'Datum', 'Nachrichten'];
@@ -264,20 +261,13 @@ export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; se
 
   for (let i = 0; i < limitedSessions.length; i++) {
     const session = limitedSessions[i];
-    const sheetName = sessionSheetName(session.sessionId, session.type || 'text');
     const msgCount = messagesBySession.get(session.sessionId)?.length || 0;
-    const sid = shortId(session.sessionId);
-    const gid = sheetGids.get(sheetName);
-
-    const sidCell = gid !== undefined
-      ? `=HYPERLINK("#gid=${gid}", "${sid}")`
-      : sid;
 
     overviewRows.push([
       i + 1,
-      sidCell,
+      shortId(session.sessionId),
       (session.language || 'de').toUpperCase(),
-      typeLabel(session.type || 'text'),
+      typeLabelShort(session.type || 'text'),
       formatDate(session.createdAt),
       msgCount,
     ]);
@@ -291,9 +281,12 @@ export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; se
   await sheets.spreadsheets.values.update({
     spreadsheetId,
     range: `'${OVERVIEW_SHEET}'!A1`,
-    valueInputOption: 'USER_ENTERED',
+    valueInputOption: 'RAW',
     requestBody: { values: overviewRows },
   });
+
+  const updatedSpreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+  const updatedSheets = updatedSpreadsheet.data.sheets || [];
 
   const formatRequests: any[] = [];
   for (const sheet of updatedSheets) {
@@ -348,24 +341,44 @@ export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; se
           }
         },
         {
+          repeatCell: {
+            range: { sheetId, startRowIndex: 2, endRowIndex: 3 },
+            cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.93, green: 0.93, blue: 0.93 } } },
+            fields: 'userEnteredFormat(textFormat,backgroundColor)',
+          }
+        },
+        {
+          updateSheetProperties: {
+            properties: { sheetId, gridProperties: { frozenRowCount: 3 } },
+            fields: 'gridProperties.frozenRowCount',
+          }
+        },
+        {
           updateDimensionProperties: {
             range: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 },
-            properties: { pixelSize: 800 },
+            properties: { pixelSize: 60 },
             fields: 'pixelSize',
           }
         },
         {
           updateDimensionProperties: {
             range: { sheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
-            properties: { pixelSize: 300 },
+            properties: { pixelSize: 70 },
             fields: 'pixelSize',
           }
         },
         {
-          repeatCell: {
-            range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 0, endColumnIndex: 1 },
-            cell: { userEnteredFormat: { wrapStrategy: 'WRAP', verticalAlignment: 'TOP' } },
-            fields: 'userEnteredFormat(wrapStrategy,verticalAlignment)',
+          updateDimensionProperties: {
+            range: { sheetId, dimension: 'COLUMNS', startIndex: 2, endIndex: 3 },
+            properties: { pixelSize: 600 },
+            fields: 'pixelSize',
+          }
+        },
+        {
+          updateDimensionProperties: {
+            range: { sheetId, dimension: 'COLUMNS', startIndex: 3, endIndex: 4 },
+            properties: { pixelSize: 300 },
+            fields: 'pixelSize',
           }
         },
       );
@@ -399,22 +412,15 @@ export async function appendChatMessageToSheet(
 
     const time = formatTime(new Date());
     const label = roleLabel(role);
-    const newLine = `[${time}] ${label}: ${content.trim()}`;
+    const msgContent = content.trim();
 
     if (found) {
-      const existing = await sheets.spreadsheets.values.get({
+      await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: `'${found.title}'!A3`,
-      });
-
-      const currentText = existing.data.values?.[0]?.[0] || '';
-      const updatedText = currentText ? `${currentText}\n\n${newLine}` : newLine;
-
-      await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: `'${found.title}'!A3`,
+        range: `'${found.title}'!A:C`,
         valueInputOption: 'RAW',
-        requestBody: { values: [[updatedText]] },
+        insertDataOption: 'INSERT_ROWS',
+        requestBody: { values: [[time, label, msgContent]] },
       });
     } else {
       const sheetName = sessionSheetName(sessionId, type);
@@ -430,7 +436,7 @@ export async function appendChatMessageToSheet(
       });
 
       const langLabel = (language || 'de').toUpperCase();
-      const tLabel = type === 'video' ? 'Live Maria' : 'Text Chat';
+      const tLabel = typeLabelLong(type);
       const headerInfo = `Session: ${shortId(sessionId)} | ${langLabel} | ${tLabel} | ${formatDate(new Date())}`;
 
       await sheets.spreadsheets.values.update({
@@ -439,9 +445,10 @@ export async function appendChatMessageToSheet(
         valueInputOption: 'RAW',
         requestBody: {
           values: [
-            [headerInfo, 'Notizen'],
+            [headerInfo, '', 'Notizen'],
             [],
-            [newLine],
+            ['Zeit', 'Rolle', 'Nachricht'],
+            [time, label, msgContent],
           ]
         },
       });
@@ -462,24 +469,44 @@ export async function appendChatMessageToSheet(
                 }
               },
               {
+                repeatCell: {
+                  range: { sheetId, startRowIndex: 2, endRowIndex: 3 },
+                  cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.93, green: 0.93, blue: 0.93 } } },
+                  fields: 'userEnteredFormat(textFormat,backgroundColor)',
+                }
+              },
+              {
+                updateSheetProperties: {
+                  properties: { sheetId, gridProperties: { frozenRowCount: 3 } },
+                  fields: 'gridProperties.frozenRowCount',
+                }
+              },
+              {
                 updateDimensionProperties: {
                   range: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 },
-                  properties: { pixelSize: 800 },
+                  properties: { pixelSize: 60 },
                   fields: 'pixelSize',
                 }
               },
               {
                 updateDimensionProperties: {
                   range: { sheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
-                  properties: { pixelSize: 300 },
+                  properties: { pixelSize: 70 },
                   fields: 'pixelSize',
                 }
               },
               {
-                repeatCell: {
-                  range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 0, endColumnIndex: 1 },
-                  cell: { userEnteredFormat: { wrapStrategy: 'WRAP', verticalAlignment: 'TOP' } },
-                  fields: 'userEnteredFormat(wrapStrategy,verticalAlignment)',
+                updateDimensionProperties: {
+                  range: { sheetId, dimension: 'COLUMNS', startIndex: 2, endIndex: 3 },
+                  properties: { pixelSize: 600 },
+                  fields: 'pixelSize',
+                }
+              },
+              {
+                updateDimensionProperties: {
+                  range: { sheetId, dimension: 'COLUMNS', startIndex: 3, endIndex: 4 },
+                  properties: { pixelSize: 300 },
+                  fields: 'pixelSize',
                 }
               },
             ]
@@ -512,8 +539,8 @@ async function updateOverviewForSession(
     let foundRow = -1;
 
     for (let i = 1; i < rows.length; i++) {
-      const cellB = rows[i]?.[1] || '';
-      if (cellB.includes(sid)) {
+      const cellB = String(rows[i]?.[1] || '');
+      if (cellB === sid) {
         foundRow = i;
         break;
       }
@@ -529,28 +556,18 @@ async function updateOverviewForSession(
       });
     } else {
       const newNr = rows.length;
-      const sheetName = sessionSheetName(sessionId, type);
-
-      const updatedSpreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
-      const allSheets = updatedSpreadsheet.data.sheets || [];
-      const targetSheet = allSheets.find((s: any) => s.properties?.title === sheetName);
-      const gid = targetSheet?.properties?.sheetId;
-
-      const sidCell = gid !== undefined
-        ? `=HYPERLINK("#gid=${gid}", "${sid}")`
-        : sid;
 
       await sheets.spreadsheets.values.append({
         spreadsheetId,
         range: `'${OVERVIEW_SHEET}'!A:F`,
-        valueInputOption: 'USER_ENTERED',
+        valueInputOption: 'RAW',
         insertDataOption: 'INSERT_ROWS',
         requestBody: {
           values: [[
             newNr,
-            sidCell,
+            sid,
             (language || 'de').toUpperCase(),
-            typeLabel(type),
+            typeLabelShort(type),
             formatDate(new Date()),
             1,
           ]]

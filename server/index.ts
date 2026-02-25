@@ -84,7 +84,7 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
-  const { buildCrawlerHtml } = await import("./og-inject");
+  const { buildCrawlerHtml, injectOgTags } = await import("./og-inject");
   const BOT_UA = /TelegramBot|WhatsApp|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|Discordbot/i;
   app.get(["/event/:id", "/promo/:id"], async (req, res, next) => {
     const ua = req.headers["user-agent"] || "";
@@ -100,6 +100,33 @@ app.use((req, res, next) => {
     } catch (e) {
       console.error("Crawler OG error:", e);
     }
+    next();
+  });
+
+  app.use((req, res, next) => {
+    const originalPath = req.path;
+    const eventMatch = originalPath.match(/^\/event\/(\d+)$/);
+    const promoMatch = originalPath.match(/^\/promo\/(\d+)$/);
+    if (!eventMatch && !promoMatch) return next();
+
+    const originalEnd = res.end.bind(res);
+    res.end = function (chunk?: any, ...args: any[]) {
+      const ct = res.getHeader("content-type")?.toString() || "";
+      if (chunk && ct.includes("text/html")) {
+        const html = typeof chunk === "string" ? chunk : Buffer.isBuffer(chunk) ? chunk.toString("utf-8") : String(chunk);
+        const protocol = req.headers["x-forwarded-proto"] || "https";
+        const host = req.headers.host || "";
+        const baseUrl = `${protocol}://${host}`;
+        injectOgTags(originalPath, html, baseUrl).then((modified) => {
+          res.setHeader("content-length", Buffer.byteLength(modified, "utf-8"));
+          originalEnd(modified, "utf-8");
+        }).catch(() => {
+          originalEnd(chunk, ...args);
+        });
+        return res;
+      }
+      return originalEnd(chunk, ...args);
+    } as any;
     next();
   });
 

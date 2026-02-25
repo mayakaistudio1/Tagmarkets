@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import OpenAI from "openai";
 import { storage } from "../storage";
+import { appendChatMessageToSheet } from "../googleSheets";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -538,6 +539,7 @@ export function registerMariaChatRoutes(app: Express): void {
           const lastUserMessage = [...messages].reverse().find((m: any) => m.role === "user");
           if (lastUserMessage) {
             await storage.saveChatMessage({ sessionId, role: "user", content: lastUserMessage.content });
+            appendChatMessageToSheet(sessionId, "user", lastUserMessage.content, language, "text").catch(() => {});
           }
         } catch (e) {
           console.error("Error saving chat session/message:", e);
@@ -579,6 +581,7 @@ export function registerMariaChatRoutes(app: Express): void {
       if (sessionId && fullResponse) {
         try {
           await storage.saveChatMessage({ sessionId, role: "assistant", content: fullResponse });
+          appendChatMessageToSheet(sessionId, "assistant", fullResponse, language, "text").catch(() => {});
         } catch (e) {
           console.error("Error saving assistant message:", e);
         }

@@ -65,6 +65,7 @@ Preferred communication style: Simple, everyday language.
 - **HeyGen**: Provides the LiveAvatar service for Maria's video avatar functionality, integrating with LiveKit WebRTC.
 - **Replit Object Storage**: For persistent file storage of uploaded assets.
 - **Telegram WebApp SDK**: For integration as a Telegram Mini App.
+- **Google Sheets API**: Auto-sync of chat logs to a "JetUP Chat Logs" spreadsheet via `server/googleSheets.ts`. Uses Replit Google Sheets connector (OAuth). New messages auto-append; full sync available via admin panel button.
 - **Google Drive**: Linked for presentations.
 - **Telegram (External)**: Linked for the JetUPDach channel.
 - **Instagram**: Linked for jetup.official.

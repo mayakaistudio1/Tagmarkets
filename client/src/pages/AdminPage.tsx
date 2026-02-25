@@ -22,6 +22,8 @@ import {
   Globe,
   Loader2,
   Image as ImageIcon,
+  FileSpreadsheet,
+  ExternalLink,
 } from "lucide-react";
 
 type Tab = "chat" | "promotions" | "schedule" | "speakers";
@@ -563,6 +565,29 @@ function ChatLogsTab({
 }) {
   const [loadedMessages, setLoadedMessages] = useState<Record<string, any[]>>({});
   const [messagesLoading, setMessagesLoading] = useState<string | null>(null);
+  const [sheetsSyncing, setSheetsSyncing] = useState(false);
+  const [sheetsUrl, setSheetsUrl] = useState<string | null>(null);
+  const [sheetsError, setSheetsError] = useState<string | null>(null);
+
+  const handleSyncSheets = async () => {
+    setSheetsSyncing(true);
+    setSheetsError(null);
+    setSheetsUrl(null);
+    try {
+      const res = await fetch("/api/admin/sync-sheets", { method: "POST", headers: headers() });
+      if (res.ok) {
+        const data = await res.json();
+        setSheetsUrl(data.spreadsheetUrl);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setSheetsError(err.error || "Sync fehlgeschlagen");
+      }
+    } catch {
+      setSheetsError("Verbindungsfehler");
+    } finally {
+      setSheetsSyncing(false);
+    }
+  };
 
   const handleExpand = async (sessionId: string) => {
     if (expandedSession === sessionId) { setExpandedSession(null); return; }
@@ -627,7 +652,27 @@ function ChatLogsTab({
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors ml-auto">
             <Download size={16} /> Export CSV
           </button>
+          <button data-testid="button-sync-sheets" onClick={handleSyncSheets} disabled={sheetsSyncing}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            {sheetsSyncing ? <Loader2 size={16} className="animate-spin" /> : <FileSpreadsheet size={16} />}
+            {sheetsSyncing ? "Sync..." : "Google Sheets"}
+          </button>
         </div>
+        {sheetsUrl && (
+          <div className="mt-3 flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+            <Check size={16} />
+            <span>Synchronisiert!</span>
+            <a href={sheetsUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1 text-green-700 underline font-medium hover:text-green-900" data-testid="link-sheets-url">
+              Google Sheet öffnen <ExternalLink size={14} />
+            </a>
+          </div>
+        )}
+        {sheetsError && (
+          <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {sheetsError}
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

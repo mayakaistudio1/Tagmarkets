@@ -13,6 +13,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { objectStorageClient } from "./replit_integrations/object_storage";
+import { syncAllChatSessions } from "./googleSheets";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -434,6 +435,21 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting schedule event:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/admin/sync-sheets", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const result = await syncAllChatSessions();
+      res.json({
+        success: true,
+        rowCount: result.rowCount,
+        spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${result.spreadsheetId}`,
+      });
+    } catch (error: any) {
+      console.error("Google Sheets sync error:", error);
+      res.status(500).json({ error: error.message || "Failed to sync with Google Sheets" });
     }
   });
 

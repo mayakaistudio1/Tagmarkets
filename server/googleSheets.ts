@@ -53,10 +53,30 @@ async function getDriveClient() {
   return google.drive({ version: 'v3', auth: oauth2Client });
 }
 
-let cachedSpreadsheetId: string | null = null;
-const SPREADSHEET_TITLE = 'JetUP Chat Logs';
+let cachedSpreadsheetIdDev: string | null = null;
+let cachedSpreadsheetIdProd: string | null = null;
 const OVERVIEW_SHEET = 'Übersicht';
 const MAX_SESSIONS = 200;
+
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
+
+function getSpreadsheetTitle(): string {
+  return isProduction() ? 'JetUP Chat Logs PROD' : 'JetUP Chat Logs DEV';
+}
+
+function getCachedId(): string | null {
+  return isProduction() ? cachedSpreadsheetIdProd : cachedSpreadsheetIdDev;
+}
+
+function setCachedId(id: string | null): void {
+  if (isProduction()) {
+    cachedSpreadsheetIdProd = id;
+  } else {
+    cachedSpreadsheetIdDev = id;
+  }
+}
 
 function formatDate(date: Date | string | null | undefined): string {
   if (!date) return '';
@@ -100,38 +120,40 @@ function buildDialogText(messages: Array<{ role: string; content: string; timest
 }
 
 export async function getOrCreateSpreadsheet(): Promise<string> {
-  if (cachedSpreadsheetId) {
+  const cached = getCachedId();
+  if (cached) {
     try {
       const sheets = await getSheetsClient();
-      await sheets.spreadsheets.get({ spreadsheetId: cachedSpreadsheetId });
-      return cachedSpreadsheetId;
+      await sheets.spreadsheets.get({ spreadsheetId: cached });
+      return cached;
     } catch {
-      cachedSpreadsheetId = null;
+      setCachedId(null);
     }
   }
 
+  const title = getSpreadsheetTitle();
   const drive = await getDriveClient();
   const res = await drive.files.list({
-    q: `name='${SPREADSHEET_TITLE}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`,
+    q: `name='${title}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`,
     fields: 'files(id, name)',
     spaces: 'drive',
   });
 
   if (res.data.files && res.data.files.length > 0) {
-    cachedSpreadsheetId = res.data.files[0].id!;
-    return cachedSpreadsheetId;
+    setCachedId(res.data.files[0].id!);
+    return getCachedId()!;
   }
 
   const sheets = await getSheetsClient();
   const createRes = await sheets.spreadsheets.create({
     requestBody: {
-      properties: { title: SPREADSHEET_TITLE },
+      properties: { title },
       sheets: [{ properties: { title: OVERVIEW_SHEET } }],
     },
   });
 
-  cachedSpreadsheetId = createRes.data.spreadsheetId!;
-  return cachedSpreadsheetId;
+  setCachedId(createRes.data.spreadsheetId!);
+  return getCachedId()!;
 }
 
 export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; sessionCount: number }> {

@@ -101,9 +101,12 @@ function shortId(sessionId: string): string {
   return sessionId.substring(0, 8);
 }
 
-function sessionSheetName(sessionId: string, language: string): string {
-  const lang = (language || 'de').toUpperCase();
-  return `${shortId(sessionId)} ${lang}`;
+function typeLabel(type: string): string {
+  return type === 'video' ? 'Live' : 'Text';
+}
+
+function sessionSheetName(sessionId: string, type: string): string {
+  return `${shortId(sessionId)} ${typeLabel(type)}`;
 }
 
 function roleLabel(role: string): string {
@@ -117,6 +120,17 @@ function buildDialogText(messages: Array<{ role: string; content: string; timest
     const content = (msg.content || '').trim();
     return `[${time}] ${label}: ${content}`;
   }).join('\n\n');
+}
+
+function findSheetBySessionId(sheets: any[], sessionId: string): { title: string; sheetId: number } | null {
+  const sid = shortId(sessionId);
+  for (const sheet of sheets) {
+    const title = sheet.properties?.title || '';
+    if (title.startsWith(sid)) {
+      return { title, sheetId: sheet.properties?.sheetId };
+    }
+  }
+  return null;
 }
 
 export async function getOrCreateSpreadsheet(): Promise<string> {
@@ -197,19 +211,51 @@ export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; se
 
   for (let i = 0; i < limitedSessions.length; i++) {
     const session = limitedSessions[i];
-    const sheetName = sessionSheetName(session.sessionId, session.language || 'de');
+    const sheetName = sessionSheetName(session.sessionId, session.type || 'text');
     addRequests.push({
       addSheet: { properties: { title: sheetName, index: i + 1 } }
     });
   }
 
-  if (deleteRequests.length > 0 || addRequests.length > 0) {
-    const allRequests = [...addRequests, ...deleteRequests];
-    if (allRequests.length > 0) {
-      await sheets.spreadsheets.batchUpdate({
-        spreadsheetId,
-        requestBody: { requests: allRequests },
-      });
+  if (addRequests.length > 0 || deleteRequests.length > 0) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: { requests: [...addRequests, ...deleteRequests] },
+    });
+  }
+
+  for (const session of limitedSessions) {
+    const sheetName = sessionSheetName(session.sessionId, session.type || 'text');
+    const msgs = messagesBySession.get(session.sessionId) || [];
+    const dialogText = buildDialogText(msgs);
+
+    const langLabel = (session.language || 'de').toUpperCase();
+    const tLabel = session.type === 'video' ? 'Live Maria' : 'Text Chat';
+    const headerInfo = `Session: ${shortId(session.sessionId)} | ${langLabel} | ${tLabel} | ${formatDate(session.createdAt)}`;
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `'${sheetName}'!A1`,
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [
+          [headerInfo, 'Notizen'],
+          [],
+          [dialogText],
+        ]
+      },
+    });
+  }
+
+  const updatedSpreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+  const updatedSheets = updatedSpreadsheet.data.sheets || [];
+
+  const sheetGids = new Map<string, number>();
+  for (const sheet of updatedSheets) {
+    const title = sheet.properties?.title || '';
+    const gid = sheet.properties?.sheetId;
+    if (gid !== undefined) {
+      sheetGids.set(title, gid);
     }
   }
 
@@ -218,15 +264,20 @@ export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; se
 
   for (let i = 0; i < limitedSessions.length; i++) {
     const session = limitedSessions[i];
-    const sheetName = sessionSheetName(session.sessionId, session.language || 'de');
+    const sheetName = sessionSheetName(session.sessionId, session.type || 'text');
     const msgCount = messagesBySession.get(session.sessionId)?.length || 0;
     const sid = shortId(session.sessionId);
+    const gid = sheetGids.get(sheetName);
+
+    const sidCell = gid !== undefined
+      ? `=HYPERLINK("#gid=${gid}", "${sid}")`
+      : sid;
 
     overviewRows.push([
       i + 1,
-      `=HYPERLINK("#gid=" & INDIRECT("'" & "${sheetName}" & "'!ZZ1", FALSE), "${sid}")`,
+      sidCell,
       (session.language || 'de').toUpperCase(),
-      session.type === 'video' ? 'Video' : 'Text',
+      typeLabel(session.type || 'text'),
       formatDate(session.createdAt),
       msgCount,
     ]);
@@ -244,32 +295,6 @@ export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; se
     requestBody: { values: overviewRows },
   });
 
-  for (const session of limitedSessions) {
-    const sheetName = sessionSheetName(session.sessionId, session.language || 'de');
-    const msgs = messagesBySession.get(session.sessionId) || [];
-    const dialogText = buildDialogText(msgs);
-
-    const langLabel = (session.language || 'de').toUpperCase();
-    const typeLabel = session.type === 'video' ? 'Video' : 'Text';
-    const headerInfo = `Session: ${shortId(session.sessionId)} | ${langLabel} | ${typeLabel} | ${formatDate(session.createdAt)}`;
-
-    const sheetData: any[][] = [
-      [headerInfo, 'Notizen'],
-      [],
-      [dialogText],
-    ];
-
-    await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range: `'${sheetName}'!A1`,
-      valueInputOption: 'RAW',
-      requestBody: { values: sheetData },
-    });
-  }
-
-  const updatedSpreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
-  const updatedSheets = updatedSpreadsheet.data.sheets || [];
-
   const formatRequests: any[] = [];
   for (const sheet of updatedSheets) {
     const title = sheet.properties?.title;
@@ -277,69 +302,73 @@ export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; se
     if (sheetId === undefined) continue;
 
     if (title === OVERVIEW_SHEET) {
-      formatRequests.push({
-        repeatCell: {
-          range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
-          cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.9, green: 0.9, blue: 0.95 } } },
-          fields: 'userEnteredFormat(textFormat,backgroundColor)',
-        }
-      });
-      formatRequests.push({
-        updateSheetProperties: {
-          properties: { sheetId, gridProperties: { frozenRowCount: 1 } },
-          fields: 'gridProperties.frozenRowCount',
-        }
-      });
-      formatRequests.push({
-        updateDimensionProperties: {
-          range: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 },
-          properties: { pixelSize: 50 },
-          fields: 'pixelSize',
-        }
-      });
-      formatRequests.push({
-        updateDimensionProperties: {
-          range: { sheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
-          properties: { pixelSize: 120 },
-          fields: 'pixelSize',
-        }
-      });
-      formatRequests.push({
-        updateDimensionProperties: {
-          range: { sheetId, dimension: 'COLUMNS', startIndex: 4, endIndex: 5 },
-          properties: { pixelSize: 160 },
-          fields: 'pixelSize',
-        }
-      });
+      formatRequests.push(
+        {
+          repeatCell: {
+            range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
+            cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.9, green: 0.9, blue: 0.95 } } },
+            fields: 'userEnteredFormat(textFormat,backgroundColor)',
+          }
+        },
+        {
+          updateSheetProperties: {
+            properties: { sheetId, gridProperties: { frozenRowCount: 1 } },
+            fields: 'gridProperties.frozenRowCount',
+          }
+        },
+        {
+          updateDimensionProperties: {
+            range: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 },
+            properties: { pixelSize: 50 },
+            fields: 'pixelSize',
+          }
+        },
+        {
+          updateDimensionProperties: {
+            range: { sheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
+            properties: { pixelSize: 120 },
+            fields: 'pixelSize',
+          }
+        },
+        {
+          updateDimensionProperties: {
+            range: { sheetId, dimension: 'COLUMNS', startIndex: 4, endIndex: 5 },
+            properties: { pixelSize: 160 },
+            fields: 'pixelSize',
+          }
+        },
+      );
     } else {
-      formatRequests.push({
-        repeatCell: {
-          range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
-          cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.95, green: 0.95, blue: 1.0 } } },
-          fields: 'userEnteredFormat(textFormat,backgroundColor)',
-        }
-      });
-      formatRequests.push({
-        updateDimensionProperties: {
-          range: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 },
-          properties: { pixelSize: 800 },
-          fields: 'pixelSize',
-        }
-      });
-      formatRequests.push({
-        updateDimensionProperties: {
-          range: { sheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
-          properties: { pixelSize: 300 },
-          fields: 'pixelSize',
-        }
-      });
-      formatRequests.push({
-        repeatCell: {
-          range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 0, endColumnIndex: 1 },
-          cell: { userEnteredFormat: { wrapStrategy: 'WRAP', verticalAlignment: 'TOP' } },
-          fields: 'userEnteredFormat(wrapStrategy,verticalAlignment)',
-        }
-      });
+      formatRequests.push(
+        {
+          repeatCell: {
+            range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
+            cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.95, green: 0.95, blue: 1.0 } } },
+            fields: 'userEnteredFormat(textFormat,backgroundColor)',
+          }
+        },
+        {
+          updateDimensionProperties: {
+            range: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 },
+            properties: { pixelSize: 800 },
+            fields: 'pixelSize',
+          }
+        },
+        {
+          updateDimensionProperties: {
+            range: { sheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
+            properties: { pixelSize: 300 },
+            fields: 'pixelSize',
+          }
+        },
+        {
+          repeatCell: {
+            range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 0, endColumnIndex: 1 },
+            cell: { userEnteredFormat: { wrapStrategy: 'WRAP', verticalAlignment: 'TOP' } },
+            fields: 'userEnteredFormat(wrapStrategy,verticalAlignment)',
+          }
+        },
+      );
     }
   }
 
@@ -363,18 +392,34 @@ export async function appendChatMessageToSheet(
   try {
     const spreadsheetId = await getOrCreateSpreadsheet();
     const sheets = await getSheetsClient();
-    const sheetName = sessionSheetName(sessionId, language);
 
     const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
     const existingSheets = spreadsheet.data.sheets || [];
-    const sheetExists = existingSheets.some(s => s.properties?.title === sheetName);
+    const found = findSheetBySessionId(existingSheets, sessionId);
 
     const time = formatTime(new Date());
     const label = roleLabel(role);
     const newLine = `[${time}] ${label}: ${content.trim()}`;
 
-    if (!sheetExists) {
+    if (found) {
+      const existing = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `'${found.title}'!A3`,
+      });
+
+      const currentText = existing.data.values?.[0]?.[0] || '';
+      const updatedText = currentText ? `${currentText}\n\n${newLine}` : newLine;
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `'${found.title}'!A3`,
+        valueInputOption: 'RAW',
+        requestBody: { values: [[updatedText]] },
+      });
+    } else {
+      const sheetName = sessionSheetName(sessionId, type);
       const sheetCount = existingSheets.length;
+
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId,
         requestBody: {
@@ -384,9 +429,9 @@ export async function appendChatMessageToSheet(
         },
       });
 
-      const langLabel = language.toUpperCase();
-      const typeLabel = type === 'video' ? 'Video' : 'Text';
-      const headerInfo = `Session: ${shortId(sessionId)} | ${langLabel} | ${typeLabel} | ${formatDate(new Date())}`;
+      const langLabel = (language || 'de').toUpperCase();
+      const tLabel = type === 'video' ? 'Live Maria' : 'Text Chat';
+      const headerInfo = `Session: ${shortId(sessionId)} | ${langLabel} | ${tLabel} | ${formatDate(new Date())}`;
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
@@ -441,23 +486,78 @@ export async function appendChatMessageToSheet(
           },
         });
       }
-    } else {
-      const existing = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: `'${sheetName}'!A3`,
-      });
+    }
 
-      const currentText = existing.data.values?.[0]?.[0] || '';
-      const updatedText = currentText ? `${currentText}\n\n${newLine}` : newLine;
+    await updateOverviewForSession(spreadsheetId, sheets, sessionId, language, type);
+  } catch (error) {
+    console.error('Failed to append message to Google Sheets:', error);
+  }
+}
 
+async function updateOverviewForSession(
+  spreadsheetId: string,
+  sheets: any,
+  sessionId: string,
+  language: string,
+  type: string,
+): Promise<void> {
+  try {
+    const existing = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `'${OVERVIEW_SHEET}'!A:F`,
+    });
+
+    const rows: any[][] = existing.data.values || [];
+    const sid = shortId(sessionId);
+    let foundRow = -1;
+
+    for (let i = 1; i < rows.length; i++) {
+      const cellB = rows[i]?.[1] || '';
+      if (cellB.includes(sid)) {
+        foundRow = i;
+        break;
+      }
+    }
+
+    if (foundRow >= 0) {
+      const currentCount = parseInt(rows[foundRow][5] || '0', 10);
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `'${sheetName}'!A3`,
+        range: `'${OVERVIEW_SHEET}'!F${foundRow + 1}`,
         valueInputOption: 'RAW',
-        requestBody: { values: [[updatedText]] },
+        requestBody: { values: [[currentCount + 1]] },
+      });
+    } else {
+      const newNr = rows.length;
+      const sheetName = sessionSheetName(sessionId, type);
+
+      const updatedSpreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+      const allSheets = updatedSpreadsheet.data.sheets || [];
+      const targetSheet = allSheets.find((s: any) => s.properties?.title === sheetName);
+      const gid = targetSheet?.properties?.sheetId;
+
+      const sidCell = gid !== undefined
+        ? `=HYPERLINK("#gid=${gid}", "${sid}")`
+        : sid;
+
+      await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: `'${OVERVIEW_SHEET}'!A:F`,
+        valueInputOption: 'USER_ENTERED',
+        insertDataOption: 'INSERT_ROWS',
+        requestBody: {
+          values: [[
+            newNr,
+            sidCell,
+            (language || 'de').toUpperCase(),
+            typeLabel(type),
+            formatDate(new Date()),
+            1,
+          ]]
+        },
       });
     }
   } catch (error) {
-    console.error('Failed to append message to Google Sheets:', error);
+    console.error('Failed to update Übersicht:', error);
   }
 }

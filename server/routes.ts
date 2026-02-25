@@ -444,7 +444,7 @@ export async function registerRoutes(
       const result = await syncAllChatSessions();
       res.json({
         success: true,
-        rowCount: result.rowCount,
+        sessionCount: result.sessionCount,
         spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${result.spreadsheetId}`,
       });
     } catch (error: any) {

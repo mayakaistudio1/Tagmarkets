@@ -366,6 +366,13 @@ export async function syncAllChatSessions(): Promise<{ spreadsheetId: string; se
             fields: 'pixelSize',
           }
         },
+        {
+          repeatCell: {
+            range: { sheetId, startRowIndex: 3, endRowIndex: 1000, startColumnIndex: 0, endColumnIndex: 1 },
+            cell: { userEnteredFormat: { wrapStrategy: 'WRAP', verticalAlignment: 'TOP' } },
+            fields: 'userEnteredFormat(wrapStrategy,verticalAlignment)',
+          }
+        },
       );
     }
   }
@@ -478,6 +485,13 @@ export async function appendChatMessageToSheet(
                   range: { sheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
                   properties: { pixelSize: 300 },
                   fields: 'pixelSize',
+                }
+              },
+              {
+                repeatCell: {
+                  range: { sheetId, startRowIndex: 3, endRowIndex: 1000, startColumnIndex: 0, endColumnIndex: 1 },
+                  cell: { userEnteredFormat: { wrapStrategy: 'WRAP', verticalAlignment: 'TOP' } },
+                  fields: 'userEnteredFormat(wrapStrategy,verticalAlignment)',
                 }
               },
             ]

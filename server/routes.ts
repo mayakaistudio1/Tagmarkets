@@ -15,6 +15,7 @@ import crypto from "crypto";
 import { objectStorageClient } from "./replit_integrations/object_storage";
 import { syncAllChatSessions } from "./googleSheets";
 import { MARIA_SYSTEM_PROMPT_DE, MARIA_SYSTEM_PROMPT_EN, MARIA_SYSTEM_PROMPT_RU } from "./integrations/maria-chat";
+import { LIVEAVATAR_SYSTEM_PROMPT } from "./integrations/liveavatar";
 import OpenAI from "openai";
 
 const upload = multer({
@@ -443,18 +444,25 @@ export async function registerRoutes(
   app.post("/api/admin/analyze-maria", async (req, res) => {
     if (!requireAdmin(req, res)) return;
     try {
-      const { language } = req.body || {};
+      const { language, chatType, reportLanguage } = req.body || {};
       const langFilter = language && language !== "all" ? language : undefined;
+      const typeFilter = chatType === "video" ? "video" : "text";
+      const reportLang = reportLanguage === "ru" ? "Russian" : "German";
 
-      const allSessions = await storage.getChatSessions(langFilter ? { type: undefined } : {});
-      const filtered = langFilter
-        ? allSessions.filter((s: any) => s.language === langFilter)
-        : allSessions;
+      const allSessions = await storage.getChatSessions({});
+      const filtered = allSessions.filter((s: any) => {
+        if (s.type !== typeFilter) return false;
+        if (langFilter && s.language !== langFilter) return false;
+        return true;
+      });
       const limitedSessions = filtered.slice(0, 50);
 
       if (limitedSessions.length === 0) {
+        const noDataMsg = reportLanguage === "ru"
+          ? "Не найдено сессий для выбранных фильтров."
+          : "Keine Sitzungen für die gewählten Filter gefunden.";
         return res.json({
-          summary: "Keine Chat-Sitzungen gefunden für die gewählte Sprache.",
+          summary: noDataMsg,
           sections: [],
           sessionsAnalyzed: 0,
         });
@@ -475,26 +483,34 @@ export async function registerRoutes(
       }
 
       if (dialogues.length === 0) {
+        const noMsgText = reportLanguage === "ru"
+          ? "Не найдено сообщений в сессиях."
+          : "Keine Nachrichten in den Sitzungen gefunden.";
         return res.json({
-          summary: "Keine Nachrichten in den Sitzungen gefunden.",
+          summary: noMsgText,
           sections: [],
           sessionsAnalyzed: 0,
         });
       }
 
-      const mariaPrompt =
-        langFilter === "en"
-          ? MARIA_SYSTEM_PROMPT_EN
-          : langFilter === "ru"
-          ? MARIA_SYSTEM_PROMPT_RU
-          : MARIA_SYSTEM_PROMPT_DE;
+      let mariaPrompt: string;
+      let modeLabel: string;
+      if (typeFilter === "video") {
+        mariaPrompt = LIVEAVATAR_SYSTEM_PROMPT;
+        modeLabel = "Live Avatar (Video Call)";
+      } else {
+        mariaPrompt =
+          langFilter === "en"
+            ? MARIA_SYSTEM_PROMPT_EN
+            : langFilter === "ru"
+            ? MARIA_SYSTEM_PROMPT_RU
+            : MARIA_SYSTEM_PROMPT_DE;
+        modeLabel = "Text Chat";
+      }
 
-      const reportLang =
-        langFilter === "en" ? "English" : langFilter === "ru" ? "Russian" : "German";
+      const analysisSystemPrompt = `You are an expert AI assistant analyst. You will analyze chat dialogues between users and an AI assistant named Maria in ${modeLabel} mode.
 
-      const analysisSystemPrompt = `You are an expert AI assistant analyst. You will analyze chat dialogues between users and an AI assistant named Maria.
-
-Below is Maria's current system prompt (her instructions):
+Below is Maria's current system prompt for ${modeLabel} (her instructions):
 === MARIA SYSTEM PROMPT START ===
 ${mariaPrompt}
 === MARIA SYSTEM PROMPT END ===

@@ -582,6 +582,8 @@ function ChatLogsTab({
   const [sheetsUrl, setSheetsUrl] = useState<string | null>(null);
   const [sheetsError, setSheetsError] = useState<string | null>(null);
   const [analysisLang, setAnalysisLang] = useState<string>("all");
+  const [analysisChatType, setAnalysisChatType] = useState<string>("text");
+  const [analysisReportLang, setAnalysisReportLang] = useState<string>("de");
   const [analysisRunning, setAnalysisRunning] = useState(false);
   const [analysisReport, setAnalysisReport] = useState<AnalysisReport | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -616,7 +618,7 @@ function ChatLogsTab({
       const res = await fetch("/api/admin/analyze-maria", {
         method: "POST",
         headers: { ...headers(), "Content-Type": "application/json" },
-        body: JSON.stringify({ language: analysisLang }),
+        body: JSON.stringify({ language: analysisLang, chatType: analysisChatType, reportLanguage: analysisReportLang }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -724,19 +726,40 @@ function ChatLogsTab({
           </div>
         )}
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="flex items-center gap-3">
-            <select data-testid="select-analysis-lang" value={analysisLang} onChange={(e) => setAnalysisLang(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="all">Alle Sprachen</option>
-              <option value="de">Deutsch</option>
-              <option value="ru">Russisch</option>
-              <option value="en">English</option>
-            </select>
-            <button data-testid="button-analyze-maria" onClick={handleAnalyze} disabled={analysisRunning}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              {analysisRunning ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
-              {analysisRunning ? "Analyse läuft..." : "Analyse Марии"}
-            </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Modus</label>
+              <select data-testid="select-analysis-type" value={analysisChatType} onChange={(e) => setAnalysisChatType(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="text">Text Chat</option>
+                <option value="video">Live Avatar</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Dialoge</label>
+              <select data-testid="select-analysis-lang" value={analysisLang} onChange={(e) => setAnalysisLang(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">Alle Sprachen</option>
+                <option value="de">Deutsch</option>
+                <option value="ru">Russisch</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Bericht</label>
+              <select data-testid="select-report-lang" value={analysisReportLang} onChange={(e) => setAnalysisReportLang(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="de">Deutsch</option>
+                <option value="ru">Russisch</option>
+              </select>
+            </div>
+            <div className="pt-5">
+              <button data-testid="button-analyze-maria" onClick={handleAnalyze} disabled={analysisRunning}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                {analysisRunning ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
+                {analysisRunning ? "Analyse läuft..." : "Analyse Марии"}
+              </button>
+            </div>
           </div>
           {analysisError && (
             <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
@@ -752,7 +775,9 @@ function ChatLogsTab({
             <div className="flex items-center gap-3">
               <BarChart3 size={20} className="text-indigo-600" />
               <div>
-                <h3 className="font-semibold text-indigo-900" data-testid="text-analysis-title">Analyse Марии</h3>
+                <h3 className="font-semibold text-indigo-900" data-testid="text-analysis-title">
+                  Analyse — {analysisChatType === "video" ? "Live Avatar" : "Text Chat"}
+                </h3>
                 <p className="text-xs text-indigo-600" data-testid="text-analysis-count">{analysisReport.sessionsAnalyzed} Sitzungen analysiert</p>
               </div>
             </div>

@@ -414,6 +414,21 @@ export async function appendChatMessageToSheet(
         insertDataOption: 'INSERT_ROWS',
         requestBody: { values: [[`[${time}] ${label}: ${msgContent}`]] },
       });
+      const foundSheetId = found.sheetId;
+      if (foundSheetId !== undefined) {
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId,
+          requestBody: {
+            requests: [{
+              repeatCell: {
+                range: { sheetId: foundSheetId, startRowIndex: 3, endRowIndex: 1000, startColumnIndex: 0, endColumnIndex: 1 },
+                cell: { userEnteredFormat: { wrapStrategy: 'WRAP', verticalAlignment: 'TOP' } },
+                fields: 'userEnteredFormat(wrapStrategy,verticalAlignment)',
+              }
+            }]
+          },
+        });
+      }
     } else {
       const sheetName = sessionSheetName(sessionId, type);
       const sheetCount = existingSheets.length;

@@ -21,6 +21,7 @@ interface SceneConfig {
   texts: TextOverlay[];
   duration: number;
   overlayStyle?: string;
+  heroImage?: string;
   subBlocks?: SubBlock[];
   cardTitle?: string;
   cardSubtitle?: string;
@@ -31,7 +32,8 @@ interface SceneConfig {
 const scenes: SceneConfig[] = [
   {
     id: "s1", label: "Хаос", part: "intro",
-    overlayStyle: "rgba(0,0,0,0.85)",
+    overlayStyle: "rgba(0,0,0,0.35)",
+    heroImage: "/images/presentation/hero_chaos.png",
     texts: [
       { text: "Финансовый мир полон обещаний…", startTime: 1, endTime: 5.5 },
       { text: "которые никто не держит.", startTime: 3.5, endTime: 6.5 },
@@ -40,7 +42,8 @@ const scenes: SceneConfig[] = [
   },
   {
     id: "s2", label: "Мечта", part: "intro",
-    overlayStyle: "rgba(0,0,0,0.6)",
+    overlayStyle: "rgba(0,0,0,0.3)",
+    heroImage: "/images/presentation/hero_dream.png",
     texts: [
       { text: "Безопасность", startTime: 0.5, endTime: 2 },
       { text: "Гибкость", startTime: 2, endTime: 3.5 },
@@ -51,7 +54,8 @@ const scenes: SceneConfig[] = [
   },
   {
     id: "s3", label: "Реальность", part: "intro",
-    overlayStyle: "rgba(40,0,0,0.7)",
+    overlayStyle: "rgba(40,0,0,0.3)",
+    heroImage: "/images/presentation/hero_reality.png",
     texts: [
       { text: "Рынки растут.", startTime: 0.5, endTime: 2 },
       { text: "90% людей теряют.", startTime: 2, endTime: 4 },
@@ -61,7 +65,8 @@ const scenes: SceneConfig[] = [
   },
   {
     id: "s4", label: "Осознание", part: "intro",
-    overlayStyle: "rgba(0,0,0,0.7)",
+    overlayStyle: "rgba(0,0,0,0.3)",
+    heroImage: "/images/presentation/hero_realization.png",
     texts: [
       { text: "А что если есть другой путь?", startTime: 1, endTime: 3 },
       { text: "Не продукт. Не схема.", startTime: 3, endTime: 5 },
@@ -71,6 +76,7 @@ const scenes: SceneConfig[] = [
   },
   {
     id: "s5", label: "JetUP", part: "presentation",
+    heroImage: "/images/presentation/hero_discovery.png",
     cardTitle: "JetUP",
     cardSubtitle: "Цифровая инфраструктура для трейдинга и партнёрства",
     cardImage: "/images/presentation/jetup_brand.png",
@@ -115,7 +121,8 @@ const scenes: SceneConfig[] = [
   },
   {
     id: "s9", label: "Масштаб", part: "intro",
-    overlayStyle: "rgba(0,0,0,0.5)",
+    overlayStyle: "rgba(0,0,0,0.3)",
+    heroImage: "/images/presentation/hero_scale.png",
     texts: [
       { text: "Это не проект.", startTime: 1, endTime: 3.5 },
       { text: "Это экосистема.", startTime: 3.5, endTime: 6.5 },
@@ -124,7 +131,8 @@ const scenes: SceneConfig[] = [
   },
   {
     id: "s10", label: "Финал", part: "intro",
-    overlayStyle: "rgba(0,0,0,0.8)",
+    overlayStyle: "rgba(0,0,0,0.4)",
+    heroImage: "/images/presentation/hero_scale.png",
     texts: [
       { text: "Вопрос не в том, работает ли система.", startTime: 1, endTime: 3 },
       { text: "Вопрос — ты внутри неё", startTime: 3, endTime: 5 },
@@ -474,6 +482,21 @@ export default function PresentationPage() {
         data-testid="bg-video"
       />
 
+      {scene.heroImage && (
+        <div
+          className="absolute inset-0 transition-opacity duration-[800ms]"
+          style={{ opacity: transitioning ? 0 : 1 }}
+        >
+          <img
+            src={scene.heroImage}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ filter: "saturate(0.7) brightness(0.75)" }}
+            data-testid="hero-image"
+          />
+        </div>
+      )}
+
       <div
         className="absolute inset-0 transition-all duration-[600ms] pointer-events-none"
         style={{ backgroundColor: scene.overlayStyle || "rgba(0,0,0,0.5)" }}
@@ -481,7 +504,7 @@ export default function PresentationPage() {
 
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 12%, transparent 80%, rgba(0,0,0,0.6) 100%)" }}
+        style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 15%, transparent 70%, rgba(0,0,0,0.7) 100%)" }}
       />
 
       <div

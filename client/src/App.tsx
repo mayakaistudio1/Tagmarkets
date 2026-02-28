@@ -17,6 +17,8 @@ import TurkeyPromoPreview from "@/pages/TurkeyPromoPreview";
 import EventDetailPage from "@/pages/EventDetailPage";
 import PromoSinglePage from "@/pages/PromoSinglePage";
 
+const PresentationPage = React.lazy(() => import("@/pages/PresentationPage"));
+
 function AppContent() {
   const [location, setLocation] = useLocation();
 
@@ -32,6 +34,14 @@ function AppContent() {
 
   if (basePath === "/promo-preview") {
     return <TurkeyPromoPreview />;
+  }
+
+  if (basePath === "/presentation") {
+    return (
+      <React.Suspense fallback={<div className="fixed inset-0 bg-black" />}>
+        <PresentationPage />
+      </React.Suspense>
+    );
   }
 
   const eventMatch = basePath.match(/^\/event\/(\d+)$/);

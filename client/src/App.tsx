@@ -36,7 +36,7 @@ function AppContent() {
     return <TurkeyPromoPreview />;
   }
 
-  if (basePath === "/presentation") {
+  if (basePath === "/presentation" && import.meta.env.DEV) {
     return (
       <React.Suspense fallback={<div className="fixed inset-0 bg-black" />}>
         <PresentationPage />

@@ -1439,9 +1439,9 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                         ${tripleTime ? `<span style="color:#9ca3af;font-weight:500;font-size:24px;">(${tripleTime})</span>` : ""}
                       </div>
                       <div style="position:absolute;left:36px;bottom:28px;z-index:10;display:flex;align-items:center;gap:10px;">
-                        ${sloganWords.map((w,i) => `${i > 0 ? '<span style="width:8px;height:8px;border-radius:50%;background:#a855f7;display:inline-block;"></span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;">${w}</span>`).join("")}
+                        ${sloganWords.map((w,i) => `${i > 0 ? '<span style="width:8px;height:8px;border-radius:50%;background:#a855f7;display:inline-block;vertical-align:middle;"></span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;line-height:1;vertical-align:middle;">${w}</span>`).join("")}
                       </div>
-                      <div style="position:absolute;right:24px;top:50%;transform:translateY(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;">
+                      <div style="position:absolute;right:24px;top:45%;transform:translateY(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;">
                           ${currentSpeakerPhoto ? `
                             <div style="position:relative;width:260px;height:260px;">
                               <div style="position:absolute;inset:-12px;border-radius:50%;border:3px solid rgba(192,132,252,0.4);"></div>

@@ -1425,20 +1425,22 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                         ${Array.from({length:40},()=>`<div style="background:#f3f4f6;opacity:0.18;border-radius:2px;"></div>`).join("")}
                       </div>
                       <div style="position:absolute;inset:0;display:flex;">
-                        <div style="flex:0 0 62%;display:flex;flex-direction:column;justify-content:space-between;padding:28px 32px;z-index:10;">
-                          <img src="/jetup-logo-banner.png" style="height:52px;width:auto;object-fit:contain;image-rendering:auto;" crossorigin="anonymous" />
-                          <div>
-                            <p style="color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0 0 4px 0;">Zoom Call</p>
-                            <h3 style="color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
-                          </div>
-                          <div>
-                            <div style="display:flex;align-items:center;gap:8px;">
-                              <img src="/calendar-icon-banner.png" style="height:26px;width:auto;opacity:0.8;image-rendering:auto;" crossorigin="anonymous" />
-                              <span style="color:#1a1a1a;font-weight:700;font-size:30px;">${[formatDate(event.date), event.day].filter(Boolean).join(" \u00b7 ") || "Datum"}</span>
+                        <div style="flex:0 0 62%;display:flex;flex-direction:column;padding:40px 36px 28px 36px;z-index:10;">
+                          <img src="/jetup-logo-banner.png" style="height:52px;width:auto;object-fit:contain;flex-shrink:0;margin-bottom:20px;image-rendering:auto;" crossorigin="anonymous" />
+                          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;">
+                            <div>
+                              <p style="color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0 0 4px 0;">Zoom Call</p>
+                              <h3 style="color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
                             </div>
-                            ${tripleTime ? `<span style="color:#9ca3af;font-weight:500;font-size:24px;">(${tripleTime})</span>` : ""}
+                            <div>
+                              <div style="display:flex;align-items:center;gap:8px;">
+                                <img src="/calendar-icon-banner.png" style="height:26px;width:auto;opacity:0.8;image-rendering:auto;" crossorigin="anonymous" />
+                                <span style="color:#1a1a1a;font-weight:700;font-size:30px;">${[formatDate(event.date), event.day].filter(Boolean).join(" \u00b7 ") || "Datum"}</span>
+                              </div>
+                              ${tripleTime ? `<span style="color:#9ca3af;font-weight:500;font-size:24px;">(${tripleTime})</span>` : ""}
+                            </div>
                           </div>
-                          <div style="display:flex;align-items:center;gap:10px;">
+                          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;margin-top:16px;">
                             ${sloganWords.map((w,i) => `${i > 0 ? '<span style="width:8px;height:8px;border-radius:50%;background:#a855f7;display:inline-block;"></span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;">${w}</span>`).join("")}
                           </div>
                         </div>

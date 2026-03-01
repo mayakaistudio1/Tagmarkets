@@ -1470,206 +1470,114 @@ function convertTripleTime(time: string, fromTz: string): string {
   return `${getZonedTime(1)} BER | ${getZonedTime(3)} MSK | ${getZonedTime(4)} DXB`;
 }
 
-function loadImg(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`Failed to load ${src}`));
-    img.src = src;
-  });
-}
-
-function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, lineHeight: number): string[] {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let current = "";
-  for (const word of words) {
-    const test = current ? current + " " + word : word;
-    if (ctx.measureText(test).width > maxWidth && current) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = test;
-    }
+async function fetchAsDataUrl(src: string): Promise<string> {
+  try {
+    const resp = await fetch(src);
+    const blob = await resp.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return "";
   }
-  if (current) lines.push(current);
-  return lines;
-}
-
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
 }
 
 async function renderBannerCanvas(event: ScheduleEvent, speakerPhoto: string): Promise<string> {
   const W = 1200, H = 660;
-  const canvas = document.createElement("canvas");
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext("2d")!;
 
-  const grad = ctx.createLinearGradient(W, 0, 0, H * 0.55);
-  grad.addColorStop(0, "rgb(182, 139, 255)");
-  grad.addColorStop(1, "rgb(255, 255, 255)");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
-
-  const rows = 5, cols = 8, pad = 8, gap = 2;
-  const cellW = (W - pad * 2 - gap * (cols - 1)) / cols;
-  const cellH = (H - pad * 2 - gap * (rows - 1)) / rows;
-  ctx.fillStyle = "rgba(243,244,246,0.18)";
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const cx = pad + c * (cellW + gap);
-      const cy = pad + r * (cellH + gap);
-      roundRect(ctx, cx, cy, cellW, cellH, 2);
-      ctx.fill();
-    }
-  }
-
-  const leftMax = 700;
-  const leftPad = 50;
-
-  try {
-    const logo = await loadImg("/jetup-logo-banner.png");
-    const logoH = 50;
-    const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
-    ctx.drawImage(logo, leftPad, 50, logoW, logoH);
-  } catch {}
-
-  const titleY = 170;
-  ctx.font = "700 32px Montserrat, sans-serif";
-  ctx.fillStyle = "#1a1a1a";
-  ctx.fillText("Zoom Call", leftPad, titleY);
-
-  const titleText = `\u201C${(event.title || "Webinar Titel").toUpperCase()}\u201D`;
-  const titleLen = event.title?.length || 0;
-  const titleFontSize = titleLen > 40 ? 36 : titleLen > 25 ? 42 : 48;
-  ctx.font = `800 ${titleFontSize}px Montserrat, sans-serif`;
-  ctx.fillStyle = "#7C3AED";
-  const titleLines = wrapText(ctx, titleText, leftMax - leftPad * 2, titleFontSize * 1.1);
-  let ty = titleY + 48;
-  for (const line of titleLines) {
-    ctx.fillText(line, leftPad, ty);
-    ty += titleFontSize * 1.15;
-  }
+  const [logoData, calData, spkData] = await Promise.all([
+    fetchAsDataUrl("/jetup-logo-banner.png"),
+    fetchAsDataUrl("/calendar-icon-banner.png"),
+    speakerPhoto ? fetchAsDataUrl(speakerPhoto) : Promise.resolve(""),
+  ]);
 
   const tz = event.timezone || "CET";
   const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
+  const titleLen = event.title?.length || 0;
+  const titleSize = titleLen > 40 ? 36 : titleLen > 25 ? 42 : 48;
   const dateStr = [formatDate(event.date), event.day].filter(Boolean).join(" \u00b7 ") || "Datum";
-
-  const dateY = H - 110;
-  try {
-    const calIcon = await loadImg("/calendar-icon-banner.png");
-    const calH = 28;
-    const calW = (calIcon.naturalWidth / calIcon.naturalHeight) * calH;
-    ctx.globalAlpha = 0.8;
-    ctx.drawImage(calIcon, leftPad, dateY - 20, calW, calH);
-    ctx.globalAlpha = 1.0;
-
-    ctx.font = "700 30px Montserrat, sans-serif";
-    ctx.fillStyle = "#1a1a1a";
-    ctx.fillText(dateStr, leftPad + calW + 12, dateY + 4);
-  } catch {
-    ctx.font = "700 30px Montserrat, sans-serif";
-    ctx.fillStyle = "#1a1a1a";
-    ctx.fillText(dateStr, leftPad, dateY + 4);
-  }
-
-  if (tripleTime) {
-    ctx.font = "500 20px Montserrat, sans-serif";
-    ctx.fillStyle = "#9ca3af";
-    ctx.fillText(`(${tripleTime})`, leftPad + 40, dateY + 32);
-  }
-
   const sloganWords = event.language === "ru" ? ["\u0421\u0422\u0420\u0423\u041A\u0422\u0423\u0420\u0410", "\u041F\u0420\u041E\u0417\u0420\u0410\u0427\u041D\u041E\u0421\u0422\u042C", "\u041A\u041E\u041D\u0422\u0420\u041E\u041B\u042C"] :
     event.language === "en" ? ["STRUCTURE", "TRANSPARENCY", "CONTROL"] :
     ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"];
 
-  const sloganY = H - 30;
-  ctx.font = "700 16px Montserrat, sans-serif";
-  ctx.letterSpacing = "3px";
-  let sx = leftPad;
-  for (let i = 0; i < sloganWords.length; i++) {
-    if (i > 0) {
-      ctx.fillStyle = "#a855f7";
-      ctx.beginPath();
-      ctx.arc(sx + 8, sloganY - 5, 4, 0, Math.PI * 2);
-      ctx.fill();
-      sx += 24;
-    }
-    ctx.fillStyle = "#111827";
-    ctx.fillText(sloganWords[i], sx, sloganY);
-    sx += ctx.measureText(sloganWords[i]).width + 8;
-  }
+  const gridCells = Array.from({ length: 40 }, () =>
+    `<div style="background:#f3f4f6;opacity:0.18;border-radius:3px;"></div>`
+  ).join("");
 
-  const rightCenterX = 920;
-  const rightCenterY = H / 2;
+  const sloganHtml = sloganWords.map((w, i) =>
+    `${i > 0 ? `<span style="width:8px;height:8px;background:#a855f7;border-radius:50%;flex-shrink:0;"></span>` : ""}` +
+    `<span style="font-weight:700;color:#111827;text-transform:uppercase;font-family:Montserrat,sans-serif;font-size:18px;letter-spacing:4px;">${w}</span>`
+  ).join("");
 
-  if (speakerPhoto) {
-    try {
-      const spkImg = await loadImg(speakerPhoto);
-      const radius = 155;
+  const speakerHtml = spkData ? `
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;">
+      <div style="position:relative;width:70%;aspect-ratio:1/1;">
+        <div style="position:absolute;top:-4%;left:-4%;right:-4%;bottom:-4%;border-radius:50%;border:3px solid rgba(192,132,252,0.4);"></div>
+        <img src="${spkData}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:center top;" />
+      </div>
+      <div style="margin-top:4%;background:white;border-radius:6px;padding:2% 6%;box-shadow:0 1px 3px rgba(0,0,0,0.1);max-width:90%;overflow:hidden;">
+        <p style="font-weight:600;color:black;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:Inter,sans-serif;font-size:26px;margin:0;">Speaker: ${event.speaker || "Name"}</p>
+      </div>
+    </div>` : `<div style="width:70%;aspect-ratio:1/1;border-radius:50%;background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(168,85,247,0.1));"></div>`;
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(rightCenterX, rightCenterY - 30, radius + 10, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(192, 132, 252, 0.4)";
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      ctx.restore();
+  const htmlContent = `
+<div xmlns="http://www.w3.org/1999/xhtml" style="width:${W}px;height:${H}px;position:relative;overflow:hidden;background:linear-gradient(-29deg,rgb(182,139,255) 0%,rgb(255,255,255) 69%);font-family:Montserrat,sans-serif;margin:0;padding:0;">
+  <div style="position:absolute;inset:0;padding:8px;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(5,1fr);gap:4px;pointer-events:none;">
+    ${gridCells}
+  </div>
+  <div style="position:absolute;inset:0;display:flex;">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:4% 4%;max-width:62%;z-index:10;">
+      ${logoData ? `<img src="${logoData}" style="height:14%;width:auto;object-fit:contain;align-self:flex-start;" />` : `<div style="height:14%;"></div>`}
+      <div style="margin-top:1%;margin-bottom:1%;">
+        <p style="color:#1a1a1a;font-weight:700;line-height:1.3;font-family:Montserrat,sans-serif;font-size:32px;margin:0 0 1% 0;">Zoom\u2011Call</p>
+        <h3 style="color:#7C3AED;font-weight:800;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;font-family:Montserrat,sans-serif;font-size:${titleSize}px;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1%;">
+        <div style="display:flex;align-items:center;gap:1.5%;flex-wrap:wrap;">
+          ${calData ? `<img src="${calData}" style="height:26px;width:auto;opacity:0.8;" />` : ""}
+          <span style="color:#1a1a1a;font-weight:700;font-family:Montserrat,sans-serif;font-size:30px;">${dateStr}</span>
+        </div>
+        ${tripleTime ? `<span style="color:#9ca3af;font-weight:500;font-family:Montserrat,sans-serif;font-size:24px;">(${tripleTime})</span>` : ""}
+      </div>
+      <div style="display:flex;align-items:center;gap:2%;">
+        ${sloganHtml}
+      </div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;padding-right:3%;">
+      ${speakerHtml}
+    </div>
+  </div>
+</div>`;
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(rightCenterX, rightCenterY - 30, radius, 0, Math.PI * 2);
-      ctx.closePath();
-      ctx.clip();
+  const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+    <foreignObject width="${W}" height="${H}">
+      ${htmlContent}
+    </foreignObject>
+  </svg>`;
 
-      const imgSize = radius * 2;
-      const sRatio = spkImg.naturalWidth / spkImg.naturalHeight;
-      let sw = imgSize, sh = imgSize;
-      if (sRatio > 1) { sw = imgSize * sRatio; } else { sh = imgSize / sRatio; }
-      const sx2 = rightCenterX - sw / 2;
-      const sy2 = rightCenterY - 30 - sh / 2;
-      ctx.drawImage(spkImg, sx2, sy2, sw, sh);
-      ctx.restore();
-    } catch {}
+  const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(svgBlob);
 
-    const speakerName = event.speaker || "Name";
-    const nameText = `Speaker: ${speakerName}`;
-    const nameFontSize = speakerName.length > 20 ? 18 : speakerName.length > 15 ? 20 : 22;
-    ctx.font = `700 ${nameFontSize}px Inter, sans-serif`;
-    const nameW = ctx.measureText(nameText).width;
-    const pillW = nameW + 56;
-    const pillH = 44;
-    const pillX = rightCenterX - pillW / 2;
-    const pillY = rightCenterY + 145;
-
-    ctx.shadowColor = "rgba(0,0,0,0.1)";
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetY = 2;
-    ctx.fillStyle = "white";
-    roundRect(ctx, pillX, pillY, pillW, pillH, 8);
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
-
-    ctx.fillStyle = "black";
-    ctx.fillText(nameText, pillX + 28, pillY + 30);
-  }
-
-  return canvas.toDataURL("image/png");
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, W, H);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      reject(e);
+    };
+    img.src = url;
+  });
 }
 
 function InputField({ label, value, onChange, testId }: {

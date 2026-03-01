@@ -1424,24 +1424,27 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                       <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(5,1fr);gap:2px;padding:8px;pointer-events:none;">
                         ${Array.from({length:40},()=>`<div style="background:#f3f4f6;opacity:0.18;border-radius:2px;"></div>`).join("")}
                       </div>
-                      <div style="position:absolute;left:36px;top:48px;z-index:10;">
-                        <img src="/jetup-logo-banner.png" style="height:56px;width:auto;display:block;image-rendering:auto;" crossorigin="anonymous" />
-                      </div>
-                      <div style="position:absolute;left:36px;top:160px;z-index:10;max-width:55%;">
-                        <p style="color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0 0 6px 0;">Zoom Call</p>
-                        <h3 style="color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
-                      </div>
-                      <div style="position:absolute;left:36px;top:420px;z-index:10;">
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                          <img src="/calendar-icon-banner.png" style="height:26px;width:auto;opacity:0.8;image-rendering:auto;" crossorigin="anonymous" />
-                          <span style="color:#1a1a1a;font-weight:700;font-size:30px;">${[formatDate(event.date), event.day].filter(Boolean).join(" \u00b7 ") || "Datum"}</span>
+                      <div style="position:absolute;inset:0;display:flex;">
+                        <div style="flex:0 0 62%;display:flex;flex-direction:column;justify-content:space-between;padding:28px 32px;z-index:10;">
+                          <div style="height:80px;display:flex;align-items:flex-end;">
+                            <img src="/jetup-logo-banner.png" style="height:52px;width:auto;object-fit:contain;image-rendering:auto;" crossorigin="anonymous" />
+                          </div>
+                          <div>
+                            <p style="color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0 0 4px 0;">Zoom Call</p>
+                            <h3 style="color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
+                          </div>
+                          <div>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                              <img src="/calendar-icon-banner.png" style="height:26px;width:auto;opacity:0.8;image-rendering:auto;" crossorigin="anonymous" />
+                              <span style="color:#1a1a1a;font-weight:700;font-size:30px;">${[formatDate(event.date), event.day].filter(Boolean).join(" \u00b7 ") || "Datum"}</span>
+                            </div>
+                            ${tripleTime ? `<span style="color:#9ca3af;font-weight:500;font-size:24px;">(${tripleTime})</span>` : ""}
+                          </div>
+                          <div style="display:flex;align-items:center;gap:10px;">
+                            ${sloganWords.map((w,i) => `${i > 0 ? '<span style="width:8px;height:8px;border-radius:50%;background:#a855f7;display:inline-block;vertical-align:middle;"></span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;line-height:18px;vertical-align:middle;">${w}</span>`).join("")}
+                          </div>
                         </div>
-                        ${tripleTime ? `<span style="color:#9ca3af;font-weight:500;font-size:24px;">(${tripleTime})</span>` : ""}
-                      </div>
-                      <div style="position:absolute;left:36px;bottom:28px;z-index:10;display:flex;align-items:center;gap:10px;">
-                        ${sloganWords.map((w,i) => `${i > 0 ? '<span style="width:8px;height:8px;border-radius:50%;background:#a855f7;display:inline-block;vertical-align:middle;"></span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;line-height:1;vertical-align:middle;">${w}</span>`).join("")}
-                      </div>
-                      <div style="position:absolute;right:24px;top:45%;transform:translateY(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;">
+                        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;padding-right:24px;">
                           ${currentSpeakerPhoto ? `
                             <div style="position:relative;width:260px;height:260px;">
                               <div style="position:absolute;inset:-12px;border-radius:50%;border:3px solid rgba(192,132,252,0.4);"></div>
@@ -1451,6 +1454,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                               <p style="font-family:Inter,sans-serif;font-weight:600;color:black;font-size:${speakerFontSize}px;margin:0;white-space:nowrap;">Speaker: ${speakerName}</p>
                             </div>
                           ` : `<div style="width:240px;height:240px;border-radius:50%;background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(168,85,247,0.1));"></div>`}
+                        </div>
                       </div>
                     </div>
                   `;

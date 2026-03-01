@@ -16,6 +16,7 @@ import AdminPage from "@/pages/AdminPage";
 import TurkeyPromoPreview from "@/pages/TurkeyPromoPreview";
 import EventDetailPage from "@/pages/EventDetailPage";
 import PromoSinglePage from "@/pages/PromoSinglePage";
+import PartnerDigitalHub from "@/pages/PartnerDigitalHub";
 
 const PresentationPage = React.lazy(() => import("@/pages/PresentationPage"));
 
@@ -46,10 +47,12 @@ function AppContent() {
 
   const eventMatch = basePath.match(/^\/event\/(\d+)$/);
   const promoSingleMatch = basePath.match(/^\/promo\/(\d+)$/);
+  const partnerMatch = basePath.match(/^\/p\/[\w-]+$/);
 
   const renderPage = () => {
     if (eventMatch) return <EventDetailPage />;
     if (promoSingleMatch) return <PromoSinglePage />;
+    if (partnerMatch) return <PartnerDigitalHub />;
 
     switch (basePath) {
       case "/":

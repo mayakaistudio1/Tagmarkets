@@ -1394,8 +1394,12 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
             <div className="flex items-center justify-between mb-2">
               <label className="block text-[10px] font-medium text-gray-400">Banner Vorschau</label>
               <button
+                type="button"
                 data-testid="button-download-banner-preview"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  alert("Step 1: Button clicked!");
                   const W = 1200, H = 660;
                   const tz = event.timezone || "CET";
                   const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
@@ -1407,8 +1411,6 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                   const speakerName = event.speaker || "Name";
                   const spkFontSize = speakerName.length > 20 ? 16 : speakerName.length > 15 ? 18 : 20;
                   const dateStr = [formatDate(event.date), event.day].filter(Boolean).join(" · ") || "Datum";
-
-                  console.log("Banner download: starting, W=", W, "H=", H);
 
                   const wrapper = document.createElement("div");
                   wrapper.style.cssText = `position:fixed;left:-9999px;top:0;width:${W}px;height:${H}px;overflow:hidden;z-index:-1;`;
@@ -1445,17 +1447,17 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 
                   wrapper.appendChild(inner);
                   document.body.appendChild(wrapper);
+                  alert("Step 2: Offscreen element created, waiting for images...");
 
                   const imgs = wrapper.querySelectorAll("img");
-                  console.log("Banner download: waiting for", imgs.length, "images");
                   const loadPromises = Array.from(imgs).map(img => new Promise<void>((resolve) => {
                     if (img.complete && img.naturalWidth > 0) { resolve(); return; }
-                    img.onload = () => { console.log("Banner img loaded:", img.src.substring(0, 60)); resolve(); };
-                    img.onerror = (e) => { console.warn("Banner img failed:", img.src.substring(0, 60), e); resolve(); };
+                    img.onload = () => resolve();
+                    img.onerror = () => resolve();
                   }));
 
                   Promise.all(loadPromises).then(() => {
-                    console.log("Banner download: all images loaded, starting html2canvas");
+                    alert("Step 3: Images loaded, starting html2canvas...");
                     return new Promise(r => setTimeout(r, 300));
                   }).then(() => {
                     return html2canvas(inner, {
@@ -1474,9 +1476,8 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                       logging: true,
                     });
                   }).then(canvas => {
-                    console.log("Banner download: canvas created", canvas.width, "x", canvas.height);
+                    alert("Step 4: html2canvas done! Canvas: " + canvas.width + "x" + canvas.height);
                     const dataUrl = canvas.toDataURL("image/png");
-                    console.log("Banner download: dataUrl length=", dataUrl.length);
                     const a = document.createElement("a");
                     a.href = dataUrl;
                     a.download = `banner-${event.title?.replace(/\s+/g, "-") || "webinar"}.png`;
@@ -1484,8 +1485,9 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                     a.click();
                     document.body.removeChild(a);
                     document.body.removeChild(wrapper);
-                    console.log("Banner download: done!");
+                    alert("Step 5: Download triggered!");
                   }).catch((err) => {
+                    alert("ERROR: " + String(err) + " | " + (err?.message || "no message") + " | " + (err?.stack || "no stack"));
                     console.error("Banner export error:", err, err?.message, err?.stack);
                     try { document.body.removeChild(wrapper); } catch {}
                   });

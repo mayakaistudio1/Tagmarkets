@@ -1426,9 +1426,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                       </div>
                       <div style="position:absolute;inset:0;display:flex;">
                         <div style="flex:0 0 62%;display:flex;flex-direction:column;justify-content:space-between;padding:28px 32px;z-index:10;">
-                          <div style="height:80px;display:flex;align-items:flex-end;">
-                            <img src="/jetup-logo-banner.png" style="height:52px;width:auto;object-fit:contain;image-rendering:auto;" crossorigin="anonymous" />
-                          </div>
+                          <img src="/jetup-logo-banner.png" style="height:52px;width:auto;object-fit:contain;image-rendering:auto;margin-top:20px;" crossorigin="anonymous" />
                           <div>
                             <p style="color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0 0 4px 0;">Zoom Call</p>
                             <h3 style="color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
@@ -1441,7 +1439,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                             ${tripleTime ? `<span style="color:#9ca3af;font-weight:500;font-size:24px;">(${tripleTime})</span>` : ""}
                           </div>
                           <div style="display:flex;align-items:center;gap:10px;">
-                            ${sloganWords.map((w,i) => `${i > 0 ? '<span style="width:8px;height:8px;border-radius:50%;background:#a855f7;display:inline-block;vertical-align:middle;"></span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;line-height:18px;vertical-align:middle;">${w}</span>`).join("")}
+                            ${sloganWords.map((w,i) => `${i > 0 ? '<span style="width:8px;height:8px;border-radius:50%;background:#a855f7;display:inline-block;"></span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;">${w}</span>`).join("")}
                           </div>
                         </div>
                         <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;padding-right:24px;">

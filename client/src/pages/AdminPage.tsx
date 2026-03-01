@@ -1426,7 +1426,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                       </div>
                       <div style="position:absolute;inset:0;display:flex;">
                         <div style="flex:0 0 62%;display:flex;flex-direction:column;justify-content:space-between;padding:28px 32px;z-index:10;">
-                          <img src="/jetup-logo-banner.png" style="height:52px;width:auto;object-fit:contain;image-rendering:auto;margin-top:20px;" crossorigin="anonymous" />
+                          <img src="/jetup-logo-banner.png" style="height:40px;width:auto;object-fit:contain;image-rendering:auto;" crossorigin="anonymous" />
                           <div>
                             <p style="color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0 0 4px 0;">Zoom Call</p>
                             <h3 style="color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>

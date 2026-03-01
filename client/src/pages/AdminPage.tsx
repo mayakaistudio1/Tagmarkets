@@ -1425,22 +1425,20 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                         ${Array.from({length:40},()=>`<div style="background:#f3f4f6;opacity:0.18;border-radius:2px;"></div>`).join("")}
                       </div>
                       <div style="position:absolute;inset:0;display:flex;">
-                        <div style="flex:0 0 62%;display:flex;flex-direction:column;padding:40px 36px 28px 36px;z-index:10;">
-                          <img src="/jetup-logo-banner.png" style="height:52px;width:auto;object-fit:contain;flex-shrink:0;margin-bottom:20px;image-rendering:auto;" crossorigin="anonymous" />
-                          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;">
-                            <div>
-                              <p style="color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0 0 4px 0;">Zoom Call</p>
-                              <h3 style="color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
-                            </div>
-                            <div>
-                              <div style="display:flex;align-items:center;gap:8px;">
-                                <img src="/calendar-icon-banner.png" style="height:26px;width:auto;opacity:0.8;image-rendering:auto;" crossorigin="anonymous" />
-                                <span style="color:#1a1a1a;font-weight:700;font-size:30px;">${[formatDate(event.date), event.day].filter(Boolean).join(" \u00b7 ") || "Datum"}</span>
-                              </div>
-                              ${tripleTime ? `<span style="color:#9ca3af;font-weight:500;font-size:24px;">(${tripleTime})</span>` : ""}
-                            </div>
+                        <div style="flex:0 0 62%;display:flex;flex-direction:column;justify-content:space-between;padding:60px 36px 28px 36px;z-index:10;">
+                          <img src="/jetup-logo-banner.png" style="height:52px;width:auto;object-fit:contain;image-rendering:auto;" crossorigin="anonymous" />
+                          <div>
+                            <p style="color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0 0 4px 0;">Zoom Call</p>
+                            <h3 style="color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
                           </div>
-                          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;margin-top:16px;">
+                          <div>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                              <img src="/calendar-icon-banner.png" style="height:26px;width:auto;opacity:0.8;image-rendering:auto;" crossorigin="anonymous" />
+                              <span style="color:#1a1a1a;font-weight:700;font-size:30px;">${[formatDate(event.date), event.day].filter(Boolean).join(" \u00b7 ") || "Datum"}</span>
+                            </div>
+                            ${tripleTime ? `<span style="color:#9ca3af;font-weight:500;font-size:24px;">(${tripleTime})</span>` : ""}
+                          </div>
+                          <div style="display:flex;align-items:center;gap:10px;">
                             ${sloganWords.map((w,i) => `${i > 0 ? '<span style="width:8px;height:8px;border-radius:50%;background:#a855f7;display:inline-block;"></span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;">${w}</span>`).join("")}
                           </div>
                         </div>
@@ -1562,35 +1560,33 @@ const EventBannerPreview = React.forwardRef<HTMLDivElement, { event: ScheduleEve
       </div>
 
       <div className="absolute inset-0 flex">
-        <div className="flex-1 flex flex-col py-[5%] px-[5%] z-10" style={{ maxWidth: "62%" }}>
-          <img src="/jetup-logo-banner.png" alt="JetUP" className="w-auto object-contain self-start flex-shrink-0" style={{ height: "12%", minHeight: "24px", marginBottom: "3%" }} />
+        <div className="flex-1 flex flex-col justify-between z-10" style={{ maxWidth: "62%", padding: "9% 5% 4% 5%" }}>
+          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[14%] w-auto object-contain self-start" />
 
-          <div className="flex-1 flex flex-col justify-center" style={{ gap: "3%" }}>
-            <div>
-              <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.7cqw" }}>
-                Zoom Call
-              </p>
-              <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words" style={{ fontFamily: "Montserrat, sans-serif", fontSize: ((event.title?.length || 0) > 40 ? "3cqw" : (event.title?.length || 0) > 25 ? "3.5cqw" : "4cqw"), letterSpacing: "-0.02em", marginTop: "1%" }}>
-                &ldquo;{event.title || "Webinar Titel"}&rdquo;
-              </h3>
-            </div>
-
-            <div className="flex flex-col gap-[1%]">
-              <div className="flex items-center gap-[1.5%] flex-wrap">
-                <img src="/calendar-icon-banner.png" alt="" style={{ height: "2.2cqw" }} className="w-auto opacity-80" />
-                <span className="text-[#1a1a1a] font-bold" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.5cqw" }}>
-                  {[formatDate(event.date), event.day].filter(Boolean).join(" · ") || "Datum"}
-                </span>
-              </div>
-              {tripleTime && (
-                <span className="text-[#9ca3af] font-medium" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2cqw" }}>
-                  ({tripleTime})
-                </span>
-              )}
-            </div>
+          <div className="space-y-[1%]">
+            <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.7cqw" }}>
+              Zoom Call
+            </p>
+            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words" style={{ fontFamily: "Montserrat, sans-serif", fontSize: ((event.title?.length || 0) > 40 ? "3cqw" : (event.title?.length || 0) > 25 ? "3.5cqw" : "4cqw"), letterSpacing: "-0.02em" }}>
+              &ldquo;{event.title || "Webinar Titel"}&rdquo;
+            </h3>
           </div>
 
-          <div className="flex items-center gap-[2%] flex-shrink-0" style={{ marginTop: "2%" }}>
+          <div className="flex flex-col gap-[1%]">
+            <div className="flex items-center gap-[1.5%] flex-wrap">
+              <img src="/calendar-icon-banner.png" alt="" style={{ height: "2.2cqw" }} className="w-auto opacity-80" />
+              <span className="text-[#1a1a1a] font-bold" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.5cqw" }}>
+                {[formatDate(event.date), event.day].filter(Boolean).join(" · ") || "Datum"}
+              </span>
+            </div>
+            {tripleTime && (
+              <span className="text-[#9ca3af] font-medium" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2cqw" }}>
+                ({tripleTime})
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-[2%]">
             {(event.language === "ru" ? ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] :
               event.language === "en" ? ["STRUCTURE", "TRANSPARENCY", "CONTROL"] :
               ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"]).map((word, i) => (

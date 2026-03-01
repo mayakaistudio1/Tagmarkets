@@ -1560,33 +1560,35 @@ const EventBannerPreview = React.forwardRef<HTMLDivElement, { event: ScheduleEve
       </div>
 
       <div className="absolute inset-0 flex">
-        <div className="flex-1 flex flex-col justify-between py-[4%] px-[4%] z-10" style={{ maxWidth: "62%" }}>
-          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[14%] w-auto object-contain self-start" />
+        <div className="flex-1 flex flex-col py-[5%] px-[5%] z-10" style={{ maxWidth: "62%" }}>
+          <img src="/jetup-logo-banner.png" alt="JetUP" className="w-auto object-contain self-start flex-shrink-0" style={{ height: "12%", minHeight: "24px", marginBottom: "3%" }} />
 
-          <div className="space-y-[1%]">
-            <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.7cqw" }}>
-              Zoom Call
-            </p>
-            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words" style={{ fontFamily: "Montserrat, sans-serif", fontSize: ((event.title?.length || 0) > 40 ? "3cqw" : (event.title?.length || 0) > 25 ? "3.5cqw" : "4cqw"), letterSpacing: "-0.02em" }}>
-              &ldquo;{event.title || "Webinar Titel"}&rdquo;
-            </h3>
-          </div>
-
-          <div className="flex flex-col gap-[1%]">
-            <div className="flex items-center gap-[1.5%] flex-wrap">
-              <img src="/calendar-icon-banner.png" alt="" style={{ height: "2.2cqw" }} className="w-auto opacity-80" />
-              <span className="text-[#1a1a1a] font-bold" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.5cqw" }}>
-                {[formatDate(event.date), event.day].filter(Boolean).join(" · ") || "Datum"}
-              </span>
+          <div className="flex-1 flex flex-col justify-center" style={{ gap: "3%" }}>
+            <div>
+              <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.7cqw" }}>
+                Zoom Call
+              </p>
+              <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words" style={{ fontFamily: "Montserrat, sans-serif", fontSize: ((event.title?.length || 0) > 40 ? "3cqw" : (event.title?.length || 0) > 25 ? "3.5cqw" : "4cqw"), letterSpacing: "-0.02em", marginTop: "1%" }}>
+                &ldquo;{event.title || "Webinar Titel"}&rdquo;
+              </h3>
             </div>
-            {tripleTime && (
-              <span className="text-[#9ca3af] font-medium" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2cqw" }}>
-                ({tripleTime})
-              </span>
-            )}
+
+            <div className="flex flex-col gap-[1%]">
+              <div className="flex items-center gap-[1.5%] flex-wrap">
+                <img src="/calendar-icon-banner.png" alt="" style={{ height: "2.2cqw" }} className="w-auto opacity-80" />
+                <span className="text-[#1a1a1a] font-bold" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.5cqw" }}>
+                  {[formatDate(event.date), event.day].filter(Boolean).join(" · ") || "Datum"}
+                </span>
+              </div>
+              {tripleTime && (
+                <span className="text-[#9ca3af] font-medium" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2cqw" }}>
+                  ({tripleTime})
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-[2%]">
+          <div className="flex items-center gap-[2%] flex-shrink-0" style={{ marginTop: "2%" }}>
             {(event.language === "ru" ? ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] :
               event.language === "en" ? ["STRUCTURE", "TRANSPARENCY", "CONTROL"] :
               ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"]).map((word, i) => (

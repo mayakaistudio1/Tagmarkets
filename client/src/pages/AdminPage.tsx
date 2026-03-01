@@ -1446,13 +1446,11 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                       </div>
 
                       <!-- Slogan Area -->
-                      <div style="position:absolute;left:40px;top:590px;z-index:10;width:800px;height:40px;display:table;border-spacing:12px 0;">
-                        <div style="display:table-row;">
-                          ${sloganWords.map((w,i) => `
-                            ${i > 0 ? '<div style="display:table-cell;vertical-align:middle;"><div style="width:10px;height:10px;border-radius:50%;background:#a855f7;margin:0 auto;"></div></div>' : ''}
-                            <div style="display:table-cell;vertical-align:middle;font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;white-space:nowrap;line-height:1;">${w}</div>
-                          `).join("")}
-                        </div>
+                      <div style="position:absolute;left:40px;top:590px;z-index:10;display:flex;align-items:center;line-height:1;">
+                        ${sloganWords.map((w,i) => `
+                          ${i > 0 ? `<div style="width:8px;height:8px;border-radius:50%;background:#a855f7;margin:0 12px;"></div>` : ''}
+                          <div style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;line-height:1;">${w}</div>
+                        `).join("")}
                       </div>
 
                       <!-- Speaker Area -->
@@ -1462,10 +1460,8 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                               <div style="position:absolute;top:-12px;left:-12px;right:-12px;bottom:-12px;border-radius:50%;border:4px solid rgba(192,132,252,0.4);"></div>
                               <img src="${currentSpeakerPhoto}" style="width:340px;height:340px;border-radius:50%;object-fit:cover;object-position:center top;" crossorigin="anonymous" />
                             </div>
-                            <div style="background:white;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);width:340px;height:60px;display:table;">
-                              <div style="display:table-cell;vertical-align:middle;text-align:center;font-family:Inter,sans-serif;font-weight:700;color:black;font-size:${speakerFontSize + 4}px;line-height:1.1;">
-                                Speaker: ${speakerName}
-                              </div>
+                            <div style="background:white;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);width:340px;height:64px;display:flex;align-items:center;justify-content:center;padding:0;box-sizing:border-box;overflow:hidden;">
+                              <div style="font-family:Inter,sans-serif;font-weight:700;color:black;font-size:${speakerFontSize + 4}px;text-align:center;line-height:64px;width:100%;height:64px;margin:0;">Speaker: ${speakerName}</div>
                             </div>
                           ` : `
                             <div style="width:320px;height:320px;border-radius:50%;background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(168,85,247,0.1));"></div>

@@ -191,7 +191,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   de: {
     'home.title': 'JetUP',
-    'home.subtitle': 'JetUP Digital Hub: Trading‑ und Partnereinkommen — strukturiert и transparent.',
+    'home.subtitle': 'JetUP Digital Hub: Trading‑ und Partnereinkommen — strukturiert und transparent.',
     'home.tagline': 'Struktur. Transparenz. Kontrolle.',
     'home.mariaOnline': 'Maria – Live‑Beraterin',
     'home.askMaria': 'Maria fragen',

@@ -1426,12 +1426,12 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                       </div>
                       
                       <!-- Logo -->
-                      <div style="position:absolute;left:40px;top:40px;z-index:10;width:200px;height:60px;">
+                      <div style="position:absolute;left:40px;top:60px;z-index:10;width:200px;height:60px;">
                         <img src="/jetup-logo-banner.png" style="height:48px;width:auto;display:block;image-rendering:-webkit-optimize-contrast;" crossorigin="anonymous" />
                       </div>
 
                       <!-- Title Area -->
-                      <div style="position:absolute;left:40px;top:180px;z-index:10;width:600px;">
+                      <div style="position:absolute;left:40px;top:200px;z-index:10;width:600px;">
                         <p style="color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0 0 8px 0;">Zoom Call</p>
                         <h3 style="color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
                       </div>
@@ -1446,10 +1446,10 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                       </div>
 
                       <!-- Slogan Area -->
-                      <div style="position:absolute;left:40px;top:580px;z-index:10;width:600px;display:flex;align-items:center;gap:12px;">
+                      <div style="position:absolute;left:40px;top:590px;z-index:10;width:800px;line-height:1;">
                         ${sloganWords.map((w,i) => `
-                          ${i > 0 ? '<span style="width:10px;height:10px;border-radius:50%;background:#a855f7;display:inline-block;flex-shrink:0;"></span>' : ''}
-                          <span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;white-space:nowrap;">${w}</span>
+                          ${i > 0 ? '<span style="width:10px;height:10px;border-radius:50%;background:#a855f7;display:inline-block;margin:0 12px;vertical-align:middle;"></span>' : ''}
+                          <span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;vertical-align:middle;">${w}</span>
                         `).join("")}
                       </div>
 
@@ -1573,8 +1573,8 @@ const EventBannerPreview = React.forwardRef<HTMLDivElement, { event: ScheduleEve
       </div>
 
       <div className="absolute inset-0 flex">
-        <div className="flex-1 flex flex-col justify-between z-10" style={{ maxWidth: "62%", padding: "9% 5% 4% 5%" }}>
-          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[14%] w-auto object-contain self-start" />
+        <div className="flex-1 flex flex-col justify-between z-10" style={{ maxWidth: "62%", padding: "12% 5% 4% 5%" }}>
+          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[12%] w-auto object-contain self-start mb-[4%]" />
 
           <div className="space-y-[1%]">
             <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.7cqw" }}>

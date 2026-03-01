@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { toPng } from "html-to-image";
+import html2canvas from "html2canvas";
 import {
   Shield,
   LogOut,
@@ -1250,17 +1250,8 @@ function ScheduleTab({
                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                   <Edit size={14} /> Bearbeiten
                 </button>
-                {event.banner && (
-                  <button data-testid={`button-download-banner-${event.id}`} onClick={() => {
-                    fetch(event.banner).then(r => r.blob()).then(blob => {
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `banner-${event.id}.png`;
-                      a.click();
-                      URL.revokeObjectURL(url);
-                    });
-                  }}
+                {(event.banner || event.speakerPhoto) && (
+                  <button data-testid={`button-download-banner-${event.id}`} onClick={() => openEdit(event)}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
                     <Download size={14} /> Banner
                   </button>
@@ -1407,17 +1398,15 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                 onClick={() => {
                   if (!bannerRef.current) return;
                   const el = bannerRef.current;
-                  toPng(el, {
-                    pixelRatio: 1200 / el.offsetWidth,
-                    fontEmbedCSS: '',
-                    includeQueryParams: true,
-                    filter: (node: any) => {
-                      if (node.tagName === 'LINK' && node.getAttribute?.('href')?.includes('fonts.googleapis.com')) return false;
-                      return true;
-                    },
-                  }).then(dataUrl => {
+                  const scale = 1200 / el.offsetWidth;
+                  html2canvas(el, {
+                    useCORS: true,
+                    scale,
+                    backgroundColor: null,
+                    logging: false,
+                  }).then(canvas => {
                     const a = document.createElement("a");
-                    a.href = dataUrl;
+                    a.href = canvas.toDataURL("image/png");
                     a.download = `banner-${event.title?.replace(/\s+/g, "-") || "webinar"}.png`;
                     a.click();
                   }).catch((err) => {

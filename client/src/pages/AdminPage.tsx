@@ -1399,7 +1399,6 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  alert("Step 1: Button clicked!");
                   const W = 1200, H = 660;
                   const tz = event.timezone || "CET";
                   const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
@@ -1424,14 +1423,13 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                     <p style="position:absolute;left:40px;top:200px;z-index:10;color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0;">Zoom Call</p>
                     <h3 style="position:absolute;left:40px;top:240px;z-index:10;width:620px;color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
                     <div style="position:absolute;left:40px;top:420px;z-index:10;width:620px;">
-                      <div style="display:flex;align-items:center;gap:12px;margin:0;padding:0;">
-                        <img src="/calendar-icon-banner.png" crossorigin="anonymous" style="height:28px;width:auto;opacity:0.8;flex-shrink:0;" />
-                        <span style="color:#1a1a1a;font-weight:700;font-size:30px;white-space:nowrap;">${dateStr}</span>
+                      <div style="margin:0;padding:0;line-height:1.2;display:flex;flex-direction:column;align-items:flex-start;">
+                        <span style="color:#1a1a1a;font-weight:700;font-size:32px;margin:0 0 2px 0;text-align:left;display:block;">${dateStr}</span>
+                        ${tripleTime ? `<span style="color:#7C3AED;font-weight:700;font-size:26px;margin:0;text-align:left;letter-spacing:-0.01em;display:block;white-space:nowrap;">${tripleTime}</span>` : ""}
                       </div>
-                      ${tripleTime ? `<div style="color:#9ca3af;font-weight:500;font-size:24px;padding-left:40px;margin-top:4px;">(${tripleTime})</div>` : ""}
                     </div>
-                    <div style="position:absolute;left:40px;top:590px;z-index:10;display:flex;align-items:center;gap:0;">
-                      ${sloganWords.map((w,i) => `${i > 0 ? '<span style="color:#a855f7;font-size:22px;margin:0 10px;">•</span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;">${w}</span>`).join("")}
+                    <div style="position:absolute;left:40px;top:590px;z-index:10;">
+                      ${sloganWords.map((w,i) => `${i > 0 ? '<span style="color:#a855f7;font-size:22px;margin:0 10px;vertical-align:middle;">•</span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;vertical-align:middle;">${w}</span>`).join("")}
                     </div>
                     <div style="position:absolute;left:720px;top:100px;z-index:10;width:440px;text-align:center;">
                       ${currentSpeakerPhoto ? `
@@ -1447,7 +1445,6 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 
                   wrapper.appendChild(inner);
                   document.body.appendChild(wrapper);
-                  alert("Step 2: Offscreen element created, waiting for images...");
 
                   const imgs = wrapper.querySelectorAll("img");
                   const loadPromises = Array.from(imgs).map(img => new Promise<void>((resolve) => {
@@ -1457,7 +1454,6 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                   }));
 
                   Promise.all(loadPromises).then(() => {
-                    alert("Step 3: Images loaded, starting html2canvas...");
                     return new Promise(r => setTimeout(r, 300));
                   }).then(() => {
                     return html2canvas(inner, {
@@ -1473,10 +1469,9 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                       y: 0,
                       scrollX: 0,
                       scrollY: 0,
-                      logging: true,
+                      logging: false,
                     });
                   }).then(canvas => {
-                    alert("Step 4: html2canvas done! Canvas: " + canvas.width + "x" + canvas.height);
                     const dataUrl = canvas.toDataURL("image/png");
                     const a = document.createElement("a");
                     a.href = dataUrl;
@@ -1485,10 +1480,8 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                     a.click();
                     document.body.removeChild(a);
                     document.body.removeChild(wrapper);
-                    alert("Step 5: Download triggered!");
                   }).catch((err) => {
-                    alert("ERROR: " + String(err) + " | " + (err?.message || "no message") + " | " + (err?.stack || "no stack"));
-                    console.error("Banner export error:", err, err?.message, err?.stack);
+                    console.error("Banner export error:", err);
                     try { document.body.removeChild(wrapper); } catch {}
                   });
                 }}

@@ -1425,7 +1425,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                     <div style="position:absolute;left:40px;top:420px;z-index:10;width:620px;">
                       <div style="margin:0;padding:0;line-height:1.2;display:flex;flex-direction:column;align-items:flex-start;">
                         <span style="color:#1a1a1a;font-weight:700;font-size:32px;margin:0 0 2px 0;text-align:left;display:block;">${dateStr}</span>
-                        ${tripleTime ? `<span style="color:#7C3AED;font-weight:700;font-size:26px;margin:0;text-align:left;letter-spacing:-0.01em;display:block;white-space:nowrap;">${tripleTime}</span>` : ""}
+                        ${tripleTime ? `<span style="color:#9ca3af;font-weight:500;font-size:24px;margin:0;text-align:left;display:block;white-space:nowrap;">(${tripleTime})</span>` : ""}
                       </div>
                     </div>
                     <div style="position:absolute;left:40px;top:590px;z-index:10;">
@@ -1433,9 +1433,9 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                     </div>
                     <div style="position:absolute;left:720px;top:100px;z-index:10;width:440px;text-align:center;">
                       ${currentSpeakerPhoto ? `
-                        <div style="position:relative;width:340px;height:340px;margin:0 auto 24px auto;">
-                          <div style="position:absolute;top:-10px;left:-10px;right:-10px;bottom:-10px;border-radius:50%;border:4px solid rgba(192,132,252,0.4);"></div>
-                          <img src="${currentSpeakerPhoto}" crossorigin="anonymous" style="width:340px;height:340px;border-radius:50%;object-fit:cover;object-position:center top;" />
+                        <div style="position:relative;width:340px;height:340px;margin:0 auto 24px auto;overflow:hidden;border-radius:50%;">
+                          <div style="position:absolute;inset:0;border-radius:50%;border:4px solid rgba(192,132,252,0.4);z-index:2;pointer-events:none;"></div>
+                          <img src="${currentSpeakerPhoto}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" />
                         </div>
                         <div style="display:inline-block;background:white;border-radius:8px;padding:12px 28px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
                           <span style="font-family:Inter,sans-serif;font-weight:700;color:black;font-size:${spkFontSize + 2}px;">Speaker: ${speakerName}</span>

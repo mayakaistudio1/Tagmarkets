@@ -1396,25 +1396,71 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
               <button
                 data-testid="button-download-banner-preview"
                 onClick={() => {
-                  if (!bannerRef.current) return;
                   const W = 1200, H = 660;
-                  const clone = bannerRef.current.cloneNode(true) as HTMLElement;
+                  const tz = event.timezone || "CET";
+                  const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
+                  const titleLen = event.title?.length || 0;
+                  const titleFontSize = titleLen > 40 ? 36 : titleLen > 25 ? 42 : 48;
+                  const sloganWords = event.language === "ru" ? ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] :
+                    event.language === "en" ? ["STRUCTURE", "TRANSPARENCY", "CONTROL"] :
+                    ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"];
+                  const speakerName = event.speaker || "Name";
+                  const spkFontSize = speakerName.length > 20 ? 16 : speakerName.length > 15 ? 18 : 20;
+                  const dateStr = [formatDate(event.date), event.day].filter(Boolean).join(" · ") || "Datum";
+
+                  console.log("Banner download: starting, W=", W, "H=", H);
+
                   const wrapper = document.createElement("div");
-                  wrapper.style.cssText = `position:fixed;left:-9999px;top:0;width:${W}px;z-index:-1;overflow:hidden;`;
-                  wrapper.appendChild(clone);
+                  wrapper.style.cssText = `position:fixed;left:-9999px;top:0;width:${W}px;height:${H}px;overflow:hidden;z-index:-1;`;
+                  const inner = document.createElement("div");
+                  inner.style.cssText = `width:${W}px;height:${H}px;position:relative;background:linear-gradient(-29deg,rgb(182,139,255) 0%,rgb(255,255,255) 69%);font-family:Montserrat,sans-serif;overflow:hidden;margin:0;padding:0;`;
+
+                  const gridHtml = Array.from({length:40},()=>'<div style="background:#f3f4f6;opacity:0.18;border-radius:2px;"></div>').join("");
+                  inner.innerHTML = `
+                    <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(5,1fr);gap:2px;padding:8px;pointer-events:none;">${gridHtml}</div>
+                    <img src="/jetup-logo-banner.png" crossorigin="anonymous" style="position:absolute;left:40px;top:60px;height:48px;width:auto;z-index:10;" />
+                    <p style="position:absolute;left:40px;top:200px;z-index:10;color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0;">Zoom Call</p>
+                    <h3 style="position:absolute;left:40px;top:240px;z-index:10;width:620px;color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
+                    <div style="position:absolute;left:40px;top:420px;z-index:10;width:620px;">
+                      <div style="display:flex;align-items:center;gap:12px;margin:0;padding:0;">
+                        <img src="/calendar-icon-banner.png" crossorigin="anonymous" style="height:28px;width:auto;opacity:0.8;flex-shrink:0;" />
+                        <span style="color:#1a1a1a;font-weight:700;font-size:30px;white-space:nowrap;">${dateStr}</span>
+                      </div>
+                      ${tripleTime ? `<div style="color:#9ca3af;font-weight:500;font-size:24px;padding-left:40px;margin-top:4px;">(${tripleTime})</div>` : ""}
+                    </div>
+                    <div style="position:absolute;left:40px;top:590px;z-index:10;display:flex;align-items:center;gap:0;">
+                      ${sloganWords.map((w,i) => `${i > 0 ? '<span style="color:#a855f7;font-size:22px;margin:0 10px;">•</span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;">${w}</span>`).join("")}
+                    </div>
+                    <div style="position:absolute;left:720px;top:100px;z-index:10;width:440px;text-align:center;">
+                      ${currentSpeakerPhoto ? `
+                        <div style="position:relative;width:340px;height:340px;margin:0 auto 24px auto;">
+                          <div style="position:absolute;top:-10px;left:-10px;right:-10px;bottom:-10px;border-radius:50%;border:4px solid rgba(192,132,252,0.4);"></div>
+                          <img src="${currentSpeakerPhoto}" crossorigin="anonymous" style="width:340px;height:340px;border-radius:50%;object-fit:cover;object-position:center top;" />
+                        </div>
+                        <div style="display:inline-block;background:white;border-radius:8px;padding:12px 28px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                          <span style="font-family:Inter,sans-serif;font-weight:700;color:black;font-size:${spkFontSize + 2}px;">Speaker: ${speakerName}</span>
+                        </div>
+                      ` : ''}
+                    </div>`;
+
+                  wrapper.appendChild(inner);
                   document.body.appendChild(wrapper);
 
                   const imgs = wrapper.querySelectorAll("img");
+                  console.log("Banner download: waiting for", imgs.length, "images");
                   const loadPromises = Array.from(imgs).map(img => new Promise<void>((resolve) => {
                     if (img.complete && img.naturalWidth > 0) { resolve(); return; }
-                    img.onload = () => resolve();
-                    img.onerror = () => resolve();
+                    img.onload = () => { console.log("Banner img loaded:", img.src.substring(0, 60)); resolve(); };
+                    img.onerror = (e) => { console.warn("Banner img failed:", img.src.substring(0, 60), e); resolve(); };
                   }));
 
-                  Promise.all(loadPromises).then(() => setTimeout(() => {
-                    html2canvas(clone, {
+                  Promise.all(loadPromises).then(() => {
+                    console.log("Banner download: all images loaded, starting html2canvas");
+                    return new Promise(r => setTimeout(r, 300));
+                  }).then(() => {
+                    return html2canvas(inner, {
                       useCORS: true,
-                      allowTaint: false,
+                      allowTaint: true,
                       scale: 2,
                       backgroundColor: null,
                       width: W,
@@ -1425,18 +1471,24 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                       y: 0,
                       scrollX: 0,
                       scrollY: 0,
-                      logging: false,
-                    }).then(canvas => {
-                      const a = document.createElement("a");
-                      a.href = canvas.toDataURL("image/png");
-                      a.download = `banner-${event.title?.replace(/\s+/g, "-") || "webinar"}.png`;
-                      a.click();
-                      document.body.removeChild(wrapper);
-                    }).catch((err) => {
-                      console.error("Banner export error:", err);
-                      document.body.removeChild(wrapper);
+                      logging: true,
                     });
-                  }, 300));
+                  }).then(canvas => {
+                    console.log("Banner download: canvas created", canvas.width, "x", canvas.height);
+                    const dataUrl = canvas.toDataURL("image/png");
+                    console.log("Banner download: dataUrl length=", dataUrl.length);
+                    const a = document.createElement("a");
+                    a.href = dataUrl;
+                    a.download = `banner-${event.title?.replace(/\s+/g, "-") || "webinar"}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    document.body.removeChild(wrapper);
+                    console.log("Banner download: done!");
+                  }).catch((err) => {
+                    console.error("Banner export error:", err, err?.message, err?.stack);
+                    try { document.body.removeChild(wrapper); } catch {}
+                  });
                 }}
                 className="flex items-center gap-1 px-2 py-1 text-xs text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
               >

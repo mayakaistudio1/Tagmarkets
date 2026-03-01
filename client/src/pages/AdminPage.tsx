@@ -1418,13 +1418,13 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                       <p style="color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0 0 8px 0;">Zoom Call</p>
                       <h3 style="color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
                     </div>
-                    <div style="position:absolute;left:40px;top:420px;z-index:10;width:620px;">
-                      <div style="margin-bottom:4px;">
-                        <img src="/calendar-icon-banner.png" style="height:28px;width:auto;opacity:0.8;vertical-align:middle;margin-right:12px;" crossorigin="anonymous" /><span style="color:#1a1a1a;font-weight:700;font-size:30px;vertical-align:middle;">${[formatDate(event.date), event.day].filter(Boolean).join(" \u00b7 ") || "Datum"}</span>
+                    <div style="position:absolute;left:40px;bottom:80px;z-index:10;width:620px;">
+                      <div style="display:flex;align-items:center;margin-bottom:6px;">
+                        <img src="/calendar-icon-banner.png" style="height:28px;width:auto;opacity:0.8;margin-right:12px;flex-shrink:0;" crossorigin="anonymous" /><span style="color:#1a1a1a;font-weight:700;font-size:30px;">${[formatDate(event.date), event.day].filter(Boolean).join(" \u00b7 ") || "Datum"}</span>
                       </div>
-                      ${tripleTime ? `<div style="color:#9ca3af;font-weight:500;font-size:24px;padding-left:40px;">(${tripleTime})</div>` : ""}
+                      ${tripleTime ? `<div style="color:#9ca3af;font-weight:500;font-size:20px;margin-left:40px;">(${tripleTime})</div>` : ""}
                     </div>
-                    <div style="position:absolute;left:40px;top:580px;z-index:10;">
+                    <div style="position:absolute;left:40px;bottom:24px;z-index:10;">
                       ${sloganWords.map((w,i) => `${i > 0 ? '<span style="color:#a855f7;font-size:22px;margin:0 10px;vertical-align:middle;">\u2022</span>' : ''}<span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;vertical-align:middle;">${w}</span>`).join("")}
                     </div>
                     <div style="position:absolute;left:720px;top:50%;transform:translateY(-50%);z-index:10;width:440px;text-align:center;">

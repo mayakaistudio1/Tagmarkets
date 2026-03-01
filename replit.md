@@ -56,7 +56,7 @@ Preferred communication style: Simple, everyday language.
 ### Core Features
 - **Social Sharing**: Reusable ShareMenu component on Promotions and Schedule pages — supports Telegram, WhatsApp, clipboard copy, and native Web Share API. Trilingual labels (DE/RU/EN).
 - **Smart Linktree Navigation**: Multi-level navigation including Hub, Trading Hub, Partner Hub, Schedule, Tutorials, and Promotions.
-- **Admin Panel**: Password-protected (`/admin`) for managing chat logs, promotions, schedule events, and speakers with CRUD operations. Includes rate-limited login. Banner export uses SVG foreignObject rendering (browser CSS engine) to produce pixel-perfect PNG images matching the published banner layout.
+- **Admin Panel**: Password-protected (`/admin`) for managing chat logs, promotions, schedule events, and speakers with CRUD operations. Includes rate-limited login. Banner export uses html2canvas to capture the rendered React preview component.
 - **Maria AI Analysis**: GPT-4o powered analysis of chat dialogues via admin panel. Includes Maria's actual system prompt for context. Filterable by language (DE/RU/EN/All). Produces report with: top user questions, problematic answers, drop-off points, conversion analysis, and prompt improvement recommendations. Endpoint: `POST /api/admin/analyze-maria`.
 
 ## External Dependencies

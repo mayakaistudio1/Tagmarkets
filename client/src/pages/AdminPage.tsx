@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import html2canvas from "html2canvas";
 import {
   Shield,
   LogOut,
@@ -1274,8 +1275,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
   speakers: Speaker[]; adminPassword: string;
 }) {
 
-  const [bannerDataUrl, setBannerDataUrl] = useState<string | null>(null);
-  const [bannerLoading, setBannerLoading] = useState(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   const handleSpeakerSelect = (speakerId: string) => {
     if (speakerId === "") {
@@ -1290,15 +1290,6 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
   };
 
   const currentSpeakerPhoto = event.speakerPhoto || speakers.find(s => s.id === event.speakerId)?.photo || "";
-
-  useEffect(() => {
-    if (!currentSpeakerPhoto && !event.banner) { setBannerDataUrl(null); return; }
-    setBannerLoading(true);
-    renderBannerCanvas(event, currentSpeakerPhoto).then(url => {
-      setBannerDataUrl(url);
-      setBannerLoading(false);
-    }).catch(() => setBannerLoading(false));
-  }, [event.title, event.date, event.day, event.time, event.timezone, event.speaker, event.language, currentSpeakerPhoto, event.banner]);
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
@@ -1402,31 +1393,32 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-[10px] font-medium text-gray-400">Banner Vorschau</label>
-              {bannerDataUrl && (
-                <a
-                  data-testid="button-download-banner-preview"
-                  href={bannerDataUrl}
-                  download={`banner-${event.title?.replace(/\s+/g, "-") || "webinar"}.png`}
-                  className="flex items-center gap-1 px-2 py-1 text-xs text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                >
-                  <Download size={12} /> Banner herunterladen
-                </a>
-              )}
+              <button
+                data-testid="button-download-banner-preview"
+                onClick={() => {
+                  if (!bannerRef.current) return;
+                  const el = bannerRef.current;
+                  const scale = 1200 / el.offsetWidth;
+                  html2canvas(el, {
+                    useCORS: true,
+                    scale,
+                    backgroundColor: null,
+                    logging: false,
+                  }).then(canvas => {
+                    const a = document.createElement("a");
+                    a.href = canvas.toDataURL("image/png");
+                    a.download = `banner-${event.title?.replace(/\s+/g, "-") || "webinar"}.png`;
+                    a.click();
+                  }).catch((err) => {
+                    console.error("Banner export error:", err);
+                  });
+                }}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+              >
+                <Download size={12} /> Banner herunterladen
+              </button>
             </div>
-            {bannerLoading && (
-              <div className="w-full rounded-xl bg-gray-100 flex items-center justify-center" style={{ aspectRatio: "1200/660" }}>
-                <Loader2 size={24} className="animate-spin text-purple-400" />
-              </div>
-            )}
-            {bannerDataUrl && (
-              <img
-                data-testid="img-banner-preview"
-                src={bannerDataUrl}
-                alt="Banner"
-                className="w-full rounded-xl shadow-lg"
-                style={{ aspectRatio: "1200/660" }}
-              />
-            )}
+            <EventBannerPreview ref={bannerRef} event={event} speakerPhoto={currentSpeakerPhoto} />
           </div>
         )}
         </div>
@@ -1470,115 +1462,88 @@ function convertTripleTime(time: string, fromTz: string): string {
   return `${getZonedTime(1)} BER | ${getZonedTime(3)} MSK | ${getZonedTime(4)} DXB`;
 }
 
-async function fetchAsDataUrl(src: string): Promise<string> {
-  try {
-    const resp = await fetch(src);
-    const blob = await resp.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return "";
-  }
-}
-
-async function renderBannerCanvas(event: ScheduleEvent, speakerPhoto: string): Promise<string> {
-  const W = 1200, H = 660;
-
-  const [logoData, calData, spkData] = await Promise.all([
-    fetchAsDataUrl("/jetup-logo-banner.png"),
-    fetchAsDataUrl("/calendar-icon-banner.png"),
-    speakerPhoto ? fetchAsDataUrl(speakerPhoto) : Promise.resolve(""),
-  ]);
-
+const EventBannerPreview = React.forwardRef<HTMLDivElement, { event: ScheduleEvent; speakerPhoto: string }>(({ event, speakerPhoto }, ref) => {
   const tz = event.timezone || "CET";
   const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
-  const titleLen = event.title?.length || 0;
-  const titleSize = titleLen > 40 ? 36 : titleLen > 25 ? 42 : 48;
-  const dateStr = [formatDate(event.date), event.day].filter(Boolean).join(" \u00b7 ") || "Datum";
-  const sloganWords = event.language === "ru" ? ["\u0421\u0422\u0420\u0423\u041A\u0422\u0423\u0420\u0410", "\u041F\u0420\u041E\u0417\u0420\u0410\u0427\u041D\u041E\u0421\u0422\u042C", "\u041A\u041E\u041D\u0422\u0420\u041E\u041B\u042C"] :
-    event.language === "en" ? ["STRUCTURE", "TRANSPARENCY", "CONTROL"] :
-    ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"];
 
-  const gridCells = Array.from({ length: 40 }, () =>
-    `<div style="background:#f3f4f6;opacity:0.18;border-radius:3px;"></div>`
-  ).join("");
+  const rows = 5;
+  const cols = 8;
+  const gridCells = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      gridCells.push(<div key={`${r}-${c}`} className="bg-[#f3f4f6] rounded-[2px]" style={{ opacity: 0.18 }} />);
+    }
+  }
 
-  const sloganHtml = sloganWords.map((w, i) =>
-    `${i > 0 ? `<span style="width:8px;height:8px;background:#a855f7;border-radius:50%;flex-shrink:0;"></span>` : ""}` +
-    `<span style="font-weight:700;color:#111827;text-transform:uppercase;font-family:Montserrat,sans-serif;font-size:18px;letter-spacing:4px;">${w}</span>`
-  ).join("");
-
-  const speakerHtml = spkData ? `
-    <div style="display:flex;flex-direction:column;align-items:center;width:100%;">
-      <div style="position:relative;width:70%;aspect-ratio:1/1;">
-        <div style="position:absolute;top:-4%;left:-4%;right:-4%;bottom:-4%;border-radius:50%;border:3px solid rgba(192,132,252,0.4);"></div>
-        <img src="${spkData}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:center top;" />
+  return (
+    <div ref={ref} className="relative w-full rounded-xl overflow-hidden shadow-lg"
+      style={{ background: "linear-gradient(-29deg, rgb(182, 139, 255) 0%, rgb(255, 255, 255) 69%)", containerType: "inline-size" }}>
+      <div className="pt-[55%]" />
+      <div className="absolute inset-0 p-1 grid gap-[2px] pointer-events-none"
+        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}>
+        {gridCells}
       </div>
-      <div style="margin-top:4%;background:white;border-radius:6px;padding:2% 6%;box-shadow:0 1px 3px rgba(0,0,0,0.1);max-width:90%;overflow:hidden;">
-        <p style="font-weight:600;color:black;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:Inter,sans-serif;font-size:26px;margin:0;">Speaker: ${event.speaker || "Name"}</p>
-      </div>
-    </div>` : `<div style="width:70%;aspect-ratio:1/1;border-radius:50%;background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(168,85,247,0.1));"></div>`;
 
-  const htmlContent = `
-<div xmlns="http://www.w3.org/1999/xhtml" style="width:${W}px;height:${H}px;position:relative;overflow:hidden;background:linear-gradient(-29deg,rgb(182,139,255) 0%,rgb(255,255,255) 69%);font-family:Montserrat,sans-serif;margin:0;padding:0;">
-  <div style="position:absolute;inset:0;padding:8px;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(5,1fr);gap:4px;pointer-events:none;">
-    ${gridCells}
-  </div>
-  <div style="position:absolute;inset:0;display:flex;">
-    <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:4% 4%;max-width:62%;z-index:10;">
-      ${logoData ? `<img src="${logoData}" style="height:14%;width:auto;object-fit:contain;align-self:flex-start;" />` : `<div style="height:14%;"></div>`}
-      <div style="margin-top:1%;margin-bottom:1%;">
-        <p style="color:#1a1a1a;font-weight:700;line-height:1.3;font-family:Montserrat,sans-serif;font-size:32px;margin:0 0 1% 0;">Zoom\u2011Call</p>
-        <h3 style="color:#7C3AED;font-weight:800;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;font-family:Montserrat,sans-serif;font-size:${titleSize}px;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:1%;">
-        <div style="display:flex;align-items:center;gap:1.5%;flex-wrap:wrap;">
-          ${calData ? `<img src="${calData}" style="height:26px;width:auto;opacity:0.8;" />` : ""}
-          <span style="color:#1a1a1a;font-weight:700;font-family:Montserrat,sans-serif;font-size:30px;">${dateStr}</span>
+      <div className="absolute inset-0 flex">
+        <div className="flex-1 flex flex-col justify-between z-10" style={{ maxWidth: "62%", padding: "12% 5% 4% 5%" }}>
+          <img src="/jetup-logo-banner.png" alt="JetUP" className="h-[12%] w-auto object-contain self-start mb-[4%]" />
+
+          <div className="space-y-[1%]">
+            <p className="text-[#1a1a1a] font-bold leading-tight" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.7cqw" }}>
+              Zoom Call
+            </p>
+            <h3 className="text-[#7C3AED] font-extrabold leading-[1.1] uppercase break-words" style={{ fontFamily: "Montserrat, sans-serif", fontSize: ((event.title?.length || 0) > 40 ? "3cqw" : (event.title?.length || 0) > 25 ? "3.5cqw" : "4cqw"), letterSpacing: "-0.02em" }}>
+              &ldquo;{event.title || "Webinar Titel"}&rdquo;
+            </h3>
+          </div>
+
+          <div className="flex flex-col gap-[1%]">
+            <div className="flex items-center gap-[1.5%] flex-wrap">
+              <img src="/calendar-icon-banner.png" alt="" style={{ height: "2.2cqw" }} className="w-auto opacity-80" />
+              <span className="text-[#1a1a1a] font-bold" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2.5cqw" }}>
+                {[formatDate(event.date), event.day].filter(Boolean).join(" · ") || "Datum"}
+              </span>
+            </div>
+            {tripleTime && (
+              <span className="text-[#9ca3af] font-medium" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "2cqw" }}>
+                ({tripleTime})
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-[2%]">
+            {(event.language === "ru" ? ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] :
+              event.language === "en" ? ["STRUCTURE", "TRANSPARENCY", "CONTROL"] :
+              ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"]).map((word, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <span className="bg-[#a855f7] rounded-full" style={{ width: "0.7cqw", height: "0.7cqw" }} />}
+                <span className="font-bold text-[#111827] uppercase" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "1.5cqw", letterSpacing: "0.3cqw", lineHeight: "1" }}>{word}</span>
+              </React.Fragment>
+            ))}
+          </div>
         </div>
-        ${tripleTime ? `<span style="color:#9ca3af;font-weight:500;font-family:Montserrat,sans-serif;font-size:24px;">(${tripleTime})</span>` : ""}
-      </div>
-      <div style="display:flex;align-items:center;gap:2%;">
-        ${sloganHtml}
+
+        <div className="flex-1 flex flex-col items-center justify-center z-10 pr-[3%]">
+          {speakerPhoto ? (
+            <>
+              <div className="relative w-[70%] aspect-square">
+                <div className="absolute -inset-[4%] rounded-full border-[3px] border-[#C084FC]/40" />
+                <img src={speakerPhoto} alt="speaker" className="w-full h-full rounded-full object-cover object-top" />
+              </div>
+              <div className="mt-[4%] bg-white rounded px-[6%] py-[2%] shadow-sm w-fit max-w-[90%] overflow-hidden">
+                <p className="font-semibold text-black text-center truncate" style={{ fontFamily: "Inter, sans-serif", fontSize: "2.2cqw" }}>
+                  Speaker: {event.speaker || "Name"}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="w-[60%] aspect-square rounded-full bg-gradient-to-br from-[#C084FC]/20 to-[#A855F7]/10" />
+          )}
+        </div>
       </div>
     </div>
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;padding-right:3%;">
-      ${speakerHtml}
-    </div>
-  </div>
-</div>`;
-
-  const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
-    <foreignObject width="${W}" height="${H}">
-      ${htmlContent}
-    </foreignObject>
-  </svg>`;
-
-  const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(svgBlob);
-
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0, W, H);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/png"));
-    };
-    img.onerror = (e) => {
-      URL.revokeObjectURL(url);
-      reject(e);
-    };
-    img.src = url;
-  });
-}
+  );
+});
 
 function InputField({ label, value, onChange, testId }: {
   label: string; value: string; onChange: (v: string) => void; testId: string;

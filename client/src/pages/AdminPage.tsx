@@ -1483,13 +1483,19 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
                       pixelRatio: 2,
                       width: W,
                       height: H,
+                      fontEmbedCSS: '',
+                      filter: (node: any) => {
+                        if (node.tagName === 'LINK' && node.getAttribute?.('href')?.includes('fonts.googleapis.com')) return false;
+                        return true;
+                      },
                     }).then(dataUrl => {
                       const a = document.createElement("a");
                       a.href = dataUrl;
                       a.download = `banner-${event.title?.replace(/\s+/g, "-") || "webinar"}.png`;
                       a.click();
                       document.body.removeChild(container);
-                    }).catch(() => {
+                    }).catch((err) => {
+                      console.error("Banner export error:", err);
                       document.body.removeChild(container);
                     });
                   }, 300));

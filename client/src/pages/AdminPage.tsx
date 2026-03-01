@@ -1405,101 +1405,24 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
               <button
                 data-testid="button-download-banner-preview"
                 onClick={() => {
-                  const W = 1200, H = 660;
-                  const tz = event.timezone || "CET";
-                  const tripleTime = event.time ? convertTripleTime(event.time, tz) : "";
-                  const titleLen = event.title?.length || 0;
-                  const titleFontSize = titleLen > 40 ? 36 : titleLen > 25 ? 42 : 48;
-                  const sloganWords = event.language === "ru" ? ["СТРУКТУРА", "ПРОЗРАЧНОСТЬ", "КОНТРОЛЬ"] :
-                    event.language === "en" ? ["STRUCTURE", "TRANSPARENCY", "CONTROL"] :
-                    ["STRUKTUR", "TRANSPARENZ", "KONTROLLE"];
-
-                  const container = document.createElement("div");
-                  container.style.cssText = `position:fixed;left:-9999px;top:0;width:${W}px;height:${H}px;overflow:hidden;z-index:-1;`;
-                  const speakerName = event.speaker || "Name";
-                  const speakerFontSize = speakerName.length > 20 ? 16 : speakerName.length > 15 ? 18 : 20;
-
-                  container.innerHTML = `
-                    <div style="width:${W}px;height:${H}px;position:relative;background:linear-gradient(-29deg,rgb(182,139,255) 0%,rgb(255,255,255) 69%);font-family:Montserrat,sans-serif;overflow:hidden;">
-                      <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(5,1fr);gap:2px;padding:8px;pointer-events:none;">
-                        ${Array.from({length:40},()=>`<div style="background:#f3f4f6;opacity:0.18;border-radius:2px;"></div>`).join("")}
-                      </div>
-                      
-                      <!-- Logo -->
-                      <div style="position:absolute;left:40px;top:60px;z-index:10;width:200px;height:60px;">
-                        <img src="/jetup-logo-banner.png" style="height:48px;width:auto;display:block;image-rendering:-webkit-optimize-contrast;" crossorigin="anonymous" />
-                      </div>
-
-                      <!-- Title Area -->
-                      <div style="position:absolute;left:40px;top:200px;z-index:10;width:600px;">
-                        <p style="color:#1a1a1a;font-weight:700;font-size:32px;line-height:1.2;margin:0 0 8px 0;">Zoom Call</p>
-                        <h3 style="color:#7C3AED;font-weight:800;font-size:${titleFontSize}px;line-height:1.1;text-transform:uppercase;word-break:break-word;letter-spacing:-0.02em;margin:0;">\u201C${event.title || "Webinar Titel"}\u201D</h3>
-                      </div>
-
-                      <!-- Date Area -->
-                      <div style="position:absolute;left:40px;top:420px;z-index:10;width:600px;">
-                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
-                          <img src="/calendar-icon-banner.png" style="height:28px;width:auto;opacity:0.8;" crossorigin="anonymous" />
-                          <span style="color:#1a1a1a;font-weight:700;font-size:30px;">${[formatDate(event.date), event.day].filter(Boolean).join(" \u00b7 ") || "Datum"}</span>
-                        </div>
-                        ${tripleTime ? `<div style="color:#9ca3af;font-weight:500;font-size:24px;padding-left:40px;">(${tripleTime})</div>` : ""}
-                      </div>
-
-                      <!-- Slogan Area -->
-                      <div style="position:absolute;left:40px;top:590px;z-index:10;display:flex;align-items:center;gap:14px;">
-                        ${sloganWords.map((w,i) => `
-                          ${i > 0 ? '<div style="width:9px;height:9px;border-radius:50%;background:#a855f7;flex-shrink:0;"></div>' : ''}
-                          <span style="font-weight:700;color:#111827;text-transform:uppercase;font-size:18px;letter-spacing:3px;line-height:1;">${w}</span>
-                        `).join("")}
-                      </div>
-
-                      <!-- Speaker Area -->
-                      <div style="position:absolute;left:720px;top:100px;z-index:10;width:440px;display:flex;flex-direction:column;align-items:center;">
-                          ${currentSpeakerPhoto ? `
-                            <div style="position:relative;width:340px;height:340px;margin-bottom:30px;">
-                              <div style="position:absolute;top:-12px;left:-12px;right:-12px;bottom:-12px;border-radius:50%;border:4px solid rgba(192,132,252,0.4);"></div>
-                              <img src="${currentSpeakerPhoto}" style="width:340px;height:340px;border-radius:50%;object-fit:cover;object-position:center top;" crossorigin="anonymous" />
-                            </div>
-                            <div style="background:white;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);padding:14px 32px;text-align:center;">
-                              <span style="font-family:Inter,sans-serif;font-weight:700;color:black;font-size:${speakerFontSize + 4}px;white-space:nowrap;">Speaker: ${speakerName}</span>
-                            </div>
-                          ` : `
-                            <div style="width:320px;height:320px;border-radius:50%;background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(168,85,247,0.1));"></div>
-                          `}
-                      </div>
-                    </div>
-                  `;
-                  document.body.appendChild(container);
-
-                  const imgs = container.querySelectorAll("img");
-                  const loadPromises = Array.from(imgs).map(img => new Promise<void>((resolve) => {
-                    if (img.complete) { resolve(); return; }
-                    img.onload = () => resolve();
-                    img.onerror = () => resolve();
-                  }));
-
-                  Promise.all(loadPromises).then(() => setTimeout(() => {
-                    toPng(container.firstElementChild as HTMLElement, {
-                      pixelRatio: 2,
-                      width: W,
-                      height: H,
-                      fontEmbedCSS: '',
-                      filter: (node: any) => {
-                        if (node.tagName === 'LINK' && node.getAttribute?.('href')?.includes('fonts.googleapis.com')) return false;
-                        return true;
-                      },
-                    }).then(dataUrl => {
-                      const a = document.createElement("a");
-                      a.href = dataUrl;
-                      a.download = `banner-${event.title?.replace(/\s+/g, "-") || "webinar"}.png`;
-                      a.click();
-                      document.body.removeChild(container);
-                    }).catch((err) => {
-                      console.error("Banner export error:", err);
-                      document.body.removeChild(container);
-                    });
-                  }, 300));
-
+                  if (!bannerRef.current) return;
+                  const el = bannerRef.current;
+                  toPng(el, {
+                    pixelRatio: 1200 / el.offsetWidth,
+                    fontEmbedCSS: '',
+                    includeQueryParams: true,
+                    filter: (node: any) => {
+                      if (node.tagName === 'LINK' && node.getAttribute?.('href')?.includes('fonts.googleapis.com')) return false;
+                      return true;
+                    },
+                  }).then(dataUrl => {
+                    const a = document.createElement("a");
+                    a.href = dataUrl;
+                    a.download = `banner-${event.title?.replace(/\s+/g, "-") || "webinar"}.png`;
+                    a.click();
+                  }).catch((err) => {
+                    console.error("Banner export error:", err);
+                  });
                 }}
                 className="flex items-center gap-1 px-2 py-1 text-xs text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
               >

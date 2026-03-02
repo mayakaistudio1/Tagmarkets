@@ -1,93 +1,101 @@
-.pdh-v3-root {
+/* ===== PARTNER HUB — STATE MACHINE UI ===== */
+
+.ph-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   background: #000;
   color: #fff;
-  font-family: 'Montserrat', sans-serif;
-  height: 100vh;
-  overflow-y: auto;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
+  font-family: 'Montserrat', system-ui, sans-serif;
 }
 
-/* ЭКРАН 1: HERO */
-.pdh-v3-hero {
-  position: relative;
-  height: 100vh;
-  width: 100%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+/* ===== HERO (STATE 0) ===== */
+.ph-hero {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
-.pdh-v3-hero-bg {
+.ph-hero-bg {
   position: absolute;
   inset: 0;
-  z-index: 0;
 }
 
-.pdh-v3-hero-img {
+.ph-hero-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: top center;
 }
 
-.pdh-v3-hero-overlay {
+.ph-hero-gradient {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 0, 0, 0.2) 40%,
-    rgba(0, 0, 0, 0.8) 80%,
+    rgba(0, 0, 0, 0.15) 35%,
+    rgba(0, 0, 0, 0.7) 70%,
     #000 100%
   );
+  transition: background 0.3s ease;
 }
 
-.pdh-v3-hero-content {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  max-width: 400px;
-  padding: 0 24px 60px;
+.ph-hero-dimmed {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.ph-hero-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0 28px 48px;
   text-align: center;
+  z-index: 5;
 }
 
-.pdh-v3-hero-name {
-  font-size: 32px;
+.ph-hero-name {
+  font-size: 36px;
   font-weight: 800;
   margin: 0;
   letter-spacing: -0.02em;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
 }
 
-.pdh-v3-hero-role {
-  font-size: 14px;
-  font-weight: 600;
-  color: #7C3AED;
-  margin: 4px 0 16px;
+.ph-hero-role {
+  font-size: 13px;
+  font-weight: 700;
+  color: #A78BFA;
+  margin: 6px 0 0;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 }
 
-.pdh-v3-hero-tagline {
-  font-size: 15px;
+.ph-hero-tagline {
+  font-size: 14px;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 24px;
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 16px auto 0;
+  max-width: 300px;
+  font-weight: 400;
 }
 
-.pdh-v3-hero-btns {
+.ph-hero-btns {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  margin-top: 24px;
 }
 
-.pdh-v3-btn-primary {
+/* ===== SHARED BUTTONS ===== */
+.ph-btn-primary {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
+  width: 100%;
   padding: 16px 24px;
   background: #7C3AED;
   border: none;
@@ -95,208 +103,550 @@
   color: #fff;
   font-size: 15px;
   font-weight: 700;
-  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.3);
-  transition: all 0.2s;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.35);
+  transition: transform 0.15s, filter 0.15s;
+  text-decoration: none;
 }
 
-.pdh-v3-btn-primary:active {
+.ph-btn-primary:active {
   transform: scale(0.97);
   filter: brightness(0.9);
 }
 
-.pdh-v3-btn-glass {
+.ph-btn-glass {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 16px 24px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
+  width: 100%;
+  padding: 15px 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
   border-radius: 16px;
   color: #fff;
   font-size: 15px;
   font-weight: 600;
-  transition: all 0.2s;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+  text-decoration: none;
 }
 
-.pdh-v3-btn-glass:active {
+.ph-btn-glass:active {
   transform: scale(0.97);
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.14);
 }
 
-.pdh-v3-scroll-indicator {
-  margin-top: 32px;
-  opacity: 0.5;
+/* ===== CHAT OVERLAY (STATE 1) ===== */
+.ph-chat-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
 }
 
-/* ОБЩИЕ ДЛЯ СЕКЦИЙ */
-.pdh-v3-section-container {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 60px 24px;
-}
-
-.pdh-v3-section-title {
-  font-size: 24px;
-  font-weight: 800;
-  margin-bottom: 24px;
-  text-align: center;
-  letter-spacing: -0.01em;
-}
-
-/* ЭКРАН 2: ЧАТ */
-.pdh-v3-chat-section {
-  background: #000;
-}
-
-.pdh-v3-chat-header {
-  margin-bottom: 20px;
+.ph-chat-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 85vh;
+  background: #0F0A1A;
+  border-radius: 24px 24px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 50;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.pdh-v3-chat-status {
+.ph-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.ph-chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ph-chat-avatar-small {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  flex-shrink: 0;
+}
+
+.ph-chat-avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+.ph-chat-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ph-chat-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #22C55E;
+  font-weight: 600;
+}
+
+.ph-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: #22C55E;
+  box-shadow: 0 0 6px #22C55E;
+}
+
+.ph-chat-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ph-chat-close:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ph-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ph-msg {
+  max-width: 82%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.ph-msg-ai {
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.15);
+  border-bottom-left-radius: 4px;
+  align-self: flex-start;
+  color: #E9D5FF;
+}
+
+.ph-msg-user {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom-right-radius: 4px;
+  align-self: flex-end;
+  color: #fff;
+}
+
+.ph-presentation-trigger {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #22C55E;
-  background: rgba(34, 197, 94, 0.1);
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  margin-top: 10px;
+  padding: 10px 16px;
+  background: rgba(124, 58, 237, 0.25);
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  border-radius: 12px;
+  color: #C4B5FD;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  width: 100%;
+  justify-content: center;
 }
 
-.pdh-v3-status-dot {
-  width: 6px;
-  height: 6px;
-  background: #22C55E;
-  border-radius: 99px;
-  box-shadow: 0 0 8px #22C55E;
+.ph-presentation-trigger:active {
+  background: rgba(124, 58, 237, 0.35);
+  transform: scale(0.97);
 }
 
-.pdh-v3-chat-quick-actions {
+.ph-chat-quick {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  justify-content: center;
-  margin-bottom: 24px;
+  padding: 0 18px 8px;
+  flex-shrink: 0;
 }
 
-.pdh-v3-quick-btn {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.05);
+.ph-quick-chip {
+  padding: 8px 14px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 999px;
   color: rgba(255, 255, 255, 0.7);
-  transition: all 0.2s;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
 }
 
-.pdh-v3-quick-btn:active {
+.ph-quick-chip:active {
   background: rgba(124, 58, 237, 0.2);
   border-color: rgba(124, 58, 237, 0.4);
   color: #fff;
+  transform: scale(0.95);
 }
 
-.pdh-v3-chat-window {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  padding: 16px;
-  min-height: 200px;
-  margin-bottom: 16px;
-}
-
-.pdh-v3-message-ai {
-  background: rgba(124, 58, 237, 0.15);
-  border: 1px solid rgba(124, 58, 237, 0.2);
-  padding: 12px 16px;
-  border-radius: 16px 16px 16px 4px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #E9D5FF;
-  max-width: 85%;
-}
-
-.pdh-v3-chat-input-wrap {
+.ph-chat-input-row {
   display: flex;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 8px 8px 8px 20px;
-  border-radius: 16px;
+  gap: 8px;
+  padding: 12px 18px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
 }
 
-.pdh-v3-chat-input {
+.ph-chat-input {
   flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 16px;
   color: #fff;
   font-size: 14px;
+  font-family: inherit;
+  outline: none;
 }
 
-.pdh-v3-chat-send {
-  width: 40px;
-  height: 40px;
-  background: #7C3AED;
+.ph-chat-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.ph-chat-input:focus {
+  border-color: rgba(124, 58, 237, 0.4);
+}
+
+.ph-chat-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   border: none;
-  border-radius: 12px;
+  background: #7C3AED;
   color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.ph-chat-send:active {
+  transform: scale(0.93);
+}
+
+/* ===== PRESENTATION OVERLAY (STATE 3) ===== */
+.ph-pres-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0A0515;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.ph-pres-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  flex-shrink: 0;
+}
+
+.ph-pres-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.ph-pres-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.ph-pres-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.3s;
+}
+
+.ph-pres-dot-active {
+  width: 24px;
+}
+
+.ph-pres-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  overflow: hidden;
+}
+
+.ph-pres-slide {
+  width: 100%;
+  max-width: 360px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
+  padding: 32px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ph-pres-accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+}
+
+.ph-pres-slide-num {
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.05em;
+}
+
+.ph-pres-slide-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 12px 0 16px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.ph-pres-slide-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  font-weight: 400;
+}
+
+.ph-pres-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+}
+
+.ph-pres-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ph-pres-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.ph-pres-nav-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.ph-pres-nav-next {
+  background: rgba(124, 58, 237, 0.2);
+  border-color: rgba(124, 58, 237, 0.3);
+  color: #C4B5FD;
+}
+
+.ph-pres-final {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.ph-pres-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.ph-pres-back-btn:active {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ===== LIVE CALL SCREEN ===== */
+.ph-live-root {
+  height: 100%;
+  width: 100%;
+  background: radial-gradient(circle at 50% 30%, #1a0f2e, #000 70%);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* ЭКРАН 3: КАРТОЧКИ */
-.pdh-v3-values-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+.ph-live-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
   gap: 16px;
 }
 
-.pdh-v3-value-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  padding: 24px;
-  transition: all 0.3s;
+.ph-live-avatar-wrap {
+  position: relative;
+  width: 140px;
+  height: 140px;
 }
 
-.pdh-v3-card-icon {
-  margin-bottom: 16px;
+.ph-live-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 999px;
+  object-fit: cover;
+  object-position: top;
+  border: 2px solid rgba(124, 58, 237, 0.4);
+  position: relative;
+  z-index: 1;
 }
 
-.pdh-v3-card-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 8px;
+.ph-live-ring-anim {
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  border: 2px solid rgba(124, 58, 237, 0.3);
+  animation: ph-live-ripple 2s ease-out infinite;
 }
 
-.pdh-v3-card-desc {
+.ph-live-ring-2 {
+  animation-delay: 1s;
+}
+
+@keyframes ph-live-ripple {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.ph-live-name {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.ph-live-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  color: #A78BFA;
+  margin: 0;
 }
 
-/* ЭКРАН 4: ДЕЙСТВИЕ */
-.pdh-v3-cta-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 40px;
+.ph-live-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  background: #22C55E;
+  box-shadow: 0 0 8px #22C55E;
+  animation: ph-pulse 2s ease-in-out infinite;
 }
 
-.pdh-v3-footer {
-  text-align: center;
-  font-size: 12px;
+@keyframes ph-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.ph-live-placeholder {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 40px 24px;
   color: rgba(255, 255, 255, 0.3);
+  font-size: 13px;
+  width: 100%;
+  max-width: 300px;
+  text-align: center;
+}
+
+.ph-live-end {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 32px;
+  background: #EF4444;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(239, 68, 68, 0.3);
+  margin-top: 16px;
 }

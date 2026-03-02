@@ -17,6 +17,7 @@ import TurkeyPromoPreview from "@/pages/TurkeyPromoPreview";
 import EventDetailPage from "@/pages/EventDetailPage";
 import PromoSinglePage from "@/pages/PromoSinglePage";
 import PartnerDigitalHub from "@/pages/PartnerDigitalHub";
+import LiveCallScreen from "@/pages/partner/LiveCallScreen";
 
 const PresentationPage = React.lazy(() => import("@/pages/PresentationPage"));
 
@@ -50,6 +51,7 @@ function AppContent() {
   const partnerMatch = basePath.match(/^\/p\/[\w-]+$/);
 
   const renderPage = () => {
+    if (basePath === "/live") return <LiveCallScreen />;
     if (eventMatch) return <EventDetailPage />;
     if (promoSingleMatch) return <PromoSinglePage />;
     if (partnerMatch) return <PartnerDigitalHub />;

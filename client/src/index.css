@@ -48,7 +48,7 @@ body {
   line-height: 1.6;
 }
 
-@import "pdh-v3.css";
+@import "./pdh-v3.css";
 
 #root {
   @apply min-h-screen flex flex-col;

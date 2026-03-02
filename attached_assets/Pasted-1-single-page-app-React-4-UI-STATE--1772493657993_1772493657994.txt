@@ -1,0 +1,214 @@
+1️⃣ Общая структура приложения
+
+Использовать single-page app (React).
+
+Нужно 4 состояния UI:
+
+STATE 0 → HERO
+STATE 1 → CHAT_OVERLAY
+STATE 2 → LIVE_CALL_SCREEN
+STATE 3 → PRESENTATION_OVERLAY
+
+Никакого вертикального лендинга.
+
+2️⃣ STATE 0 — HERO (без скролла)
+Layout
+
+Full viewport height:
+
+height: 100vh;
+overflow: hidden;
+position: relative;
+Содержимое:
+
+Background: full-screen image (Dennis)
+
+Overlay gradient (чтобы текст читался)
+
+Centered block:
+
+Title:
+Dennis
+JetUP Partner
+
+Subtitle:
+Задай любой вопрос о JetUP или пообщайся со мной лично.
+
+Buttons:
+
+Primary:
+🟣 Пообщаться вживую
+
+Secondary:
+⚫ Написать AI-Денису
+
+Кнопки должны менять state:
+setState("CHAT_OVERLAY")
+setState("LIVE_CALL_SCREEN")
+3️⃣ STATE 1 — CHAT_OVERLAY
+Поведение
+
+Это не новый экран.
+Это slide-up panel поверх Hero.
+
+Реализация:
+
+Position:
+
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+height: 85vh;
+border-radius: 24px 24px 0 0;
+animation: slideUp 0.3s ease;
+
+Hero остаётся затемнённым на фоне.
+
+Структура чата
+Верхняя панель
+
+Dennis AI
+Online
+
+Кнопка закрытия (крестик)
+
+Основная область
+
+Scrollable messages container
+
+Первая реплика AI (жёстко заданная)
+
+Ты рассматриваешь пассивный доход или построение команды?
+
+Quick replies:
+
+• Пассивный доход
+• Партнёрская программа
+• Безопасность
+• Как начать
+
+Важно
+
+AI должен:
+
+после 2–3 сообщений предложить презентацию
+
+не запускать её автоматически
+
+4️⃣ Запуск презентации (из чата)
+
+Когда AI отправляет special message:
+
+type: "presentation_trigger"
+
+UI должен:
+
+setState("PRESENTATION_OVERLAY")
+5️⃣ STATE 3 — PRESENTATION_OVERLAY
+
+Это fullscreen overlay поверх чата.
+
+Hero + Chat остаются в DOM.
+
+Layout
+position: fixed;
+inset: 0;
+background: #111;
+z-index: 1000;
+display: flex;
+flex-direction: column;
+Структура
+
+Top:
+Progress dots (● ○ ○ ○ ○)
+
+Center:
+Card content (one slide per screen)
+
+Bottom:
+← Назад Далее →
+
+Навигация
+
+Массив слайдов:
+
+const slides = [
+  { id: 1, title: "Мечта", text: "..." },
+  ...
+]
+
+Swipe left/right + кнопки.
+
+В конце
+
+Показать 3 кнопки:
+
+🟣 Записаться на созвон
+⚫ Начать по моей ссылке
+⚪ Вернуться в чат
+
+Кнопка "Вернуться" → setState("CHAT_OVERLAY")
+
+6️⃣ STATE 2 — LIVE_CALL_SCREEN
+
+Отдельный экран.
+
+Не overlay.
+
+Полностью новый route:
+
+/live
+
+Fullscreen layout.
+
+Содержимое
+
+HeyGen LiveAvatar embed
+Кнопка завершить звонок
+
+По завершении:
+
+navigate("/")
+7️⃣ Важная UX-логика
+1. НЕТ скролла на главной.
+2. НЕТ блоков под hero.
+3. НЕТ прямой ссылки на презентацию.
+4. Презентация только через чат.
+5. Чат — центр системы.
+8️⃣ Архитектура состояний
+HERO
+ ├── openChat()
+ │     └── CHAT_OVERLAY
+ │            ├── triggerPresentation()
+ │            │       └── PRESENTATION_OVERLAY
+ │            └── close()
+ └── openLive()
+        └── LIVE_CALL_SCREEN
+9️⃣ Минимальный UI-компонентный список
+
+HeroSection
+
+ChatOverlay
+
+PresentationOverlay
+
+LiveCallScreen
+
+MessageBubble
+
+QuickReplyChips
+
+SlideCard
+
+🔥 Ключевой принцип
+
+Это не сайт.
+
+Это:
+
+AI Conversation Engine
++
+Interactive Presentation Layer
++
+Conversion Machine

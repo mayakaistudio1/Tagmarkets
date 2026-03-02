@@ -87,7 +87,12 @@ const PartnerDigitalHub: React.FC = () => {
               <Video size={18} />
               Пообщаться вживую
             </button>
-            <button className="pdh-v3-btn-glass">
+            <button 
+              className="pdh-v3-btn-glass"
+              onClick={() => {
+                document.querySelector(".pdh-v3-chat-section")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
               <MessageSquare size={18} />
               Написать AI-Денису
             </button>
@@ -97,6 +102,10 @@ const PartnerDigitalHub: React.FC = () => {
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
             className="pdh-v3-scroll-indicator"
+            style={{ cursor: 'pointer' }}
+            onClick={() => {
+              document.querySelector(".pdh-v3-chat-section")?.scrollIntoView({ behavior: "smooth" });
+            }}
           >
             <ChevronDown size={24} />
           </motion.div>

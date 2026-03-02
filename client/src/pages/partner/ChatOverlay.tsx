@@ -5,6 +5,7 @@ import { X, Send, Sparkles } from "lucide-react";
 interface ChatOverlayProps {
   onClose: () => void;
   onTriggerPresentation: () => void;
+  presentationWatched?: boolean;
 }
 
 interface Message {
@@ -28,7 +29,7 @@ const AI_RESPONSES: Record<string, string> = {
   "Как начать": "Начать просто: выбери путь — как клиент (пассивный доход) или как партнёр (построение структуры). Я могу показать тебе короткую презентацию, чтобы всё стало понятнее.",
 };
 
-const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerPresentation }) => {
+const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerPresentation, presentationWatched }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -39,8 +40,25 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerPresentatio
   const [input, setInput] = useState("");
   const [userMessageCount, setUserMessageCount] = useState(0);
   const [presentationOffered, setPresentationOffered] = useState(false);
+  const [followUpSent, setFollowUpSent] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(2);
+
+  useEffect(() => {
+    if (presentationWatched && !followUpSent) {
+      setFollowUpSent(true);
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: nextId.current++,
+            text: "Что из этого откликнулось больше всего? Давай разберём твой кейс лично.",
+            sender: "ai",
+          },
+        ]);
+      }, 600);
+    }
+  }, [presentationWatched, followUpSent]);
 
   useEffect(() => {
     if (scrollRef.current) {

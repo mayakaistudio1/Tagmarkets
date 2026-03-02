@@ -10,11 +10,15 @@ type AppState = "HERO" | "CHAT_OVERLAY" | "PRESENTATION_OVERLAY";
 const PartnerDigitalHub: React.FC = () => {
   const [, setLocation] = useLocation();
   const [state, setState] = useState<AppState>("HERO");
+  const [presentationWatched, setPresentationWatched] = useState(false);
 
   const openChat = () => setState("CHAT_OVERLAY");
   const closeChat = () => setState("HERO");
   const openPresentation = () => setState("PRESENTATION_OVERLAY");
-  const backToChat = () => setState("CHAT_OVERLAY");
+  const backToChat = () => {
+    setPresentationWatched(true);
+    setState("CHAT_OVERLAY");
+  };
   const openLive = () => setLocation("/live");
 
   const showChat = state === "CHAT_OVERLAY" || state === "PRESENTATION_OVERLAY";
@@ -33,6 +37,7 @@ const PartnerDigitalHub: React.FC = () => {
             key="chat"
             onClose={closeChat}
             onTriggerPresentation={openPresentation}
+            presentationWatched={presentationWatched}
           />
         )}
       </AnimatePresence>

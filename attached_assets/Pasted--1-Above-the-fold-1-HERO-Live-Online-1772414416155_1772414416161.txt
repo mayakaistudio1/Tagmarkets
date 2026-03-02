@@ -1,0 +1,266 @@
+🔵 ЭКРАН 1 (Above the fold — без скролла)
+1️⃣ HERO — “Личность + Вход”
+
+[Фото / Live-кольцо / Online]
+
+Dennis Schymanietz
+Founder · Infrastructure Architect
+
+Короткая строка (1 предложение, без воды):
+
+Ich zeige dir, wie JetUP wirklich funktioniert — klar, transparent und skalierbar.
+
+2 кнопки (главные)
+
+🔘 Mit meinem KI-Avatar sprechen
+(Primary — главный вход)
+
+⚪ Kurz-Präsentation ansehen
+(Secondary)
+
+2️⃣ MICRO-GUIDED ENTRY (ВАУ-момент)
+
+Мини-блок под кнопками. Без длинного текста.
+
+Текст:
+
+Wofür bist du heute hier?
+
+3 чипа:
+
+💰 Passives Einkommen
+
+🚀 Struktur aufbauen
+
+🤔 Erst verstehen
+
+👉 Это очень важно.
+Это не “блок контента”.
+Это точка маршрутизации.
+
+🟣 ЛОГИКА ПОВЕДЕНИЯ
+
+Если человек нажимает:
+
+💰 Passives Einkommen
+
+Открывается bottom sheet (не новый экран)
+
+Заголовок:
+
+Dein Kapital bleibt auf deinem Broker-Konto.
+
+Короткий текст (2 строки максимум):
+
+Keine Einfrierungen. Du behältst Kontrolle.
+Realistische Strategien statt Hype.
+
+Кнопки:
+
+🔘 Als Kunde starten
+
+⚪ Frage an Dennis stellen
+
+🚀 Struktur aufbauen
+
+Заголовок:
+
+Mehrere Einkommensquellen. Eine Infrastruktur.
+
+Короткий текст:
+
+Broker + Exchange + Card Layer.
+Mit KI-Duplikation für dein Team.
+
+Кнопки:
+
+🔘 Partner werden
+
+⚪ Marketingplan ansehen
+
+🤔 Erst verstehen
+
+Заголовок:
+
+Kurz erklärt: Was ist JetUP?
+
+Текст:
+
+Ein Infrastruktur-Modell mit mehreren Einkommens-Layern.
+Keine Blackbox. Klare Struktur.
+
+Кнопки:
+
+🔘 5-Minuten Übersicht
+
+⚪ Webinar ansehen
+
+🟢 БЛОК 3 — LIVE WEBINAR (если есть активный)
+
+Очень компактный, без лишнего дизайна.
+
+Badge:
+🔴 Nächstes Live-Webinar
+
+Название:
+
+Dein klarer Einstieg in JetUP
+
+Дата/время:
+Mittwoch · 19:30 Uhr
+
+Кнопка:
+🔘 Jetzt teilnehmen
+
+⚠️ Если вебинара нет — блок скрывается автоматически.
+
+🟡 БЛОК 4 — “Weitere Ressourcen”
+
+Одна кнопка:
+
+Mehr Ressourcen
+
+Открывает sheet:
+
+📄 Präsentation
+
+✈️ Telegram Community
+
+📅 Webinar Übersicht
+
+📚 Tutorials
+
+📞 Support
+
+⚠️ Никаких 4 карточек на главном экране.
+
+🟣 LIVE AVATAR МОДАЛКА (ВАУ)
+
+При нажатии “Mit meinem KI-Avatar sprechen”
+
+Внутри:
+
+Заголовок:
+
+Sprich direkt mit Dennis
+
+Текст:
+
+Stelle jede Frage zu Marketing, Boni oder Einstieg.
+Sofortige Antwort — auf Deutsch, Russisch oder Englisch.
+
+Видео-фрейм
+
+Кнопка:
+🎙 Gespräch starten
+
+⚠️ Это не просто UI. Это рекрутинг-магнит.
+
+🧠 КЛЮЧЕВАЯ ИДЕЯ СТРУКТУРЫ
+
+Мы НЕ делаем:
+
+лендинг
+
+информационный портал
+
+перегруженную страницу
+
+Мы делаем:
+
+Entscheidungs-Interface
+
+Человек не читает.
+Он выбирает путь.
+
+🔄 ТЕХНИЧЕСКАЯ АРХИТЕКТУРА (очень важно)
+
+Теперь самая важная часть — как это работает логически.
+
+1️⃣ Данные вебинара
+
+Подтягиваются из:
+главного JetUP hub API
+
+Но:
+отображаются внутри MiniApp Дениса.
+
+Пользователь остаётся у Дениса.
+
+2️⃣ Материалы
+
+Все ссылки ведут:
+
+либо в Telegram
+
+либо на branded страницы Дениса
+
+либо через redirect с UTM
+
+Никогда:
+не “выкидывают” человека в безличный общий сайт.
+
+3️⃣ Общение с “Марией” (главный хаб)
+
+Если человек в AI-чате уходит в общий вопрос:
+
+Пример:
+
+“Wie funktioniert der Broker?”
+
+Ответ:
+
+Ich erkläre dir das gern.
+Möchtest du es technisch verstehen oder im Zusammenhang mit deinem Einkommen?
+
+То есть:
+он возвращает диалог в контекст Дениса.
+
+Никогда:
+не “уходит” в общую систему.
+
+4️⃣ AI-логика навигации
+
+Первые 90 секунд:
+
+Приветствие
+
+Вопрос о цели
+
+Уточняющий вопрос
+
+Предложение конкретного действия
+
+Не философия. Не длинные ответы.
+
+📱 МОБИЛЬНЫЕ ПРАВИЛА (Telegram MiniApp)
+
+Максимум 1.5 скролла
+
+Нет длинных абзацев
+
+2 строки максимум на блок
+
+Карточки высотой до 80px
+
+Кнопки большие (tap friendly)
+
+Вся вторичная информация — в sheets
+
+🎯 Почему эта версия “вау для рекрутинга”
+
+Потому что:
+
+Сразу личность
+
+Сразу живой AI
+
+Сразу выбор пути
+
+Нет информационного перегруза
+
+Есть live-движение (вебинар)
+
+Есть ощущение системы
+
+Всё ощущается как продукт, а не PDF

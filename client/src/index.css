@@ -143,3 +143,300 @@ body {
   background: linear-gradient(90deg, #7C3AED, #A855F7, #C084FC);
   border-radius: 0 0 4px 4px;
 }
+
+.pdh-root {
+  background:
+    radial-gradient(1200px 800px at 50% -10%, rgba(124,58,237,0.35), transparent 60%),
+    radial-gradient(900px 600px at 20% 0%, rgba(232,143,236,0.18), transparent 55%),
+    #0F0A1A;
+  color: #F5F3FF;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+.pdh-topline {
+  height: 4px;
+  background: linear-gradient(90deg, #7C3AED, #E88FEC);
+  border-radius: 999px;
+  opacity: 0.9;
+  margin: 6px 8px 0;
+}
+
+.pdh-wrap {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 14px 14px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pdh-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid rgba(245,243,255,0.10);
+  border-radius: 22px;
+  box-shadow: 0 18px 70px rgba(0,0,0,0.45);
+  padding: 18px;
+}
+
+.pdh-card-inner {
+  background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+
+.pdh-avatar {
+  width: 74px;
+  height: 74px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.pdh-online {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  background: rgba(34,197,94,0.16);
+  border: 1px solid rgba(34,197,94,0.45);
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  backdrop-filter: blur(8px);
+  color: #22C55E;
+}
+
+.pdh-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+  background: #22C55E;
+  animation: pdh-pulse 2s ease-in-out infinite;
+}
+
+@keyframes pdh-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pdh-h1 {
+  font-family: Montserrat, Inter, sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.pdh-sub {
+  margin: 4px 0 0;
+  color: rgba(245,243,255,0.72);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.pdh-micro {
+  margin: 8px 0 0;
+  color: rgba(245,243,255,0.55);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.pdh-btn {
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.14);
+  padding: 11px 12px;
+  background: rgba(255,255,255,0.05);
+  color: #F5F3FF;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.pdh-btn:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.pdh-btn-primary {
+  background: linear-gradient(90deg, rgba(124,58,237,0.92), rgba(232,143,236,0.70));
+  border: none;
+}
+
+.pdh-btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.pdh-chat {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 22px;
+  border: 1px solid rgba(245,243,255,0.10);
+  background: linear-gradient(180deg, rgba(124,58,237,0.16), rgba(255,255,255,0.02));
+}
+
+.pdh-chat-label {
+  font-family: Montserrat, Inter, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  color: rgba(245,243,255,0.65);
+  font-weight: 600;
+}
+
+.pdh-bubble {
+  background: rgba(0,0,0,0.20);
+  border: 1px solid rgba(255,255,255,0.10);
+  padding: 10px 13px;
+  border-radius: 16px;
+  line-height: 1.4;
+  font-size: 14px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+
+.pdh-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pdh-chip {
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+  color: rgba(245,243,255,0.90);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pdh-chip:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.22);
+}
+
+.pdh-chip:active {
+  transform: scale(0.96);
+}
+
+.pdh-sec-title {
+  font-family: Montserrat, Inter, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.pdh-sec-text {
+  margin: 0;
+  color: rgba(245,243,255,0.72);
+  line-height: 1.45;
+  font-size: 13px;
+}
+
+.pdh-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pdh-path {
+  padding: 14px;
+  border-radius: 22px;
+  border: 1px solid rgba(245,243,255,0.10);
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  text-align: left;
+  color: #F5F3FF;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+}
+
+.pdh-path:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.18);
+}
+
+.pdh-path:active {
+  transform: scale(0.98);
+}
+
+.pdh-orb {
+  position: relative;
+  height: 220px;
+  border-radius: 22px;
+  border: 1px solid rgba(245,243,255,0.10);
+  background: radial-gradient(circle at 50% 50%, rgba(124,58,237,0.20), rgba(0,0,0,0.10));
+  overflow: hidden;
+}
+
+.pdh-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 190px;
+  height: 190px;
+  border-radius: 999px;
+  border: 1px dashed rgba(245,243,255,0.14);
+  opacity: 0.55;
+  animation: pdh-spin 30s linear infinite;
+}
+
+@keyframes pdh-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.pdh-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: linear-gradient(180deg, rgba(124,58,237,0.38), rgba(232,143,236,0.12));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Montserrat, Inter, sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+}
+
+.pdh-sat {
+  position: absolute;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.22);
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(245,243,255,0.92);
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+
+.pdh-section {
+  transition: outline 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pdh-highlight {
+  outline: 2px solid rgba(232,143,236,0.65);
+  box-shadow: 0 0 0 8px rgba(124,58,237,0.12), 0 18px 70px rgba(0,0,0,0.45);
+}

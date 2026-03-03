@@ -619,93 +619,64 @@
   font-weight: 700;
 }
 
-/* ===== TOC DRAWER ===== */
-.pres-toc-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
+/* ===== PRESENTATION LAYOUT (main + TOC side panel) ===== */
+.pres-layout {
+  flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: all 0.15s;
+  overflow: hidden;
+  position: relative;
 }
 
-.pres-toc-btn:active {
-  background: rgba(255, 255, 255, 0.12);
-  transform: scale(0.93);
-}
-
-.pres-toc-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 20;
-}
-
-.pres-toc-drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 260px;
-  background: #0F0A1A;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
-  z-index: 25;
+.pres-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 
-.pres-toc-header {
+/* ===== TOC — ALWAYS VISIBLE PANEL ===== */
+.pres-toc-panel {
+  width: 160px;
+  background: rgba(15, 10, 26, 0.95);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 16px 14px;
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.7);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-direction: column;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
-.pres-toc-close {
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+.pres-toc-header {
+  padding: 14px 12px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
 }
 
 .pres-toc-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
+  padding: 4px 6px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   -webkit-overflow-scrolling: touch;
 }
 
 .pres-toc-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 12px;
-  border-radius: 12px;
+  gap: 6px;
+  padding: 8px 8px;
+  border-radius: 8px;
   border: 1px solid transparent;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -719,20 +690,23 @@
 }
 
 .pres-toc-active {
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(124, 58, 237, 0.12);
   color: #C4B5FD;
 }
 
 .pres-toc-num {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   opacity: 0.5;
-  min-width: 20px;
+  min-width: 16px;
   font-variant-numeric: tabular-nums;
 }
 
 .pres-toc-title {
   flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pres-toc-check {
@@ -761,38 +735,62 @@
   width: 100%;
 }
 
-.pres-ask-btn:active:not(:disabled) {
+.pres-ask-btn:active {
   transform: scale(0.97);
   background: rgba(124, 58, 237, 0.15);
 }
 
-.pres-ask-done {
-  opacity: 0.5;
-  cursor: default;
-  color: #22C55E;
-  border-color: rgba(34, 197, 94, 0.2);
+/* ===== SLIDE INLINE CHAT ===== */
+.pres-slide-chat {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 50%;
+  background: rgba(15, 10, 26, 0.96);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+  backdrop-filter: blur(16px);
 }
 
-/* ===== NOTIFICATION TOAST ===== */
-.pres-notification {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
+.pres-slide-chat-msgs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  padding: 10px 20px;
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  border-radius: 999px;
-  color: #86EFAC;
+  -webkit-overflow-scrolling: touch;
+  max-height: 180px;
+}
+
+.pres-slide-chat-msgs .ph-msg {
   font-size: 13px;
-  font-weight: 700;
-  font-family: inherit;
-  z-index: 30;
-  backdrop-filter: blur(12px);
-  pointer-events: none;
+  padding: 10px 14px;
+  max-width: 90%;
+}
+
+.pres-slide-chat-input {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  padding-bottom: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.pres-slide-chat-input .ph-chat-input {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.pres-slide-chat-input .ph-chat-send {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
 }
 
 /* ===== CHAT INDICATOR (bottom bar) ===== */

@@ -1000,6 +1000,32 @@
   color: #fff;
 }
 
+.eco-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.eco-sub-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+  margin-top: 6px;
+  background: none;
+  border: none;
+  color: rgba(196, 181, 253, 0.7);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Montserrat', system-ui, sans-serif;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.eco-sub-back-btn:hover {
+  color: #c4b5fd;
+}
+
 .eco-content {
   flex: 1;
   overflow-y: auto;

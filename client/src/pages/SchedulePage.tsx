@@ -8,7 +8,7 @@ import {
   Mic,
   Loader2,
 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useAppNavigation } from "@/hooks/use-app-navigation";
 import { useLanguage } from "../contexts/LanguageContext";
 import ShareMenu, { SHARE_ORIGIN } from "@/components/ShareMenu";
 
@@ -198,7 +198,7 @@ function EventBanner({ event, speakerPhoto }: { event: ScheduleEvent; speakerPho
 }
 
 const SchedulePage: React.FC = () => {
-  const [, setLocation] = useLocation();
+  const [, setLocation] = useAppNavigation();
   const { language, t } = useLanguage();
   const [filteredEvents, setFilteredEvents] = useState<ScheduleEvent[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Zap, Clock, Loader2 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useAppNavigation } from "@/hooks/use-app-navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ShareMenu, { SHARE_ORIGIN } from "@/components/ShareMenu";
 
@@ -20,7 +20,7 @@ export interface PromoItem {
 }
 
 const PromoDetailPage: React.FC = () => {
-  const [, setLocation] = useLocation();
+  const [, setLocation] = useAppNavigation();
   const { t, language } = useLanguage();
   const [promoItems, setPromoItems] = useState<PromoItem[]>([]);
   const [loading, setLoading] = useState(true);

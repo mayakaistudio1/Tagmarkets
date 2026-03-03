@@ -14,11 +14,11 @@ import {
   ChevronRight,
   Megaphone,
 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useAppNavigation } from "@/hooks/use-app-navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const HomePage: React.FC = () => {
-  const [, setLocation] = useLocation();
+  const [, setLocation] = useAppNavigation();
   const { language, setLanguage, t } = useLanguage();
 
   const goToMaria = () => setLocation("/maria");

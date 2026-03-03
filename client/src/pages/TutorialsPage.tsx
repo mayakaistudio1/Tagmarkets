@@ -6,7 +6,7 @@ import {
   Play,
   FileText,
 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useAppNavigation } from "@/hooks/use-app-navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type FilterTab = "alle" | "trader" | "partner";
@@ -69,7 +69,7 @@ const tutorials: Tutorial[] = [
 ];
 
 const TutorialsPage: React.FC = () => {
-  const [, setLocation] = useLocation();
+  const [, setLocation] = useAppNavigation();
   const { t } = useLanguage();
 
   const getInitialFilter = (): FilterTab => {

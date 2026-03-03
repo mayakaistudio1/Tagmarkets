@@ -251,13 +251,21 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
     }
   }, [chatOpen, messages]);
 
-  const buildChatHistory = useCallback((extraUserMsg?: string) => {
+  const buildChatHistory = useCallback((extraUserMsg?: string, slideContext?: Slide) => {
     const history: { role: string; content: string }[] = [];
     for (const msg of messages) {
       history.push({
         role: msg.sender === "user" ? "user" : "assistant",
         content: msg.text,
       });
+    }
+    if (slideContext) {
+      let ctx = `[Контекст: пользователь смотрит слайд "${slideContext.title}". Содержание: "${slideContext.text}".`;
+      if (slideContext.bullets?.length) {
+        ctx += ` Пункты: ${slideContext.bullets.join("; ")}.`;
+      }
+      ctx += ` Ответь на вопрос, опираясь именно на контекст этого слайда.]`;
+      history.push({ role: "system", content: ctx });
     }
     if (extraUserMsg) {
       history.push({ role: "user", content: extraUserMsg });
@@ -280,12 +288,12 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
     if (current > 0) goTo(current - 1, -1);
   }, [current, goTo]);
 
-  const sendToAI = useCallback((userText: string, openChatAfter?: boolean) => {
+  const sendToAI = useCallback((userText: string, openChatAfter?: boolean, slideCtx?: Slide) => {
     addMessage({ text: userText, sender: "user" });
     setIsStreaming(true);
 
     const aiMsgId = addMessage({ text: "...", sender: "ai" });
-    const history = buildChatHistory(userText);
+    const history = buildChatHistory(userText, slideCtx);
 
     streamDennisChat(
       history,
@@ -307,7 +315,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
 
   const handleAskQuestion = useCallback(() => {
     if (isStreaming) return;
-    sendToAI(slide.suggestedQuestion, true);
+    sendToAI(slide.suggestedQuestion, true, slide);
   }, [slide, sendToAI, isStreaming]);
 
   const handleChatSend = useCallback(() => {

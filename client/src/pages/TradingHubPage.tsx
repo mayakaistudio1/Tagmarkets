@@ -13,17 +13,17 @@ import {
   Calendar,
   GraduationCap,
 } from "lucide-react";
-import { useLocation } from "wouter";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useAppNavigation } from "@/hooks/use-app-navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const TradingHubPage: React.FC = () => {
-  const [, setLocation] = useLocation();
+  const [, setLocation] = useAppNavigation();
   const { t } = useLanguage();
 
   return (

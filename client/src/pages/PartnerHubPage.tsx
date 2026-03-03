@@ -16,7 +16,7 @@ import {
   Users,
   BrainCircuit,
 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useAppNavigation } from "@/hooks/use-app-navigation";
 import {
   Accordion,
   AccordionContent,
@@ -26,7 +26,7 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const PartnerHubPage: React.FC = () => {
-  const [, setLocation] = useLocation();
+  const [, setLocation] = useAppNavigation();
   const { t } = useLanguage();
 
   return (

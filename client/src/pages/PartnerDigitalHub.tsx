@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import HeroSection from "./partner/HeroSection";
 import ChatOverlay from "./partner/ChatOverlay";
 import PresentationOverlay from "./partner/PresentationOverlay";
+import EcosystemOverlay from "./partner/EcosystemOverlay";
 
 export interface SharedMessage {
   id: number;
@@ -12,7 +13,7 @@ export interface SharedMessage {
   type?: "presentation_trigger";
 }
 
-type AppState = "HERO" | "CHAT_OVERLAY" | "PRESENTATION_OVERLAY";
+type AppState = "HERO" | "CHAT_OVERLAY" | "PRESENTATION_OVERLAY" | "ECOSYSTEM_OVERLAY";
 
 const PartnerDigitalHub: React.FC = () => {
   const [, setLocation] = useLocation();
@@ -47,9 +48,11 @@ const PartnerDigitalHub: React.FC = () => {
     setPresentationWatched(true);
     setState("CHAT_OVERLAY");
   };
+  const showEcosystem = () => setState("ECOSYSTEM_OVERLAY");
+  const closeEcosystem = () => setState("PRESENTATION_OVERLAY");
   const openLive = () => setLocation("/live");
 
-  const showChat = state === "CHAT_OVERLAY" || state === "PRESENTATION_OVERLAY";
+  const showChat = state === "CHAT_OVERLAY" || state === "PRESENTATION_OVERLAY" || state === "ECOSYSTEM_OVERLAY";
 
   return (
     <div className="ph-root">
@@ -74,13 +77,23 @@ const PartnerDigitalHub: React.FC = () => {
       </AnimatePresence>
 
       <AnimatePresence>
-        {state === "PRESENTATION_OVERLAY" && (
+        {(state === "PRESENTATION_OVERLAY" || state === "ECOSYSTEM_OVERLAY") && (
           <PresentationOverlay
             key="presentation"
             onBackToChat={backToChat}
+            onShowEcosystem={showEcosystem}
             messages={messages}
             addMessage={addMessage}
             updateMessage={updateMessage}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {state === "ECOSYSTEM_OVERLAY" && (
+          <EcosystemOverlay
+            key="ecosystem"
+            onClose={closeEcosystem}
           />
         )}
       </AnimatePresence>

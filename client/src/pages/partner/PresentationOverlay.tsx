@@ -7,7 +7,6 @@ import {
   Video,
   Link,
   MessageSquare,
-  Star,
   Shield,
   TrendingUp,
   BarChart3,
@@ -15,20 +14,21 @@ import {
   Zap,
   Target,
   Users,
-  CheckCircle,
   AlertTriangle,
   Lightbulb,
   Rocket,
   HelpCircle,
-  ChevronDown,
   Send,
-  Check,
   List,
+  Eye,
+  Bot,
+  Globe,
 } from "lucide-react";
 import type { SharedMessage } from "../PartnerDigitalHub";
 
 interface PresentationOverlayProps {
   onBackToChat: () => void;
+  onShowEcosystem: () => void;
   messages: SharedMessage[];
   addMessage: (msg: Omit<SharedMessage, "id">) => number;
   updateMessage: (id: number, text: string) => void;
@@ -105,148 +105,119 @@ async function streamDennisChat(
 const slides: Slide[] = [
   {
     id: 1,
-    title: "Мечта",
-    text: "Представьте проект, который долгосрочный. Где вы строите большую команду даже на перегретом рынке. Где есть чек, развитие и система дубликации.",
-    image: "/images/presentation/hero_dream.png",
+    title: "Реальность",
+    text: "Рынок финансов растёт.\nИнтерес к пассивному доходу растёт.\n\nНо большинство людей не зарабатывает системно.\n\nПочему?",
+    image: "/images/presentation/hero_scale.png",
     accent: "#7C3AED",
-    icon: Star,
+    icon: Eye,
     overlay: "linear-gradient(to bottom, rgba(124,58,237,0.3) 0%, rgba(0,0,0,0.85) 100%)",
-    suggestedQuestion: "Как найти такой проект?",
+    suggestedQuestion: "Почему так происходит?",
   },
   {
     id: 2,
-    title: "Стандарт",
-    text: "Идеальный проект должен включать:",
-    bullets: [
-      "Финансовый продукт, связанный с реальным рынком",
-      "Безопасность капитала",
-      "Возможность вывода средств",
-      "Маркетинг-план",
-      "Систему дубликации",
-    ],
-    image: "/images/presentation/platform.png",
-    accent: "#3B82F6",
-    icon: CheckCircle,
-    overlay: "linear-gradient(to bottom, rgba(59,130,246,0.2) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "Почему именно эти критерии?",
-  },
-  {
-    id: 3,
-    title: "Факты рынка",
-    text: "",
-    bullets: [
-      "Финансовые рынки растут",
-      "MLM-индустрия > 650 млрд",
-      "Интерес к пассивному доходу увеличивается",
-    ],
-    image: "/images/presentation/hero_scale.png",
-    accent: "#06B6D4",
-    icon: TrendingUp,
-    overlay: "linear-gradient(to bottom, rgba(6,182,212,0.2) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "Какие перспективы у рынка?",
-  },
-  {
-    id: 4,
     title: "Диагноз",
-    text: "",
+    text: "Проблема не в людях.\nПроблема в модели.\n\nОбычно всё строится на:",
     bullets: [
-      "Нет баланса между прибылью и безопасностью",
-      "Нет прозрачности",
-      "Нет системы дубликации",
-      "Всё держится на лидере",
+      "Одном сильном лидере",
+      "Обещаниях",
+      "Отсутствии системы дубликации",
     ],
     image: "/images/presentation/hero_chaos.png",
     accent: "#EF4444",
     icon: AlertTriangle,
     overlay: "linear-gradient(to bottom, rgba(239,68,68,0.2) 0%, rgba(0,0,0,0.9) 100%)",
-    suggestedQuestion: "Почему 90% остаются без результата?",
+    suggestedQuestion: "Что должно быть иначе?",
   },
   {
-    id: 5,
-    title: "Решение",
-    text: "JetUP — это экосистема, которая объединяет финансовый продукт и партнёрскую модель в одной структуре.",
+    id: 3,
+    title: "Модель",
+    text: "JetUp — это не «ещё один проект».\n\nЭто соединение:",
+    bullets: [
+      "Финансового продукта",
+      "Партнёрской модели",
+      "Инфраструктуры масштабирования",
+    ],
     image: "/images/presentation/jetup_brand.png",
     accent: "#8B5CF6",
     icon: Lightbulb,
     overlay: "linear-gradient(to bottom, rgba(139,92,246,0.3) 0%, rgba(0,0,0,0.85) 100%)",
-    suggestedQuestion: "Что входит в экосистему JetUP?",
+    suggestedQuestion: "Это безопасно?",
   },
   {
-    id: 6,
+    id: 4,
     title: "Безопасность",
-    text: "Средства находятся у лицензированного брокера. Контроль остаётся у клиента. Прозрачность операций.",
+    text: "Капитал остаётся на твоём личном аккаунте.\nТы проходишь верификацию на своё имя.\nТы контролируешь ввод и вывод средств.\n\nКонтроль — у тебя.\nНе у компании.",
     image: "/images/presentation/safety.png",
     accent: "#22C55E",
     icon: Shield,
     overlay: "linear-gradient(to bottom, rgba(34,197,94,0.2) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "Как обеспечивается безопасность средств?",
+    suggestedQuestion: "А что с гибкостью?",
   },
   {
-    id: 7,
+    id: 5,
     title: "Гибкость",
-    text: "Нет жёсткой заморозки. Возможность вывода. Управляемость стратегии.",
+    text: "Нет жёсткой заморозки.\nТы выбираешь стратегию.\nТы можешь менять решения.\n\nЭто управляемая модель.",
     image: "/images/presentation/flexibility.png",
     accent: "#F59E0B",
     icon: Layers,
     overlay: "linear-gradient(to bottom, rgba(245,158,11,0.2) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "Как работает вывод средств?",
+    suggestedQuestion: "А какая доходность?",
   },
   {
-    id: 8,
+    id: 6,
     title: "Рентабельность",
-    text: "Баланс доходности и риска. Стратегический подход. Системная модель вместо хайпа.",
+    text: "Мы не строим модель на агрессивных обещаниях.\n\nСистема ориентирована на устойчивость,\nа не на краткосрочные всплески.\n\nРеалистичный подход всегда сильнее хайпа.",
     image: "/images/presentation/profitability.png",
     accent: "#10B981",
     icon: BarChart3,
     overlay: "linear-gradient(to bottom, rgba(16,185,129,0.2) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "Какая доходность и риски?",
+    suggestedQuestion: "А как это масштабируется?",
   },
   {
-    id: 9,
-    title: "Переход",
-    text: "Даже лучший продукт не масштабируется без системы.",
+    id: 7,
+    title: "Масштаб",
+    text: "Даже лучший продукт не масштабируется сам.\n\nПартнёру нужна система,\nкоторая позволяет дублицировать действия.\n\nБез инфраструктуры масштаб остаётся идеей.",
     image: "/images/presentation/hero_realization.png",
     accent: "#F97316",
     icon: Target,
     overlay: "linear-gradient(to bottom, rgba(249,115,22,0.25) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "Почему система важнее продукта?",
+    suggestedQuestion: "Какая инфраструктура?",
   },
   {
-    id: 10,
-    title: "Партнёрская модель",
-    text: "Маркетинг-план — потенциал. Результат создаёт инфраструктура.",
+    id: 8,
+    title: "AI-Инфраструктура",
+    text: "Каждый партнёр получает цифровую систему:",
     bullets: [
-      "Profit Share",
-      "Infinity Bonus",
-      "Global Pools",
-      "Lifestyle Incentives",
+      "AI-чат",
+      "Интерактивную мини-презентацию",
+      "Автоматическую квалификацию лидов",
+      "Поддержку 24/7",
+    ],
+    image: "/images/presentation/automation.png",
+    accent: "#E88FEC",
+    icon: Bot,
+    overlay: "linear-gradient(to bottom, rgba(232,143,236,0.2) 0%, rgba(0,0,0,0.88) 100%)",
+    suggestedQuestion: "Как это выглядит на практике?",
+  },
+  {
+    id: 9,
+    title: "Партнёрская модель",
+    text: "Доход строится на трёх уровнях:",
+    bullets: [
+      "Продукт",
+      "Партнёрская программа",
+      "Структура",
     ],
     image: "/images/presentation/partner_network.png",
     accent: "#A855F7",
     icon: Users,
     overlay: "linear-gradient(to bottom, rgba(168,85,247,0.25) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "Как работает партнёрская программа?",
+    suggestedQuestion: "Какие шаги для старта?",
   },
   {
-    id: 11,
-    title: "Простота механики",
-    text: "",
-    bullets: [
-      "Человек → продукт",
-      "→ партнёрская программа",
-      "→ дубликация",
-      "→ рост структуры",
-    ],
-    image: "/images/presentation/automation.png",
-    accent: "#E88FEC",
-    icon: Zap,
-    overlay: "linear-gradient(to bottom, rgba(232,143,236,0.2) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "Как работает дубликация?",
-  },
-  {
-    id: 12,
+    id: 10,
     title: "Выбор",
-    text: "Можно продолжать искать идеальный проект.\n\nМожно строить систему в рамках готовой экосистемы.",
+    text: "Ты можешь просто изучать информацию.\n\nИли выстроить стратегию правильно с первого шага.\n\nЯ помогу определить формат участия под твой опыт и цели.",
     image: "/images/presentation/hero_discovery.png",
     accent: "#7C3AED",
     icon: Rocket,
@@ -257,6 +228,7 @@ const slides: Slide[] = [
 
 const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   onBackToChat,
+  onShowEcosystem,
   messages,
   addMessage,
   updateMessage,
@@ -486,9 +458,19 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                 <Link size={18} />
                 Начать по моей ссылке
               </button>
-              <button className="pres-back-link" onClick={onBackToChat} data-testid="btn-back-to-chat">
-                <MessageSquare size={14} />
-                Вернуться в чат
+              <a
+                href="https://t.me/JetUpDach"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ph-btn-outline"
+                data-testid="btn-telegram"
+              >
+                <Send size={18} />
+                Перейти в Telegram
+              </a>
+              <button className="ph-btn-outline" onClick={onShowEcosystem} data-testid="btn-show-ecosystem">
+                <Globe size={18} />
+                Посмотреть полный обзор экосистемы
               </button>
             </div>
           )}

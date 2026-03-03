@@ -619,91 +619,255 @@
   font-weight: 700;
 }
 
-/* checkpoint screen */
-.pres-checkpoint {
-  width: 100%;
-  max-width: 360px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 40px 24px;
-  position: relative;
-}
-
-.pres-cp-glow {
-  position: absolute;
-  top: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 200px;
-  height: 200px;
+/* ===== TOC DRAWER ===== */
+.pres-toc-btn {
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
-  opacity: 0.08;
-  filter: blur(80px);
-  pointer-events: none;
-}
-
-.pres-cp-question {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
-  margin: 0 0 28px;
-}
-
-.pres-cp-chips {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-}
-
-.pres-cp-chip {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 16px 18px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 15px;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.15s;
+}
+
+.pres-toc-btn:active {
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(0.93);
+}
+
+.pres-toc-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 20;
+}
+
+.pres-toc-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 260px;
+  background: #0F0A1A;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pres-toc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 16px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.pres-toc-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.pres-toc-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pres-toc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s;
   text-align: left;
-  backdrop-filter: blur(8px);
+  width: 100%;
 }
 
-.pres-cp-chip:active {
-  background: rgba(124, 58, 237, 0.15);
-  border-color: rgba(124, 58, 237, 0.3);
-  transform: scale(0.97);
+.pres-toc-item:active {
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.pres-cp-arrow {
-  margin-left: auto;
-  opacity: 0.3;
+.pres-toc-active {
+  background: rgba(124, 58, 237, 0.1);
+  color: #C4B5FD;
 }
 
-.pres-cp-skip {
-  margin-top: 20px;
-  padding: 10px 20px;
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.3);
+.pres-toc-num {
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0.5;
+  min-width: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pres-toc-title {
+  flex: 1;
+}
+
+.pres-toc-check {
+  color: #22C55E;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+/* ===== SUGGESTED QUESTION BUTTON ===== */
+.pres-ask-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: color 0.15s;
+  transition: all 0.15s;
+  text-align: left;
+  width: 100%;
 }
 
-.pres-cp-skip:active {
+.pres-ask-btn:active:not(:disabled) {
+  transform: scale(0.97);
+  background: rgba(124, 58, 237, 0.15);
+}
+
+.pres-ask-done {
+  opacity: 0.5;
+  cursor: default;
+  color: #22C55E;
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+/* ===== NOTIFICATION TOAST ===== */
+.pres-notification {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 999px;
+  color: #86EFAC;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  z-index: 30;
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+/* ===== CHAT INDICATOR (bottom bar) ===== */
+.pres-chat-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  backdrop-filter: blur(8px);
+}
+
+.pres-chat-indicator:active {
+  background: rgba(124, 58, 237, 0.12);
   color: rgba(255, 255, 255, 0.6);
+  transform: scale(0.95);
+}
+
+/* ===== CHAT IN PRESENTATION (swipe down) ===== */
+.pres-chat-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+}
+
+.pres-chat-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 75vh;
+  background: #0F0A1A;
+  border-radius: 24px 24px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pres-chat-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+
+.pres-chat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.pres-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ===== LIVE CALL SCREEN ===== */

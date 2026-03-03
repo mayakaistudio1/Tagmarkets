@@ -1,18 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { X, Send, Sparkles } from "lucide-react";
+import type { SharedMessage } from "../PartnerDigitalHub";
 
 interface ChatOverlayProps {
   onClose: () => void;
   onTriggerPresentation: () => void;
   presentationWatched?: boolean;
-}
-
-interface Message {
-  id: number;
-  text: string;
-  sender: "ai" | "user";
-  type?: "presentation_trigger";
+  messages: SharedMessage[];
+  addMessage: (msg: Omit<SharedMessage, "id">) => number;
 }
 
 const QUICK_REPLIES = [
@@ -29,36 +25,30 @@ const AI_RESPONSES: Record<string, string> = {
   "Как начать": "Начать просто: выбери путь — как клиент (пассивный доход) или как партнёр (построение структуры). Я могу показать тебе короткую презентацию, чтобы всё стало понятнее.",
 };
 
-const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerPresentation, presentationWatched }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: "Привет! Я — AI-копия Дениса. Ты рассматриваешь пассивный доход или построение команды?",
-      sender: "ai",
-    },
-  ]);
+const ChatOverlay: React.FC<ChatOverlayProps> = ({
+  onClose,
+  onTriggerPresentation,
+  presentationWatched,
+  messages,
+  addMessage,
+}) => {
   const [input, setInput] = useState("");
   const [userMessageCount, setUserMessageCount] = useState(0);
   const [presentationOffered, setPresentationOffered] = useState(false);
   const [followUpSent, setFollowUpSent] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const nextId = useRef(2);
 
   useEffect(() => {
     if (presentationWatched && !followUpSent) {
       setFollowUpSent(true);
       setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: nextId.current++,
-            text: "Что из этого откликнулось больше всего? Давай разберём твой кейс лично.",
-            sender: "ai",
-          },
-        ]);
+        addMessage({
+          text: "Что из этого откликнулось больше всего? Давай разберём твой кейс лично.",
+          sender: "ai",
+        });
       }, 600);
     }
-  }, [presentationWatched, followUpSent]);
+  }, [presentationWatched, followUpSent, addMessage]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -66,41 +56,37 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerPresentatio
     }
   }, [messages]);
 
-  const addMessages = (userText: string, aiText: string) => {
-    const userMsg: Message = { id: nextId.current++, text: userText, sender: "user" };
-    const aiMsg: Message = { id: nextId.current++, text: aiText, sender: "ai" };
-    
-    setMessages((prev) => [...prev, userMsg]);
+  const handleUserMessage = (userText: string, aiText: string) => {
+    addMessage({ text: userText, sender: "user" });
     const newCount = userMessageCount + 1;
     setUserMessageCount(newCount);
 
     setTimeout(() => {
-      const newMessages: Message[] = [aiMsg];
+      addMessage({ text: aiText, sender: "ai" });
 
       if (newCount >= 2 && !presentationOffered) {
         setPresentationOffered(true);
-        newMessages.push({
-          id: nextId.current++,
-          text: "Кстати, у меня есть короткая презентация, которая объяснит всё за 5 минут. Хочешь посмотреть?",
-          sender: "ai",
-          type: "presentation_trigger",
-        });
+        setTimeout(() => {
+          addMessage({
+            text: "Кстати, у меня есть короткая презентация, которая объяснит всё за 5 минут. Хочешь посмотреть?",
+            sender: "ai",
+            type: "presentation_trigger",
+          });
+        }, 400);
       }
-
-      setMessages((prev) => [...prev, ...newMessages]);
     }, 800);
   };
 
   const handleQuickReply = (reply: string) => {
     const aiResponse = AI_RESPONSES[reply] || "Хороший вопрос. Давай разберёмся вместе.";
-    addMessages(reply, aiResponse);
+    handleUserMessage(reply, aiResponse);
   };
 
   const handleSend = () => {
     if (!input.trim()) return;
     const text = input.trim();
     setInput("");
-    addMessages(text, "Хороший вопрос! Давай я объясню подробнее. В JetUP каждый элемент экосистемы работает как отдельный источник дохода — и всё это под твоим контролем.");
+    handleUserMessage(text, "Хороший вопрос! Давай я объясню подробнее. В JetUP каждый элемент экосистемы работает как отдельный источник дохода — и всё это под твоим контролем.");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

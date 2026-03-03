@@ -54,7 +54,7 @@ Preferred communication style: Simple, everyday language.
 - **Production**: `npm run build` for client (Vite) and server (esbuild) bundling, followed by `npm start`.
 
 ### Core Features
-- **Partner Digital Hub**: Personalized partner pages (e.g., `/p/dennis`) featuring a "Digital Twin" video avatar, direct contact buttons, and ecosystem navigation.
+- **Partner Digital Hub**: Personalized partner pages (e.g., `/p/dennis`) — state machine with 4 states (HERO → CHAT_OVERLAY → PRESENTATION_OVERLAY + `/live` route). Shared message state between chat and presentation. Presentation: 12 slides with TOC sidebar, suggested questions per slide that auto-add to main chat, swipe-down to open full chat from presentation. See `docs/presentation-architecture.md` for full details.
 - **Social Sharing**: Reusable ShareMenu component on Promotions and Schedule pages.
 - **Smart Linktree Navigation**: Multi-level navigation including Hub, Trading Hub, Partner Hub, Schedule, Tutorials, and Promotions.
 - **Admin Panel**: Password-protected (`/admin`) for managing chat logs, promotions, schedule events, and speakers with CRUD operations. Includes rate-limited login. Banner export uses html2canvas to capture the rendered React preview component.

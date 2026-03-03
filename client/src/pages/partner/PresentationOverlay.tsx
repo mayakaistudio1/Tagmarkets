@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,15 +15,22 @@ import {
   Zap,
   Target,
   Users,
-  ArrowRight,
   CheckCircle,
   AlertTriangle,
   Lightbulb,
   Rocket,
+  List,
+  HelpCircle,
+  ChevronDown,
+  Send,
+  Check,
 } from "lucide-react";
+import type { SharedMessage } from "../PartnerDigitalHub";
 
 interface PresentationOverlayProps {
   onBackToChat: () => void;
+  messages: SharedMessage[];
+  addMessage: (msg: Omit<SharedMessage, "id">) => number;
 }
 
 interface Slide {
@@ -35,12 +42,8 @@ interface Slide {
   accent: string;
   icon: React.FC<{ size?: number; className?: string }>;
   overlay: string;
-}
-
-interface Checkpoint {
-  afterSlide: number;
-  question: string;
-  chips: { label: string; icon: React.FC<{ size?: number }>; action: "goto"; target: number }[];
+  suggestedQuestion: string;
+  detailedAnswer: string;
 }
 
 const slides: Slide[] = [
@@ -52,6 +55,8 @@ const slides: Slide[] = [
     accent: "#7C3AED",
     icon: Star,
     overlay: "linear-gradient(to bottom, rgba(124,58,237,0.3) 0%, rgba(0,0,0,0.85) 100%)",
+    suggestedQuestion: "Как найти такой проект?",
+    detailedAnswer: "Ключевые критерии долгосрочного проекта: реальный финансовый продукт, прозрачная структура, возможность вывода средств и система дубликации. JetUP объединяет все эти элементы в одной экосистеме — брокер, биржа и платёжные карты. Это не очередной хайп, а инфраструктура для построения бизнеса.",
   },
   {
     id: 2,
@@ -68,6 +73,8 @@ const slides: Slide[] = [
     accent: "#3B82F6",
     icon: CheckCircle,
     overlay: "linear-gradient(to bottom, rgba(59,130,246,0.2) 0%, rgba(0,0,0,0.88) 100%)",
+    suggestedQuestion: "Почему именно эти критерии?",
+    detailedAnswer: "Эти пять критериев — результат анализа сотен проектов. Без реального продукта — нет ценности. Без безопасности — нет доверия. Без вывода — нет свободы. Без маркетинг-плана — нет мотивации для партнёров. Без дубликации — нет масштабирования. JetUP закрывает каждый из этих пунктов через свою инфраструктуру.",
   },
   {
     id: 3,
@@ -82,6 +89,8 @@ const slides: Slide[] = [
     accent: "#06B6D4",
     icon: TrendingUp,
     overlay: "linear-gradient(to bottom, rgba(6,182,212,0.2) 0%, rgba(0,0,0,0.88) 100%)",
+    suggestedQuestion: "Какие перспективы у рынка?",
+    detailedAnswer: "Глобальный рынок сетевого маркетинга превысил 650 млрд долларов и продолжает расти. Финтех-сектор растёт на 20% ежегодно. Пересечение этих двух трендов — именно то место, где находится JetUP. Спрос на пассивный доход и финансовую грамотность увеличивается, особенно среди молодой аудитории 25-45 лет.",
   },
   {
     id: 4,
@@ -97,6 +106,8 @@ const slides: Slide[] = [
     accent: "#EF4444",
     icon: AlertTriangle,
     overlay: "linear-gradient(to bottom, rgba(239,68,68,0.2) 0%, rgba(0,0,0,0.9) 100%)",
+    suggestedQuestion: "Почему 90% остаются без результата?",
+    detailedAnswer: "Главная проблема — отсутствие системы. В большинстве проектов всё завязано на лидере: он рекрутирует, обучает, мотивирует. Когда лидер останавливается — структура замирает. Плюс часто нет реального продукта, только маркетинг. А без прозрачности люди теряют доверие. JetUP решает это через AI-дупликацию и инфраструктуру, которая работает независимо от лидера.",
   },
   {
     id: 5,
@@ -106,6 +117,8 @@ const slides: Slide[] = [
     accent: "#8B5CF6",
     icon: Lightbulb,
     overlay: "linear-gradient(to bottom, rgba(139,92,246,0.3) 0%, rgba(0,0,0,0.85) 100%)",
+    suggestedQuestion: "Что входит в экосистему JetUP?",
+    detailedAnswer: "Экосистема JetUP — это три направления: лицензированный брокер для торговли и инвестиций, криптобиржа с собственными торговыми сборами, и платёжные карты для повседневных расчётов. Каждое направление генерирует доход, а партнёрская программа позволяет получать комиссию со всех трёх источников одновременно.",
   },
   {
     id: 6,
@@ -115,6 +128,8 @@ const slides: Slide[] = [
     accent: "#22C55E",
     icon: Shield,
     overlay: "linear-gradient(to bottom, rgba(34,197,94,0.2) 0%, rgba(0,0,0,0.88) 100%)",
+    suggestedQuestion: "Как обеспечивается безопасность средств?",
+    detailedAnswer: "Принцип кастодиальности: твои средства всегда на твоём брокерском счёте, не у JetUP. Брокер регулируется финансовыми органами. Ты в любой момент можешь вывести средства — нет заморозок, нет скрытых условий. Все операции прозрачны и видны в личном кабинете. Это ключевое отличие от большинства проектов на рынке.",
   },
   {
     id: 7,
@@ -124,6 +139,8 @@ const slides: Slide[] = [
     accent: "#F59E0B",
     icon: Layers,
     overlay: "linear-gradient(to bottom, rgba(245,158,11,0.2) 0%, rgba(0,0,0,0.88) 100%)",
+    suggestedQuestion: "Как работает вывод средств?",
+    detailedAnswer: "В JetUP нет жёстких сроков заморозки. Ты можешь вывести средства в любой момент по стандартной процедуре брокера. Ты сам выбираешь стратегию — от консервативной до агрессивной. Можешь менять параметры, приостанавливать или полностью выходить. Полный контроль остаётся у тебя.",
   },
   {
     id: 8,
@@ -133,6 +150,8 @@ const slides: Slide[] = [
     accent: "#10B981",
     icon: BarChart3,
     overlay: "linear-gradient(to bottom, rgba(16,185,129,0.2) 0%, rgba(0,0,0,0.88) 100%)",
+    suggestedQuestion: "Какая доходность и риски?",
+    detailedAnswer: "JetUP — это не обещания сверхдоходности, а системный подход. Доходность зависит от выбранной стратегии и рыночных условий. Ключевое преимущество — баланс: ты не ставишь всё на одну карту. Три источника дохода (брокер, биржа, карты) диверсифицируют риски. Плюс партнёрская программа создаёт дополнительный, не зависящий от рынка доход.",
   },
   {
     id: 9,
@@ -142,6 +161,8 @@ const slides: Slide[] = [
     accent: "#F97316",
     icon: Target,
     overlay: "linear-gradient(to bottom, rgba(249,115,22,0.25) 0%, rgba(0,0,0,0.88) 100%)",
+    suggestedQuestion: "Почему система важнее продукта?",
+    detailedAnswer: "Отличный продукт — это фундамент, но без системы дубликации он остаётся только у тебя. Система — это то, что позволяет любому партнёру повторить результат без личного наставничества 24/7. В JetUP это решается через AI-хабы: каждый партнёр получает цифрового двойника, который работает за него — объясняет, отвечает на вопросы, проводит презентации.",
   },
   {
     id: 10,
@@ -157,6 +178,8 @@ const slides: Slide[] = [
     accent: "#A855F7",
     icon: Users,
     overlay: "linear-gradient(to bottom, rgba(168,85,247,0.25) 0%, rgba(0,0,0,0.88) 100%)",
+    suggestedQuestion: "Как работает партнёрская программа?",
+    detailedAnswer: "Четыре источника дохода для партнёров. Profit Share — комиссия $10.50 за лот с брокера. Infinity Bonus — до 10 уровней глубины. Global Pools — доля от глобального оборота биржи до 60%. Lifestyle Incentives — бонусы за достижения (путешествия, авто, lifestyle). Маркетинг-план создаёт потенциал, но реальный результат обеспечивает инфраструктура JetUP.",
   },
   {
     id: 11,
@@ -172,6 +195,8 @@ const slides: Slide[] = [
     accent: "#E88FEC",
     icon: Zap,
     overlay: "linear-gradient(to bottom, rgba(232,143,236,0.2) 0%, rgba(0,0,0,0.88) 100%)",
+    suggestedQuestion: "Как работает дубликация?",
+    detailedAnswer: "Механика простая: человек знакомится с продуктом через AI-хаб партнёра. Если ему интересно — регистрируется. Получает свой AI-хаб и начинает делиться ссылкой. Его контакты проходят тот же путь. Система работает автоматически: AI отвечает на вопросы, проводит презентации, собирает контакты. Партнёру не нужно быть экспертом — система дублицирует процесс за него.",
   },
   {
     id: 12,
@@ -181,82 +206,79 @@ const slides: Slide[] = [
     accent: "#7C3AED",
     icon: Rocket,
     overlay: "linear-gradient(to bottom, rgba(124,58,237,0.3) 0%, rgba(0,0,0,0.85) 100%)",
+    suggestedQuestion: "Как начать прямо сейчас?",
+    detailedAnswer: "Два пути: как клиент — открываешь брокерский счёт, выбираешь стратегию и начинаешь получать пассивный доход. Как партнёр — получаешь свой AI-хаб, делишься ссылкой и строишь структуру. Можно совмещать оба направления. Запишись на созвон с Денисом для персонального разбора или начни по реферальной ссылке.",
   },
 ];
 
-const checkpoints: Checkpoint[] = [
-  {
-    afterSlide: 1,
-    question: "Что ты ищешь сейчас?",
-    chips: [
-      { label: "Пассивный доход", icon: BarChart3, action: "goto", target: 6 },
-      { label: "Построение команды", icon: Users, action: "goto", target: 8 },
-      { label: "Понять безопасность", icon: Shield, action: "goto", target: 6 },
-    ],
-  },
-  {
-    afterSlide: 4,
-    question: "Что обычно ломается у людей?",
-    chips: [
-      { label: "Нет доверия", icon: Shield, action: "goto", target: 6 },
-      { label: "Нет системы", icon: Target, action: "goto", target: 9 },
-      { label: "Нет результата", icon: BarChart3, action: "goto", target: 8 },
-    ],
-  },
-  {
-    afterSlide: 11,
-    question: "Какой следующий шаг тебе удобнее?",
-    chips: [
-      { label: "Показать маркетинг", icon: TrendingUp, action: "goto", target: 10 },
-      { label: "Войти по ссылке", icon: Link, action: "goto", target: 12 },
-      { label: "Записаться на звонок", icon: Video, action: "goto", target: 12 },
-      { label: "Вернуться в чат", icon: MessageSquare, action: "goto", target: -1 },
-    ],
-  },
-];
-
-const PresentationOverlay: React.FC<PresentationOverlayProps> = ({ onBackToChat }) => {
+const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
+  onBackToChat,
+  messages,
+  addMessage,
+}) => {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
-  const [showCheckpoint, setShowCheckpoint] = useState<Checkpoint | null>(null);
+  const [showToc, setShowToc] = useState(false);
+  const [askedSlides, setAskedSlides] = useState<Set<number>>(new Set());
+  const [showNotification, setShowNotification] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const [chatInput, setChatInput] = useState("");
 
   const slide = slides[current];
   const isLast = current === slides.length - 1;
   const progress = ((current + 1) / slides.length) * 100;
 
-  const goTo = useCallback((index: number, dir?: number) => {
-    if (index < 0) {
-      onBackToChat();
-      return;
+  useEffect(() => {
+    if (chatOpen && chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
     }
+  }, [chatOpen, messages]);
+
+  const goTo = useCallback((index: number, dir?: number) => {
     const clamped = Math.max(0, Math.min(index, slides.length - 1));
     setDirection(dir ?? (clamped > current ? 1 : -1));
     setCurrent(clamped);
-    setShowCheckpoint(null);
-  }, [current, onBackToChat]);
+    setShowToc(false);
+  }, [current]);
 
   const handleNext = useCallback(() => {
-    const cp = checkpoints.find((c) => c.afterSlide === current + 1);
-    if (cp) {
-      setShowCheckpoint(cp);
-      return;
-    }
-    if (current < slides.length - 1) {
-      goTo(current + 1, 1);
-    }
+    if (current < slides.length - 1) goTo(current + 1, 1);
   }, [current, goTo]);
 
   const handlePrev = useCallback(() => {
-    if (showCheckpoint) {
-      setShowCheckpoint(null);
-      return;
-    }
     if (current > 0) goTo(current - 1, -1);
-  }, [current, showCheckpoint, goTo]);
+  }, [current, goTo]);
 
-  const handleChip = useCallback((chip: Checkpoint["chips"][0]) => {
-    goTo(chip.target === -1 ? -1 : chip.target - 1, 1);
-  }, [goTo]);
+  const handleAskQuestion = useCallback(() => {
+    if (askedSlides.has(current)) return;
+    setAskedSlides((prev) => new Set(prev).add(current));
+    addMessage({ text: slide.suggestedQuestion, sender: "user" });
+    setTimeout(() => {
+      addMessage({ text: slide.detailedAnswer, sender: "ai" });
+    }, 500);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 2000);
+  }, [current, slide, askedSlides, addMessage]);
+
+  const handleChatSend = useCallback(() => {
+    if (!chatInput.trim()) return;
+    const text = chatInput.trim();
+    setChatInput("");
+    addMessage({ text, sender: "user" });
+    setTimeout(() => {
+      addMessage({
+        text: "Хороший вопрос! Давай я объясню подробнее. В JetUP каждый элемент экосистемы работает как отдельный источник дохода — и всё это под твоим контролем.",
+        sender: "ai",
+      });
+    }, 800);
+  }, [chatInput, addMessage]);
+
+  const handleDragEnd = useCallback((_: any, info: PanInfo) => {
+    if (info.offset.y > 80 && info.velocity.y > 0) {
+      setChatOpen(true);
+    }
+  }, []);
 
   const variants = {
     enter: (d: number) => ({ x: d > 0 ? 280 : -280, opacity: 0, scale: 0.95 }),
@@ -285,107 +307,166 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({ onBackToChat 
           <X size={18} />
         </button>
         <span className="pres-counter">{current + 1} / {slides.length}</span>
+        <button
+          className="pres-toc-btn"
+          onClick={() => setShowToc(!showToc)}
+          data-testid="btn-toc"
+        >
+          <List size={18} />
+        </button>
       </div>
 
-      <div className="pres-stage">
-        <AnimatePresence mode="wait" custom={direction}>
-          {!showCheckpoint ? (
+      <AnimatePresence>
+        {showToc && (
+          <>
             <motion.div
-              key={current}
-              custom={direction}
-              variants={variants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.35, ease: "easeInOut" }}
-              className="pres-card"
-            >
-              <div className="pres-card-bg">
-                <img src={slide.image} alt="" className="pres-card-img" />
-                <div className="pres-card-overlay" style={{ background: slide.overlay }} />
-              </div>
-
-              <div className="pres-card-content">
-                <div className="pres-card-icon" style={{ background: `${slide.accent}25`, color: slide.accent }}>
-                  <slide.icon size={22} />
-                </div>
-                <span className="pres-slide-num" style={{ color: slide.accent }}>
-                  {String(slide.id).padStart(2, "0")}
-                </span>
-                <h2 className="pres-card-title">{slide.title}</h2>
-                {slide.text && (
-                  <p className="pres-card-text">
-                    {slide.text.split("\n\n").map((p, i) => (
-                      <React.Fragment key={i}>
-                        {i > 0 && <br />}
-                        {p}
-                      </React.Fragment>
-                    ))}
-                  </p>
-                )}
-                {slide.bullets && (
-                  <ul className="pres-bullets">
-                    {slide.bullets.map((b, i) => (
-                      <li key={i} className="pres-bullet">
-                        <span className="pres-bullet-dot" style={{ background: slide.accent }} />
-                        {b}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {isLast && (
-                  <div className="pres-final-btns">
-                    <button className="ph-btn-primary" data-testid="btn-schedule-call">
-                      <Video size={18} />
-                      Записаться на созвон
-                    </button>
-                    <button className="ph-btn-glass" data-testid="btn-start-link">
-                      <Link size={18} />
-                      Начать по моей ссылке
-                    </button>
-                    <button className="pres-back-link" onClick={onBackToChat} data-testid="btn-back-to-chat">
-                      <MessageSquare size={14} />
-                      Вернуться в чат
-                    </button>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          ) : (
+              className="pres-toc-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowToc(false)}
+            />
             <motion.div
-              key="checkpoint"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-              className="pres-checkpoint"
+              className="pres-toc-drawer"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
             >
-              <div className="pres-cp-glow" style={{ background: slide.accent }} />
-              <h3 className="pres-cp-question">{showCheckpoint.question}</h3>
-              <div className="pres-cp-chips">
-                {showCheckpoint.chips.map((chip, i) => (
+              <div className="pres-toc-header">
+                <span>Оглавление</span>
+                <button className="pres-toc-close" onClick={() => setShowToc(false)}>
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="pres-toc-list">
+                {slides.map((s, i) => (
                   <button
-                    key={i}
-                    className="pres-cp-chip"
-                    onClick={() => handleChip(chip)}
-                    data-testid={`chip-cp-${i}`}
+                    key={s.id}
+                    className={`pres-toc-item ${i === current ? "pres-toc-active" : ""}`}
+                    style={i === current ? { borderColor: s.accent, color: s.accent } : undefined}
+                    onClick={() => goTo(i)}
+                    data-testid={`toc-slide-${s.id}`}
                   >
-                    <chip.icon size={18} />
-                    {chip.label}
-                    <ArrowRight size={14} className="pres-cp-arrow" />
+                    <span className="pres-toc-num">{String(s.id).padStart(2, "0")}</span>
+                    <span className="pres-toc-title">{s.title}</span>
+                    {askedSlides.has(i) && <Check size={14} className="pres-toc-check" />}
                   </button>
                 ))}
               </div>
-              <button className="pres-cp-skip" onClick={() => { setShowCheckpoint(null); goTo(current + 1, 1); }}>
-                Пропустить
-              </button>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          </>
+        )}
+      </AnimatePresence>
 
-      {!isLast && !showCheckpoint && (
+      <motion.div
+        className="pres-stage"
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.3}
+        onDragEnd={handleDragEnd}
+      >
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={current}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="pres-card"
+          >
+            <div className="pres-card-bg">
+              <img src={slide.image} alt="" className="pres-card-img" />
+              <div className="pres-card-overlay" style={{ background: slide.overlay }} />
+            </div>
+
+            <div className="pres-card-content">
+              <div className="pres-card-icon" style={{ background: `${slide.accent}25`, color: slide.accent }}>
+                <slide.icon size={22} />
+              </div>
+              <span className="pres-slide-num" style={{ color: slide.accent }}>
+                {String(slide.id).padStart(2, "0")}
+              </span>
+              <h2 className="pres-card-title">{slide.title}</h2>
+              {slide.text && (
+                <p className="pres-card-text">
+                  {slide.text.split("\n\n").map((p, i) => (
+                    <React.Fragment key={i}>
+                      {i > 0 && <br />}
+                      {p}
+                    </React.Fragment>
+                  ))}
+                </p>
+              )}
+              {slide.bullets && (
+                <ul className="pres-bullets">
+                  {slide.bullets.map((b, i) => (
+                    <li key={i} className="pres-bullet">
+                      <span className="pres-bullet-dot" style={{ background: slide.accent }} />
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <button
+                className={`pres-ask-btn ${askedSlides.has(current) ? "pres-ask-done" : ""}`}
+                onClick={handleAskQuestion}
+                disabled={askedSlides.has(current)}
+                style={!askedSlides.has(current) ? { borderColor: `${slide.accent}40`, color: `${slide.accent}` } : undefined}
+                data-testid={`btn-ask-${slide.id}`}
+              >
+                {askedSlides.has(current) ? (
+                  <>
+                    <Check size={15} />
+                    Отправлено в чат
+                  </>
+                ) : (
+                  <>
+                    <HelpCircle size={15} />
+                    {slide.suggestedQuestion}
+                  </>
+                )}
+              </button>
+
+              {isLast && (
+                <div className="pres-final-btns">
+                  <button className="ph-btn-primary" data-testid="btn-schedule-call">
+                    <Video size={18} />
+                    Записаться на созвон
+                  </button>
+                  <button className="ph-btn-glass" data-testid="btn-start-link">
+                    <Link size={18} />
+                    Начать по моей ссылке
+                  </button>
+                  <button className="pres-back-link" onClick={onBackToChat} data-testid="btn-back-to-chat">
+                    <MessageSquare size={14} />
+                    Вернуться в чат
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </motion.div>
+
+      <AnimatePresence>
+        {showNotification && (
+          <motion.div
+            className="pres-notification"
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 30, opacity: 0 }}
+          >
+            <Check size={14} />
+            Добавлено в чат
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {!isLast && (
         <div className="pres-nav-row">
           <button
             className="pres-nav-btn"
@@ -395,6 +476,17 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({ onBackToChat 
           >
             <ChevronLeft size={20} />
           </button>
+
+          <button
+            className="pres-chat-indicator"
+            onClick={() => setChatOpen(true)}
+            data-testid="btn-open-pres-chat"
+          >
+            <ChevronDown size={14} />
+            <MessageSquare size={14} />
+            <span>{messages.length}</span>
+          </button>
+
           <button
             className="pres-nav-btn pres-nav-next"
             onClick={handleNext}
@@ -407,15 +499,102 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({ onBackToChat 
         </div>
       )}
 
-      {showCheckpoint && (
+      {isLast && (
         <div className="pres-nav-row">
-          <button className="pres-nav-btn" onClick={handlePrev} data-testid="btn-prev-cp">
+          <button
+            className="pres-nav-btn"
+            onClick={handlePrev}
+            data-testid="btn-prev-slide-last"
+          >
             <ChevronLeft size={20} />
-            Назад
           </button>
-          <div />
+          <button
+            className="pres-chat-indicator"
+            onClick={() => setChatOpen(true)}
+            data-testid="btn-open-pres-chat-last"
+          >
+            <ChevronDown size={14} />
+            <MessageSquare size={14} />
+            <span>{messages.length}</span>
+          </button>
+          <div style={{ width: 52 }} />
         </div>
       )}
+
+      <AnimatePresence>
+        {chatOpen && (
+          <>
+            <motion.div
+              className="pres-chat-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setChatOpen(false)}
+            />
+            <motion.div
+              className="pres-chat-panel"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(_, info) => {
+                if (info.offset.y > 100) setChatOpen(false);
+              }}
+            >
+              <div className="pres-chat-handle" />
+              <div className="pres-chat-head">
+                <div className="ph-chat-header-left">
+                  <div className="ph-chat-avatar-small">
+                    <img src="/dennis-photo.png" alt="Dennis" />
+                  </div>
+                  <div>
+                    <span className="ph-chat-name">Dennis AI</span>
+                    <span className="ph-chat-status">
+                      <span className="ph-status-dot" />
+                      Online
+                    </span>
+                  </div>
+                </div>
+                <button className="pres-close-btn" onClick={() => setChatOpen(false)}>
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="pres-chat-messages" ref={chatScrollRef}>
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`ph-msg ${msg.sender === "user" ? "ph-msg-user" : "ph-msg-ai"}`}
+                  >
+                    {msg.text}
+                  </div>
+                ))}
+              </div>
+              <div className="ph-chat-input-row">
+                <input
+                  type="text"
+                  className="ph-chat-input"
+                  placeholder="Напиши сообщение..."
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleChatSend();
+                    }
+                  }}
+                  data-testid="input-pres-chat"
+                />
+                <button className="ph-chat-send" onClick={handleChatSend} data-testid="btn-pres-chat-send">
+                  <Send size={18} />
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

@@ -5,6 +5,7 @@ import { insertApplicationSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { registerLiveAvatarRoutes } from "./integrations/liveavatar";
 import { registerMariaChatRoutes } from "./integrations/maria-chat";
+import { registerDennisChatRoutes } from "./integrations/dennis-chat";
 import { db } from "./db";
 import { chatSessions, chatMessages } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
@@ -75,6 +76,7 @@ export async function registerRoutes(
   
   registerLiveAvatarRoutes(app);
   registerMariaChatRoutes(app);
+  registerDennisChatRoutes(app);
 
   const objectStorage = new (await import("./replit_integrations/object_storage")).ObjectStorageService();
   app.get("/uploads/:filename", async (req, res, next) => {

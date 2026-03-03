@@ -31,6 +31,7 @@ interface PresentationOverlayProps {
   onBackToChat: () => void;
   messages: SharedMessage[];
   addMessage: (msg: Omit<SharedMessage, "id">) => number;
+  updateMessage: (id: number, text: string) => void;
 }
 
 interface Slide {
@@ -43,7 +44,62 @@ interface Slide {
   icon: React.FC<{ size?: number; className?: string }>;
   overlay: string;
   suggestedQuestion: string;
-  detailedAnswer: string;
+}
+
+async function streamDennisChat(
+  chatHistory: { role: string; content: string }[],
+  onChunk: (text: string) => void,
+  onDone: (fullText: string) => void,
+  onError: (err: string) => void,
+) {
+  try {
+    const res = await fetch("/api/partner/dennis/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: chatHistory }),
+    });
+
+    if (!res.ok || !res.body) {
+      onError("Не удалось получить ответ");
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let fullText = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.content) {
+            fullText += data.content;
+            onChunk(fullText);
+          }
+          if (data.done) {
+            onDone(data.fullContent || fullText);
+            return;
+          }
+          if (data.error) {
+            onError(data.error);
+            return;
+          }
+        } catch {}
+      }
+    }
+    onDone(fullText);
+  } catch {
+    onError("Ошибка соединения");
+  }
 }
 
 const slides: Slide[] = [
@@ -56,7 +112,6 @@ const slides: Slide[] = [
     icon: Star,
     overlay: "linear-gradient(to bottom, rgba(124,58,237,0.3) 0%, rgba(0,0,0,0.85) 100%)",
     suggestedQuestion: "Как найти такой проект?",
-    detailedAnswer: "Ключевые критерии долгосрочного проекта: реальный финансовый продукт, прозрачная структура, возможность вывода средств и система дубликации. JetUP объединяет все эти элементы в одной экосистеме — брокер, биржа и платёжные карты. Это не очередной хайп, а инфраструктура для построения бизнеса.",
   },
   {
     id: 2,
@@ -74,7 +129,6 @@ const slides: Slide[] = [
     icon: CheckCircle,
     overlay: "linear-gradient(to bottom, rgba(59,130,246,0.2) 0%, rgba(0,0,0,0.88) 100%)",
     suggestedQuestion: "Почему именно эти критерии?",
-    detailedAnswer: "Эти пять критериев — результат анализа сотен проектов. Без реального продукта — нет ценности. Без безопасности — нет доверия. Без вывода — нет свободы. Без маркетинг-плана — нет мотивации для партнёров. Без дубликации — нет масштабирования. JetUP закрывает каждый из этих пунктов через свою инфраструктуру.",
   },
   {
     id: 3,
@@ -90,7 +144,6 @@ const slides: Slide[] = [
     icon: TrendingUp,
     overlay: "linear-gradient(to bottom, rgba(6,182,212,0.2) 0%, rgba(0,0,0,0.88) 100%)",
     suggestedQuestion: "Какие перспективы у рынка?",
-    detailedAnswer: "Глобальный рынок сетевого маркетинга превысил 650 млрд долларов и продолжает расти. Финтех-сектор растёт на 20% ежегодно. Пересечение этих двух трендов — именно то место, где находится JetUP. Спрос на пассивный доход и финансовую грамотность увеличивается, особенно среди молодой аудитории 25-45 лет.",
   },
   {
     id: 4,
@@ -107,7 +160,6 @@ const slides: Slide[] = [
     icon: AlertTriangle,
     overlay: "linear-gradient(to bottom, rgba(239,68,68,0.2) 0%, rgba(0,0,0,0.9) 100%)",
     suggestedQuestion: "Почему 90% остаются без результата?",
-    detailedAnswer: "Главная проблема — отсутствие системы. В большинстве проектов всё завязано на лидере: он рекрутирует, обучает, мотивирует. Когда лидер останавливается — структура замирает. Плюс часто нет реального продукта, только маркетинг. А без прозрачности люди теряют доверие. JetUP решает это через AI-хабы: каждый партнёр получает цифрового двойника, который работает за него — объясняет, отвечает на вопросы, проводит презентации.",
   },
   {
     id: 5,
@@ -118,7 +170,6 @@ const slides: Slide[] = [
     icon: Lightbulb,
     overlay: "linear-gradient(to bottom, rgba(139,92,246,0.3) 0%, rgba(0,0,0,0.85) 100%)",
     suggestedQuestion: "Что входит в экосистему JetUP?",
-    detailedAnswer: "Экосистема JetUP — это три направления: лицензированный брокер для торговли и инвестиций, криптобиржа с собственными торговыми сборами, и платёжные карты для повседневных расчётов. Каждое направление генерирует доход, а партнёрская программа позволяет получать комиссию со всех трёх источников одновременно.",
   },
   {
     id: 6,
@@ -129,7 +180,6 @@ const slides: Slide[] = [
     icon: Shield,
     overlay: "linear-gradient(to bottom, rgba(34,197,94,0.2) 0%, rgba(0,0,0,0.88) 100%)",
     suggestedQuestion: "Как обеспечивается безопасность средств?",
-    detailedAnswer: "Принцип кастодиальности: твои средства всегда на твоём брокерском счёте, не у JetUP. Брокер регулируется финансовыми органами. Ты в любой момент можешь вывести средства — нет заморозок, нет скрытых условий. Все операции прозрачны и видны в личном кабинете. Это ключевое отличие от большинства проектов на рынке.",
   },
   {
     id: 7,
@@ -140,7 +190,6 @@ const slides: Slide[] = [
     icon: Layers,
     overlay: "linear-gradient(to bottom, rgba(245,158,11,0.2) 0%, rgba(0,0,0,0.88) 100%)",
     suggestedQuestion: "Как работает вывод средств?",
-    detailedAnswer: "В JetUP нет жёстких сроков заморозки. Ты можешь вывести средства в любой момент по стандартной процедуре брокера. Ты сам выбираешь стратегию — от консервативной до агрессивной. Можешь менять параметры, приостанавливать или полностью выходить. Полный контроль остаётся у тебя.",
   },
   {
     id: 8,
@@ -151,7 +200,6 @@ const slides: Slide[] = [
     icon: BarChart3,
     overlay: "linear-gradient(to bottom, rgba(16,185,129,0.2) 0%, rgba(0,0,0,0.88) 100%)",
     suggestedQuestion: "Какая доходность и риски?",
-    detailedAnswer: "JetUP — это не обещания сверхдоходности, а системный подход. Доходность зависит от выбранной стратегии и рыночных условий. Ключевое преимущество — баланс: ты не ставишь всё на одну карту. Три источника дохода (брокер, биржа, карты) диверсифицируют риски. Плюс партнёрская программа создаёт дополнительный, не зависящий от рынка доход.",
   },
   {
     id: 9,
@@ -162,7 +210,6 @@ const slides: Slide[] = [
     icon: Target,
     overlay: "linear-gradient(to bottom, rgba(249,115,22,0.25) 0%, rgba(0,0,0,0.88) 100%)",
     suggestedQuestion: "Почему система важнее продукта?",
-    detailedAnswer: "Отличный продукт — это фундамент, но без системы дубликации он остаётся только у тебя. Система — это то, что позволяет любому партнёру повторить результат без личного наставничества 24/7. В JetUP это решается через AI-хабы: каждый партнёр получает цифрового двойника, который работает за него — объясняет, отвечает на вопросы, проводит презентации.",
   },
   {
     id: 10,
@@ -179,7 +226,6 @@ const slides: Slide[] = [
     icon: Users,
     overlay: "linear-gradient(to bottom, rgba(168,85,247,0.25) 0%, rgba(0,0,0,0.88) 100%)",
     suggestedQuestion: "Как работает партнёрская программа?",
-    detailedAnswer: "Четыре источника дохода для партнёров. Profit Share — комиссия $10.50 за лот с брокера. Infinity Bonus — до 10 уровней глубины. Global Pools — доля от глобального оборота биржи до 60%. Lifestyle Incentives — бонусы за достижения (путешествия, авто, lifestyle). Маркетинг-план создаёт потенциал, но реальный результат обеспечивает инфраструктура JetUP.",
   },
   {
     id: 11,
@@ -196,7 +242,6 @@ const slides: Slide[] = [
     icon: Zap,
     overlay: "linear-gradient(to bottom, rgba(232,143,236,0.2) 0%, rgba(0,0,0,0.88) 100%)",
     suggestedQuestion: "Как работает дубликация?",
-    detailedAnswer: "Механика простая: человек знакомится с продуктом через AI-хаб партнёра. Если ему интересно — регистрируется. Получает свой AI-хаб и начинает делиться ссылкой. Его контакты проходят тот же путь. Система работает автоматически: AI отвечает на вопросы, проводит презентации, собирает контакты. Партнёру не нужно быть экспертом — система дублицирует процесс за него.",
   },
   {
     id: 12,
@@ -207,7 +252,6 @@ const slides: Slide[] = [
     icon: Rocket,
     overlay: "linear-gradient(to bottom, rgba(124,58,237,0.3) 0%, rgba(0,0,0,0.85) 100%)",
     suggestedQuestion: "Как начать прямо сейчас?",
-    detailedAnswer: "Два пути: как клиент — открываешь брокерский счёт, выбираешь стратегию и начинаешь получать пассивный доход. Как партнёр — получаешь свой AI-хаб, делишься ссылкой и строишь структуру. Можно совмещать оба направления. Запишись на созвон с Денисом для персонального разбора или начни по реферальной ссылке.",
   },
 ];
 
@@ -215,10 +259,12 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   onBackToChat,
   messages,
   addMessage,
+  updateMessage,
 }) => {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
   const [showToc, setShowToc] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const [chatInput, setChatInput] = useState("");
@@ -232,6 +278,20 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
       chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
     }
   }, [chatOpen, messages]);
+
+  const buildChatHistory = useCallback((extraUserMsg?: string) => {
+    const history: { role: string; content: string }[] = [];
+    for (const msg of messages) {
+      history.push({
+        role: msg.sender === "user" ? "user" : "assistant",
+        content: msg.text,
+      });
+    }
+    if (extraUserMsg) {
+      history.push({ role: "user", content: extraUserMsg });
+    }
+    return history;
+  }, [messages]);
 
   const goTo = useCallback((index: number, dir?: number) => {
     const clamped = Math.max(0, Math.min(index, slides.length - 1));
@@ -248,24 +308,42 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
     if (current > 0) goTo(current - 1, -1);
   }, [current, goTo]);
 
+  const sendToAI = useCallback((userText: string, openChatAfter?: boolean) => {
+    addMessage({ text: userText, sender: "user" });
+    setIsStreaming(true);
+
+    const aiMsgId = addMessage({ text: "...", sender: "ai" });
+    const history = buildChatHistory(userText);
+
+    streamDennisChat(
+      history,
+      (partialText) => {
+        updateMessage(aiMsgId, partialText);
+      },
+      (fullText) => {
+        updateMessage(aiMsgId, fullText);
+        setIsStreaming(false);
+        if (openChatAfter) setChatOpen(true);
+      },
+      (error) => {
+        updateMessage(aiMsgId, `Ошибка: ${error}`);
+        setIsStreaming(false);
+        if (openChatAfter) setChatOpen(true);
+      },
+    );
+  }, [addMessage, updateMessage, buildChatHistory]);
+
   const handleAskQuestion = useCallback(() => {
-    addMessage({ text: slide.suggestedQuestion, sender: "user" });
-    setTimeout(() => {
-      addMessage({ text: slide.detailedAnswer, sender: "ai" });
-      setChatOpen(true);
-    }, 600);
-  }, [slide, addMessage]);
+    if (isStreaming) return;
+    sendToAI(slide.suggestedQuestion, true);
+  }, [slide, sendToAI, isStreaming]);
 
   const handleChatSend = useCallback(() => {
-    if (!chatInput.trim()) return;
+    if (!chatInput.trim() || isStreaming) return;
     const text = chatInput.trim();
     setChatInput("");
-    addMessage({ text, sender: "user" });
-    setTimeout(() => {
-      const aiReply = "Хороший вопрос! Давай я объясню подробнее. В JetUP каждый элемент экосистемы работает как отдельный источник дохода — и всё это под твоим контролем.";
-      addMessage({ text: aiReply, sender: "ai" });
-    }, 800);
-  }, [chatInput, addMessage]);
+    sendToAI(text);
+  }, [chatInput, sendToAI, isStreaming]);
 
   const handleDragEnd = useCallback((_: any, info: PanInfo) => {
     if (info.offset.y > 80 && info.velocity.y > 0) {
@@ -523,9 +601,10 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                       handleChatSend();
                     }
                   }}
+                  disabled={isStreaming}
                   data-testid="input-pres-chat"
                 />
-                <button className="ph-chat-send" onClick={handleChatSend} data-testid="btn-pres-chat-send">
+                <button className="ph-chat-send" onClick={handleChatSend} disabled={isStreaming} data-testid="btn-pres-chat-send">
                   <Send size={18} />
                 </button>
               </div>

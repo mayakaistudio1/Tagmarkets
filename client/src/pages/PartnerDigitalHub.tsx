@@ -34,6 +34,12 @@ const PartnerDigitalHub: React.FC = () => {
     return id;
   }, []);
 
+  const updateMessage = useCallback((id: number, text: string) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, text } : m))
+    );
+  }, []);
+
   const openChat = () => setState("CHAT_OVERLAY");
   const closeChat = () => setState("HERO");
   const openPresentation = () => setState("PRESENTATION_OVERLAY");
@@ -62,6 +68,7 @@ const PartnerDigitalHub: React.FC = () => {
             presentationWatched={presentationWatched}
             messages={messages}
             addMessage={addMessage}
+            updateMessage={updateMessage}
           />
         )}
       </AnimatePresence>
@@ -73,6 +80,7 @@ const PartnerDigitalHub: React.FC = () => {
             onBackToChat={backToChat}
             messages={messages}
             addMessage={addMessage}
+            updateMessage={updateMessage}
           />
         )}
       </AnimatePresence>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { X, Send, Sparkles } from "lucide-react";
 import type { SharedMessage } from "../PartnerDigitalHub";
@@ -9,6 +9,7 @@ interface ChatOverlayProps {
   presentationWatched?: boolean;
   messages: SharedMessage[];
   addMessage: (msg: Omit<SharedMessage, "id">) => number;
+  updateMessage: (id: number, text: string) => void;
 }
 
 const QUICK_REPLIES = [
@@ -18,12 +19,61 @@ const QUICK_REPLIES = [
   "Как начать",
 ];
 
-const AI_RESPONSES: Record<string, string> = {
-  "Пассивный доход": "Отличный выбор. В JetUP твой капитал остаётся на твоём брокерском счёте — никаких заморозок. Ты выбираешь стратегию и контролируешь вывод средств. Хочешь узнать подробнее?",
-  "Партнёрская программа": "Партнёрская модель JetUP — это несколько источников дохода: комиссия с лотов брокера, доля от торговых сборов биржи и активность по картам. Плюс AI-дупликация для твоей команды.",
-  "Безопасность": "Безопасность в JetUP строится на принципе кастодиальности: твои средства всегда на твоём счёте, не у JetUP. Регулируемый брокер, прозрачная структура.",
-  "Как начать": "Начать просто: выбери путь — как клиент (пассивный доход) или как партнёр (построение структуры). Я могу показать тебе короткую презентацию, чтобы всё стало понятнее.",
-};
+async function streamDennisChat(
+  chatHistory: { role: string; content: string }[],
+  onChunk: (text: string) => void,
+  onDone: (fullText: string) => void,
+  onError: (err: string) => void,
+) {
+  try {
+    const res = await fetch("/api/partner/dennis/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: chatHistory }),
+    });
+
+    if (!res.ok || !res.body) {
+      onError("Не удалось получить ответ");
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let fullText = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.content) {
+            fullText += data.content;
+            onChunk(fullText);
+          }
+          if (data.done) {
+            onDone(data.fullContent || fullText);
+            return;
+          }
+          if (data.error) {
+            onError(data.error);
+            return;
+          }
+        } catch {}
+      }
+    }
+    onDone(fullText);
+  } catch {
+    onError("Ошибка соединения");
+  }
+}
 
 const ChatOverlay: React.FC<ChatOverlayProps> = ({
   onClose,
@@ -31,8 +81,10 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
   presentationWatched,
   messages,
   addMessage,
+  updateMessage,
 }) => {
   const [input, setInput] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
   const [userMessageCount, setUserMessageCount] = useState(0);
   const [presentationOffered, setPresentationOffered] = useState(false);
   const [followUpSent, setFollowUpSent] = useState(false);
@@ -56,37 +108,66 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
     }
   }, [messages]);
 
-  const handleUserMessage = (userText: string, aiText: string) => {
+  const buildChatHistory = useCallback((extraUserMsg?: string) => {
+    const history: { role: string; content: string }[] = [];
+    for (const msg of messages) {
+      if (msg.type === "presentation_trigger") continue;
+      history.push({
+        role: msg.sender === "user" ? "user" : "assistant",
+        content: msg.text,
+      });
+    }
+    if (extraUserMsg) {
+      history.push({ role: "user", content: extraUserMsg });
+    }
+    return history;
+  }, [messages]);
+
+  const sendToAI = useCallback((userText: string) => {
     addMessage({ text: userText, sender: "user" });
     const newCount = userMessageCount + 1;
     setUserMessageCount(newCount);
+    setIsStreaming(true);
 
-    setTimeout(() => {
-      addMessage({ text: aiText, sender: "ai" });
+    const aiMsgId = addMessage({ text: "...", sender: "ai" });
+    const history = buildChatHistory(userText);
 
-      if (newCount >= 2 && !presentationOffered) {
-        setPresentationOffered(true);
-        setTimeout(() => {
-          addMessage({
-            text: "Кстати, у меня есть короткая презентация, которая объяснит всё за 5 минут. Хочешь посмотреть?",
-            sender: "ai",
-            type: "presentation_trigger",
-          });
-        }, 400);
-      }
-    }, 800);
-  };
+    streamDennisChat(
+      history,
+      (partialText) => {
+        updateMessage(aiMsgId, partialText);
+      },
+      (fullText) => {
+        updateMessage(aiMsgId, fullText);
+        setIsStreaming(false);
+
+        if (newCount >= 2 && !presentationOffered) {
+          setPresentationOffered(true);
+          setTimeout(() => {
+            addMessage({
+              text: "Кстати, у меня есть короткая презентация, которая объяснит всё за 5 минут. Хочешь посмотреть?",
+              sender: "ai",
+              type: "presentation_trigger",
+            });
+          }, 400);
+        }
+      },
+      (error) => {
+        updateMessage(aiMsgId, `Извини, произошла ошибка: ${error}`);
+        setIsStreaming(false);
+      },
+    );
+  }, [addMessage, updateMessage, buildChatHistory, userMessageCount, presentationOffered]);
 
   const handleQuickReply = (reply: string) => {
-    const aiResponse = AI_RESPONSES[reply] || "Хороший вопрос. Давай разберёмся вместе.";
-    handleUserMessage(reply, aiResponse);
+    sendToAI(reply);
   };
 
   const handleSend = () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isStreaming) return;
     const text = input.trim();
     setInput("");
-    handleUserMessage(text, "Хороший вопрос! Давай я объясню подробнее. В JetUP каждый элемент экосистемы работает как отдельный источник дохода — и всё это под твоим контролем.");
+    sendToAI(text);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -169,9 +250,10 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            disabled={isStreaming}
             data-testid="input-chat"
           />
-          <button className="ph-chat-send" onClick={handleSend} data-testid="btn-send">
+          <button className="ph-chat-send" onClick={handleSend} disabled={isStreaming} data-testid="btn-send">
             <Send size={18} />
           </button>
         </div>

@@ -23,6 +23,7 @@ import {
   ChevronDown,
   Send,
   Check,
+  List,
 } from "lucide-react";
 import type { SharedMessage } from "../PartnerDigitalHub";
 
@@ -106,7 +107,7 @@ const slides: Slide[] = [
     icon: AlertTriangle,
     overlay: "linear-gradient(to bottom, rgba(239,68,68,0.2) 0%, rgba(0,0,0,0.9) 100%)",
     suggestedQuestion: "Почему 90% остаются без результата?",
-    detailedAnswer: "Главная проблема — отсутствие системы. В большинстве проектов всё завязано на лидере: он рекрутирует, обучает, мотивирует. Когда лидер останавливается — структура замирает. Плюс часто нет реального продукта, только маркетинг. А без прозрачности люди теряют доверие. JetUP решает это через AI-дупликацию и инфраструктуру, которая работает независимо от лидера.",
+    detailedAnswer: "Главная проблема — отсутствие системы. В большинстве проектов всё завязано на лидере: он рекрутирует, обучает, мотивирует. Когда лидер останавливается — структура замирает. Плюс часто нет реального продукта, только маркетинг. А без прозрачности люди теряют доверие. JetUP решает это через AI-хабы: каждый партнёр получает цифрового двойника, который работает за него — объясняет, отвечает на вопросы, проводит презентации.",
   },
   {
     id: 5,
@@ -217,18 +218,14 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
 }) => {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
-  const [slideChat, setSlideChat] = useState<Record<number, { messages: { text: string; sender: "ai" | "user" }[] }>>({}); 
-  const [slideChatInput, setSlideChatInput] = useState("");
+  const [showToc, setShowToc] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
-  const slideChatScrollRef = useRef<HTMLDivElement>(null);
   const [chatInput, setChatInput] = useState("");
 
   const slide = slides[current];
   const isLast = current === slides.length - 1;
   const progress = ((current + 1) / slides.length) * 100;
-  const currentSlideChat = slideChat[current];
-  const slideChatOpen = !!currentSlideChat;
 
   useEffect(() => {
     if (chatOpen && chatScrollRef.current) {
@@ -236,16 +233,11 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
     }
   }, [chatOpen, messages]);
 
-  useEffect(() => {
-    if (slideChatOpen && slideChatScrollRef.current) {
-      slideChatScrollRef.current.scrollTop = slideChatScrollRef.current.scrollHeight;
-    }
-  }, [slideChatOpen, slideChat[current]?.messages.length]);
-
   const goTo = useCallback((index: number, dir?: number) => {
     const clamped = Math.max(0, Math.min(index, slides.length - 1));
     setDirection(dir ?? (clamped > current ? 1 : -1));
     setCurrent(clamped);
+    setShowToc(false);
   }, [current]);
 
   const handleNext = useCallback(() => {
@@ -257,62 +249,12 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   }, [current, goTo]);
 
   const handleAskQuestion = useCallback(() => {
-    if (slideChat[current]) return;
-
     addMessage({ text: slide.suggestedQuestion, sender: "user" });
-
-    setSlideChat((prev) => ({
-      ...prev,
-      [current]: {
-        messages: [
-          { text: slide.suggestedQuestion, sender: "user" as const },
-        ],
-      },
-    }));
-
     setTimeout(() => {
       addMessage({ text: slide.detailedAnswer, sender: "ai" });
-      setSlideChat((prev) => ({
-        ...prev,
-        [current]: {
-          messages: [
-            ...(prev[current]?.messages || []),
-            { text: slide.detailedAnswer, sender: "ai" as const },
-          ],
-        },
-      }));
+      setChatOpen(true);
     }, 600);
-  }, [current, slide, slideChat, addMessage]);
-
-  const handleSlideChatSend = useCallback(() => {
-    if (!slideChatInput.trim()) return;
-    const text = slideChatInput.trim();
-    setSlideChatInput("");
-
-    addMessage({ text, sender: "user" });
-    setSlideChat((prev) => ({
-      ...prev,
-      [current]: {
-        messages: [...(prev[current]?.messages || []), { text, sender: "user" as const }],
-      },
-    }));
-
-    setTimeout(() => {
-      const aiReply = "Хороший вопрос! Давай я объясню подробнее. В JetUP каждый элемент экосистемы работает как отдельный источник дохода — и всё это под твоим контролем.";
-      addMessage({ text: aiReply, sender: "ai" });
-      setSlideChat((prev) => ({
-        ...prev,
-        [current]: {
-          messages: [...(prev[current]?.messages || []), { text: aiReply, sender: "ai" as const }],
-        },
-      }));
-    }, 800);
-  }, [slideChatInput, current, addMessage]);
-
-  const closeSlideChat = useCallback(() => {
-    // keep messages but visually we can still show them
-    // no-op: slide chat stays open once opened
-  }, []);
+  }, [slide, addMessage]);
 
   const handleChatSend = useCallback(() => {
     if (!chatInput.trim()) return;
@@ -320,10 +262,8 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
     setChatInput("");
     addMessage({ text, sender: "user" });
     setTimeout(() => {
-      addMessage({
-        text: "Хороший вопрос! Давай я объясню подробнее. В JetUP каждый элемент экосистемы работает как отдельный источник дохода — и всё это под твоим контролем.",
-        sender: "ai",
-      });
+      const aiReply = "Хороший вопрос! Давай я объясню подробнее. В JetUP каждый элемент экосистемы работает как отдельный источник дохода — и всё это под твоим контролем.";
+      addMessage({ text: aiReply, sender: "ai" });
     }, 800);
   }, [chatInput, addMessage]);
 
@@ -362,6 +302,9 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
               <X size={18} />
             </button>
             <span className="pres-counter">{current + 1} / {slides.length}</span>
+            <button className="pres-toc-trigger" onClick={() => setShowToc(true)} data-testid="btn-toc">
+              <List size={18} />
+            </button>
           </div>
 
           <motion.div
@@ -415,78 +358,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                       ))}
                     </ul>
                   )}
-
-                  {!slideChatOpen && (
-                    <button
-                      className="pres-ask-btn"
-                      onClick={handleAskQuestion}
-                      style={{ borderColor: `${slide.accent}40`, color: slide.accent }}
-                      data-testid={`btn-ask-${slide.id}`}
-                    >
-                      <HelpCircle size={15} />
-                      {slide.suggestedQuestion}
-                    </button>
-                  )}
-
-                  {isLast && (
-                    <div className="pres-final-btns">
-                      <button className="ph-btn-primary" data-testid="btn-schedule-call">
-                        <Video size={18} />
-                        Записаться на созвон
-                      </button>
-                      <button className="ph-btn-glass" data-testid="btn-start-link">
-                        <Link size={18} />
-                        Начать по моей ссылке
-                      </button>
-                      <button className="pres-back-link" onClick={onBackToChat} data-testid="btn-back-to-chat">
-                        <MessageSquare size={14} />
-                        Вернуться в чат
-                      </button>
-                    </div>
-                  )}
                 </div>
-
-                <AnimatePresence>
-                  {slideChatOpen && (
-                    <motion.div
-                      className="pres-slide-chat"
-                      initial={{ y: "100%", opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: "100%", opacity: 0 }}
-                      transition={{ type: "spring", damping: 28, stiffness: 300 }}
-                    >
-                      <div className="pres-slide-chat-msgs" ref={slideChatScrollRef}>
-                        {currentSlideChat?.messages.map((msg, i) => (
-                          <div
-                            key={i}
-                            className={`ph-msg ${msg.sender === "user" ? "ph-msg-user" : "ph-msg-ai"}`}
-                          >
-                            {msg.text}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="pres-slide-chat-input">
-                        <input
-                          type="text"
-                          className="ph-chat-input"
-                          placeholder="Задай вопрос..."
-                          value={slideChatInput}
-                          onChange={(e) => setSlideChatInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSlideChatSend();
-                            }
-                          }}
-                          data-testid="input-slide-chat"
-                        />
-                        <button className="ph-chat-send" onClick={handleSlideChatSend} data-testid="btn-slide-chat-send">
-                          <Send size={16} />
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </motion.div>
             </AnimatePresence>
           </motion.div>
@@ -502,13 +374,13 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
             </button>
 
             <button
-              className="pres-chat-indicator"
-              onClick={() => setChatOpen(true)}
-              data-testid="btn-open-pres-chat"
+              className="pres-ask-btn-fixed"
+              onClick={handleAskQuestion}
+              style={{ background: `${slide.accent}20`, borderColor: `${slide.accent}40`, color: slide.accent }}
+              data-testid={`btn-ask-${slide.id}`}
             >
-              <ChevronDown size={14} />
-              <MessageSquare size={14} />
-              <span>{messages.length}</span>
+              <HelpCircle size={15} />
+              {slide.suggestedQuestion}
             </button>
 
             {!isLast ? (
@@ -525,29 +397,67 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
               <div style={{ width: 52 }} />
             )}
           </div>
-        </div>
-
-        <div className="pres-toc-panel">
-          <div className="pres-toc-header">
-            <span>Оглавление</span>
-          </div>
-          <div className="pres-toc-list">
-            {slides.map((s, i) => (
-              <button
-                key={s.id}
-                className={`pres-toc-item ${i === current ? "pres-toc-active" : ""}`}
-                style={i === current ? { borderColor: s.accent, color: s.accent } : undefined}
-                onClick={() => goTo(i)}
-                data-testid={`toc-slide-${s.id}`}
-              >
-                <span className="pres-toc-num">{String(s.id).padStart(2, "0")}</span>
-                <span className="pres-toc-title">{s.title}</span>
-                {slideChat[i] && <Check size={14} className="pres-toc-check" />}
+          
+          {isLast && (
+            <div className="pres-final-actions">
+              <button className="ph-btn-primary" data-testid="btn-schedule-call">
+                <Video size={18} />
+                Записаться на созвон
               </button>
-            ))}
-          </div>
+              <button className="ph-btn-glass" data-testid="btn-start-link">
+                <Link size={18} />
+                Начать по моей ссылке
+              </button>
+              <button className="pres-back-link" onClick={onBackToChat} data-testid="btn-back-to-chat">
+                <MessageSquare size={14} />
+                Вернуться в чат
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      <AnimatePresence>
+        {showToc && (
+          <>
+            <motion.div
+              className="pres-toc-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowToc(false)}
+            />
+            <motion.div
+              className="pres-toc-panel-popup"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+            >
+              <div className="pres-toc-header">
+                <span>Оглавление</span>
+                <button className="pres-close-btn-small" onClick={() => setShowToc(false)}>
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="pres-toc-list">
+                {slides.map((s, i) => (
+                  <button
+                    key={s.id}
+                    className={`pres-toc-item ${i === current ? "pres-toc-active" : ""}`}
+                    style={i === current ? { borderColor: s.accent, color: s.accent } : undefined}
+                    onClick={() => goTo(i)}
+                    data-testid={`toc-slide-${s.id}`}
+                  >
+                    <span className="pres-toc-num">{String(s.id).padStart(2, "0")}</span>
+                    <span className="pres-toc-title">{s.title}</span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {chatOpen && (

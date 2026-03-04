@@ -7,21 +7,8 @@ import {
   Video,
   Link,
   MessageSquare,
-  Shield,
-  TrendingUp,
-  BarChart3,
-  Layers,
-  Zap,
-  Target,
-  Users,
-  AlertTriangle,
-  Lightbulb,
-  Rocket,
-  HelpCircle,
   Send,
   List,
-  Eye,
-  Bot,
   Globe,
 } from "lucide-react";
 import type { SharedMessage } from "../PartnerDigitalHub";
@@ -34,17 +21,18 @@ interface PresentationOverlayProps {
   updateMessage: (id: number, text: string) => void;
 }
 
+interface Chip {
+  text: string;
+  intent: string;
+}
+
 interface Slide {
   id: number;
   title: string;
   text: string;
-  bullets?: string[];
   image: string;
-  video: string;
   accent: string;
-  icon: React.FC<{ size?: number; className?: string }>;
-  overlay: string;
-  suggestedQuestion: string;
+  chips: Chip[];
 }
 
 async function streamDennisChat(
@@ -108,132 +96,109 @@ const slides: Slide[] = [
     id: 1,
     title: "Реальность",
     text: "Рынок финансов растёт.\nИнтерес к пассивному доходу растёт.\n\nНо большинство людей не зарабатывает системно.\n\nПочему?",
-    image: "/images/presentation/hero_scale.png",
-    video: "/videos/slide_01_reality.mp4",
+    image: "/images/presentation/scene_01.png",
     accent: "#7C3AED",
-    icon: Eye,
-    overlay: "linear-gradient(to bottom, rgba(124,58,237,0.3) 0%, rgba(0,0,0,0.85) 100%)",
-    suggestedQuestion: "Почему так происходит?",
+    chips: [
+      { text: "Почему большинство не зарабатывает?", intent: "REALITY_WHY" },
+      { text: "Какие ошибки делают новички?", intent: "REALITY_MISTAKES" },
+    ],
   },
   {
     id: 2,
     title: "Диагноз",
-    text: "Проблема не в людях.\nПроблема в модели.\n\nОбычно всё строится на:",
-    bullets: [
-      "Одном сильном лидере",
-      "Обещаниях",
-      "Отсутствии системы дубликации",
-    ],
-    image: "/images/presentation/hero_chaos.png",
-    video: "/videos/slide_02_diagnosis.mp4",
+    text: "Проблема не в людях. Проблема в модели.\n\nОбычно всё строится на одном сильном лидере, обещаниях и отсутствии системы дубликации.\n\nБез структуры масштаб невозможен.",
+    image: "/images/presentation/scene_02.png",
     accent: "#EF4444",
-    icon: AlertTriangle,
-    overlay: "linear-gradient(to bottom, rgba(239,68,68,0.2) 0%, rgba(0,0,0,0.9) 100%)",
-    suggestedQuestion: "Что должно быть иначе?",
+    chips: [
+      { text: "Почему модель держится на одном лидере?", intent: "DIAGNOSIS_LEADER" },
+      { text: "Что происходит, когда лидер уходит?", intent: "DIAGNOSIS_EXIT" },
+    ],
   },
   {
     id: 3,
     title: "Модель",
-    text: "JetUp — это не «ещё один проект».\n\nЭто соединение:",
-    bullets: [
-      "Финансового продукта",
-      "Партнёрской модели",
-      "Инфраструктуры масштабирования",
-    ],
-    image: "/images/presentation/jetup_brand.png",
-    video: "/videos/slide_03_model.mp4",
+    text: "JetUp — это не «ещё один проект».\n\nЭто соединение финансового продукта, партнёрской модели и инфраструктуры масштабирования в одной системе.",
+    image: "/images/presentation/scene_03.png",
     accent: "#8B5CF6",
-    icon: Lightbulb,
-    overlay: "linear-gradient(to bottom, rgba(139,92,246,0.3) 0%, rgba(0,0,0,0.85) 100%)",
-    suggestedQuestion: "Это безопасно?",
+    chips: [
+      { text: "Почему важно соединение трёх элементов?", intent: "MODEL_THREE" },
+      { text: "Что ломается, если одного элемента нет?", intent: "MODEL_MISSING" },
+    ],
   },
   {
     id: 4,
     title: "Безопасность",
-    text: "Капитал остаётся на твоём личном аккаунте.\nТы проходишь верификацию на своё имя.\nТы контролируешь ввод и вывод средств.\n\nКонтроль — у тебя.\nНе у компании.",
-    image: "/images/presentation/safety.png",
-    video: "/videos/slide_04_safety.mp4",
+    text: "Капитал остаётся на твоём личном аккаунте.\nВерификация на твоё имя.\nТы контролируешь ввод и вывод средств.\n\nКонтроль — у тебя, не у компании.",
+    image: "/images/presentation/scene_04.png",
     accent: "#22C55E",
-    icon: Shield,
-    overlay: "linear-gradient(to bottom, rgba(34,197,94,0.2) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "А что с гибкостью?",
+    chips: [
+      { text: "Где именно хранится капитал?", intent: "SAFETY_CAPITAL" },
+      { text: "Кто принимает решение о выводе?", intent: "SAFETY_WITHDRAW" },
+    ],
   },
   {
     id: 5,
     title: "Гибкость",
     text: "Нет жёсткой заморозки.\nТы выбираешь стратегию.\nТы можешь менять решения.\n\nЭто управляемая модель.",
-    image: "/images/presentation/flexibility.png",
-    video: "/videos/slide_05_flexibility.mp4",
+    image: "/images/presentation/scene_05.png",
     accent: "#F59E0B",
-    icon: Layers,
-    overlay: "linear-gradient(to bottom, rgba(245,158,11,0.2) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "А какая доходность?",
+    chips: [
+      { text: "Можно ли поменять стратегию?", intent: "FLEXIBILITY_CHANGE" },
+      { text: "Можно ли остановить в любой момент?", intent: "FLEXIBILITY_STOP" },
+    ],
   },
   {
     id: 6,
     title: "Рентабельность",
-    text: "Мы не строим модель на агрессивных обещаниях.\n\nСистема ориентирована на устойчивость,\nа не на краткосрочные всплески.\n\nРеалистичный подход всегда сильнее хайпа.",
-    image: "/images/presentation/profitability.png",
-    video: "/videos/slide_06_profitability.mp4",
+    text: "Мы не строим модель на агрессивных обещаниях.\n\nСистема ориентирована на устойчивость, а не на краткосрочные всплески.\n\nРеалистичный подход сильнее хайпа.",
+    image: "/images/presentation/scene_06.png",
     accent: "#10B981",
-    icon: BarChart3,
-    overlay: "linear-gradient(to bottom, rgba(16,185,129,0.2) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "А как это масштабируется?",
+    chips: [
+      { text: "Почему вы не обещаете «иксы»?", intent: "PROFIT_NO_HYPE" },
+      { text: "Что значит устойчивый подход?", intent: "PROFIT_SUSTAINABLE" },
+    ],
   },
   {
     id: 7,
     title: "Масштаб",
-    text: "Даже лучший продукт не масштабируется сам.\n\nПартнёру нужна система,\nкоторая позволяет дублицировать действия.\n\nБез инфраструктуры масштаб остаётся идеей.",
-    image: "/images/presentation/hero_realization.png",
-    video: "/videos/slide_07_scale.mp4",
+    text: "Даже лучший продукт не масштабируется сам.\n\nПартнёру нужна система, которая позволяет дублицировать действия.\n\nБез инфраструктуры масштаб остаётся идеей.",
+    image: "/images/presentation/scene_07.png",
     accent: "#F97316",
-    icon: Target,
-    overlay: "linear-gradient(to bottom, rgba(249,115,22,0.25) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "Какая инфраструктура?",
+    chips: [
+      { text: "Что такое «дубликация» на практике?", intent: "SCALE_DUPLICATION" },
+      { text: "Почему продукт сам не масштабируется?", intent: "SCALE_WHY" },
+    ],
   },
   {
     id: 8,
-    title: "AI-Инфраструктура",
-    text: "Каждый партнёр получает цифровую систему:",
-    bullets: [
-      "AI-чат",
-      "Интерактивную мини-презентацию",
-      "Автоматическую квалификацию лидов",
-      "Поддержку 24/7",
-    ],
-    image: "/images/presentation/automation.png",
-    video: "/videos/slide_08_ai_infrastructure.mp4",
+    title: "AI-инфраструктура",
+    text: "Каждый партнёр получает цифровую систему:\nAI-чат, интерактивную мини-презентацию, квалификацию лидов и поддержку 24/7.\n\nСистема работает за тебя, пока ты спишь.\nОна презентует, объясняет и фильтрует интерес.\n\nЭто позволяет дублицировать себя.",
+    image: "/images/presentation/scene_08.png",
     accent: "#E88FEC",
-    icon: Bot,
-    overlay: "linear-gradient(to bottom, rgba(232,143,236,0.2) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "Как это выглядит на практике?",
+    chips: [
+      { text: "Что AI делает вместо партнёра?", intent: "AI_REPLACE" },
+      { text: "Как AI квалифицирует людей?", intent: "AI_QUALIFY" },
+      { text: "Как это выглядит вживую?", intent: "AI_LIVE" },
+    ],
   },
   {
     id: 9,
     title: "Партнёрская модель",
-    text: "Доход строится на трёх уровнях:",
-    bullets: [
-      "Продукт",
-      "Партнёрская программа",
-      "Структура",
-    ],
-    image: "/images/presentation/partner_network.png",
-    video: "/videos/slide_09_partner_model.mp4",
+    text: "Доход строится на трёх уровнях:\nпродукт, партнёрская программа, структура.\n\nМаркетинг-план показывает потенциал.\nИнфраструктура превращает его в результат.",
+    image: "/images/presentation/scene_09.png",
     accent: "#A855F7",
-    icon: Users,
-    overlay: "linear-gradient(to bottom, rgba(168,85,247,0.25) 0%, rgba(0,0,0,0.88) 100%)",
-    suggestedQuestion: "Какие шаги для старта?",
+    chips: [
+      { text: "Как партнёр получает доход?", intent: "PARTNER_INCOME" },
+      { text: "Можно ли начать без опыта?", intent: "PARTNER_NOEXP" },
+    ],
   },
   {
     id: 10,
     title: "Выбор",
     text: "Ты можешь просто изучать информацию.\n\nИли выстроить стратегию правильно с первого шага.\n\nЯ помогу определить формат участия под твой опыт и цели.",
-    image: "/images/presentation/hero_discovery.png",
-    video: "/videos/slide_10_choice.mp4",
+    image: "/images/presentation/scene_10.png",
     accent: "#7C3AED",
-    icon: Rocket,
-    overlay: "linear-gradient(to bottom, rgba(124,58,237,0.3) 0%, rgba(0,0,0,0.85) 100%)",
-    suggestedQuestion: "Как начать прямо сейчас?",
+    chips: [],
   },
 ];
 
@@ -271,11 +236,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
       });
     }
     if (slideContext) {
-      let ctx = `[Контекст: пользователь смотрит слайд "${slideContext.title}". Содержание: "${slideContext.text}".`;
-      if (slideContext.bullets?.length) {
-        ctx += ` Пункты: ${slideContext.bullets.join("; ")}.`;
-      }
-      ctx += ` Ответь на вопрос, опираясь именно на контекст этого слайда.]`;
+      const ctx = `[Контекст: пользователь смотрит слайд "${slideContext.title}". Содержание: "${slideContext.text}". Ответь на вопрос, опираясь именно на контекст этого слайда. После ответа мягко предложи продолжить презентацию или записаться на созвон.]`;
       history.push({ role: "system", content: ctx });
     }
     if (extraUserMsg) {
@@ -324,9 +285,9 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
     );
   }, [addMessage, updateMessage, buildChatHistory]);
 
-  const handleAskQuestion = useCallback(() => {
+  const handleChipClick = useCallback((chip: Chip) => {
     if (isStreaming) return;
-    sendToAI(slide.suggestedQuestion, true, slide);
+    sendToAI(chip.text, true, slide);
   }, [slide, sendToAI, isStreaming]);
 
   const handleChatSend = useCallback(() => {
@@ -355,6 +316,18 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
+      <div className="pres-unified-bg">
+        <video
+          src="/videos/financial_universe_bg.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="pres-unified-video"
+        />
+        <div className="pres-unified-overlay" />
+      </div>
+
       <div className="pres-progress-bar">
         <motion.div
           className="pres-progress-fill"
@@ -392,155 +365,123 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.35, ease: "easeInOut" }}
-                className="pres-card"
+                className="pres-slide-frame"
               >
-                <div className="pres-card-bg">
-                  <video
-                    key={`video-${slide.id}`}
-                    src={slide.video}
-                    poster={slide.image}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="pres-card-video"
-                    onError={(e) => {
-                      const el = e.currentTarget;
-                      el.style.display = "none";
-                      const img = el.nextElementSibling as HTMLElement;
-                      if (img) img.style.display = "block";
-                    }}
-                  />
-                  <img src={slide.image} alt="" className="pres-card-img pres-card-img-fallback" />
-                  <div className="pres-card-overlay" style={{ background: slide.overlay }} />
-                  <div className="pres-card-vignette" />
+                <div className="pres-scene-layer">
+                  <img src={slide.image} alt="" className="pres-scene-img" />
+                  <div className="pres-scene-fade" />
                 </div>
 
-                <div className="pres-card-content">
-                  <motion.div
-                    className="pres-card-icon pres-icon-glow"
-                    style={{ background: `${slide.accent}25`, color: slide.accent, boxShadow: `0 0 20px ${slide.accent}30` }}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.2, duration: 0.4, ease: "easeOut" }}
-                  >
-                    <slide.icon size={22} />
-                  </motion.div>
+                <div className="pres-glass-card">
                   <motion.span
                     className="pres-slide-num"
                     style={{ color: slide.accent }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.35 }}
+                    transition={{ delay: 0.2, duration: 0.35 }}
                   >
                     {String(slide.id).padStart(2, "0")}
                   </motion.span>
                   <motion.h2
-                    className="pres-card-title pres-title-glow"
-                    style={{ textShadow: `0 0 30px ${slide.accent}50, 0 2px 12px rgba(0,0,0,0.4)` }}
-                    initial={{ opacity: 0, y: 16 }}
+                    className="pres-card-title"
+                    initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, duration: 0.45, ease: "easeOut" }}
+                    transition={{ delay: 0.3, duration: 0.45, ease: "easeOut" }}
                   >
                     {slide.title}
                   </motion.h2>
-                  {slide.text && (
-                    <motion.p
-                      className="pres-card-text"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.6, duration: 0.5 }}
-                    >
-                      {slide.text.split("\n\n").map((p, i) => (
-                        <React.Fragment key={i}>
-                          {i > 0 && <br />}
-                          {p}
-                        </React.Fragment>
-                      ))}
-                    </motion.p>
-                  )}
-                  {slide.bullets && (
-                    <ul className="pres-bullets">
-                      {slide.bullets.map((b, i) => (
-                        <motion.li
-                          key={i}
-                          className="pres-bullet"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.7 + i * 0.15, duration: 0.35, ease: "easeOut" }}
-                        >
-                          <span className="pres-bullet-dot pres-dot-glow" style={{ background: slide.accent, boxShadow: `0 0 8px ${slide.accent}` }} />
-                          {b}
-                        </motion.li>
-                      ))}
-                    </ul>
-                  )}
+                  <motion.p
+                    className="pres-card-text"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45, duration: 0.5 }}
+                  >
+                    {slide.text.split("\n\n").map((p, i) => (
+                      <React.Fragment key={i}>
+                        {i > 0 && <><br /><br /></>}
+                        {p.split("\n").map((line, j) => (
+                          <React.Fragment key={j}>
+                            {j > 0 && <br />}
+                            {line}
+                          </React.Fragment>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </motion.p>
                 </div>
               </motion.div>
             </AnimatePresence>
           </motion.div>
 
-          <div className="pres-nav-row">
-            <button
-              className="pres-nav-btn"
-              onClick={handlePrev}
-              disabled={current === 0}
-              data-testid="btn-prev-slide"
-            >
-              <ChevronLeft size={20} />
-            </button>
-
-            <button
-              className="pres-ask-btn-fixed"
-              onClick={handleAskQuestion}
-              style={{ background: `${slide.accent}20`, borderColor: `${slide.accent}40`, color: slide.accent }}
-              data-testid={`btn-ask-${slide.id}`}
-            >
-              <HelpCircle size={15} />
-              {slide.suggestedQuestion}
-            </button>
-
-            {!isLast ? (
-              <button
-                className="pres-nav-btn pres-nav-next"
-                onClick={handleNext}
-                style={{ background: `${slide.accent}30`, borderColor: `${slide.accent}50` }}
-                data-testid="btn-next-slide"
+          <div className="pres-bottom-area">
+            {slide.chips.length > 0 && (
+              <motion.div
+                className="pres-chips"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.35 }}
               >
-                Далее
-                <ChevronRight size={20} />
+                {slide.chips.map((chip, i) => (
+                  <button
+                    key={i}
+                    className="pres-chip"
+                    onClick={() => handleChipClick(chip)}
+                    disabled={isStreaming}
+                    data-testid={`chip-${slide.id}-${i}`}
+                  >
+                    <MessageSquare size={13} />
+                    {chip.text}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+
+            <div className="pres-nav-row">
+              <button
+                className="pres-nav-btn"
+                onClick={handlePrev}
+                disabled={current === 0}
+                data-testid="btn-prev-slide"
+              >
+                <ChevronLeft size={20} />
               </button>
-            ) : (
-              <div style={{ width: 52 }} />
+
+              {!isLast ? (
+                <button
+                  className="pres-nav-btn pres-nav-next"
+                  onClick={handleNext}
+                  style={{ background: `${slide.accent}25`, borderColor: `${slide.accent}40` }}
+                  data-testid="btn-next-slide"
+                >
+                  Далее
+                  <ChevronRight size={20} />
+                </button>
+              ) : (
+                <div style={{ width: 52 }} />
+              )}
+            </div>
+
+            {isLast && (
+              <div className="pres-final-actions">
+                <button className="ph-btn-primary" data-testid="btn-schedule-call">
+                  <Video size={18} />
+                  Записаться на созвон
+                </button>
+                <button className="ph-btn-glass" data-testid="btn-start-link">
+                  <Link size={18} />
+                  Начать по моей ссылке
+                </button>
+                <button className="ph-btn-glass" onClick={() => setChatOpen(true)} data-testid="btn-ask-dennis">
+                  <MessageSquare size={18} />
+                  Задать вопрос Dennis AI
+                </button>
+                <button className="ph-btn-outline" onClick={onShowEcosystem} data-testid="btn-show-ecosystem">
+                  <Globe size={18} />
+                  Открыть JetUp Hub
+                </button>
+              </div>
             )}
           </div>
-          
-          {isLast && (
-            <div className="pres-final-actions">
-              <button className="ph-btn-primary" data-testid="btn-schedule-call">
-                <Video size={18} />
-                Записаться на созвон
-              </button>
-              <button className="ph-btn-glass" data-testid="btn-start-link">
-                <Link size={18} />
-                Начать по моей ссылке
-              </button>
-              <a
-                href="https://t.me/JetUpDach"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ph-btn-outline"
-                data-testid="btn-telegram"
-              >
-                <Send size={18} />
-                Перейти в Telegram
-              </a>
-              <button className="ph-btn-outline" onClick={onShowEcosystem} data-testid="btn-show-ecosystem">
-                <Globe size={18} />
-                Посмотреть полный обзор экосистемы
-              </button>
-            </div>
-          )}
         </div>
       </div>
 

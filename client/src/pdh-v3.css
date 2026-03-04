@@ -446,95 +446,69 @@
   position: relative;
 }
 
-.pres-card {
-  width: 100%;
-  max-width: 400px;
-  height: 100%;
-  max-height: 520px;
-  border-radius: 24px;
-  position: relative;
+.pres-unified-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.pres-unified-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.pres-unified-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.pres-slide-frame {
+  width: 100%;
+  height: 100%;
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
 }
 
-.pres-card-bg {
+.pres-scene-layer {
   position: absolute;
   inset: 0;
   z-index: 0;
 }
 
-.pres-card-video {
+.pres-scene-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center top;
+  opacity: 0.55;
 }
 
-.pres-card-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-.pres-card-img-fallback {
-  display: none;
+.pres-scene-fade {
   position: absolute;
   inset: 0;
+  background: linear-gradient(to bottom, transparent 20%, rgba(12, 6, 25, 0.6) 60%, rgba(12, 6, 25, 0.92) 100%);
 }
 
-.pres-card-overlay {
-  position: absolute;
-  inset: 0;
-}
-
-.pres-card-vignette {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.5) 100%);
-  pointer-events: none;
-}
-
-.pres-card-content {
+.pres-glass-card {
   position: relative;
   z-index: 2;
-  padding: 28px 24px 24px;
+  margin: 0 16px 12px;
+  padding: 22px 20px 20px;
+  background: rgba(12, 6, 25, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-.pres-card-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
-  backdrop-filter: blur(8px);
-}
-
-.pres-icon-glow {
-  animation: presIconPulse 3s ease-in-out infinite;
-}
-
-@keyframes presIconPulse {
-  0%, 100% { transform: scale(1); filter: brightness(1); }
-  50% { transform: scale(1.08); filter: brightness(1.2); }
-}
-
-.pres-title-glow {
-  animation: presTitleGlow 4s ease-in-out infinite;
-}
-
-@keyframes presTitleGlow {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.15); }
 }
 
 .pres-slide-num {
@@ -545,7 +519,7 @@
 }
 
 .pres-card-title {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -556,79 +530,64 @@
 .pres-card-text {
   font-size: 14px;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.75);
   margin: 4px 0 0;
   font-weight: 400;
 }
 
-.pres-bullets {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
+.pres-bottom-area {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 0 16px 6px;
+  position: relative;
+  z-index: 3;
 }
 
-.pres-bullet {
+.pres-chips {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pres-chip {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 500;
-}
-
-.pres-bullet-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 99px;
-  flex-shrink: 0;
-}
-
-.pres-dot-glow {
-  animation: presDotPulse 2.5s ease-in-out infinite;
-}
-
-@keyframes presDotPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.4); }
-}
-
-.pres-final-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.pres-back-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 6px;
-  padding: 10px;
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 13px;
-  font-weight: 600;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: 500;
   font-family: inherit;
   cursor: pointer;
-  transition: color 0.15s;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
 }
 
-.pres-back-link:active {
-  color: rgba(255, 255, 255, 0.7);
+.pres-chip:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.20);
+}
+
+.pres-chip:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.pres-chip:disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .pres-nav-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
-  padding-bottom: max(14px, env(safe-area-inset-bottom));
+  padding: 4px 0;
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
   flex-shrink: 0;
   gap: 12px;
 }
@@ -672,6 +631,7 @@
   display: flex;
   overflow: hidden;
   position: relative;
+  z-index: 1;
 }
 
 .pres-main {
@@ -766,33 +726,11 @@
   color: #C4B5FD;
 }
 
-/* ===== SUGGESTED QUESTION BUTTON — FIXED BELOW SLIDE ===== */
-.pres-ask-btn-fixed {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.pres-ask-btn-fixed:active {
-  transform: scale(0.97);
-}
-
 .pres-final-actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 0 20px 20px;
+  padding: 4px 0 12px;
 }
 
 /* ===== CHAT INDICATOR (bottom bar) ===== */

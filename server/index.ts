@@ -130,9 +130,8 @@ app.use((req, res, next) => {
     next();
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  app.use(express.static(path.resolve(import.meta.dirname, "..", "public")));
+
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {

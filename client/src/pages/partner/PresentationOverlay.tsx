@@ -40,6 +40,7 @@ interface Slide {
   text: string;
   bullets?: string[];
   image: string;
+  video: string;
   accent: string;
   icon: React.FC<{ size?: number; className?: string }>;
   overlay: string;
@@ -108,6 +109,7 @@ const slides: Slide[] = [
     title: "Реальность",
     text: "Рынок финансов растёт.\nИнтерес к пассивному доходу растёт.\n\nНо большинство людей не зарабатывает системно.\n\nПочему?",
     image: "/images/presentation/hero_scale.png",
+    video: "/videos/slide_01_reality.mp4",
     accent: "#7C3AED",
     icon: Eye,
     overlay: "linear-gradient(to bottom, rgba(124,58,237,0.3) 0%, rgba(0,0,0,0.85) 100%)",
@@ -123,6 +125,7 @@ const slides: Slide[] = [
       "Отсутствии системы дубликации",
     ],
     image: "/images/presentation/hero_chaos.png",
+    video: "/videos/slide_02_diagnosis.mp4",
     accent: "#EF4444",
     icon: AlertTriangle,
     overlay: "linear-gradient(to bottom, rgba(239,68,68,0.2) 0%, rgba(0,0,0,0.9) 100%)",
@@ -138,6 +141,7 @@ const slides: Slide[] = [
       "Инфраструктуры масштабирования",
     ],
     image: "/images/presentation/jetup_brand.png",
+    video: "/videos/slide_03_model.mp4",
     accent: "#8B5CF6",
     icon: Lightbulb,
     overlay: "linear-gradient(to bottom, rgba(139,92,246,0.3) 0%, rgba(0,0,0,0.85) 100%)",
@@ -148,6 +152,7 @@ const slides: Slide[] = [
     title: "Безопасность",
     text: "Капитал остаётся на твоём личном аккаунте.\nТы проходишь верификацию на своё имя.\nТы контролируешь ввод и вывод средств.\n\nКонтроль — у тебя.\nНе у компании.",
     image: "/images/presentation/safety.png",
+    video: "/videos/slide_04_safety.mp4",
     accent: "#22C55E",
     icon: Shield,
     overlay: "linear-gradient(to bottom, rgba(34,197,94,0.2) 0%, rgba(0,0,0,0.88) 100%)",
@@ -158,6 +163,7 @@ const slides: Slide[] = [
     title: "Гибкость",
     text: "Нет жёсткой заморозки.\nТы выбираешь стратегию.\nТы можешь менять решения.\n\nЭто управляемая модель.",
     image: "/images/presentation/flexibility.png",
+    video: "/videos/slide_05_flexibility.mp4",
     accent: "#F59E0B",
     icon: Layers,
     overlay: "linear-gradient(to bottom, rgba(245,158,11,0.2) 0%, rgba(0,0,0,0.88) 100%)",
@@ -168,6 +174,7 @@ const slides: Slide[] = [
     title: "Рентабельность",
     text: "Мы не строим модель на агрессивных обещаниях.\n\nСистема ориентирована на устойчивость,\nа не на краткосрочные всплески.\n\nРеалистичный подход всегда сильнее хайпа.",
     image: "/images/presentation/profitability.png",
+    video: "/videos/slide_06_profitability.mp4",
     accent: "#10B981",
     icon: BarChart3,
     overlay: "linear-gradient(to bottom, rgba(16,185,129,0.2) 0%, rgba(0,0,0,0.88) 100%)",
@@ -178,6 +185,7 @@ const slides: Slide[] = [
     title: "Масштаб",
     text: "Даже лучший продукт не масштабируется сам.\n\nПартнёру нужна система,\nкоторая позволяет дублицировать действия.\n\nБез инфраструктуры масштаб остаётся идеей.",
     image: "/images/presentation/hero_realization.png",
+    video: "/videos/slide_07_scale.mp4",
     accent: "#F97316",
     icon: Target,
     overlay: "linear-gradient(to bottom, rgba(249,115,22,0.25) 0%, rgba(0,0,0,0.88) 100%)",
@@ -194,6 +202,7 @@ const slides: Slide[] = [
       "Поддержку 24/7",
     ],
     image: "/images/presentation/automation.png",
+    video: "/videos/slide_08_ai_infrastructure.mp4",
     accent: "#E88FEC",
     icon: Bot,
     overlay: "linear-gradient(to bottom, rgba(232,143,236,0.2) 0%, rgba(0,0,0,0.88) 100%)",
@@ -209,6 +218,7 @@ const slides: Slide[] = [
       "Структура",
     ],
     image: "/images/presentation/partner_network.png",
+    video: "/videos/slide_09_partner_model.mp4",
     accent: "#A855F7",
     icon: Users,
     overlay: "linear-gradient(to bottom, rgba(168,85,247,0.25) 0%, rgba(0,0,0,0.88) 100%)",
@@ -219,6 +229,7 @@ const slides: Slide[] = [
     title: "Выбор",
     text: "Ты можешь просто изучать информацию.\n\nИли выстроить стратегию правильно с первого шага.\n\nЯ помогу определить формат участия под твой опыт и цели.",
     image: "/images/presentation/hero_discovery.png",
+    video: "/videos/slide_10_choice.mp4",
     accent: "#7C3AED",
     icon: Rocket,
     overlay: "linear-gradient(to bottom, rgba(124,58,237,0.3) 0%, rgba(0,0,0,0.85) 100%)",
@@ -384,35 +395,83 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                 className="pres-card"
               >
                 <div className="pres-card-bg">
-                  <img src={slide.image} alt="" className="pres-card-img" />
+                  <video
+                    key={`video-${slide.id}`}
+                    src={slide.video}
+                    poster={slide.image}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="pres-card-video"
+                    onError={(e) => {
+                      const el = e.currentTarget;
+                      el.style.display = "none";
+                      const img = el.nextElementSibling as HTMLElement;
+                      if (img) img.style.display = "block";
+                    }}
+                  />
+                  <img src={slide.image} alt="" className="pres-card-img pres-card-img-fallback" />
                   <div className="pres-card-overlay" style={{ background: slide.overlay }} />
+                  <div className="pres-card-vignette" />
                 </div>
 
                 <div className="pres-card-content">
-                  <div className="pres-card-icon" style={{ background: `${slide.accent}25`, color: slide.accent }}>
+                  <motion.div
+                    className="pres-card-icon pres-icon-glow"
+                    style={{ background: `${slide.accent}25`, color: slide.accent, boxShadow: `0 0 20px ${slide.accent}30` }}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2, duration: 0.4, ease: "easeOut" }}
+                  >
                     <slide.icon size={22} />
-                  </div>
-                  <span className="pres-slide-num" style={{ color: slide.accent }}>
+                  </motion.div>
+                  <motion.span
+                    className="pres-slide-num"
+                    style={{ color: slide.accent }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.35 }}
+                  >
                     {String(slide.id).padStart(2, "0")}
-                  </span>
-                  <h2 className="pres-card-title">{slide.title}</h2>
+                  </motion.span>
+                  <motion.h2
+                    className="pres-card-title pres-title-glow"
+                    style={{ textShadow: `0 0 30px ${slide.accent}50, 0 2px 12px rgba(0,0,0,0.4)` }}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.45, ease: "easeOut" }}
+                  >
+                    {slide.title}
+                  </motion.h2>
                   {slide.text && (
-                    <p className="pres-card-text">
+                    <motion.p
+                      className="pres-card-text"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.6, duration: 0.5 }}
+                    >
                       {slide.text.split("\n\n").map((p, i) => (
                         <React.Fragment key={i}>
                           {i > 0 && <br />}
                           {p}
                         </React.Fragment>
                       ))}
-                    </p>
+                    </motion.p>
                   )}
                   {slide.bullets && (
                     <ul className="pres-bullets">
                       {slide.bullets.map((b, i) => (
-                        <li key={i} className="pres-bullet">
-                          <span className="pres-bullet-dot" style={{ background: slide.accent }} />
+                        <motion.li
+                          key={i}
+                          className="pres-bullet"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.7 + i * 0.15, duration: 0.35, ease: "easeOut" }}
+                        >
+                          <span className="pres-bullet-dot pres-dot-glow" style={{ background: slide.accent, boxShadow: `0 0 8px ${slide.accent}` }} />
                           {b}
-                        </li>
+                        </motion.li>
                       ))}
                     </ul>
                   )}

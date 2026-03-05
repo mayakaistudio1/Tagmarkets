@@ -1,0 +1,159 @@
+VISUAL POLISH PASS — JetUP Mini App
+
+Objective:
+The current architecture works, but visually it still feels like an HTML prototype.
+Upgrade the interface so it feels like a premium cinematic fintech Telegram Mini App.
+
+IMPORTANT:
+Do not rebuild logic.
+Do not change information architecture.
+This pass is focused on visual quality, art direction, layout polish, and motion.
+
+VISUAL DIRECTION
+
+The app should feel like:
+- cinematic
+- premium
+- real-world fintech
+- interactive
+- modern
+- mobile-first
+
+This is NOT a generic dashboard.
+This is NOT a plain HTML presentation.
+This is a cinematic system explorer.
+
+CORE VISUAL IDEA
+
+JetUP should feel like a digital infrastructure layer placed over the real world.
+
+Meaning:
+- realistic background imagery
+- real city / people / movement / global business atmosphere
+- glass UI panels floating above that world
+- JetUP purple neon accents connecting the system
+
+BACKGROUND SYSTEM
+
+Replace overly abstract/plain dark backgrounds with cinematic realistic scenes.
+
+Use slide-group-based background presets:
+
+1. Market / Reality / Problem slides
+- night city
+- financial district
+- urban movement
+- trading atmosphere
+
+2. Partner / Team / Motivation slides
+- people
+- networking
+- conference / business lifestyle
+- premium human energy
+
+3. AI / Infrastructure slides
+- abstract tech texture
+- futuristic real screens
+- subtle digital overlays
+
+4. Ecosystem slide
+- realistic city background + JetUP node system over it
+- keep the ecosystem map but make it feel like infrastructure over the real world
+
+All backgrounds must include:
+- dark purple-black overlay
+- vignette
+- subtle blur where needed
+- readable contrast for text
+- cinematic depth
+
+DO NOT use bright or cheap-looking stock visuals.
+Everything must feel premium, dark, elegant, and controlled.
+
+UI STYLE
+
+Upgrade all cards/panels to premium glassmorphism:
+
+- dark translucent surfaces
+- subtle backdrop blur
+- thin border with low-opacity purple/white
+- soft shadow
+- large rounded corners
+- balanced internal spacing
+- clean typography hierarchy
+
+Buttons:
+- premium gradient or deep glass buttons
+- smooth hover/tap transitions
+- no generic default button styles
+
+Bottom sheets:
+- should feel like native premium app panels
+- rounded top corners
+- soft entrance animation
+- proper safe-area support for mobile
+
+TYPOGRAPHY
+
+Use stronger hierarchy:
+- title = bold, cinematic, premium
+- body = short, readable, airy
+- small labels = subtle, elegant
+
+Avoid dense blocks of text.
+The layout must breathe.
+
+MOTION
+
+All motion should feel premium and restrained:
+- smooth fade-ins
+- soft upward motion
+- subtle zoom
+- parallax depth where appropriate
+- glowing node transitions
+- card reveal delays
+- bottom sheet slide-up
+- progress transitions
+
+Avoid:
+- aggressive bounce
+- playful cartoon motion
+- excessive effects
+- clutter
+
+MOBILE-FIRST RULES
+
+This must look excellent inside a Telegram Mini App on mobile.
+
+Requirements:
+- thumb-friendly controls
+- bottom-third CTA placement
+- safe-area padding
+- no tiny text
+- no overflow
+- no crowded layouts
+- map and cards must remain readable on smaller screens
+
+LAYOUT FEEL
+
+Each screen should feel like a composition, not a webpage.
+
+The user should feel:
+“I’m inside a premium digital product.”
+
+NOT:
+“I’m looking at HTML blocks.”
+
+DELIVERABLE
+
+Polish the current implementation visually without changing core logic.
+Focus on:
+- background quality
+- card quality
+- spacing
+- mobile layout
+- motion
+- premium feel
+
+Final result should look like:
+a high-end interactive fintech mini app, not a coded prototype.

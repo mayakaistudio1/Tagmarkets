@@ -10,6 +10,9 @@ import {
   Send,
   List,
   Globe,
+  Shield,
+  TrendingUp,
+  Cpu,
 } from "lucide-react";
 import type { SharedMessage } from "../PartnerDigitalHub";
 import FinancialBackground from "./FinancialBackground";
@@ -28,6 +31,12 @@ interface Chip {
   intent: string;
 }
 
+interface InteractiveItem {
+  label: string;
+  description: string;
+  color?: string;
+}
+
 interface Slide {
   id: number;
   title: string;
@@ -36,6 +45,8 @@ interface Slide {
   accent: string;
   chips: Chip[];
   type: "standard" | "ecosystem";
+  interactiveType?: "security-points" | "strategy-cards" | "graph-points" | "ai-nodes";
+  interactiveItems?: InteractiveItem[];
 }
 
 async function streamDennisChat(
@@ -138,6 +149,12 @@ const slides: Slide[] = [
     image: "/images/presentation/scene_04.png",
     accent: "#22C55E",
     type: "standard",
+    interactiveType: "security-points",
+    interactiveItems: [
+      { label: "KYC", description: "Полная верификация на твоё имя. Аккаунт принадлежит только тебе.", color: "#22C55E" },
+      { label: "Personal Account", description: "Личный аккаунт у лицензированного брокера. Без посредников.", color: "#3B82F6" },
+      { label: "Withdraw Control", description: "Только ты контролируешь вывод средств. Без ограничений.", color: "#F59E0B" },
+    ],
     chips: [
       { text: "Где именно хранится капитал?", intent: "SAFETY_CAPITAL" },
       { text: "Кто принимает решение о выводе?", intent: "SAFETY_WITHDRAW" },
@@ -150,6 +167,12 @@ const slides: Slide[] = [
     image: "/images/presentation/scene_05.png",
     accent: "#F59E0B",
     type: "standard",
+    interactiveType: "strategy-cards",
+    interactiveItems: [
+      { label: "Conservative", description: "Минимальный риск, стабильный доход. Подходит для начинающих.", color: "#22C55E" },
+      { label: "Balanced", description: "Оптимальный баланс риска и доходности. Самый популярный выбор.", color: "#3B82F6" },
+      { label: "Aggressive", description: "Максимальная доходность при повышенном риске.", color: "#EF4444" },
+    ],
     chips: [
       { text: "Можно ли поменять стратегию?", intent: "FLEXIBILITY_CHANGE" },
       { text: "Можно ли остановить в любой момент?", intent: "FLEXIBILITY_STOP" },
@@ -162,6 +185,12 @@ const slides: Slide[] = [
     image: "/images/presentation/scene_06.png",
     accent: "#10B981",
     type: "standard",
+    interactiveType: "graph-points",
+    interactiveItems: [
+      { label: "Market Cycles", description: "Система адаптируется к рыночным циклам, не завися от одного направления.", color: "#3B82F6" },
+      { label: "Risk Management", description: "Встроенное управление рисками ограничивает потери и защищает капитал.", color: "#22C55E" },
+      { label: "Strategy", description: "Долгосрочная стратегия, основанная на данных, а не на эмоциях.", color: "#F59E0B" },
+    ],
     chips: [
       { text: "Почему вы не обещаете «иксы»?", intent: "PROFIT_NO_HYPE" },
       { text: "Что значит устойчивый подход?", intent: "PROFIT_SUSTAINABLE" },
@@ -186,6 +215,13 @@ const slides: Slide[] = [
     image: "/images/presentation/scene_08.png",
     accent: "#E88FEC",
     type: "standard",
+    interactiveType: "ai-nodes",
+    interactiveItems: [
+      { label: "AI Chat", description: "Умный чат-бот отвечает на вопросы клиентов 24/7 от имени партнёра.", color: "#A855F7" },
+      { label: "Mini Presentation", description: "Интерактивная презентация системы — клиент изучает всё сам.", color: "#3B82F6" },
+      { label: "Lead Qualification", description: "AI квалифицирует интерес и передаёт только горячие лиды.", color: "#22C55E" },
+      { label: "24/7 Support", description: "Автоматическая поддержка работает без перерывов и выходных.", color: "#F59E0B" },
+    ],
     chips: [
       { text: "Что AI делает вместо партнёра?", intent: "AI_REPLACE" },
       { text: "Как AI квалифицирует людей?", intent: "AI_QUALIFY" },
@@ -215,6 +251,135 @@ const slides: Slide[] = [
   },
 ];
 
+const SecurityPoints: React.FC<{ items: InteractiveItem[]; onSelect: (item: InteractiveItem) => void }> = ({ items, onSelect }) => (
+  <motion.div
+    className="si-security-row"
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.55, duration: 0.4 }}
+  >
+    {items.map((item, i) => (
+      <button
+        key={i}
+        className="si-security-pill"
+        onClick={() => onSelect(item)}
+        data-testid={`security-point-${i}`}
+      >
+        <span className="si-pill-dot" style={{ background: item.color }} />
+        <span className="si-pill-label">{item.label}</span>
+      </button>
+    ))}
+  </motion.div>
+);
+
+const StrategyCards: React.FC<{ items: InteractiveItem[]; onSelect: (item: InteractiveItem) => void }> = ({ items, onSelect }) => (
+  <motion.div
+    className="si-strategy-row"
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.55, duration: 0.4 }}
+  >
+    {items.map((item, i) => (
+      <button
+        key={i}
+        className="si-strategy-card"
+        onClick={() => onSelect(item)}
+        style={{ borderColor: `${item.color}40` }}
+        data-testid={`strategy-card-${i}`}
+      >
+        <span className="si-strategy-indicator" style={{ background: item.color }} />
+        <span className="si-strategy-name">{item.label}</span>
+      </button>
+    ))}
+  </motion.div>
+);
+
+const GraphPoints: React.FC<{ items: InteractiveItem[]; onSelect: (item: InteractiveItem) => void }> = ({ items, onSelect }) => (
+  <motion.div
+    className="si-graph-container"
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.55, duration: 0.4 }}
+  >
+    <svg viewBox="0 0 300 60" className="si-graph-svg">
+      <polyline points="10,50 80,35 180,20 290,8" fill="none" stroke="rgba(16,185,129,0.3)" strokeWidth="2" />
+      <polyline points="10,50 80,35 180,20 290,8" fill="none" stroke="rgba(16,185,129,0.6)" strokeWidth="1.5" strokeDasharray="4 4">
+        <animate attributeName="stroke-dashoffset" from="8" to="0" dur="2s" repeatCount="indefinite" />
+      </polyline>
+    </svg>
+    <div className="si-graph-points">
+      {items.map((item, i) => (
+        <button
+          key={i}
+          className="si-graph-point"
+          onClick={() => onSelect(item)}
+          data-testid={`graph-point-${i}`}
+        >
+          <span className="si-graph-dot" style={{ background: item.color, boxShadow: `0 0 8px ${item.color}` }}>
+            <span className="si-graph-dot-ping" style={{ borderColor: item.color }} />
+          </span>
+          <span className="si-graph-label">{item.label}</span>
+        </button>
+      ))}
+    </div>
+  </motion.div>
+);
+
+const AiNodes: React.FC<{ items: InteractiveItem[]; onSelect: (item: InteractiveItem) => void }> = ({ items, onSelect }) => (
+  <motion.div
+    className="si-ai-grid"
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.55, duration: 0.4 }}
+  >
+    {items.map((item, i) => (
+      <button
+        key={i}
+        className="si-ai-node"
+        onClick={() => onSelect(item)}
+        data-testid={`ai-node-${i}`}
+      >
+        <span className="si-ai-dot" style={{ background: item.color, boxShadow: `0 0 10px ${item.color}60` }} />
+        <span className="si-ai-label">{item.label}</span>
+      </button>
+    ))}
+    <svg className="si-ai-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <line x1="25" y1="25" x2="75" y2="25" stroke="rgba(168,85,247,0.2)" strokeWidth="0.5" />
+      <line x1="25" y1="75" x2="75" y2="75" stroke="rgba(168,85,247,0.2)" strokeWidth="0.5" />
+      <line x1="25" y1="25" x2="25" y2="75" stroke="rgba(168,85,247,0.2)" strokeWidth="0.5" />
+      <line x1="75" y1="25" x2="75" y2="75" stroke="rgba(168,85,247,0.2)" strokeWidth="0.5" />
+      <line x1="25" y1="25" x2="75" y2="75" stroke="rgba(168,85,247,0.15)" strokeWidth="0.5" />
+      <line x1="75" y1="25" x2="25" y2="75" stroke="rgba(168,85,247,0.15)" strokeWidth="0.5" />
+    </svg>
+  </motion.div>
+);
+
+const MicroInfoCard: React.FC<{ item: InteractiveItem; onClose: () => void }> = ({ item, onClose }) => (
+  <>
+    <motion.div
+      className="si-micro-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    />
+    <motion.div
+      className="si-micro-card"
+      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9, y: 20 }}
+      transition={{ duration: 0.25 }}
+    >
+      <div className="si-micro-header">
+        <span className="si-micro-dot" style={{ background: item.color }} />
+        <span className="si-micro-title">{item.label}</span>
+        <button className="si-micro-close" onClick={onClose}><X size={14} /></button>
+      </div>
+      <p className="si-micro-desc">{item.description}</p>
+    </motion.div>
+  </>
+);
+
 const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   onBackToChat,
   onShowEcosystem,
@@ -230,6 +395,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const [chatInput, setChatInput] = useState("");
   const [cardPulse, setCardPulse] = useState(false);
+  const [activeInteractiveItem, setActiveInteractiveItem] = useState<InteractiveItem | null>(null);
 
   const slide = slides[current];
   const isLast = current === slides.length - 1;
@@ -264,6 +430,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
     setDirection(dir ?? (clamped > current ? 1 : -1));
     setCurrent(clamped);
     setShowToc(false);
+    setActiveInteractiveItem(null);
   }, [current]);
 
   const handleNext = useCallback(() => {
@@ -427,7 +594,33 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                           </React.Fragment>
                         ))}
                       </motion.p>
+
+                      {slide.interactiveType && slide.interactiveItems && (
+                        <>
+                          {slide.interactiveType === "security-points" && (
+                            <SecurityPoints items={slide.interactiveItems} onSelect={setActiveInteractiveItem} />
+                          )}
+                          {slide.interactiveType === "strategy-cards" && (
+                            <StrategyCards items={slide.interactiveItems} onSelect={setActiveInteractiveItem} />
+                          )}
+                          {slide.interactiveType === "graph-points" && (
+                            <GraphPoints items={slide.interactiveItems} onSelect={setActiveInteractiveItem} />
+                          )}
+                          {slide.interactiveType === "ai-nodes" && (
+                            <AiNodes items={slide.interactiveItems} onSelect={setActiveInteractiveItem} />
+                          )}
+                        </>
+                      )}
                     </motion.div>
+
+                    <AnimatePresence>
+                      {activeInteractiveItem && (
+                        <MicroInfoCard
+                          item={activeInteractiveItem}
+                          onClose={() => setActiveInteractiveItem(null)}
+                        />
+                      )}
+                    </AnimatePresence>
                   </>
                 )}
               </motion.div>
@@ -486,7 +679,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
               <div className="pres-final-actions">
                 <button className="ph-btn-primary" data-testid="btn-schedule-call">
                   <Video size={18} />
-                  Записаться на созвон
+                  Записаться на звонок
                 </button>
                 <button className="ph-btn-glass" data-testid="btn-start-link">
                   <Link size={18} />
@@ -494,11 +687,11 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                 </button>
                 <button className="ph-btn-glass" onClick={() => setChatOpen(true)} data-testid="btn-ask-dennis">
                   <MessageSquare size={18} />
-                  Задать вопрос Dennis AI
+                  Перейти в Telegram
                 </button>
                 <button className="ph-btn-outline" onClick={onShowEcosystem} data-testid="btn-show-ecosystem">
                   <Globe size={18} />
-                  Открыть JetUp Hub
+                  Посмотреть полный обзор экосистемы
                 </button>
               </div>
             )}

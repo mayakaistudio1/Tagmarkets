@@ -86,8 +86,8 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [userMessageCount, setUserMessageCount] = useState(0);
-  const [presentationOffered, setPresentationOffered] = useState(false);
   const [followUpSent, setFollowUpSent] = useState(false);
+  const [presentationOffered, setPresentationOffered] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -107,6 +107,25 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const handleStartExploration = useCallback(() => {
+    addMessage({
+      text: "Начать исследование системы",
+      sender: "user",
+    });
+
+    const aiMsgId = addMessage({ text: "...", sender: "ai" });
+    
+    // Immediate response per TZ
+    const responseText = "Отлично.\n\nПокажу систему JetUP за пару минут.\n\nЛистай слайды и нажимай вопросы, если хочешь разобраться глубже.";
+    
+    // Simulate typing/streaming effect slightly or just set it
+    updateMessage(aiMsgId, responseText);
+    
+    setTimeout(() => {
+      onTriggerPresentation();
+    }, 1500);
+  }, [addMessage, updateMessage, onTriggerPresentation]);
 
   const buildChatHistory = useCallback((extraUserMsg?: string) => {
     const history: { role: string; content: string }[] = [];
@@ -140,17 +159,6 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
       (fullText) => {
         updateMessage(aiMsgId, fullText);
         setIsStreaming(false);
-
-        if (newCount >= 2 && !presentationOffered) {
-          setPresentationOffered(true);
-          setTimeout(() => {
-            addMessage({
-              text: "Кстати, у меня есть короткая презентация, которая объяснит всё за 5 минут. Хочешь посмотреть?",
-              sender: "ai",
-              type: "presentation_trigger",
-            });
-          }, 400);
-        }
       },
       (error) => {
         updateMessage(aiMsgId, `Извини, произошла ошибка: ${error}`);
@@ -214,7 +222,12 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
         <div className="ph-chat-messages" ref={scrollRef}>
           {messages.map((msg) => (
             <div key={msg.id} className={`ph-msg ${msg.sender === "user" ? "ph-msg-user" : "ph-msg-ai"}`}>
-              {msg.text}
+              {msg.text.split('\n').map((line, i) => (
+                <React.Fragment key={i}>
+                  {line}
+                  {i !== msg.text.split('\n').length - 1 && <br />}
+                </React.Fragment>
+              ))}
               {msg.type === "presentation_trigger" && (
                 <button
                   className="ph-presentation-trigger"
@@ -230,6 +243,14 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
         </div>
 
         <div className="ph-chat-quick">
+          <button
+            className="ph-quick-chip ph-quick-chip-primary"
+            onClick={handleStartExploration}
+            data-testid="btn-start-exploration"
+          >
+            <Sparkles size={14} />
+            Начать исследование системы
+          </button>
           {userMessageCount === 0 && QUICK_REPLIES.map((reply) => (
             <button
               key={reply}

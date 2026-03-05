@@ -323,6 +323,21 @@
   transform: scale(0.95);
 }
 
+.ph-quick-chip-primary {
+  background: rgba(124, 58, 237, 0.2) !important;
+  border-color: rgba(124, 58, 237, 0.5) !important;
+  color: #DDD6FE !important;
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.15);
+  font-weight: 700 !important;
+  gap: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.ph-quick-chip-primary:active {
+  background: rgba(124, 58, 237, 0.35) !important;
+}
+
 .ph-chat-input-row {
   display: flex;
   gap: 8px;
@@ -495,6 +510,252 @@
 
 .pres-glass-card.scaling {
   transform: scale(1.02);
+}
+
+/* ===== SLIDE INTERACTIVE ELEMENTS ===== */
+.si-security-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.si-security-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.si-security-pill:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.si-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.si-pill-label {
+  white-space: nowrap;
+}
+
+.si-strategy-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.si-strategy-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.si-strategy-card:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.si-strategy-indicator {
+  width: 24px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.si-strategy-name {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.si-graph-container {
+  position: relative;
+  margin-top: 14px;
+}
+
+.si-graph-svg {
+  width: 100%;
+  height: 40px;
+}
+
+.si-graph-points {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.si-graph-point {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-family: inherit;
+}
+
+.si-graph-dot {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.si-graph-dot-ping {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  opacity: 0.5;
+  animation: si-ping 2s ease-out infinite;
+}
+
+@keyframes si-ping {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.si-graph-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.si-ai-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.si-ai-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+  z-index: 1;
+}
+
+.si-ai-node:active {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.si-ai-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.si-ai-label {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.si-ai-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.si-micro-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 200;
+}
+
+.si-micro-card {
+  position: fixed;
+  bottom: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100vw - 48px);
+  max-width: 300px;
+  background: rgba(8, 6, 20, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 16px;
+  z-index: 201;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.si-micro-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.si-micro-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.si-micro-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  flex: 1;
+}
+
+.si-micro-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.si-micro-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
 }
 
 /* ===== ECOSYSTEM MAP SLIDE ===== */

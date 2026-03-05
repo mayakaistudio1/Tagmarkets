@@ -28,9 +28,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onOpenChat, onOpenLive, dimme
         className="ph-hero-content"
       >
         <h1 className="ph-hero-name" data-testid="text-partner-name">Dennis</h1>
-        <p className="ph-hero-role" data-testid="text-partner-role">JetUP Partner</p>
+        <p className="ph-hero-role" data-testid="text-partner-role">Founder JetUP</p>
         <p className="ph-hero-tagline">
-          Задай любой вопрос о JetUP или пообщайся со мной лично.
+          Financial products · Partner system · AI infrastructure
         </p>
 
         <div className="ph-hero-btns">
@@ -40,7 +40,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onOpenChat, onOpenLive, dimme
             data-testid="btn-live-call"
           >
             <Video size={18} />
-            Пообщаться вживую
+            Общаться вживую
           </button>
           <button
             className="ph-btn-glass"

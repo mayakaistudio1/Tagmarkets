@@ -647,40 +647,26 @@ const BG_VIDEO_MAP: Record<string, { video: string; poster: string }> = {
 };
 
 const CinematicVideoBg: React.FC<{ slideId: number }> = ({ slideId }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const preset = SLIDE_BG_PRESETS[slideId] || 'market';
   const bg = BG_VIDEO_MAP[preset];
-  const [videoFailed, setVideoFailed] = useState(false);
-
-  useEffect(() => {
-    const vid = videoRef.current;
-    if (!vid || videoFailed) return;
-    vid.src = bg.video;
-    vid.load();
-    vid.play().catch(() => {});
-  }, [preset, videoFailed]);
 
   return (
     <div className="pres-cinematic-bg-wrap">
-      {!videoFailed && (
-        <video
-          ref={videoRef}
-          className="pres-cinematic-video"
-          poster={bg.poster}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          onError={() => setVideoFailed(true)}
-        />
-      )}
-      {videoFailed && (
-        <div
-          className="pres-cinematic-fallback"
-          style={{ backgroundImage: `url(${bg.poster})` }}
-        />
-      )}
+      <video
+        key={`video-${preset}`}
+        className="pres-cinematic-video"
+        src={bg.video}
+        poster={bg.poster}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+      />
+      <div
+        className="pres-cinematic-fallback"
+        style={{ backgroundImage: `url(${bg.poster})` }}
+      />
       <div className={`pres-cinematic-gradient pres-cinematic-gradient-${preset}`} />
       <div className="pres-cinematic-overlay" />
       <div className="pres-cinematic-vignette" />

@@ -151,10 +151,17 @@ Lifestyle Incentives: бонусы за достижения — путешес�
 **Твоя цель**: помочь разобраться, вызвать доверие, предложить следующий шаг.
 **Ответы**: короткие, живые, по делу. Без давления.`;
 
+const LANGUAGE_INSTRUCTIONS: Record<string, string> = {
+  de: `\n\n## SPRACHE\nAntworte IMMER auf Deutsch. Der Nutzer spricht Deutsch. Alle Antworten, CTAs und Erklärungen müssen auf Deutsch sein. Niemals auf Russisch antworten.`,
+  en: `\n\n## LANGUAGE\nAlways respond in English. The user speaks English. All answers, CTAs and explanations must be in English. Never respond in Russian.`,
+  ru: '',
+};
+
 export function registerDennisChatRoutes(app: Express): void {
   app.post("/api/partner/dennis/chat", async (req: Request, res: Response) => {
     try {
-      const { messages, sessionId } = req.body;
+      const { messages, sessionId, language } = req.body;
+      const lang = (language && typeof language === 'string') ? language : 'ru';
 
       if (!messages || !Array.isArray(messages)) {
         return res.status(400).json({ error: "Messages array is required" });
@@ -162,19 +169,21 @@ export function registerDennisChatRoutes(app: Express): void {
 
       if (sessionId) {
         try {
-          await storage.createChatSession({ sessionId, language: "ru", type: "text" });
+          await storage.createChatSession({ sessionId, language: lang, type: "text" });
           const lastUserMessage = [...messages].reverse().find((m: any) => m.role === "user");
           if (lastUserMessage) {
             await storage.saveChatMessage({ sessionId, role: "user", content: lastUserMessage.content });
-            appendChatMessageToSheet(sessionId, "user", lastUserMessage.content, "ru", "text").catch(() => {});
+            appendChatMessageToSheet(sessionId, "user", lastUserMessage.content, lang, "text").catch(() => {});
           }
         } catch (e) {
           console.error("Error saving dennis chat session/message:", e);
         }
       }
 
+      const systemPrompt = DENNIS_SYSTEM_PROMPT_RU + (LANGUAGE_INSTRUCTIONS[lang] || LANGUAGE_INSTRUCTIONS['ru']);
+
       const chatMessages = [
-        { role: "system" as const, content: DENNIS_SYSTEM_PROMPT_RU },
+        { role: "system" as const, content: systemPrompt },
         ...messages.map((m: { role: string; content: string }) => ({
           role: m.role as "user" | "assistant",
           content: m.content,

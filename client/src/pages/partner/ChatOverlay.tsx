@@ -20,12 +20,13 @@ async function streamDennisChat(
   onError: (err: string) => void,
   errorMsg: string,
   connErrorMsg: string,
+  language?: string,
 ) {
   try {
     const res = await fetch("/api/partner/dennis/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: chatHistory }),
+      body: JSON.stringify({ messages: chatHistory, language }),
     });
 
     if (!res.ok || !res.body) {
@@ -79,7 +80,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
   addMessage,
   updateMessage,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [userMessageCount, setUserMessageCount] = useState(0);
@@ -161,8 +162,9 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
       },
       t('pdh.errorResponse'),
       t('pdh.errorConnection'),
+      language,
     );
-  }, [addMessage, updateMessage, buildChatHistory, userMessageCount, presentationOffered, t]);
+  }, [addMessage, updateMessage, buildChatHistory, userMessageCount, presentationOffered, t, language]);
 
   const handleQuickReply = (reply: string) => {
     sendToAI(reply);

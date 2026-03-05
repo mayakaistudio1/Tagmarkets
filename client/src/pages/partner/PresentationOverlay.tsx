@@ -700,12 +700,13 @@ async function streamDennisChat(
   onError: (err: string) => void,
   errorMsg: string,
   connErrorMsg: string,
+  language?: string,
 ) {
   try {
     const res = await fetch("/api/partner/dennis/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: chatHistory }),
+      body: JSON.stringify({ messages: chatHistory, language }),
     });
 
     if (!res.ok || !res.body) {
@@ -758,7 +759,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   addMessage,
   updateMessage,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const slides = useMemo(() => buildSlides(t), [t]);
 
   const [current, setCurrent] = useState(0);
@@ -849,8 +850,9 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
       },
       t('pdh.errorResponse'),
       t('pdh.errorConnection'),
+      language,
     );
-  }, [addMessage, updateMessage, buildChatHistory, t]);
+  }, [addMessage, updateMessage, buildChatHistory, t, language]);
 
   const handleChipClick = useCallback((chip: Chip) => {
     if (isStreaming) return;

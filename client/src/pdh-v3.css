@@ -720,11 +720,11 @@
 
 .si-micro-card {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  margin: auto;
   width: calc(100% - 48px);
   max-width: 320px;
+  height: fit-content;
   background: rgba(8, 6, 20, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -900,11 +900,11 @@
 
 .eco-info-card {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  margin: auto;
   width: calc(100% - 48px);
   max-width: 340px;
+  height: fit-content;
   background: rgba(8, 6, 20, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);

@@ -4,6 +4,11 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname_ = typeof __dirname !== "undefined"
+  ? __dirname
+  : path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 const httpServer = createServer(app);
@@ -130,7 +135,7 @@ app.use((req, res, next) => {
     next();
   });
 
-  app.use(express.static(path.resolve(import.meta.dirname, "..", "public")));
+  app.use(express.static(path.resolve(__dirname_, "..", "public")));
 
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);

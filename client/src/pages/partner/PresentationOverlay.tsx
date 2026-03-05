@@ -1004,11 +1004,6 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                   <EcosystemMapSlide onAskDennis={handleEcoAskDennis} />
                 ) : (
                   <>
-                    <div className="pres-scene-layer">
-                      <img src={slide.image} alt="" className="pres-scene-img" />
-                      <div className="pres-scene-fade" />
-                    </div>
-
                     <motion.div 
                       className="pres-glass-card"
                       animate={{ scale: cardPulse ? 1.02 : 1 }}

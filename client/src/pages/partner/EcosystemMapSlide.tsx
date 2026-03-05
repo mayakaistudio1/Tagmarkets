@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X } from "lucide-react";
 
@@ -131,53 +132,56 @@ const EcosystemMapSlide: React.FC<EcosystemMapSlideProps> = ({ onAskDennis }) =>
         </motion.div>
       ))}
 
-      {/* Info Card Overlay */}
-      <AnimatePresence>
-        {selectedNode && (
-          <>
-            <motion.div
-              className="eco-card-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedNode(null)}
-            />
-            <motion.div
-              className="eco-info-card"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              data-testid={`eco-info-card-${selectedNode.id}`}
-            >
-              <button
-                className="eco-card-close"
+      {/* Info Card Overlay — portal to body to avoid transform containment */}
+      {ReactDOM.createPortal(
+        <AnimatePresence>
+          {selectedNode && (
+            <>
+              <motion.div
+                className="eco-card-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 onClick={() => setSelectedNode(null)}
-                data-testid="btn-close-eco-card"
+              />
+              <motion.div
+                className="eco-info-card"
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                data-testid={`eco-info-card-${selectedNode.id}`}
               >
-                <X size={18} />
-              </button>
-              
-              <h3 className="eco-card-title">{selectedNode.name}</h3>
-              <p className="eco-card-desc">{selectedNode.description}</p>
-              
-              <div className="eco-card-actions">
                 <button
-                  className="eco-card-btn-primary"
-                  onClick={() => {
-                    onAskDennis(selectedNode.intent, `Расскажи подробнее про ${selectedNode.name}`);
-                    setSelectedNode(null);
-                  }}
-                  data-testid={`btn-ask-dennis-${selectedNode.id}`}
+                  className="eco-card-close"
+                  onClick={() => setSelectedNode(null)}
+                  data-testid="btn-close-eco-card"
                 >
-                  <MessageSquare size={16} />
-                  Спросить Dennis
+                  <X size={18} />
                 </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                
+                <h3 className="eco-card-title">{selectedNode.name}</h3>
+                <p className="eco-card-desc">{selectedNode.description}</p>
+                
+                <div className="eco-card-actions">
+                  <button
+                    className="eco-card-btn-primary"
+                    onClick={() => {
+                      onAskDennis(selectedNode.intent, `Расскажи подробнее про ${selectedNode.name}`);
+                      setSelectedNode(null);
+                    }}
+                    data-testid={`btn-ask-dennis-${selectedNode.id}`}
+                  >
+                    <MessageSquare size={16} />
+                    Спросить Dennis
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import {
   ChevronLeft,
@@ -354,31 +355,33 @@ const AiNodes: React.FC<{ items: InteractiveItem[]; onSelect: (item: Interactive
   </motion.div>
 );
 
-const MicroInfoCard: React.FC<{ item: InteractiveItem; onClose: () => void }> = ({ item, onClose }) => (
-  <>
-    <motion.div
-      className="si-micro-backdrop"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-    />
-    <motion.div
-      className="si-micro-card"
-      initial={{ opacity: 0, scale: 0.9, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9, y: 20 }}
-      transition={{ duration: 0.25 }}
-    >
-      <div className="si-micro-header">
-        <span className="si-micro-dot" style={{ background: item.color }} />
-        <span className="si-micro-title">{item.label}</span>
-        <button className="si-micro-close" onClick={onClose}><X size={14} /></button>
-      </div>
-      <p className="si-micro-desc">{item.description}</p>
-    </motion.div>
-  </>
-);
+const MicroInfoCard: React.FC<{ item: InteractiveItem; onClose: () => void }> = ({ item, onClose }) =>
+  ReactDOM.createPortal(
+    <>
+      <motion.div
+        className="si-micro-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      />
+      <motion.div
+        className="si-micro-card"
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        transition={{ duration: 0.25 }}
+      >
+        <div className="si-micro-header">
+          <span className="si-micro-dot" style={{ background: item.color }} />
+          <span className="si-micro-title">{item.label}</span>
+          <button className="si-micro-close" onClick={onClose}><X size={14} /></button>
+        </div>
+        <p className="si-micro-desc">{item.description}</p>
+      </motion.div>
+    </>,
+    document.body
+  );
 
 const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   onBackToChat,

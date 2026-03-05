@@ -14,7 +14,6 @@ import {
   Shield,
   TrendingUp,
   Cpu,
-  Compass,
   Zap,
   User,
   MessageCircle,
@@ -124,18 +123,19 @@ function buildSlides(t: (key: string) => string): Slide[] {
       title: t('pdh.s5.title'),
       text: t('pdh.s5.text'),
       image: "/images/presentation/scene_05.png",
-      accent: "#F59E0B",
+      accent: "#22C55E",
       type: "standard",
       interactiveType: "strategy-cards",
       interactiveItems: [
         { label: t('pdh.s5.i1.label'), description: t('pdh.s5.i1.desc'), color: "#22C55E" },
         { label: t('pdh.s5.i2.label'), description: t('pdh.s5.i2.desc'), color: "#3B82F6" },
-        { label: t('pdh.s5.i3.label'), description: t('pdh.s5.i3.desc'), color: "#EF4444" },
+        { label: t('pdh.s5.i3.label'), description: t('pdh.s5.i3.desc'), color: "#F59E0B" },
       ],
       insightKey: 'pdh.insight.s5',
       chips: [
-        { text: t('pdh.s5.c1'), intent: "FLEXIBILITY_CHANGE" },
-        { text: t('pdh.s5.c2'), intent: "FLEXIBILITY_STOP" },
+        { text: t('pdh.s5.c1'), intent: "PARTNER_COMMISSIONS" },
+        { text: t('pdh.s5.c2'), intent: "PARTNER_EARNINGS" },
+        { text: t('pdh.s5.c3'), intent: "PARTNER_INFINITY" },
       ],
     },
     {
@@ -145,16 +145,17 @@ function buildSlides(t: (key: string) => string): Slide[] {
       image: "/images/presentation/scene_06.png",
       accent: "#10B981",
       type: "standard",
-      interactiveType: "graph-points",
+      interactiveType: "security-points",
       interactiveItems: [
-        { label: t('pdh.s6.i1.label'), description: t('pdh.s6.i1.desc'), color: "#3B82F6" },
-        { label: t('pdh.s6.i2.label'), description: t('pdh.s6.i2.desc'), color: "#22C55E" },
-        { label: t('pdh.s6.i3.label'), description: t('pdh.s6.i3.desc'), color: "#F59E0B" },
+        { label: t('pdh.s6.i1.label'), description: t('pdh.s6.i1.desc'), color: "#F59E0B" },
+        { label: t('pdh.s6.i2.label'), description: t('pdh.s6.i2.desc'), color: "#EF4444" },
+        { label: t('pdh.s6.i3.label'), description: t('pdh.s6.i3.desc'), color: "#A855F7" },
       ],
       insightKey: 'pdh.insight.s6',
       chips: [
-        { text: t('pdh.s6.c1'), intent: "PROFIT_NO_HYPE" },
-        { text: t('pdh.s6.c2'), intent: "PROFIT_SUSTAINABLE" },
+        { text: t('pdh.s6.c1'), intent: "PARTNER_GLOBAL_POOL" },
+        { text: t('pdh.s6.c2'), intent: "PARTNER_INCENTIVES" },
+        { text: t('pdh.s6.c3'), intent: "PARTNER_CAREER" },
       ],
     },
     {
@@ -166,7 +167,7 @@ function buildSlides(t: (key: string) => string): Slide[] {
       type: "standard",
       chips: [
         { text: t('pdh.s7.c1'), intent: "SCALE_DUPLICATION" },
-        { text: t('pdh.s7.c2'), intent: "SCALE_WHY" },
+        { text: t('pdh.s7.c2'), intent: "SCALE_SYSTEM" },
       ],
     },
     {
@@ -526,89 +527,6 @@ const JetUPEngine: React.FC<{ t: (key: string) => string }> = ({ t }) => {
   );
 };
 
-const EXPLORE_NODES = [
-  { id: 'trading', slides: [1, 2, 3], x: 50, y: 15, color: '#EF4444' },
-  { id: 'ai', slides: [7, 8], x: 82, y: 40, color: '#A855F7' },
-  { id: 'partner', slides: [4, 5, 6], x: 72, y: 78, color: '#22C55E' },
-  { id: 'ecosystem', slides: [9], x: 28, y: 78, color: '#3B82F6' },
-  { id: 'incentives', slides: [10], x: 18, y: 40, color: '#F59E0B' },
-];
-
-const ExploreMap: React.FC<{
-  t: (key: string) => string;
-  visitedSlides: Set<number>;
-  onNavigate: (slideIndex: number) => void;
-  onClose: () => void;
-}> = ({ t, visitedSlides, onNavigate, onClose }) => (
-  <>
-    <motion.div
-      className="pres-explore-backdrop"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-    />
-    <motion.div
-      className="pres-explore-panel"
-      initial={{ y: "100%" }}
-      animate={{ y: 0 }}
-      exit={{ y: "100%" }}
-      transition={{ type: "spring", damping: 28, stiffness: 300 }}
-      drag="y"
-      dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={0.2}
-      onDragEnd={(_: any, info: PanInfo) => { if (info.offset.y > 80) onClose(); }}
-    >
-      <div className="pres-sheet-handle" />
-      <div className="pres-explore-header">
-        <Compass size={18} />
-        <span>{t('pdh.exploreMap')}</span>
-        <button className="pres-close-btn-small" onClick={onClose}>
-          <X size={16} />
-        </button>
-      </div>
-      <div className="pres-explore-map">
-        <svg className="pres-explore-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          {EXPLORE_NODES.map((node) => (
-            <motion.line
-              key={`eline-${node.id}`}
-              x1="50" y1="50" x2={node.x} y2={node.y}
-              stroke={`${node.color}40`}
-              strokeWidth="0.6"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 1, ease: "easeInOut" }}
-            />
-          ))}
-        </svg>
-        <div className="pres-explore-center">
-          <img src="/jetup-logo.png" alt="JETUP" className="pres-explore-logo" />
-        </div>
-        {EXPLORE_NODES.map((node, i) => {
-          const explored = node.slides.every((s) => visitedSlides.has(s));
-          const partiallyExplored = node.slides.some((s) => visitedSlides.has(s));
-          return (
-            <motion.button
-              key={node.id}
-              className={`pres-explore-node ${explored ? 'explored' : partiallyExplored ? 'partial' : ''}`}
-              style={{ left: `${node.x}%`, top: `${node.y}%` }}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2 + i * 0.08 }}
-              onClick={() => { onNavigate(node.slides[0] - 1); onClose(); }}
-              data-testid={`explore-node-${node.id}`}
-            >
-              <span className="pres-explore-dot" style={{ background: node.color, boxShadow: `0 0 10px ${node.color}60` }} />
-              <span className="pres-explore-label">{t(`pdh.explored.${node.id}`)}</span>
-              {explored && <span className="pres-explore-check"><CheckCircle size={10} /></span>}
-            </motion.button>
-          );
-        })}
-      </div>
-    </motion.div>
-  </>
-);
-
 interface FactItem {
   id: string;
   titleKey: string;
@@ -624,6 +542,20 @@ const SLIDE_FACTS: Record<number, FactItem[]> = {
     { id: 'f2_1', titleKey: 'pdh.fact.2.1.t', descKey: 'pdh.fact.2.1.d' },
     { id: 'f2_2', titleKey: 'pdh.fact.2.2.t', descKey: 'pdh.fact.2.2.d' },
   ],
+  5: [
+    { id: 'f5_1', titleKey: 'pdh.fact.5.1.t', descKey: 'pdh.fact.5.1.d' },
+    { id: 'f5_2', titleKey: 'pdh.fact.5.2.t', descKey: 'pdh.fact.5.2.d' },
+    { id: 'f5_3', titleKey: 'pdh.fact.5.3.t', descKey: 'pdh.fact.5.3.d' },
+  ],
+  6: [
+    { id: 'f6_1', titleKey: 'pdh.fact.6.1.t', descKey: 'pdh.fact.6.1.d' },
+    { id: 'f6_2', titleKey: 'pdh.fact.6.2.t', descKey: 'pdh.fact.6.2.d' },
+    { id: 'f6_3', titleKey: 'pdh.fact.6.3.t', descKey: 'pdh.fact.6.3.d' },
+  ],
+  7: [
+    { id: 'f7_1', titleKey: 'pdh.fact.7.1.t', descKey: 'pdh.fact.7.1.d' },
+    { id: 'f7_2', titleKey: 'pdh.fact.7.2.t', descKey: 'pdh.fact.7.2.d' },
+  ],
   8: [
     { id: 'f8_1', titleKey: 'pdh.fact.8.1.t', descKey: 'pdh.fact.8.1.d' },
     { id: 'f8_2', titleKey: 'pdh.fact.8.2.t', descKey: 'pdh.fact.8.2.d' },
@@ -635,10 +567,56 @@ const SLIDE_FACTS: Record<number, FactItem[]> = {
 };
 
 const SLIDE_BG_PRESETS: Record<number, string> = {
-  1: 'market', 2: 'market', 3: 'market',
-  4: 'partner', 5: 'partner', 6: 'partner', 7: 'partner',
+  1: 'market', 2: 'market',
+  3: 'market', 4: 'partner',
+  5: 'partner', 6: 'partner', 7: 'partner',
   8: 'tech', 9: 'tech', 10: 'partner',
 };
+
+const JOURNEY_GROUPS = [
+  { id: 'market', slides: [1, 2], color: '#EF4444', labelKey: 'pdh.journey.market' },
+  { id: 'solution', slides: [3, 4], color: '#A855F7', labelKey: 'pdh.journey.solution' },
+  { id: 'partner', slides: [5, 6, 7], color: '#22C55E', labelKey: 'pdh.journey.partner' },
+  { id: 'ai', slides: [8], color: '#3B82F6', labelKey: 'pdh.journey.ai' },
+  { id: 'ecosystem', slides: [9, 10], color: '#F59E0B', labelKey: 'pdh.journey.ecosystem' },
+];
+
+const JourneyProgress: React.FC<{
+  currentSlide: number;
+  visitedSlides: Set<number>;
+  t: (key: string) => string;
+  onNavigate: (slideIndex: number) => void;
+}> = ({ currentSlide, visitedSlides, t, onNavigate }) => (
+  <div className="pres-journey-bar" data-testid="journey-progress">
+    {JOURNEY_GROUPS.map((group) => {
+      const isCurrent = group.slides.includes(currentSlide);
+      const isCompleted = group.slides.every((s) => visitedSlides.has(s));
+      const isPartial = group.slides.some((s) => visitedSlides.has(s));
+      return (
+        <button
+          key={group.id}
+          className={`pres-journey-dot ${isCurrent ? 'active' : ''} ${isCompleted ? 'completed' : isPartial ? 'partial' : ''}`}
+          onClick={() => onNavigate(group.slides[0] - 1)}
+          data-testid={`journey-${group.id}`}
+        >
+          <span
+            className="pres-journey-indicator"
+            style={{
+              background: isCurrent || isCompleted ? group.color : `${group.color}40`,
+              boxShadow: isCurrent ? `0 0 8px ${group.color}80` : 'none',
+            }}
+          />
+          <span
+            className="pres-journey-label"
+            style={{ color: isCurrent ? group.color : isCompleted ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)' }}
+          >
+            {t(group.labelKey)}
+          </span>
+        </button>
+      );
+    })}
+  </div>
+);
 
 const BG_VIDEO_MAP: Record<string, { video: string; poster: string }> = {
   market: { video: '/videos/bg_market.mp4', poster: '/images/presentation/bg_market.jpg' },
@@ -654,22 +632,14 @@ const CinematicVideoBg: React.FC<{ slideId: number }> = ({ slideId }) => {
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
-    console.log('[VIDEO-BG] mounting video for preset:', preset, 'src:', bg.video);
     const tryPlay = () => {
-      vid.play().then(() => {
-        console.log('[VIDEO-BG] playing OK, readyState:', vid.readyState, 'size:', vid.videoWidth, 'x', vid.videoHeight);
-      }).catch((err) => {
-        console.log('[VIDEO-BG] play failed:', err.message);
-      });
+      vid.play().catch(() => {});
     };
     if (vid.readyState >= 2) {
       tryPlay();
     } else {
       vid.addEventListener('canplay', tryPlay, { once: true });
     }
-    vid.addEventListener('error', (e) => {
-      console.log('[VIDEO-BG] error event:', (e.target as HTMLVideoElement)?.error?.message);
-    });
   }, [preset]);
 
   return (
@@ -811,7 +781,6 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   const [cardPulse, setCardPulse] = useState(false);
   const [activeInteractiveItem, setActiveInteractiveItem] = useState<InteractiveItem | null>(null);
   const [visitedSlides, setVisitedSlides] = useState<Set<number>>(new Set([1]));
-  const [showExplore, setShowExplore] = useState(false);
   const [activeFact, setActiveFact] = useState<FactItem | null>(null);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
@@ -971,14 +940,17 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
             </button>
             <div className="pres-top-center">
               <span className="pres-counter">{current + 1} / {slides.length}</span>
-              <button className="pres-explore-btn" onClick={() => setShowExplore(true)} data-testid="btn-explore">
-                <Compass size={14} />
-              </button>
             </div>
             <button className="pres-toc-trigger" onClick={() => setShowToc(true)} data-testid="btn-toc">
               <List size={18} />
             </button>
           </div>
+          <JourneyProgress
+            currentSlide={slide.id}
+            visitedSlides={visitedSlides}
+            t={t}
+            onNavigate={(idx) => goTo(idx)}
+          />
 
           <motion.div
             className="pres-stage"
@@ -1237,17 +1209,6 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
               </div>
             </motion.div>
           </>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showExplore && (
-          <ExploreMap
-            t={t}
-            visitedSlides={visitedSlides}
-            onNavigate={(idx) => goTo(idx)}
-            onClose={() => setShowExplore(false)}
-          />
         )}
       </AnimatePresence>
 

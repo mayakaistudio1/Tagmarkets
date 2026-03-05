@@ -2,57 +2,23 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X } from "lucide-react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface EcosystemNode {
   id: string;
-  name: string;
-  description: string;
+  nameKey: string;
+  descKey: string;
   intent: string;
   x: number;
   y: number;
 }
 
-const NODES: EcosystemNode[] = [
-  {
-    id: "tag",
-    name: "TAG Markets",
-    description: "Licensed brokerage infrastructure for global financial markets access.",
-    intent: "ASK_TAG_MARKETS",
-    x: 50,
-    y: 15,
-  },
-  {
-    id: "bit1",
-    name: "BIT1",
-    description: "Institutional-grade crypto exchange platform with deep liquidity.",
-    intent: "ASK_BIT1",
-    x: 78,
-    y: 35,
-  },
-  {
-    id: "bix",
-    name: "BIX Card",
-    description: "Next-gen crypto debit card for seamless crypto-to-fiat spending.",
-    intent: "ASK_BIX",
-    x: 72,
-    y: 72,
-  },
-  {
-    id: "ai",
-    name: "AI System",
-    description: "AI-powered infrastructure for partner automation and lead qualification.",
-    intent: "ASK_AI_SYSTEM",
-    x: 28,
-    y: 72,
-  },
-  {
-    id: "network",
-    name: "Partners",
-    description: "Global partner community and multi-level ecosystem for collaborative growth.",
-    intent: "ASK_PARTNER_NETWORK",
-    x: 22,
-    y: 35,
-  },
+const NODE_DEFS: EcosystemNode[] = [
+  { id: "tag", nameKey: "pdh.eco.tag", descKey: "pdh.eco.tagDesc", intent: "ASK_TAG_MARKETS", x: 50, y: 15 },
+  { id: "bit1", nameKey: "pdh.eco.bit1", descKey: "pdh.eco.bit1Desc", intent: "ASK_BIT1", x: 78, y: 35 },
+  { id: "bix", nameKey: "pdh.eco.bix", descKey: "pdh.eco.bixDesc", intent: "ASK_BIX", x: 72, y: 72 },
+  { id: "ai", nameKey: "pdh.eco.ai", descKey: "pdh.eco.aiDesc", intent: "ASK_AI_SYSTEM", x: 28, y: 72 },
+  { id: "network", nameKey: "pdh.eco.partners", descKey: "pdh.eco.partnersDesc", intent: "ASK_PARTNER_NETWORK", x: 22, y: 35 },
 ];
 
 interface EcosystemMapSlideProps {
@@ -60,11 +26,11 @@ interface EcosystemMapSlideProps {
 }
 
 const EcosystemMapSlide: React.FC<EcosystemMapSlideProps> = ({ onAskDennis }) => {
+  const { t } = useLanguage();
   const [selectedNode, setSelectedNode] = useState<EcosystemNode | null>(null);
 
   return (
     <div className="eco-map-container">
-      {/* Network Lines SVG */}
       <svg className="eco-map-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
         <defs>
           <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -73,7 +39,7 @@ const EcosystemMapSlide: React.FC<EcosystemMapSlideProps> = ({ onAskDennis }) =>
             <stop offset="100%" stopColor="rgba(124, 58, 237, 0.1)" />
           </linearGradient>
         </defs>
-        {NODES.map((node) => (
+        {NODE_DEFS.map((node) => (
           <motion.line
             key={`line-${node.id}`}
             x1="50"
@@ -89,7 +55,6 @@ const EcosystemMapSlide: React.FC<EcosystemMapSlideProps> = ({ onAskDennis }) =>
         ))}
       </svg>
 
-      {/* Center Node */}
       <motion.div
         className="eco-node-center"
         initial={{ scale: 0, opacity: 0 }}
@@ -103,8 +68,7 @@ const EcosystemMapSlide: React.FC<EcosystemMapSlideProps> = ({ onAskDennis }) =>
         <div className="eco-center-pulse" />
       </motion.div>
 
-      {/* Satellite Nodes */}
-      {NODES.map((node, i) => (
+      {NODE_DEFS.map((node, i) => (
         <motion.div
           key={node.id}
           className="eco-node-satellite"
@@ -116,7 +80,7 @@ const EcosystemMapSlide: React.FC<EcosystemMapSlideProps> = ({ onAskDennis }) =>
           data-testid={`eco-node-${node.id}`}
         >
           <div className="eco-satellite-dot" />
-          <div className="eco-satellite-label">{node.name}</div>
+          <div className="eco-satellite-label">{t(node.nameKey)}</div>
           <motion.div
             className="eco-satellite-pulse"
             animate={{
@@ -132,7 +96,6 @@ const EcosystemMapSlide: React.FC<EcosystemMapSlideProps> = ({ onAskDennis }) =>
         </motion.div>
       ))}
 
-      {/* Info Card Overlay — portal to body to avoid transform containment */}
       {ReactDOM.createPortal(
         <AnimatePresence>
           {selectedNode && (
@@ -160,20 +123,20 @@ const EcosystemMapSlide: React.FC<EcosystemMapSlideProps> = ({ onAskDennis }) =>
                   <X size={18} />
                 </button>
                 
-                <h3 className="eco-card-title">{selectedNode.name}</h3>
-                <p className="eco-card-desc">{selectedNode.description}</p>
+                <h3 className="eco-card-title">{t(selectedNode.nameKey)}</h3>
+                <p className="eco-card-desc">{t(selectedNode.descKey)}</p>
                 
                 <div className="eco-card-actions">
                   <button
                     className="eco-card-btn-primary"
                     onClick={() => {
-                      onAskDennis(selectedNode.intent, `Расскажи подробнее про ${selectedNode.name}`);
+                      onAskDennis(selectedNode.intent, `${t('pdh.ecoAskAbout')} ${t(selectedNode.nameKey)}`);
                       setSelectedNode(null);
                     }}
                     data-testid={`btn-ask-dennis-${selectedNode.id}`}
                   >
                     <MessageSquare size={16} />
-                    Спросить Dennis
+                    {t('pdh.askDennis')}
                   </button>
                 </div>
               </motion.div>

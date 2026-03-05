@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import ReactDOM from "react-dom";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import {
@@ -18,6 +18,7 @@ import {
 import type { SharedMessage } from "../PartnerDigitalHub";
 import FinancialBackground from "./FinancialBackground";
 import EcosystemMapSlide from "./EcosystemMapSlide";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface PresentationOverlayProps {
   onBackToChat: () => void;
@@ -50,207 +51,153 @@ interface Slide {
   interactiveItems?: InteractiveItem[];
 }
 
-async function streamDennisChat(
-  chatHistory: { role: string; content: string }[],
-  onChunk: (text: string) => void,
-  onDone: (fullText: string) => void,
-  onError: (err: string) => void,
-) {
-  try {
-    const res = await fetch("/api/partner/dennis/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: chatHistory }),
-    });
-
-    if (!res.ok || !res.body) {
-      onError("Не удалось получить ответ");
-      return;
-    }
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let fullText = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        try {
-          const data = JSON.parse(line.slice(6));
-          if (data.content) {
-            fullText += data.content;
-            onChunk(fullText);
-          }
-          if (data.done) {
-            onDone(data.fullContent || fullText);
-            return;
-          }
-          if (data.error) {
-            onError(data.error);
-            return;
-          }
-        } catch {}
-      }
-    }
-    onDone(fullText);
-  } catch {
-    onError("Ошибка соединения");
-  }
+function buildSlides(t: (key: string) => string): Slide[] {
+  return [
+    {
+      id: 1,
+      title: t('pdh.s1.title'),
+      text: t('pdh.s1.text'),
+      image: "/images/presentation/scene_01.png",
+      accent: "#7C3AED",
+      type: "standard",
+      chips: [
+        { text: t('pdh.s1.c1'), intent: "REALITY_WHY" },
+        { text: t('pdh.s1.c2'), intent: "REALITY_MISTAKES" },
+      ],
+    },
+    {
+      id: 2,
+      title: t('pdh.s2.title'),
+      text: t('pdh.s2.text'),
+      image: "/images/presentation/scene_02.png",
+      accent: "#EF4444",
+      type: "standard",
+      chips: [
+        { text: t('pdh.s2.c1'), intent: "DIAGNOSIS_LEADER" },
+        { text: t('pdh.s2.c2'), intent: "DIAGNOSIS_EXIT" },
+      ],
+    },
+    {
+      id: 3,
+      title: t('pdh.s3.title'),
+      text: t('pdh.s3.text'),
+      image: "/images/presentation/scene_03.png",
+      accent: "#8B5CF6",
+      type: "standard",
+      chips: [
+        { text: t('pdh.s3.c1'), intent: "MODEL_THREE" },
+        { text: t('pdh.s3.c2'), intent: "MODEL_MISSING" },
+      ],
+    },
+    {
+      id: 4,
+      title: t('pdh.s4.title'),
+      text: t('pdh.s4.text'),
+      image: "/images/presentation/scene_04.png",
+      accent: "#22C55E",
+      type: "standard",
+      interactiveType: "security-points",
+      interactiveItems: [
+        { label: t('pdh.s4.i1.label'), description: t('pdh.s4.i1.desc'), color: "#22C55E" },
+        { label: t('pdh.s4.i2.label'), description: t('pdh.s4.i2.desc'), color: "#3B82F6" },
+        { label: t('pdh.s4.i3.label'), description: t('pdh.s4.i3.desc'), color: "#F59E0B" },
+      ],
+      chips: [
+        { text: t('pdh.s4.c1'), intent: "SAFETY_CAPITAL" },
+        { text: t('pdh.s4.c2'), intent: "SAFETY_WITHDRAW" },
+      ],
+    },
+    {
+      id: 5,
+      title: t('pdh.s5.title'),
+      text: t('pdh.s5.text'),
+      image: "/images/presentation/scene_05.png",
+      accent: "#F59E0B",
+      type: "standard",
+      interactiveType: "strategy-cards",
+      interactiveItems: [
+        { label: t('pdh.s5.i1.label'), description: t('pdh.s5.i1.desc'), color: "#22C55E" },
+        { label: t('pdh.s5.i2.label'), description: t('pdh.s5.i2.desc'), color: "#3B82F6" },
+        { label: t('pdh.s5.i3.label'), description: t('pdh.s5.i3.desc'), color: "#EF4444" },
+      ],
+      chips: [
+        { text: t('pdh.s5.c1'), intent: "FLEXIBILITY_CHANGE" },
+        { text: t('pdh.s5.c2'), intent: "FLEXIBILITY_STOP" },
+      ],
+    },
+    {
+      id: 6,
+      title: t('pdh.s6.title'),
+      text: t('pdh.s6.text'),
+      image: "/images/presentation/scene_06.png",
+      accent: "#10B981",
+      type: "standard",
+      interactiveType: "graph-points",
+      interactiveItems: [
+        { label: t('pdh.s6.i1.label'), description: t('pdh.s6.i1.desc'), color: "#3B82F6" },
+        { label: t('pdh.s6.i2.label'), description: t('pdh.s6.i2.desc'), color: "#22C55E" },
+        { label: t('pdh.s6.i3.label'), description: t('pdh.s6.i3.desc'), color: "#F59E0B" },
+      ],
+      chips: [
+        { text: t('pdh.s6.c1'), intent: "PROFIT_NO_HYPE" },
+        { text: t('pdh.s6.c2'), intent: "PROFIT_SUSTAINABLE" },
+      ],
+    },
+    {
+      id: 7,
+      title: t('pdh.s7.title'),
+      text: t('pdh.s7.text'),
+      image: "/images/presentation/scene_07.png",
+      accent: "#F97316",
+      type: "standard",
+      chips: [
+        { text: t('pdh.s7.c1'), intent: "SCALE_DUPLICATION" },
+        { text: t('pdh.s7.c2'), intent: "SCALE_WHY" },
+      ],
+    },
+    {
+      id: 8,
+      title: t('pdh.s8.title'),
+      text: t('pdh.s8.text'),
+      image: "/images/presentation/scene_08.png",
+      accent: "#E88FEC",
+      type: "standard",
+      interactiveType: "ai-nodes",
+      interactiveItems: [
+        { label: t('pdh.s8.i1.label'), description: t('pdh.s8.i1.desc'), color: "#A855F7" },
+        { label: t('pdh.s8.i2.label'), description: t('pdh.s8.i2.desc'), color: "#3B82F6" },
+        { label: t('pdh.s8.i3.label'), description: t('pdh.s8.i3.desc'), color: "#22C55E" },
+        { label: t('pdh.s8.i4.label'), description: t('pdh.s8.i4.desc'), color: "#F59E0B" },
+      ],
+      chips: [
+        { text: t('pdh.s8.c1'), intent: "AI_REPLACE" },
+        { text: t('pdh.s8.c2'), intent: "AI_QUALIFY" },
+        { text: t('pdh.s8.c3'), intent: "AI_LIVE" },
+      ],
+    },
+    {
+      id: 9,
+      title: t('pdh.s9.title'),
+      text: t('pdh.s9.text'),
+      image: "/images/presentation/scene_09.png",
+      accent: "#A855F7",
+      type: "ecosystem",
+      chips: [
+        { text: t('pdh.s9.c1'), intent: "ECO_CONNECTION" },
+        { text: t('pdh.s9.c2'), intent: "ECO_PARTNER_VALUE" },
+      ],
+    },
+    {
+      id: 10,
+      title: t('pdh.s10.title'),
+      text: t('pdh.s10.text'),
+      image: "/images/presentation/scene_10.png",
+      accent: "#7C3AED",
+      type: "standard",
+      chips: [],
+    },
+  ];
 }
-
-const slides: Slide[] = [
-  {
-    id: 1,
-    title: "Реальность",
-    text: "Рынок финансов растёт.\nИнтерес к пассивному доходу растёт.\n\nНо большинство людей не зарабатывает системно.\n\nПочему?",
-    image: "/images/presentation/scene_01.png",
-    accent: "#7C3AED",
-    type: "standard",
-    chips: [
-      { text: "Почему большинство не зарабатывает?", intent: "REALITY_WHY" },
-      { text: "Какие ошибки делают новички?", intent: "REALITY_MISTAKES" },
-    ],
-  },
-  {
-    id: 2,
-    title: "Диагноз",
-    text: "Проблема не в людях. Проблема в модели.\n\nОбычно всё строится на одном сильном лидере, обещаниях и отсутствии системы дубликации.\n\nБез структуры масштаб невозможен.",
-    image: "/images/presentation/scene_02.png",
-    accent: "#EF4444",
-    type: "standard",
-    chips: [
-      { text: "Почему модель держится на одном лидере?", intent: "DIAGNOSIS_LEADER" },
-      { text: "Что происходит, когда лидер уходит?", intent: "DIAGNOSIS_EXIT" },
-    ],
-  },
-  {
-    id: 3,
-    title: "Модель",
-    text: "JetUp — это не «ещё один проект».\n\nЭто соединение финансового продукта, партнёрской модели и инфраструктуры масштабирования в одной системе.",
-    image: "/images/presentation/scene_03.png",
-    accent: "#8B5CF6",
-    type: "standard",
-    chips: [
-      { text: "Почему важно соединение трёх элементов?", intent: "MODEL_THREE" },
-      { text: "Что ломается, если одного элемента нет?", intent: "MODEL_MISSING" },
-    ],
-  },
-  {
-    id: 4,
-    title: "Безопасность",
-    text: "Капитал остаётся на твоём личном аккаунте.\nВерификация на твоё имя.\nТы контролируешь ввод и вывод средств.\n\nКонтроль — у тебя, не у компании.",
-    image: "/images/presentation/scene_04.png",
-    accent: "#22C55E",
-    type: "standard",
-    interactiveType: "security-points",
-    interactiveItems: [
-      { label: "KYC", description: "Полная верификация на твоё имя. Аккаунт принадлежит только тебе.", color: "#22C55E" },
-      { label: "Personal Account", description: "Личный аккаунт у лицензированного брокера. Без посредников.", color: "#3B82F6" },
-      { label: "Withdraw Control", description: "Только ты контролируешь вывод средств. Без ограничений.", color: "#F59E0B" },
-    ],
-    chips: [
-      { text: "Где именно хранится капитал?", intent: "SAFETY_CAPITAL" },
-      { text: "Кто принимает решение о выводе?", intent: "SAFETY_WITHDRAW" },
-    ],
-  },
-  {
-    id: 5,
-    title: "Гибкость",
-    text: "Нет жёсткой заморозки.\nТы выбираешь стратегию.\nТы можешь менять решения.\n\nЭто управляемая модель.",
-    image: "/images/presentation/scene_05.png",
-    accent: "#F59E0B",
-    type: "standard",
-    interactiveType: "strategy-cards",
-    interactiveItems: [
-      { label: "Conservative", description: "Минимальный риск, стабильный доход. Подходит для начинающих.", color: "#22C55E" },
-      { label: "Balanced", description: "Оптимальный баланс риска и доходности. Самый популярный выбор.", color: "#3B82F6" },
-      { label: "Aggressive", description: "Максимальная доходность при повышенном риске.", color: "#EF4444" },
-    ],
-    chips: [
-      { text: "Можно ли поменять стратегию?", intent: "FLEXIBILITY_CHANGE" },
-      { text: "Можно ли остановить в любой момент?", intent: "FLEXIBILITY_STOP" },
-    ],
-  },
-  {
-    id: 6,
-    title: "Рентабельность",
-    text: "Мы не строим модель на агрессивных обещаниях.\n\nСистема ориентирована на устойчивость, а не на краткосрочные всплески.\n\nРеалистичный подход сильнее хайпа.",
-    image: "/images/presentation/scene_06.png",
-    accent: "#10B981",
-    type: "standard",
-    interactiveType: "graph-points",
-    interactiveItems: [
-      { label: "Market Cycles", description: "Система адаптируется к рыночным циклам, не завися от одного направления.", color: "#3B82F6" },
-      { label: "Risk Management", description: "Встроенное управление рисками ограничивает потери и защищает капитал.", color: "#22C55E" },
-      { label: "Strategy", description: "Долгосрочная стратегия, основанная на данных, а не на эмоциях.", color: "#F59E0B" },
-    ],
-    chips: [
-      { text: "Почему вы не обещаете «иксы»?", intent: "PROFIT_NO_HYPE" },
-      { text: "Что значит устойчивый подход?", intent: "PROFIT_SUSTAINABLE" },
-    ],
-  },
-  {
-    id: 7,
-    title: "Масштаб",
-    text: "Даже лучший продукт не масштабируется сам.\n\nПартнёру нужна система, которая позволяет дублицировать действия.\n\nБез инфраструктуры масштаб остаётся идеей.",
-    image: "/images/presentation/scene_07.png",
-    accent: "#F97316",
-    type: "standard",
-    chips: [
-      { text: "Что такое «дубликация» на практике?", intent: "SCALE_DUPLICATION" },
-      { text: "Почему продукт сам не масштабируется?", intent: "SCALE_WHY" },
-    ],
-  },
-  {
-    id: 8,
-    title: "AI-инфраструктура",
-    text: "Каждый партнёр получает цифровую систему:\nAI-чат, интерактивную мини-презентацию, квалификацию лидов и поддержку 24/7.\n\nСистема работает за тебя, пока ты спишь.\nОна презентует, объясняет и фильтрует интерес.\n\nЭто позволяет дублицировать себя.",
-    image: "/images/presentation/scene_08.png",
-    accent: "#E88FEC",
-    type: "standard",
-    interactiveType: "ai-nodes",
-    interactiveItems: [
-      { label: "AI Chat", description: "Умный чат-бот отвечает на вопросы клиентов 24/7 от имени партнёра.", color: "#A855F7" },
-      { label: "Mini Presentation", description: "Интерактивная презентация системы — клиент изучает всё сам.", color: "#3B82F6" },
-      { label: "Lead Qualification", description: "AI квалифицирует интерес и передаёт только горячие лиды.", color: "#22C55E" },
-      { label: "24/7 Support", description: "Автоматическая поддержка работает без перерывов и выходных.", color: "#F59E0B" },
-    ],
-    chips: [
-      { text: "Что AI делает вместо партнёра?", intent: "AI_REPLACE" },
-      { text: "Как AI квалифицирует людей?", intent: "AI_QUALIFY" },
-      { text: "Как это выглядит вживую?", intent: "AI_LIVE" },
-    ],
-  },
-  {
-    id: 9,
-    title: "Экосистема JetUP",
-    text: "Единая инфраструктура: брокер, биржа, карта, AI-система и партнёрская сеть — всё связано в одну экосистему.",
-    image: "/images/presentation/scene_09.png",
-    accent: "#A855F7",
-    type: "ecosystem",
-    chips: [
-      { text: "Как всё связано между собой?", intent: "ECO_CONNECTION" },
-      { text: "Что даёт экосистема партнёру?", intent: "ECO_PARTNER_VALUE" },
-    ],
-  },
-  {
-    id: 10,
-    title: "Выбор",
-    text: "Ты можешь просто изучать информацию.\n\nИли выстроить стратегию правильно с первого шага.\n\nЯ помогу определить формат участия под твой опыт и цели.",
-    image: "/images/presentation/scene_10.png",
-    accent: "#7C3AED",
-    type: "standard",
-    chips: [],
-  },
-];
 
 const SecurityPoints: React.FC<{ items: InteractiveItem[]; onSelect: (item: InteractiveItem) => void }> = ({ items, onSelect }) => (
   <motion.div
@@ -383,6 +330,64 @@ const MicroInfoCard: React.FC<{ item: InteractiveItem; onClose: () => void }> = 
     document.body
   );
 
+async function streamDennisChat(
+  chatHistory: { role: string; content: string }[],
+  onChunk: (text: string) => void,
+  onDone: (fullText: string) => void,
+  onError: (err: string) => void,
+  errorMsg: string,
+  connErrorMsg: string,
+) {
+  try {
+    const res = await fetch("/api/partner/dennis/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: chatHistory }),
+    });
+
+    if (!res.ok || !res.body) {
+      onError(errorMsg);
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let fullText = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.content) {
+            fullText += data.content;
+            onChunk(fullText);
+          }
+          if (data.done) {
+            onDone(data.fullContent || fullText);
+            return;
+          }
+          if (data.error) {
+            onError(data.error);
+            return;
+          }
+        } catch {}
+      }
+    }
+    onDone(fullText);
+  } catch {
+    onError(connErrorMsg);
+  }
+}
+
 const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   onBackToChat,
   onShowEcosystem,
@@ -390,6 +395,9 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   addMessage,
   updateMessage,
 }) => {
+  const { t } = useLanguage();
+  const slides = useMemo(() => buildSlides(t), [t]);
+
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
   const [showToc, setShowToc] = useState(false);
@@ -419,14 +427,14 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
       });
     }
     if (slideContext) {
-      const ctx = `[Контекст: пользователь смотрит слайд "${slideContext.title}". Содержание: "${slideContext.text}". Ответь на вопрос, опираясь именно на контекст этого слайда. После ответа мягко предложи продолжить презентацию или записаться на созвон.]`;
+      const ctx = `[${t('pdh.slideContext')} "${slideContext.title}". ${slideContext.text}. ${t('pdh.slideContextSuffix')}]`;
       history.push({ role: "system", content: ctx });
     }
     if (extraUserMsg) {
       history.push({ role: "user", content: extraUserMsg });
     }
     return history;
-  }, [messages]);
+  }, [messages, t]);
 
   const goTo = useCallback((index: number, dir?: number) => {
     const clamped = Math.max(0, Math.min(index, slides.length - 1));
@@ -434,11 +442,11 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
     setCurrent(clamped);
     setShowToc(false);
     setActiveInteractiveItem(null);
-  }, [current]);
+  }, [current, slides.length]);
 
   const handleNext = useCallback(() => {
     if (current < slides.length - 1) goTo(current + 1, 1);
-  }, [current, goTo]);
+  }, [current, goTo, slides.length]);
 
   const handlePrev = useCallback(() => {
     if (current > 0) goTo(current - 1, -1);
@@ -462,12 +470,14 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
         if (openChatAfter) setChatOpen(true);
       },
       (error) => {
-        updateMessage(aiMsgId, `Ошибка: ${error}`);
+        updateMessage(aiMsgId, `${t('pdh.errorShort')}${error}`);
         setIsStreaming(false);
         if (openChatAfter) setChatOpen(true);
       },
+      t('pdh.errorResponse'),
+      t('pdh.errorConnection'),
     );
-  }, [addMessage, updateMessage, buildChatHistory]);
+  }, [addMessage, updateMessage, buildChatHistory, t]);
 
   const handleChipClick = useCallback((chip: Chip) => {
     if (isStreaming) return;
@@ -670,7 +680,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                   style={{ background: `${slide.accent}25`, borderColor: `${slide.accent}40` }}
                   data-testid="btn-next-slide"
                 >
-                  Далее
+                  {t('pdh.next')}
                   <ChevronRight size={20} />
                 </button>
               ) : (
@@ -682,19 +692,19 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
               <div className="pres-final-actions">
                 <button className="ph-btn-primary" data-testid="btn-schedule-call">
                   <Video size={18} />
-                  Записаться на звонок
+                  {t('pdh.scheduleCall')}
                 </button>
                 <button className="ph-btn-glass" data-testid="btn-start-link">
                   <Link size={18} />
-                  Начать по моей ссылке
+                  {t('pdh.startLink')}
                 </button>
                 <button className="ph-btn-glass" onClick={() => setChatOpen(true)} data-testid="btn-ask-dennis">
                   <MessageSquare size={18} />
-                  Перейти в Telegram
+                  {t('pdh.goTelegram')}
                 </button>
                 <button className="ph-btn-outline" onClick={onShowEcosystem} data-testid="btn-show-ecosystem">
                   <Globe size={18} />
-                  Посмотреть полный обзор экосистемы
+                  {t('pdh.viewEcosystem')}
                 </button>
               </div>
             )}
@@ -720,7 +730,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
             >
               <div className="pres-toc-header">
-                <span>Оглавление</span>
+                <span>{t('pdh.toc')}</span>
                 <button className="pres-close-btn-small" onClick={() => setShowToc(false)}>
                   <X size={16} />
                 </button>
@@ -799,7 +809,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                 <input
                   type="text"
                   className="ph-chat-input"
-                  placeholder="Напиши сообщение..."
+                  placeholder={t('pdh.chatPlaceholder')}
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => {

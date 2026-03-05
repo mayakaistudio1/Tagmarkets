@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { X, Send, Sparkles } from "lucide-react";
 import type { SharedMessage } from "../PartnerDigitalHub";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface ChatOverlayProps {
   onClose: () => void;
@@ -12,18 +13,13 @@ interface ChatOverlayProps {
   updateMessage: (id: number, text: string) => void;
 }
 
-const QUICK_REPLIES = [
-  "Пассивный доход",
-  "Партнёрская программа",
-  "Безопасность",
-  "Как начать",
-];
-
 async function streamDennisChat(
   chatHistory: { role: string; content: string }[],
   onChunk: (text: string) => void,
   onDone: (fullText: string) => void,
   onError: (err: string) => void,
+  errorMsg: string,
+  connErrorMsg: string,
 ) {
   try {
     const res = await fetch("/api/partner/dennis/chat", {
@@ -33,7 +29,7 @@ async function streamDennisChat(
     });
 
     if (!res.ok || !res.body) {
-      onError("Не удалось получить ответ");
+      onError(errorMsg);
       return;
     }
 
@@ -71,7 +67,7 @@ async function streamDennisChat(
     }
     onDone(fullText);
   } catch {
-    onError("Ошибка соединения");
+    onError(connErrorMsg);
   }
 }
 
@@ -83,6 +79,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
   addMessage,
   updateMessage,
 }) => {
+  const { t } = useLanguage();
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [userMessageCount, setUserMessageCount] = useState(0);
@@ -90,17 +87,19 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
   const [presentationOffered, setPresentationOffered] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const quickReplies = [t('pdh.qr1'), t('pdh.qr2'), t('pdh.qr3'), t('pdh.qr4')];
+
   useEffect(() => {
     if (presentationWatched && !followUpSent) {
       setFollowUpSent(true);
       setTimeout(() => {
         addMessage({
-          text: "Что из этого откликнулось больше всего? Давай разберём твой кейс лично.",
+          text: t('pdh.followUp'),
           sender: "ai",
         });
       }, 600);
     }
-  }, [presentationWatched, followUpSent, addMessage]);
+  }, [presentationWatched, followUpSent, addMessage, t]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -110,22 +109,18 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
 
   const handleStartExploration = useCallback(() => {
     addMessage({
-      text: "Начать исследование системы",
+      text: t('pdh.startExploration'),
       sender: "user",
     });
 
     const aiMsgId = addMessage({ text: "...", sender: "ai" });
     
-    // Immediate response per TZ
-    const responseText = "Отлично.\n\nПокажу систему JetUP за пару минут.\n\nЛистай слайды и нажимай вопросы, если хочешь разобраться глубже.";
-    
-    // Simulate typing/streaming effect slightly or just set it
-    updateMessage(aiMsgId, responseText);
+    updateMessage(aiMsgId, t('pdh.explorationResponse'));
     
     setTimeout(() => {
       onTriggerPresentation();
     }, 1500);
-  }, [addMessage, updateMessage, onTriggerPresentation]);
+  }, [addMessage, updateMessage, onTriggerPresentation, t]);
 
   const buildChatHistory = useCallback((extraUserMsg?: string) => {
     const history: { role: string; content: string }[] = [];
@@ -161,11 +156,13 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
         setIsStreaming(false);
       },
       (error) => {
-        updateMessage(aiMsgId, `Извини, произошла ошибка: ${error}`);
+        updateMessage(aiMsgId, `${t('pdh.errorPrefix')}${error}`);
         setIsStreaming(false);
       },
+      t('pdh.errorResponse'),
+      t('pdh.errorConnection'),
     );
-  }, [addMessage, updateMessage, buildChatHistory, userMessageCount, presentationOffered]);
+  }, [addMessage, updateMessage, buildChatHistory, userMessageCount, presentationOffered, t]);
 
   const handleQuickReply = (reply: string) => {
     sendToAI(reply);
@@ -235,7 +232,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
                   data-testid="btn-open-presentation"
                 >
                   <Sparkles size={16} />
-                  Открыть презентацию
+                  {t('pdh.openPresentation')}
                 </button>
               )}
             </div>
@@ -249,9 +246,9 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
             data-testid="btn-start-exploration"
           >
             <Sparkles size={14} />
-            Начать исследование системы
+            {t('pdh.startExploration')}
           </button>
-          {userMessageCount === 0 && QUICK_REPLIES.map((reply) => (
+          {userMessageCount === 0 && quickReplies.map((reply) => (
             <button
               key={reply}
               className="ph-quick-chip"
@@ -267,7 +264,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({
           <input
             type="text"
             className="ph-chat-input"
-            placeholder="Напиши сообщение..."
+            placeholder={t('pdh.chatPlaceholder')}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}

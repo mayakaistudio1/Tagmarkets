@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useRef } from "react";
-import { AnimatePresence } from "framer-motion";
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useLocation } from "wouter";
 import HeroSection from "./partner/HeroSection";
 import ChatOverlay from "./partner/ChatOverlay";
 import PresentationOverlay from "./partner/PresentationOverlay";
 import EcosystemOverlay from "./partner/EcosystemOverlay";
+import { useLanguage, type Language } from "../contexts/LanguageContext";
 
 export interface SharedMessage {
   id: number;
@@ -15,8 +16,15 @@ export interface SharedMessage {
 
 type AppState = "HERO" | "CHAT_OVERLAY" | "PRESENTATION_OVERLAY" | "ECOSYSTEM_OVERLAY";
 
+const LANG_FLAGS: Record<Language, string> = {
+  ru: "🇷🇺",
+  de: "🇩🇪",
+  en: "🇬🇧",
+};
+
 const PartnerDigitalHub: React.FC = () => {
   const [, setLocation] = useLocation();
+  const { language, setLanguage, t } = useLanguage();
   const [state, setState] = useState<AppState>("HERO");
   const [presentationWatched, setPresentationWatched] = useState(false);
   const nextId = useRef(2);
@@ -24,10 +32,19 @@ const PartnerDigitalHub: React.FC = () => {
   const [messages, setMessages] = useState<SharedMessage[]>([
     {
       id: 1,
-      text: "Привет! Я — AI-копия Денниса.\n\nМогу за пару минут показать, как устроена система JetUP, или ответить на любой вопрос.\n\nЧто тебе сейчас интереснее?",
+      text: t('pdh.firstMessage'),
       sender: "ai",
     },
   ]);
+
+  useEffect(() => {
+    setMessages([{
+      id: 1,
+      text: t('pdh.firstMessage'),
+      sender: "ai",
+    }]);
+    nextId.current = 2;
+  }, [language, t]);
 
   const addMessage = useCallback((msg: Omit<SharedMessage, "id">) => {
     const id = nextId.current++;
@@ -56,6 +73,20 @@ const PartnerDigitalHub: React.FC = () => {
 
   return (
     <div className="ph-root">
+      <div className="pdh-lang-selector" data-testid="pdh-lang-selector">
+        {(["de", "ru", "en"] as Language[]).map((lang) => (
+          <button
+            key={lang}
+            className={`pdh-lang-btn ${language === lang ? "pdh-lang-active" : ""}`}
+            onClick={() => setLanguage(lang)}
+            data-testid={`pdh-lang-${lang}`}
+          >
+            <span className="pdh-lang-flag">{LANG_FLAGS[lang]}</span>
+            <span className="pdh-lang-code">{lang.toUpperCase()}</span>
+          </button>
+        ))}
+      </div>
+
       <HeroSection
         onOpenChat={openChat}
         onOpenLive={openLive}

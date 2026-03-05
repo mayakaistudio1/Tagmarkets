@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Video, MessageSquare } from "lucide-react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface HeroSectionProps {
   onOpenChat: () => void;
@@ -9,6 +10,8 @@ interface HeroSectionProps {
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ onOpenChat, onOpenLive, dimmed }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="ph-hero">
       <div className="ph-hero-bg">
@@ -28,9 +31,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onOpenChat, onOpenLive, dimme
         className="ph-hero-content"
       >
         <h1 className="ph-hero-name" data-testid="text-partner-name">Dennis</h1>
-        <p className="ph-hero-role" data-testid="text-partner-role">Founder JetUP</p>
+        <p className="ph-hero-role" data-testid="text-partner-role">{t('pdh.role')}</p>
         <p className="ph-hero-tagline">
-          Financial products · Partner system · AI infrastructure
+          {t('pdh.tagline')}
         </p>
 
         <div className="ph-hero-btns">
@@ -40,7 +43,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onOpenChat, onOpenLive, dimme
             data-testid="btn-live-call"
           >
             <Video size={18} />
-            Общаться вживую
+            {t('pdh.btnLive')}
           </button>
           <button
             className="ph-btn-glass"
@@ -48,7 +51,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onOpenChat, onOpenLive, dimme
             data-testid="btn-open-chat"
           >
             <MessageSquare size={18} />
-            Написать AI-Денису
+            {t('pdh.btnChat')}
           </button>
         </div>
       </motion.div>

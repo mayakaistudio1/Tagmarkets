@@ -301,9 +301,9 @@ const translations: Record<Language, Record<string, string>> = {
     'pdh.explored.ecosystem': 'Экосистема',
     'pdh.explored.incentives': 'Мотивация',
     'pdh.insight.s3': 'Большинство партнёров пытаются масштабировать продукт. Я масштабирую систему.',
-    'pdh.insight.s5': 'Гибкость — это не слабость. Это возможность адаптироваться к любой ситуации.',
-    'pdh.insight.s6': 'Устойчивый рост всегда побеждает агрессивные обещания.',
-    'pdh.insight.s8': 'AI — не замена партнёру. AI — это мультипликатор его эффективности.',
+    'pdh.insight.s5': 'Для меня главное — контроль и прозрачность. Тогда масштаб становится безопасным.',
+    'pdh.insight.s6': 'Люди устают от хаоса. Они выбирают инфраструктуру, где всё на одном месте.',
+    'pdh.insight.s8': 'AI не заменяет партнёра. Он убирает рутину и оставляет только сильные контакты.',
     'pdh.dennisInsight': 'Dennis insight',
     'pdh.withoutAI': 'Без AI',
     'pdh.withAI': 'С AI',
@@ -616,9 +616,9 @@ const translations: Record<Language, Record<string, string>> = {
     'pdh.explored.ecosystem': 'Ökosystem',
     'pdh.explored.incentives': 'Anreize',
     'pdh.insight.s3': 'Die meisten Partner versuchen ein Produkt zu skalieren. Ich skaliere ein System.',
-    'pdh.insight.s5': 'Flexibilität ist keine Schwäche. Es ist die Fähigkeit, sich anzupassen.',
-    'pdh.insight.s6': 'Nachhaltiges Wachstum schlägt immer aggressive Versprechen.',
-    'pdh.insight.s8': 'AI ersetzt nicht den Partner. AI ist ein Multiplikator seiner Effizienz.',
+    'pdh.insight.s5': 'Für mich zählen Kontrolle und Transparenz. So bleibt Skalierung sicher.',
+    'pdh.insight.s6': 'Menschen sind vom Chaos müde. Sie wählen Infrastruktur, die alles verbindet.',
+    'pdh.insight.s8': 'AI ersetzt den Partner nicht. Es entfernt Routine und lässt starke Gespräche übrig.',
     'pdh.dennisInsight': 'Dennis insight',
     'pdh.withoutAI': 'Ohne AI',
     'pdh.withAI': 'Mit AI',
@@ -934,9 +934,9 @@ const translations: Record<Language, Record<string, string>> = {
     'pdh.explored.ecosystem': 'Ecosystem',
     'pdh.explored.incentives': 'Incentives',
     'pdh.insight.s3': 'Most partners try to scale a product. I scale a system.',
-    'pdh.insight.s5': 'Flexibility is not weakness. It\'s the ability to adapt to any situation.',
-    'pdh.insight.s6': 'Sustainable growth always beats aggressive promises.',
-    'pdh.insight.s8': 'AI doesn\'t replace the partner. AI is a multiplier of their efficiency.',
+    'pdh.insight.s5': 'For me, control and transparency come first. That\'s how scaling stays safe.',
+    'pdh.insight.s6': 'People get tired of chaos. They choose infrastructure where everything is connected.',
+    'pdh.insight.s8': 'AI doesn\'t replace the partner. It removes routine and leaves only strong conversations.',
     'pdh.dennisInsight': 'Dennis insight',
     'pdh.withoutAI': 'Without AI',
     'pdh.withAI': 'With AI',
@@ -967,7 +967,7 @@ const translations: Record<Language, Record<string, string>> = {
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem('app-language');
-    return (saved === 'ru' || saved === 'de' || saved === 'en') ? saved as Language : 'de';
+    return (saved === 'ru' || saved === 'de' || saved === 'en') ? saved as Language : 'ru';
   });
 
   useEffect(() => {
@@ -980,7 +980,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const t = (key: string): string => {
-    return translations[language][key] || translations['de'][key] || key;
+    return translations[language][key] || translations['ru'][key] || key;
   };
 
   return (

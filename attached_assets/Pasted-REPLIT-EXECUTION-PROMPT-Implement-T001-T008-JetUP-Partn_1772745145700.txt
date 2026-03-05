@@ -1,0 +1,265 @@
+REPLIT EXECUTION PROMPT — Implement T001–T008 (JetUP Partner Presentation WOW Upgrades)
+
+You are working inside an existing JetUP Partner Digital Hub codebase.
+DO NOT refactor the whole app. DO NOT change routing architecture.
+Implement the tasks exactly as specified (T001–T008) with minimal, safe changes.
+
+GLOBAL RULES
+1) Keep existing slide flow and current UI working. Only ADD features.
+2) All new features must be controlled by activeSlideIndex and/or overlays.
+3) Use existing LanguageContext for all texts (RU/EN/DE). No hardcoded-only language.
+4) Animations: CSS transitions + Framer Motion only. No heavy new libraries.
+5) Mobile-first: everything must look good on a phone viewport.
+6) After each task, verify no console errors and the app still builds.
+
+FILES TO TOUCH (only when needed)
+- client/src/pages/partner/PresentationOverlay.tsx
+- client/src/pages/partner/EcosystemMapSlide.tsx
+- client/src/pages/PartnerDigitalHub.tsx
+- client/src/pdh-v3.css
+(If you create new components: put in client/src/pages/partner/components/*)
+
+IMPLEMENTATION ORDER (STRICT)
+1) T001 Enhanced Progress Bar with Context Labels
+2) T002 Dennis Insights — Personal Quotes on Slides
+3) T003 + T004 + T005 (ALL Slide 8 improvements in one pass)
+4) T006 Enhanced Ecosystem Map with Zoom Animations
+5) T007 Explore Mode — Interactive JetUP Map (depends on T006)
+6) T008 JetUP Engine — Final WOW Slide
+
+========================================================
+T001: Enhanced Progress Bar with Context Labels
+Goal:
+Replace simple progress bar with exploration progress indicator:
+- Show: “You explored 70% of the system”
+- Show: “Next: AI Infrastructure” below progress bar
+- Smooth animation on progress transitions
+
+Implementation notes:
+- Compute percent based on slides length:
+  percent = Math.round(((activeSlideIndex + 1) / totalSlides) * 100)
+- Compute next label:
+  if activeSlideIndex < totalSlides - 1, nextTitle = slides[activeSlideIndex + 1].title[lang]
+  else nextTitle = localized “End”
+- Animate width via CSS transition; text fade/slide via Framer Motion.
+Files:
+- PresentationOverlay.tsx, pdh-v3.css
+Acceptance:
+- Shows percent + next label, animates smoothly.
+
+========================================================
+T002: Dennis Insights — Personal Quotes on Slides
+Goal:
+Add a “Dennis insight” small card on slides 3, 5, 6, 8.
+Card includes:
+- Dennis avatar (use existing image if available; else fallback to initials circle “D”)
+- Quote in first person
+- Localized RU/EN/DE via LanguageContext
+- Subtle fade-in with slight delay after slide appears
+
+Implementation notes:
+- Add mapping by slide index:
+  const dennisInsights: Record<number, {ru:string; en:string; de:string}> = {
+    3: {...}, 5: {...}, 6: {...}, 8: {...}
+  }
+- Example quotes (adjust if you already have brand text):
+  Slide 3:
+    RU: “Большинство партнёров пытаются масштабировать продукт. Я масштабирую систему.”
+    EN: “Most partners try to scale a product. I scale a system.”
+    DE: “Die meisten Partner skalieren ein Produkt. Ich skaliere ein System.”
+  Slide 5:
+    RU: “Для меня главное — контроль и прозрачность. Тогда масштаб становится безопасным.”
+    EN: “For me, control and transparency come first. That’s how scaling stays safe.”
+    DE: “Für mich zählen Kontrolle und Transparenz. So bleibt Skalierung sicher.”
+  Slide 6:
+    RU: “Люди устают от хаоса. Они выбирают инфраструктуру, где всё на одном месте.”
+    EN: “People get tired of chaos. They choose infrastructure where everything is connected.”
+    DE: “Menschen sind vom Chaos müde. Sie wählen Infrastruktur, die alles verbindet.”
+  Slide 8:
+    RU: “AI не заменяет партнёра. Он убирает рутину и оставляет только сильные контакты.”
+    EN: “AI doesn’t replace the partner. It removes routine and leaves only strong conversations.”
+    DE: “AI ersetzt den Partner nicht. Es entfernt Routine und lässt starke Gespräche übrig.”
+- Render only if dennisInsights[activeSlideIndex] exists.
+- Framer Motion: initial opacity 0, y 8; animate to opacity 1, y 0; transition delay ~0.35s.
+Files:
+- PresentationOverlay.tsx, pdh-v3.css
+Acceptance:
+- Insight cards appear on slides 3/5/6/8, localized, with animation.
+
+========================================================
+T003: "With/Without AI" Interactive Comparison (Slide 8)
+Goal:
+On slide 8, add toggle/button: “What happens without AI?”
+Two states WITH/WITHOUT AI showing comparison:
+WITHOUT AI:
+- Partner answers messages
+- Partner does calls
+- Partner explains presentation
+- Partner repeats answers
+WITH AI:
+- AI answers
+- AI qualifies
+- AI explains
+- Partner talks only to serious leads
+Animated transition between states.
+
+Implementation notes:
+- Keep layout stable. Use a single container; switch list content with AnimatePresence.
+- Add state: const [aiCompareMode, setAiCompareMode] = useState<"with"|"without">("with")
+- Toggle UI should be clearly clickable; show active state highlight.
+Files:
+- PresentationOverlay.tsx, pdh-v3.css
+Acceptance:
+- Toggle on slide 8 switches states with animation.
+
+========================================================
+T004: Live AI Demo Button on AI Slide (Slide 8)
+Goal:
+Add “Try Dennis AI” button on slide 8.
+On click opens ChatOverlay with pre-filled suggestions:
+- “How much can I earn?”
+- “How does copy trading work?”
+- “Can I start with $500?”
+Use existing chat infrastructure (ChatOverlay + streaming).
+
+Implementation notes:
+- Implement in PartnerDigitalHub.tsx:
+  add state: chatOpen, chatPrefill, chatSuggestions
+  pass them as props to ChatOverlay.
+- In PresentationOverlay.tsx slide 8:
+  button onClick:
+    setChatOpen(true)
+    setChatPrefill("Question about: AI Infrastructure")
+    setChatSuggestions([ ...localized suggestions RU/EN/DE ])
+- Ensure ChatOverlay renders suggestion chips/buttons above input; clicking a suggestion sends it or fills input.
+Files:
+- PresentationOverlay.tsx, PartnerDigitalHub.tsx
+Acceptance:
+- Button opens chat overlay with contextual suggestions; suggestions are clickable.
+
+Localization for suggestions:
+RU:
+- “Сколько можно заработать?”
+- “Как работает копитрейдинг?”
+- “Можно ли начать с пятисот долларов?”
+EN:
+- “How much can I earn?”
+- “How does copy trading work?”
+- “Can I start with five hundred dollars?”
+DE:
+- “Wie viel kann ich verdienen?”
+- “Wie funktioniert Copy Trading?”
+- “Kann ich mit fünfhundert Dollar starten?”
+
+(Use words not digits if your UI requires that; otherwise keep as written.)
+
+========================================================
+T005: Live Simulation — AI Pipeline Animation (Auto-play on Slide 8)
+Goal:
+Animated visualization of funnel steps:
+1 Visitor arrives (user icon)
+2 AI starts conversation (chat bubble)
+3 Lead qualification (checkmark/filter)
+4 Meeting booking (calendar)
+Auto-plays when slide 8 is active.
+Sequential animation with connecting lines between steps.
+
+Implementation notes:
+- Build a small component inside PresentationOverlay.tsx: <AIPipeline />
+- Use state step=0..4 and a timer:
+  when activeSlideIndex===8 -> reset step to 0 then increment every 700–900ms
+- Render four step cards horizontally (or vertical on mobile) with:
+  - icon (use existing icon set or simple inline SVG)
+  - label localized RU/EN/DE
+  - active highlight on current step
+- Connecting lines: simple divs between cards with glow; active line pulses.
+Files:
+- PresentationOverlay.tsx, pdh-v3.css
+Acceptance:
+- Pipeline auto-plays on slide 8, sequentially highlights steps and lines.
+
+========================================================
+T006: Enhanced Ecosystem Map with Zoom Animations (EcosystemMapSlide)
+Goal:
+Improve EcosystemMapSlide:
+- Clicking a planet triggers zoom-in effect (not just popup)
+- Connecting lines pulse/highlight when node selected
+- Subtle orbital floating animation to satellite nodes
+- Keep existing functionality (info cards, Ask Dennis buttons)
+
+Implementation notes:
+- Add selectedId state if not present.
+- Zoom effect:
+  apply a transform on the map container when selectedId exists:
+    scale(1.03–1.06) + slight translate to bring selection to focus (simple acceptable)
+  add background blur/dim for non-selected nodes.
+- Orbital motion:
+  CSS keyframes float/orbit with different durations and delays for each node.
+- Line highlight:
+  selected lines get “pulse” class (glow animation).
+Files:
+- EcosystemMapSlide.tsx, pdh-v3.css
+Acceptance:
+- Nodes float subtly; selecting node triggers zoom + line highlight; existing popups/buttons still work.
+
+========================================================
+T007: Explore Mode — Interactive JetUP Map (depends on T006)
+Goal:
+Add an “Explore the System” button (first slide or ToC).
+Opens fullscreen JetUP Map overlay with nodes:
+- Trading
+- AI
+- Partner System
+- Ecosystem
+- Incentives
+Clicking node jumps to relevant slide(s).
+Explored nodes visually marked.
+
+Implementation notes:
+- Implement as fullscreen overlay inside PresentationOverlay.tsx (no routing change).
+- Add state: exploreOpen boolean
+- Add visitedAreas in state + localStorage (e.g. "jetup_explored_areas")
+- Node -> setActiveSlideIndex(target) + mark visited + close overlay
+- Suggest target slide mapping (adjust to actual deck):
+  Trading -> slide 4 or trading-related
+  AI -> slide 8
+  Partner System -> slide 7 or partner program
+  Ecosystem -> slide 9
+  Incentives -> slide 10 or incentives slide if exists
+- Overlay UI:
+  close button
+  “Explored X/5” label
+  nodes show visited checkmark or glow ring
+Files:
+- PresentationOverlay.tsx, EcosystemMapSlide.tsx (reuse styles if helpful), pdh-v3.css
+Acceptance:
+- Explore button opens map; nodes clickable and jump to slides; explored nodes marked.
+
+========================================================
+T008: JetUP Engine — Final WOW Slide (Slide 10)
+Goal:
+Enhance final slide with “THE JETUP ENGINE” animation:
+Products appear -> AI Infrastructure appear -> Partner System appear -> final “Scaling Engine” reveal with glow.
+Creates feeling: not MLM — a scaling system.
+
+Implementation notes:
+- On slide 10 active: run a step animation:
+  step 1 show Products block
+  step 2 show AI block
+  step 3 show Partner System block
+  step 4 show “= Scaling Engine” with glow + subtle particle shimmer
+- Use Framer Motion staggerChildren or step-based rendering with AnimatePresence.
+Files:
+- PresentationOverlay.tsx, pdh-v3.css
+Acceptance:
+- Final slide shows sequential reveals and final glow reveal.
+
+========================================================
+FINAL CHECKLIST BEFORE YOU FINISH
+- Run through all slides on mobile width and desktop width.
+- RU/EN/DE toggle: Dennis insights and slide 8 texts must localize.
+- Chat overlay opens from “Try Dennis AI” and shows clickable suggestions.
+- Explore overlay opens and jumps to slides, visited marks persist (localStorage).
+- No console errors.
+
+Deliver the working implementation with clean, minimal changes.

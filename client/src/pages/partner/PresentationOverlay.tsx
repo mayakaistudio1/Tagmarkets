@@ -542,16 +542,6 @@ const SLIDE_FACTS: Record<number, FactItem[]> = {
     { id: 'f2_1', titleKey: 'pdh.fact.2.1.t', descKey: 'pdh.fact.2.1.d' },
     { id: 'f2_2', titleKey: 'pdh.fact.2.2.t', descKey: 'pdh.fact.2.2.d' },
   ],
-  5: [
-    { id: 'f5_1', titleKey: 'pdh.fact.5.1.t', descKey: 'pdh.fact.5.1.d' },
-    { id: 'f5_2', titleKey: 'pdh.fact.5.2.t', descKey: 'pdh.fact.5.2.d' },
-    { id: 'f5_3', titleKey: 'pdh.fact.5.3.t', descKey: 'pdh.fact.5.3.d' },
-  ],
-  6: [
-    { id: 'f6_1', titleKey: 'pdh.fact.6.1.t', descKey: 'pdh.fact.6.1.d' },
-    { id: 'f6_2', titleKey: 'pdh.fact.6.2.t', descKey: 'pdh.fact.6.2.d' },
-    { id: 'f6_3', titleKey: 'pdh.fact.6.3.t', descKey: 'pdh.fact.6.3.d' },
-  ],
   7: [
     { id: 'f7_1', titleKey: 'pdh.fact.7.1.t', descKey: 'pdh.fact.7.1.d' },
     { id: 'f7_2', titleKey: 'pdh.fact.7.2.t', descKey: 'pdh.fact.7.2.d' },

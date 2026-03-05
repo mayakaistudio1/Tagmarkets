@@ -14,6 +14,15 @@ import {
   Shield,
   TrendingUp,
   Cpu,
+  Compass,
+  Zap,
+  User,
+  MessageCircle,
+  CheckCircle,
+  Calendar,
+  ToggleLeft,
+  ToggleRight,
+  Sparkles,
 } from "lucide-react";
 import type { SharedMessage } from "../PartnerDigitalHub";
 import FinancialBackground from "./FinancialBackground";
@@ -49,6 +58,7 @@ interface Slide {
   type: "standard" | "ecosystem";
   interactiveType?: "security-points" | "strategy-cards" | "graph-points" | "ai-nodes";
   interactiveItems?: InteractiveItem[];
+  insightKey?: string;
 }
 
 function buildSlides(t: (key: string) => string): Slide[] {
@@ -84,6 +94,7 @@ function buildSlides(t: (key: string) => string): Slide[] {
       image: "/images/presentation/scene_03.png",
       accent: "#8B5CF6",
       type: "standard",
+      insightKey: 'pdh.insight.s3',
       chips: [
         { text: t('pdh.s3.c1'), intent: "MODEL_THREE" },
         { text: t('pdh.s3.c2'), intent: "MODEL_MISSING" },
@@ -120,6 +131,7 @@ function buildSlides(t: (key: string) => string): Slide[] {
         { label: t('pdh.s5.i2.label'), description: t('pdh.s5.i2.desc'), color: "#3B82F6" },
         { label: t('pdh.s5.i3.label'), description: t('pdh.s5.i3.desc'), color: "#EF4444" },
       ],
+      insightKey: 'pdh.insight.s5',
       chips: [
         { text: t('pdh.s5.c1'), intent: "FLEXIBILITY_CHANGE" },
         { text: t('pdh.s5.c2'), intent: "FLEXIBILITY_STOP" },
@@ -138,6 +150,7 @@ function buildSlides(t: (key: string) => string): Slide[] {
         { label: t('pdh.s6.i2.label'), description: t('pdh.s6.i2.desc'), color: "#22C55E" },
         { label: t('pdh.s6.i3.label'), description: t('pdh.s6.i3.desc'), color: "#F59E0B" },
       ],
+      insightKey: 'pdh.insight.s6',
       chips: [
         { text: t('pdh.s6.c1'), intent: "PROFIT_NO_HYPE" },
         { text: t('pdh.s6.c2'), intent: "PROFIT_SUSTAINABLE" },
@@ -169,6 +182,7 @@ function buildSlides(t: (key: string) => string): Slide[] {
         { label: t('pdh.s8.i3.label'), description: t('pdh.s8.i3.desc'), color: "#22C55E" },
         { label: t('pdh.s8.i4.label'), description: t('pdh.s8.i4.desc'), color: "#F59E0B" },
       ],
+      insightKey: 'pdh.insight.s8',
       chips: [
         { text: t('pdh.s8.c1'), intent: "AI_REPLACE" },
         { text: t('pdh.s8.c2'), intent: "AI_QUALIFY" },
@@ -330,6 +344,255 @@ const MicroInfoCard: React.FC<{ item: InteractiveItem; onClose: () => void }> = 
     document.body
   );
 
+const DennisInsight: React.FC<{ insightKey: string; t: (key: string) => string }> = ({ insightKey, t }) => (
+  <motion.div
+    className="pres-insight"
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ delay: 0.8, duration: 0.5 }}
+    data-testid="dennis-insight"
+  >
+    <div className="pres-insight-avatar">
+      <img src="/dennis-photo.png" alt="Dennis" />
+    </div>
+    <div className="pres-insight-content">
+      <span className="pres-insight-label">{t('pdh.dennisInsight')}</span>
+      <p className="pres-insight-text">"{t(insightKey)}"</p>
+    </div>
+  </motion.div>
+);
+
+const AIComparison: React.FC<{ t: (key: string) => string }> = ({ t }) => {
+  const [showAI, setShowAI] = useState(false);
+  return (
+    <motion.div
+      className="pres-ai-compare"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.55, duration: 0.4 }}
+    >
+      <button
+        className={`pres-ai-toggle ${showAI ? 'pres-ai-toggle-on' : ''}`}
+        onClick={() => setShowAI(!showAI)}
+        data-testid="btn-ai-toggle"
+      >
+        {showAI ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+        {showAI ? t('pdh.withAI') : t('pdh.withoutAI')}
+      </button>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={showAI ? 'with' : 'without'}
+          className={`pres-ai-list ${showAI ? 'pres-ai-list-on' : 'pres-ai-list-off'}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.25 }}
+        >
+          {[1, 2, 3, 4].map((i) => (
+            <motion.div
+              key={i}
+              className="pres-ai-item"
+              initial={{ opacity: 0, x: showAI ? 15 : -15 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.08, duration: 0.25 }}
+            >
+              <span className={`pres-ai-item-dot ${showAI ? 'dot-green' : 'dot-red'}`} />
+              {t(showAI ? `pdh.withai.${i}` : `pdh.noai.${i}`)}
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
+const LivePipeline: React.FC<{ t: (key: string) => string; isActive: boolean }> = ({ t, isActive }) => {
+  const steps = [
+    { icon: User, key: 'pdh.pipeline.step1', color: '#7C3AED' },
+    { icon: MessageCircle, key: 'pdh.pipeline.step2', color: '#3B82F6' },
+    { icon: CheckCircle, key: 'pdh.pipeline.step3', color: '#F59E0B' },
+    { icon: Calendar, key: 'pdh.pipeline.step4', color: '#22C55E' },
+  ];
+
+  return (
+    <motion.div
+      className="pres-pipeline"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.6, duration: 0.4 }}
+    >
+      {steps.map((step, i) => (
+        <React.Fragment key={i}>
+          <motion.div
+            className="pres-pipeline-step"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={isActive ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+            transition={{ delay: 0.8 + i * 0.4, duration: 0.35, ease: "easeOut" }}
+          >
+            <div className="pres-pipeline-icon" style={{ background: `${step.color}25`, borderColor: `${step.color}50` }}>
+              <step.icon size={16} style={{ color: step.color }} />
+            </div>
+            <span className="pres-pipeline-label">{t(step.key)}</span>
+          </motion.div>
+          {i < steps.length - 1 && (
+            <motion.div
+              className="pres-pipeline-arrow"
+              initial={{ opacity: 0, scaleX: 0 }}
+              animate={isActive ? { opacity: 1, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
+              transition={{ delay: 1.0 + i * 0.4, duration: 0.3 }}
+            >
+              <ChevronRight size={14} />
+            </motion.div>
+          )}
+        </React.Fragment>
+      ))}
+    </motion.div>
+  );
+};
+
+const JetUPEngine: React.FC<{ t: (key: string) => string }> = ({ t }) => {
+  const parts = [
+    { key: 'pdh.engine.products', color: '#3B82F6', delay: 0.4 },
+    { key: 'pdh.engine.ai', color: '#A855F7', delay: 0.9 },
+    { key: 'pdh.engine.partners', color: '#22C55E', delay: 1.4 },
+  ];
+
+  return (
+    <motion.div
+      className="pres-engine"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.2, duration: 0.4 }}
+    >
+      <motion.h3
+        className="pres-engine-title"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        {t('pdh.engine.title')}
+      </motion.h3>
+      <div className="pres-engine-parts">
+        {parts.map((part, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && (
+              <motion.span
+                className="pres-engine-plus"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: part.delay - 0.2, duration: 0.3 }}
+              >+</motion.span>
+            )}
+            <motion.div
+              className="pres-engine-block"
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: part.delay, duration: 0.4, ease: "easeOut" }}
+              style={{ borderColor: `${part.color}50`, background: `${part.color}12` }}
+            >
+              <span className="pres-engine-dot" style={{ background: part.color }} />
+              {t(part.key)}
+            </motion.div>
+          </React.Fragment>
+        ))}
+      </div>
+      <motion.div
+        className="pres-engine-equals"
+        initial={{ opacity: 0, scaleX: 0 }}
+        animate={{ opacity: 1, scaleX: 1 }}
+        transition={{ delay: 1.9, duration: 0.3 }}
+      >=</motion.div>
+      <motion.div
+        className="pres-engine-result"
+        initial={{ opacity: 0, scale: 0.8, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ delay: 2.2, duration: 0.5, type: "spring", damping: 15 }}
+      >
+        <Zap size={20} />
+        {t('pdh.engine.result')}
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const EXPLORE_NODES = [
+  { id: 'trading', slides: [1, 2, 3], x: 50, y: 15, color: '#EF4444' },
+  { id: 'ai', slides: [7, 8], x: 82, y: 40, color: '#A855F7' },
+  { id: 'partner', slides: [4, 5, 6], x: 72, y: 78, color: '#22C55E' },
+  { id: 'ecosystem', slides: [9], x: 28, y: 78, color: '#3B82F6' },
+  { id: 'incentives', slides: [10], x: 18, y: 40, color: '#F59E0B' },
+];
+
+const ExploreMap: React.FC<{
+  t: (key: string) => string;
+  visitedSlides: Set<number>;
+  onNavigate: (slideIndex: number) => void;
+  onClose: () => void;
+}> = ({ t, visitedSlides, onNavigate, onClose }) => (
+  <>
+    <motion.div
+      className="pres-explore-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    />
+    <motion.div
+      className="pres-explore-panel"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ type: "spring", damping: 25, stiffness: 300 }}
+    >
+      <div className="pres-explore-header">
+        <Compass size={18} />
+        <span>{t('pdh.exploreMap')}</span>
+        <button className="pres-close-btn-small" onClick={onClose}>
+          <X size={16} />
+        </button>
+      </div>
+      <div className="pres-explore-map">
+        <svg className="pres-explore-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          {EXPLORE_NODES.map((node) => (
+            <motion.line
+              key={`eline-${node.id}`}
+              x1="50" y1="50" x2={node.x} y2={node.y}
+              stroke={`${node.color}40`}
+              strokeWidth="0.6"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1, ease: "easeInOut" }}
+            />
+          ))}
+        </svg>
+        <div className="pres-explore-center">
+          <img src="/jetup-logo.png" alt="JETUP" className="pres-explore-logo" />
+        </div>
+        {EXPLORE_NODES.map((node, i) => {
+          const explored = node.slides.every((s) => visitedSlides.has(s));
+          const partiallyExplored = node.slides.some((s) => visitedSlides.has(s));
+          return (
+            <motion.button
+              key={node.id}
+              className={`pres-explore-node ${explored ? 'explored' : partiallyExplored ? 'partial' : ''}`}
+              style={{ left: `${node.x}%`, top: `${node.y}%` }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 + i * 0.08 }}
+              onClick={() => { onNavigate(node.slides[0] - 1); onClose(); }}
+              data-testid={`explore-node-${node.id}`}
+            >
+              <span className="pres-explore-dot" style={{ background: node.color, boxShadow: `0 0 10px ${node.color}60` }} />
+              <span className="pres-explore-label">{t(`pdh.explored.${node.id}`)}</span>
+              {explored && <span className="pres-explore-check"><CheckCircle size={10} /></span>}
+            </motion.button>
+          );
+        })}
+      </div>
+    </motion.div>
+  </>
+);
+
 async function streamDennisChat(
   chatHistory: { role: string; content: string }[],
   onChunk: (text: string) => void,
@@ -407,10 +670,13 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   const [chatInput, setChatInput] = useState("");
   const [cardPulse, setCardPulse] = useState(false);
   const [activeInteractiveItem, setActiveInteractiveItem] = useState<InteractiveItem | null>(null);
+  const [visitedSlides, setVisitedSlides] = useState<Set<number>>(new Set([1]));
+  const [showExplore, setShowExplore] = useState(false);
 
   const slide = slides[current];
   const isLast = current === slides.length - 1;
   const progress = ((current + 1) / slides.length) * 100;
+  const nextSlide = current < slides.length - 1 ? slides[current + 1] : null;
 
   useEffect(() => {
     if (chatOpen && chatScrollRef.current) {
@@ -442,7 +708,12 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
     setCurrent(clamped);
     setShowToc(false);
     setActiveInteractiveItem(null);
-  }, [current, slides.length]);
+    setVisitedSlides((prev) => {
+      const next = new Set(prev);
+      next.add(slides[clamped].id);
+      return next;
+    });
+  }, [current, slides]);
 
   const handleNext = useCallback(() => {
     if (current < slides.length - 1) goTo(current + 1, 1);
@@ -519,13 +790,19 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
     >
       <FinancialBackground slideIndex={current} />
 
-      <div className="pres-progress-bar">
-        <motion.div
-          className="pres-progress-fill"
-          style={{ background: slide.accent }}
-          animate={{ width: `${progress}%` }}
-          transition={{ duration: 0.3 }}
-        />
+      <div className="pres-progress-wrap">
+        <div className="pres-progress-bar">
+          <motion.div
+            className="pres-progress-fill"
+            style={{ background: slide.accent }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+        <div className="pres-progress-info">
+          <span className="pres-progress-pct">{t('pdh.explored')} {Math.round(progress)}%</span>
+          {nextSlide && <span className="pres-progress-next">{t('pdh.nextSlide')} {nextSlide.title}</span>}
+        </div>
       </div>
 
       <div className="pres-layout">
@@ -534,7 +811,12 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
             <button className="pres-close-btn" onClick={onBackToChat} data-testid="btn-close-pres">
               <X size={18} />
             </button>
-            <span className="pres-counter">{current + 1} / {slides.length}</span>
+            <div className="pres-top-center">
+              <span className="pres-counter">{current + 1} / {slides.length}</span>
+              <button className="pres-explore-btn" onClick={() => setShowExplore(true)} data-testid="btn-explore">
+                <Compass size={14} />
+              </button>
+            </div>
             <button className="pres-toc-trigger" onClick={() => setShowToc(true)} data-testid="btn-toc">
               <List size={18} />
             </button>
@@ -623,6 +905,27 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                             <AiNodes items={slide.interactiveItems} onSelect={setActiveInteractiveItem} />
                           )}
                         </>
+                      )}
+
+                      {slide.id === 8 && (
+                        <>
+                          <AIComparison t={t} />
+                          <LivePipeline t={t} isActive={current === 7} />
+                          <button
+                            className="pres-try-ai-btn"
+                            onClick={() => setChatOpen(true)}
+                            data-testid="btn-try-dennis-ai"
+                          >
+                            <Sparkles size={16} />
+                            {t('pdh.tryDennisAI')}
+                          </button>
+                        </>
+                      )}
+
+                      {slide.id === 10 && <JetUPEngine t={t} />}
+
+                      {slide.insightKey && (
+                        <DennisInsight insightKey={slide.insightKey} t={t} />
                       )}
                     </motion.div>
 
@@ -751,6 +1054,17 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showExplore && (
+          <ExploreMap
+            t={t}
+            visitedSlides={visitedSlides}
+            onNavigate={(idx) => goTo(idx)}
+            onClose={() => setShowExplore(false)}
+          />
         )}
       </AnimatePresence>
 

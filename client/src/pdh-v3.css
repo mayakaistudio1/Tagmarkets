@@ -842,6 +842,15 @@
   padding: 20px;
 }
 
+.eco-map-zoom-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
 .eco-map-svg {
   position: absolute;
   inset: 0;
@@ -916,6 +925,19 @@
   background: #fff;
   border-radius: 50%;
   box-shadow: 0 0 15px #fff;
+  transition: all 0.3s ease;
+}
+
+.eco-satellite-dot-active {
+  background: #A78BFA;
+  box-shadow: 0 0 20px #A78BFA, 0 0 40px rgba(167, 139, 250, 0.4);
+  width: 16px;
+  height: 16px;
+}
+
+.eco-node-active .eco-satellite-label {
+  color: #C4B5FD;
+  text-shadow: 0 0 12px rgba(167, 139, 250, 0.5), 0 2px 6px rgba(0, 0, 0, 0.9);
 }
 
 .eco-satellite-label {
@@ -1517,4 +1539,454 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* ===== ENHANCED PROGRESS BAR ===== */
+.pres-progress-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.pres-progress-info {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 16px 0;
+}
+
+.pres-progress-pct {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.05em;
+}
+
+.pres-progress-next {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.25);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== TOP ROW CENTER (counter + explore) ===== */
+.pres-top-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pres-explore-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(124, 58, 237, 0.15);
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pres-explore-btn:active {
+  transform: scale(0.93);
+  background: rgba(124, 58, 237, 0.3);
+  color: #fff;
+}
+
+/* ===== DENNIS INSIGHT ===== */
+.pres-insight {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 14px;
+}
+
+.pres-insight-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(124, 58, 237, 0.4);
+}
+
+.pres-insight-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+.pres-insight-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.pres-insight-label {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(124, 58, 237, 0.7);
+}
+
+.pres-insight-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 4px 0 0;
+  font-style: italic;
+}
+
+/* ===== AI COMPARISON ===== */
+.pres-ai-compare {
+  margin-top: 12px;
+}
+
+.pres-ai-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+  color: #FCA5A5;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.25s;
+  width: 100%;
+  justify-content: center;
+}
+
+.pres-ai-toggle-on {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.12);
+  color: #86EFAC;
+}
+
+.pres-ai-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.pres-ai-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.pres-ai-item-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pres-ai-item-dot.dot-red {
+  background: #EF4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+.pres-ai-item-dot.dot-green {
+  background: #22C55E;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+}
+
+.pres-ai-list-off .pres-ai-item {
+  border-left: 2px solid rgba(239, 68, 68, 0.2);
+}
+
+.pres-ai-list-on .pres-ai-item {
+  border-left: 2px solid rgba(34, 197, 94, 0.2);
+}
+
+/* ===== LIVE PIPELINE ===== */
+.pres-pipeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 10px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-x: auto;
+}
+
+.pres-pipeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 56px;
+}
+
+.pres-pipeline-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pres-pipeline-label {
+  font-size: 8px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  max-width: 64px;
+  line-height: 1.2;
+}
+
+.pres-pipeline-arrow {
+  color: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+/* ===== TRY DENNIS AI BUTTON ===== */
+.pres-try-ai-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 16px;
+  width: 100%;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(168, 85, 247, 0.2));
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 12px;
+  color: #DDD6FE;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2);
+}
+
+.pres-try-ai-btn:active {
+  transform: scale(0.97);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.45), rgba(168, 85, 247, 0.35));
+}
+
+/* ===== JETUP ENGINE ===== */
+.pres-engine {
+  margin-top: 14px;
+  text-align: center;
+}
+
+.pres-engine-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 12px;
+}
+
+.pres-engine-parts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.pres-engine-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  width: fit-content;
+}
+
+.pres-engine-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pres-engine-plus {
+  font-size: 16px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.pres-engine-equals {
+  font-size: 20px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.2);
+  margin: 6px 0;
+}
+
+.pres-engine-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(168, 85, 247, 0.2));
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #DDD6FE;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.25);
+}
+
+/* ===== EXPLORE MAP ===== */
+.pres-explore-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2000;
+}
+
+.pres-explore-panel {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: calc(100% - 32px);
+  max-width: 360px;
+  height: fit-content;
+  max-height: 80vh;
+  background: rgba(8, 6, 20, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  z-index: 2001;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+.pres-explore-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.pres-explore-header .pres-close-btn-small {
+  margin-left: auto;
+}
+
+.pres-explore-map {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 320px;
+  padding: 20px;
+}
+
+.pres-explore-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.pres-explore-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  background: rgba(124, 58, 237, 0.2);
+  border: 2px solid #7C3AED;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+}
+
+.pres-explore-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.pres-explore-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  font-family: inherit;
+  z-index: 2;
+}
+
+.pres-explore-node:active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+.pres-explore-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.pres-explore-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.pres-explore-node.explored .pres-explore-label {
+  color: #22C55E;
+}
+
+.pres-explore-node.partial .pres-explore-label {
+  color: #F59E0B;
+}
+
+.pres-explore-check {
+  color: #22C55E;
+  line-height: 1;
 }

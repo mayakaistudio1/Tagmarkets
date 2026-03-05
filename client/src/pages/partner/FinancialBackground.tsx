@@ -148,18 +148,8 @@ const FinancialBackground: React.FC<FinancialBackgroundProps> = ({ slideIndex })
   // Layer 3: Candles (Canvas - same as Layer 2 for now, or could be separate)
   
   return (
-    <div className="pres-unified-bg">
-      {/* Layer 1: Cinematic dark gradient */}
-      <div 
-        className="pres-bg-layer-1"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "radial-gradient(circle at 50% 50%, #130b2b 0%, #060212 100%)",
-          transform: `translateY(${slideIndex * -5}px)`,
-          transition: "transform 0.6s cubic-bezier(0.2, 0, 0.2, 1)"
-        }}
-      />
+    <div className="pres-unified-bg" style={{ background: 'transparent' }}>
+      {/* Layer 1: Transparent — video shows through from CinematicVideoBg */}
       
       {/* Layer 2 & 3: Canvas animated network and candles */}
       <motion.canvas

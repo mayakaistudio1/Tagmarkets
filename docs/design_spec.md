@@ -26,66 +26,83 @@
 ### 2.1 Слоистая архитектура фона (снизу вверх)
 
 ```
-Слой 1: Базовый цвет — #060212 (pres-root)
-Слой 2: Canvas-анимация (FinancialBackground.tsx)
-  - Радиальный градиент: #130B2B → #060212
+Слой 0: Базовый цвет — #060212 (pres-root)
+Слой 1: AI-видео фон (CinematicVideoBg компонент)
+  - HTML5 <video> элемент с autoPlay, loop, muted, playsInline
+  - Три видео: bg_market.mp4, bg_partner.mp4, bg_tech.mp4
+  - Fallback: статичное изображение (poster) с kenBurns CSS-анимацией
+  - CSS: .pres-cinematic-video — position: absolute, object-fit: cover, z-index: 1
+Слой 2: Градиентный оверлей по группе (.pres-cinematic-gradient-{preset})
+  - Полупрозрачный 135° градиент, затемняет видео для читаемости текста
+  - z-index: 2
+Слой 3: Общий вертикальный оверлей (.pres-cinematic-overlay)
+  - Затемнение сверху и снизу для контраста с UI-элементами
+  - z-index: 3
+Слой 4: Виньетка (.pres-cinematic-vignette)
+  - Радиальное затемнение по краям
+  - z-index: 4
+Слой 5: Canvas-анимация (FinancialBackground.tsx)
+  - Фон прозрачный (background: transparent) — видео просвечивает
   - Частицы: rgba(167, 139, 250, 0.3) — фиолетовые точки
   - Сетевые линии: rgba(167, 139, 250, opacity) — макс 0.1
   - Бычьи свечи: rgba(34, 197, 94, 0.2)
   - Медвежьи свечи: rgba(239, 68, 68, 0.2)
-Слой 3: Кинематографический фон (pres-cinematic-bg)
-  - Стоковая фотография + градиентный оверлей
-Слой 4: Дополнительный оверлей (pres-cinematic-overlay)
-Слой 5: Виньетка (pres-cinematic-vignette)
-Слой 6: Контент (pres-glass-card)
+Слой 6: Контент (pres-glass-card) — z-index: 2 внутри pres-slide-frame
 ```
 
-### 2.2 Три группы фонов
+**Важно:** Старый слой `pres-scene-layer` (статичные изображения scene_01.png..scene_10.png внутри каждого слайда) удалён. Вместо него используются видео-фоны уровня всей презентации.
 
-| Группа | CSS-класс | Слайды | Текущее фото | Описание |
-|--------|-----------|--------|--------------|----------|
-| **Market** | `.pres-cinematic-market` | 1, 2, 3 | `bg_market.jpg` | Ночной мегаполис сверху, огни города |
-| **Partner** | `.pres-cinematic-partner` | 4, 5, 6, 7, 10 | `bg_partner.png` | Силуэты бизнес-людей на конференции, фиолетовое освещение |
-| **Tech** | `.pres-cinematic-tech` | 8, 9 | `bg_tech.png` | Серверная комната с голубыми оптоволоконными кабелями |
+### 2.2 Три группы видео-фонов
 
-### 2.3 Градиентные оверлеи поверх фото
+| Группа | Пресет | Слайды | Видео-файл | Описание |
+|--------|--------|--------|------------|----------|
+| **Market** | `market` | 1, 2, 3 | `bg_market.mp4` | Ночной мегаполис с высоты птичьего полёта, движущиеся огни машин, AI-генерация |
+| **Partner** | `partner` | 4, 5, 6, 7, 10 | `bg_partner.mp4` | Силуэты бизнес-людей на конференции, фиолетово-синее контровое освещение, AI-генерация |
+| **Tech/AI** | `tech` | 8, 9 | `bg_tech.mp4` | Человек и его голографический AI-двойник (digital twin), работающий рядом, AI-генерация |
+
+Маппинг слайдов определён в `SLIDE_BG_PRESETS` и `BG_VIDEO_MAP` в `PresentationOverlay.tsx`.
+
+### 2.3 Градиентные оверлеи поверх видео
 
 ```css
-/* Market (слайды 1-3) — более прозрачные для видимости города */
+/* Market (слайды 1-3) */
+.pres-cinematic-gradient-market:
 linear-gradient(135deg,
-  rgba(6, 2, 18, 0.55) 0%,
-  rgba(15, 10, 30, 0.35) 50%,
-  rgba(6, 2, 18, 0.65) 100%)
+  rgba(6, 2, 18, 0.30) 0%,
+  rgba(15, 10, 30, 0.15) 50%,
+  rgba(6, 2, 18, 0.35) 100%)
 
 /* Partner (слайды 4-7, 10) */
+.pres-cinematic-gradient-partner:
 linear-gradient(135deg,
-  rgba(6, 2, 18, 0.50) 0%,
-  rgba(20, 10, 35, 0.35) 50%,
-  rgba(6, 2, 18, 0.60) 100%)
+  rgba(6, 2, 18, 0.25) 0%,
+  rgba(20, 10, 35, 0.15) 50%,
+  rgba(6, 2, 18, 0.30) 100%)
 
 /* Tech (слайды 8-9) */
+.pres-cinematic-gradient-tech:
 linear-gradient(135deg,
-  rgba(6, 2, 18, 0.55) 0%,
-  rgba(10, 5, 25, 0.40) 50%,
-  rgba(6, 2, 18, 0.65) 100%)
+  rgba(6, 2, 18, 0.30) 0%,
+  rgba(10, 5, 25, 0.20) 50%,
+  rgba(6, 2, 18, 0.35) 100%)
 ```
 
-### 2.4 Общий оверлей (поверх всех фото)
+### 2.4 Общий оверлей и виньетка
 
 ```css
 /* Вертикальный затемняющий градиент */
 .pres-cinematic-overlay:
 linear-gradient(180deg,
-  rgba(6, 2, 18, 0.85) 0%,     /* верх — тёмный */
-  rgba(15, 10, 30, 0.5) 30%,
-  rgba(15, 10, 30, 0.4) 70%,
-  rgba(6, 2, 18, 0.9) 100%)    /* низ — тёмный */
+  rgba(6, 2, 18, 0.50) 0%,
+  rgba(15, 10, 30, 0.15) 30%,
+  rgba(15, 10, 30, 0.10) 70%,
+  rgba(6, 2, 18, 0.65) 100%)
 
 /* Радиальная виньетка */
 .pres-cinematic-vignette:
 radial-gradient(ellipse at center,
   transparent 40%,
-  rgba(6, 2, 18, 0.7) 100%)
+  rgba(6, 2, 18, 0.50) 100%)
 ```
 
 ### 2.5 Экосистема (слайд 9)
@@ -94,23 +111,32 @@ radial-gradient(ellipse at center,
 .eco-map-container:
   radial-gradient(ellipse at center, transparent 30%, rgba(6, 2, 18, 0.7) 100%),
   linear-gradient(180deg, rgba(6, 2, 18, 0.8) 0%, rgba(15, 10, 30, 0.4) 40%, rgba(6, 2, 18, 0.85) 100%),
-  url('/images/presentation/bg_tech.jpg')
+  url('/images/presentation/bg_tech.png')
 ```
 
-### 2.6 Путь к файлам фонов
+### 2.6 Путь к файлам
 
 ```
+client/public/videos/
+├── bg_market.mp4     ← Слайды 1-3 (ночной город, AI-генерация, 5.0MB)
+├── bg_partner.mp4    ← Слайды 4-7, 10 (конференция, AI-генерация, 2.5MB)
+└── bg_tech.mp4       ← Слайды 8-9 (AI digital twin, AI-генерация, 1.6MB)
+
 client/public/images/presentation/
-├── bg_market.jpg     ← Слайды 1-3 (ночной город сверху, стоковое фото)
-├── bg_partner.png    ← Слайды 4-7, 10 (силуэты людей на конференции, AI-генерация)
-├── bg_tech.png       ← Слайды 8-9 + Экосистема (серверная, AI-генерация)
-├── scene_01.png      ← Старые (не используются)
+├── bg_market.jpg     ← Fallback/poster для market-видео (стоковое фото)
+├── bg_partner.png    ← Fallback/poster для partner-видео (AI-генерация)
+├── bg_tech.png       ← Fallback/poster для tech-видео (AI-генерация)
+├── scene_01.png      ← Старые (не используются, можно удалить)
 ├── ...
 └── scene_10.png
 ```
 
-### 2.7 Ken Burns анимация
-Все кинематографические фоны имеют медленный ken-burns эффект (zoom + pan) — 28-секундный цикл через CSS `@keyframes kenBurns`. Элемент `.pres-cinematic-bg` имеет `inset: -8%` для запаса при масштабировании.
+### 2.7 Видео-фоны и fallback
+
+- Видео автоматически воспроизводятся (`autoPlay`, `loop`, `muted`, `playsInline`)
+- Компонент `CinematicVideoBg` переключает видео при смене группы слайдов через `key={preset}`
+- При ошибке загрузки видео — показывается статичное изображение (poster) с CSS `@keyframes kenBurns` анимацией (28-секундный цикл zoom + pan)
+- Параметры сгенерированных видео: 9:16 (вертикальное), 720p, 4-6 секунд, MP4
 
 ---
 
@@ -130,9 +156,9 @@ font-family: 'Montserrat', system-ui, sans-serif;
 
 | Элемент | Размер | Вес | CSS-класс |
 |---------|--------|-----|-----------|
-| Заголовок слайда | 20px | 800 (ExtraBold) | `.pres-card-title` |
+| Заголовок слайда | 22px | 800 (ExtraBold) | `.pres-card-title` |
 | Крупный заголовок | 24px | 800 | (отдельные слайды) |
-| Основной текст | 13px | 400 (Regular) | `.pres-card-text` |
+| Основной текст | 14px | 400 (Regular) | `.pres-card-text` |
 | Навигация "Далее" | 14px | 700 (Bold) | `.pres-nav-next` |
 | Навигация кнопки | 14px | 600 (SemiBold) | `.pres-nav-btn` |
 | Чипы/теги | 12px | 500 (Medium) | `.pres-chip` |
@@ -186,7 +212,7 @@ font-family: 'Montserrat', system-ui, sans-serif;
 
 | Элемент | Фон | Граница | Тень |
 |---------|-----|---------|------|
-| Glass-карточка | `rgba(8, 6, 20, 0.60)` | `rgba(255, 255, 255, 0.10)` | `0 8px 32px rgba(0,0,0,0.4)` |
+| Glass-карточка | `rgba(8, 6, 20, 0.65)` | `rgba(167, 139, 250, 0.10)` + top: `rgba(255,255,255,0.15)` | `0 8px 32px rgba(0,0,0,0.5)` + `inset 0 1px 0 rgba(255,255,255,0.07)` |
 | Чат панель | `#0F0A1A` | — | — |
 | Бэкдроп чата | `rgba(0, 0, 0, 0.5)` | — | — |
 | Бэкдроп попапов | `rgba(0, 0, 0, 0.6)` + `blur(4px)` | — | — |
@@ -227,9 +253,9 @@ font-family: 'Montserrat', system-ui, sans-serif;
 | 5 | Strategy cards + Dennis Insight | Карточки стратегий + цитата |
 | 6 | Graph points + Dennis Insight | Точки графика + цитата |
 | 7 | — | Только текст и чипы |
-| 8 | AI nodes + AI сравнение + Dennis Insight + "Try Dennis AI" кнопка | Интерактивные узлы AI + два столбца сравнения + кнопка чата |
+| 8 | AI nodes + AI сравнение + Dennis Insight + "Try Dennis AI" кнопка | Интерактивные узлы AI + два столбца сравнения "Без AI"/"С AI" (оба всегда видны) + кнопка чата |
 | 9 | Ecosystem Map | Интерактивная карта экосистемы (отдельный компонент) |
-| 10 | Факт-чипы (2 шт) + JetUP Engine анимация + CTA кнопки | Кнопки действий: записаться, начать, Telegram |
+| 10 | JetUP Engine анимация + CTA кнопки | Анимированная сборка "Продукты + AI + Партнёры = Результат" + кнопки действий |
 
 ---
 
@@ -274,10 +300,10 @@ font-family: 'Montserrat', system-ui, sans-serif;
 
 | Файл | Описание |
 |------|----------|
-| `client/src/pdh-v3.css` | Все стили презентации (~2160 строк) |
-| `client/src/pages/partner/PresentationOverlay.tsx` | Основной компонент презентации (~1295 строк) |
+| `client/src/pdh-v3.css` | Все стили презентации (~2300 строк) |
+| `client/src/pages/partner/PresentationOverlay.tsx` | Основной компонент презентации (~1320 строк), включает `CinematicVideoBg` компонент для видео-фонов |
 | `client/src/pages/partner/EcosystemMapSlide.tsx` | Интерактивная карта экосистемы (слайд 9) |
-| `client/src/pages/partner/FinancialBackground.tsx` | Canvas-анимация фона (частицы, свечи, сетка) |
+| `client/src/pages/partner/FinancialBackground.tsx` | Canvas-анимация поверх видео (частицы, свечи, сетка) — фон прозрачный, видео просвечивает |
 | `client/src/contexts/LanguageContext.tsx` | Все переводы RU/DE/EN |
 | `client/src/pages/PartnerDigitalHub.tsx` | Главный контроллер состояний (HERO → CHAT → PRESENTATION → ECOSYSTEM) |
 
@@ -302,9 +328,33 @@ font-family: 'Montserrat', system-ui, sans-serif;
 | Glass-карточка padding | `18px 16px 16px` |
 | Glass-карточка margin | `0 16px 12px` |
 | Glass-карточка max-height | `55vh` |
-| Glass-карточка border-radius | `24px` |
+| Glass-карточка border-radius | `26px` |
 | Чип border-radius | `20px` |
 | Чип padding | `6px 12px` |
+| Чип min-height | `44px` |
 | Stage padding | `12px 16px` |
 | Eco-map padding | `20px` |
 | Safe area bottom | `env(safe-area-inset-bottom)` |
+| Bottom-sheet border-radius | `28px 28px 0 0` |
+| Bottom-sheet handle | `40×5px` |
+
+---
+
+## 12. CSS-анимации
+
+| Анимация | Длительность | Описание |
+|----------|-------------|----------|
+| `kenBurns` | 28s | Zoom + pan для fallback-картинок (scale 1→1.08→1) |
+| `softFloat` | 6s | Мягкое парение glass-карточки (translateY 0→-3px→0) |
+| `accentPulse` | — | Пульсация прозрачности (0.7→1→0.7) |
+| `btnGlow` | — | Свечение кнопки (box-shadow пульсация фиолетового) |
+| Slide transition | 0.5s | cubic-bezier(0.25, 0.46, 0.45, 0.94) |
+
+---
+
+## 13. Адаптивность (Media Queries)
+
+| Breakpoint | Назначение |
+|------------|------------|
+| `@media (max-height: 680px)` | Компактная высота — уменьшение padding, размеров шрифтов |
+| `@media (max-width: 360px)` | Узкие экраны — уменьшение горизонтальных отступов |

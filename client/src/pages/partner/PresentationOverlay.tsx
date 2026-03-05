@@ -876,9 +876,9 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   }, [handleNext, handlePrev]);
 
   const variants = {
-    enter: (d: number) => ({ x: d > 0 ? 280 : -280, opacity: 0, scale: 0.98, y: 18 }),
+    enter: (d: number) => ({ x: d > 0 ? 200 : -200, opacity: 0, scale: 0.96, y: 20 }),
     center: { x: 0, opacity: 1, scale: 1, y: 0 },
-    exit: (d: number) => ({ x: d > 0 ? -280 : 280, opacity: 0, scale: 0.98, y: 18 }),
+    exit: (d: number) => ({ x: d > 0 ? -200 : 200, opacity: 0, scale: 0.96, y: 20 }),
   };
 
   return (
@@ -943,7 +943,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ duration: 0.45, ease: "easeOut" }}
+                transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="pres-slide-frame"
               >
                 {slide.type === "ecosystem" ? (

@@ -44,30 +44,30 @@
 
 | Группа | CSS-класс | Слайды | Текущее фото | Описание |
 |--------|-----------|--------|--------------|----------|
-| **Market** | `.pres-cinematic-market` | 1, 2, 3 | `bg_market.jpg` | Ночной город, финансовый район |
-| **Partner** | `.pres-cinematic-partner` | 4, 5, 6, 7, 10 | `bg_partner.jpg` | Деловые люди, встречи, офис |
-| **Tech** | `.pres-cinematic-tech` | 8, 9 | `bg_tech.jpg` | Технологии, серверы, дата-центр |
+| **Market** | `.pres-cinematic-market` | 1, 2, 3 | `bg_market.jpg` | Ночной мегаполис сверху, огни города |
+| **Partner** | `.pres-cinematic-partner` | 4, 5, 6, 7, 10 | `bg_partner.png` | Силуэты бизнес-людей на конференции, фиолетовое освещение |
+| **Tech** | `.pres-cinematic-tech` | 8, 9 | `bg_tech.png` | Серверная комната с голубыми оптоволоконными кабелями |
 
 ### 2.3 Градиентные оверлеи поверх фото
 
 ```css
-/* Market (слайды 1-3) */
+/* Market (слайды 1-3) — более прозрачные для видимости города */
 linear-gradient(135deg,
-  rgba(6, 2, 18, 0.65) 0%,
-  rgba(15, 10, 30, 0.45) 50%,
-  rgba(6, 2, 18, 0.75) 100%)
+  rgba(6, 2, 18, 0.55) 0%,
+  rgba(15, 10, 30, 0.35) 50%,
+  rgba(6, 2, 18, 0.65) 100%)
 
 /* Partner (слайды 4-7, 10) */
 linear-gradient(135deg,
-  rgba(6, 2, 18, 0.65) 0%,
-  rgba(20, 10, 35, 0.45) 50%,
-  rgba(6, 2, 18, 0.75) 100%)
+  rgba(6, 2, 18, 0.50) 0%,
+  rgba(20, 10, 35, 0.35) 50%,
+  rgba(6, 2, 18, 0.60) 100%)
 
 /* Tech (слайды 8-9) */
 linear-gradient(135deg,
-  rgba(6, 2, 18, 0.70) 0%,
-  rgba(10, 5, 25, 0.50) 50%,
-  rgba(6, 2, 18, 0.80) 100%)
+  rgba(6, 2, 18, 0.55) 0%,
+  rgba(10, 5, 25, 0.40) 50%,
+  rgba(6, 2, 18, 0.65) 100%)
 ```
 
 ### 2.4 Общий оверлей (поверх всех фото)
@@ -101,14 +101,16 @@ radial-gradient(ellipse at center,
 
 ```
 client/public/images/presentation/
-├── bg_market.jpg     ← Слайды 1-3 (город, финансы)
-├── bg_partner.jpg    ← Слайды 4-7, 10 (люди, бизнес)
-├── bg_tech.jpg       ← Слайды 8-9 + Экосистема (технологии)
-├── scene_01.png      ← Старые AI-сгенерированные (не используются)
-├── scene_02.png
+├── bg_market.jpg     ← Слайды 1-3 (ночной город сверху, стоковое фото)
+├── bg_partner.png    ← Слайды 4-7, 10 (силуэты людей на конференции, AI-генерация)
+├── bg_tech.png       ← Слайды 8-9 + Экосистема (серверная, AI-генерация)
+├── scene_01.png      ← Старые (не используются)
 ├── ...
 └── scene_10.png
 ```
+
+### 2.7 Ken Burns анимация
+Все кинематографические фоны имеют медленный ken-burns эффект (zoom + pan) — 28-секундный цикл через CSS `@keyframes kenBurns`. Элемент `.pres-cinematic-bg` имеет `inset: -8%` для запаса при масштабировании.
 
 ---
 
@@ -198,14 +200,17 @@ font-family: 'Montserrat', system-ui, sans-serif;
 
 ```css
 .pres-glass-card {
-  background: rgba(8, 6, 20, 0.60);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: rgba(8, 6, 20, 0.65);
+  backdrop-filter: blur(28px) saturate(1.2);
+  border-radius: 26px;
+  border: 1px solid rgba(167, 139, 250, 0.10);
+  border-top-color: rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
   max-height: 55vh;
   overflow-y: auto;
+  animation: softFloat 6s ease-in-out infinite;
 }
 ```
 

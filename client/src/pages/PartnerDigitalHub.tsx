@@ -73,19 +73,21 @@ const PartnerDigitalHub: React.FC = () => {
 
   return (
     <div className="ph-root">
-      <div className="pdh-lang-selector" data-testid="pdh-lang-selector">
-        {(["de", "ru", "en"] as Language[]).map((lang) => (
-          <button
-            key={lang}
-            className={`pdh-lang-btn ${language === lang ? "pdh-lang-active" : ""}`}
-            onClick={() => setLanguage(lang)}
-            data-testid={`pdh-lang-${lang}`}
-          >
-            <span className="pdh-lang-flag">{LANG_FLAGS[lang]}</span>
-            <span className="pdh-lang-code">{lang.toUpperCase()}</span>
-          </button>
-        ))}
-      </div>
+      {state === "IDLE" && (
+        <div className="pdh-lang-selector" data-testid="pdh-lang-selector">
+          {(["de", "ru", "en"] as Language[]).map((lang) => (
+            <button
+              key={lang}
+              className={`pdh-lang-btn ${language === lang ? "pdh-lang-active" : ""}`}
+              onClick={() => setLanguage(lang)}
+              data-testid={`pdh-lang-${lang}`}
+            >
+              <span className="pdh-lang-flag">{LANG_FLAGS[lang]}</span>
+              <span className="pdh-lang-code">{lang.toUpperCase()}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <HeroSection
         onOpenChat={openChat}

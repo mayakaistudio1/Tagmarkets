@@ -12,6 +12,8 @@ import {
   Globe,
 } from "lucide-react";
 import type { SharedMessage } from "../PartnerDigitalHub";
+import FinancialBackground from "./FinancialBackground";
+import EcosystemMapSlide from "./EcosystemMapSlide";
 
 interface PresentationOverlayProps {
   onBackToChat: () => void;
@@ -33,6 +35,7 @@ interface Slide {
   image: string;
   accent: string;
   chips: Chip[];
+  type: "standard" | "ecosystem";
 }
 
 async function streamDennisChat(
@@ -98,6 +101,7 @@ const slides: Slide[] = [
     text: "Рынок финансов растёт.\nИнтерес к пассивному доходу растёт.\n\nНо большинство людей не зарабатывает системно.\n\nПочему?",
     image: "/images/presentation/scene_01.png",
     accent: "#7C3AED",
+    type: "standard",
     chips: [
       { text: "Почему большинство не зарабатывает?", intent: "REALITY_WHY" },
       { text: "Какие ошибки делают новички?", intent: "REALITY_MISTAKES" },
@@ -109,6 +113,7 @@ const slides: Slide[] = [
     text: "Проблема не в людях. Проблема в модели.\n\nОбычно всё строится на одном сильном лидере, обещаниях и отсутствии системы дубликации.\n\nБез структуры масштаб невозможен.",
     image: "/images/presentation/scene_02.png",
     accent: "#EF4444",
+    type: "standard",
     chips: [
       { text: "Почему модель держится на одном лидере?", intent: "DIAGNOSIS_LEADER" },
       { text: "Что происходит, когда лидер уходит?", intent: "DIAGNOSIS_EXIT" },
@@ -120,6 +125,7 @@ const slides: Slide[] = [
     text: "JetUp — это не «ещё один проект».\n\nЭто соединение финансового продукта, партнёрской модели и инфраструктуры масштабирования в одной системе.",
     image: "/images/presentation/scene_03.png",
     accent: "#8B5CF6",
+    type: "standard",
     chips: [
       { text: "Почему важно соединение трёх элементов?", intent: "MODEL_THREE" },
       { text: "Что ломается, если одного элемента нет?", intent: "MODEL_MISSING" },
@@ -131,6 +137,7 @@ const slides: Slide[] = [
     text: "Капитал остаётся на твоём личном аккаунте.\nВерификация на твоё имя.\nТы контролируешь ввод и вывод средств.\n\nКонтроль — у тебя, не у компании.",
     image: "/images/presentation/scene_04.png",
     accent: "#22C55E",
+    type: "standard",
     chips: [
       { text: "Где именно хранится капитал?", intent: "SAFETY_CAPITAL" },
       { text: "Кто принимает решение о выводе?", intent: "SAFETY_WITHDRAW" },
@@ -142,6 +149,7 @@ const slides: Slide[] = [
     text: "Нет жёсткой заморозки.\nТы выбираешь стратегию.\nТы можешь менять решения.\n\nЭто управляемая модель.",
     image: "/images/presentation/scene_05.png",
     accent: "#F59E0B",
+    type: "standard",
     chips: [
       { text: "Можно ли поменять стратегию?", intent: "FLEXIBILITY_CHANGE" },
       { text: "Можно ли остановить в любой момент?", intent: "FLEXIBILITY_STOP" },
@@ -153,6 +161,7 @@ const slides: Slide[] = [
     text: "Мы не строим модель на агрессивных обещаниях.\n\nСистема ориентирована на устойчивость, а не на краткосрочные всплески.\n\nРеалистичный подход сильнее хайпа.",
     image: "/images/presentation/scene_06.png",
     accent: "#10B981",
+    type: "standard",
     chips: [
       { text: "Почему вы не обещаете «иксы»?", intent: "PROFIT_NO_HYPE" },
       { text: "Что значит устойчивый подход?", intent: "PROFIT_SUSTAINABLE" },
@@ -164,6 +173,7 @@ const slides: Slide[] = [
     text: "Даже лучший продукт не масштабируется сам.\n\nПартнёру нужна система, которая позволяет дублицировать действия.\n\nБез инфраструктуры масштаб остаётся идеей.",
     image: "/images/presentation/scene_07.png",
     accent: "#F97316",
+    type: "standard",
     chips: [
       { text: "Что такое «дубликация» на практике?", intent: "SCALE_DUPLICATION" },
       { text: "Почему продукт сам не масштабируется?", intent: "SCALE_WHY" },
@@ -175,6 +185,7 @@ const slides: Slide[] = [
     text: "Каждый партнёр получает цифровую систему:\nAI-чат, интерактивную мини-презентацию, квалификацию лидов и поддержку 24/7.\n\nСистема работает за тебя, пока ты спишь.\nОна презентует, объясняет и фильтрует интерес.\n\nЭто позволяет дублицировать себя.",
     image: "/images/presentation/scene_08.png",
     accent: "#E88FEC",
+    type: "standard",
     chips: [
       { text: "Что AI делает вместо партнёра?", intent: "AI_REPLACE" },
       { text: "Как AI квалифицирует людей?", intent: "AI_QUALIFY" },
@@ -183,13 +194,14 @@ const slides: Slide[] = [
   },
   {
     id: 9,
-    title: "Партнёрская модель",
-    text: "Доход строится на трёх уровнях:\nпродукт, партнёрская программа, структура.\n\nМаркетинг-план показывает потенциал.\nИнфраструктура превращает его в результат.",
+    title: "Экосистема JetUP",
+    text: "Единая инфраструктура: брокер, биржа, карта, AI-система и партнёрская сеть — всё связано в одну экосистему.",
     image: "/images/presentation/scene_09.png",
     accent: "#A855F7",
+    type: "ecosystem",
     chips: [
-      { text: "Как партнёр получает доход?", intent: "PARTNER_INCOME" },
-      { text: "Можно ли начать без опыта?", intent: "PARTNER_NOEXP" },
+      { text: "Как всё связано между собой?", intent: "ECO_CONNECTION" },
+      { text: "Что даёт экосистема партнёру?", intent: "ECO_PARTNER_VALUE" },
     ],
   },
   {
@@ -198,6 +210,7 @@ const slides: Slide[] = [
     text: "Ты можешь просто изучать информацию.\n\nИли выстроить стратегию правильно с первого шага.\n\nЯ помогу определить формат участия под твой опыт и цели.",
     image: "/images/presentation/scene_10.png",
     accent: "#7C3AED",
+    type: "standard",
     chips: [],
   },
 ];
@@ -216,6 +229,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   const [chatOpen, setChatOpen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const [chatInput, setChatInput] = useState("");
+  const [cardPulse, setCardPulse] = useState(false);
 
   const slide = slides[current];
   const isLast = current === slides.length - 1;
@@ -287,7 +301,14 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
 
   const handleChipClick = useCallback((chip: Chip) => {
     if (isStreaming) return;
+    setCardPulse(true);
+    setTimeout(() => setCardPulse(false), 150);
     sendToAI(chip.text, true, slide);
+  }, [slide, sendToAI, isStreaming]);
+
+  const handleEcoAskDennis = useCallback((intent: string, question: string) => {
+    if (isStreaming) return;
+    sendToAI(question, true, slide);
   }, [slide, sendToAI, isStreaming]);
 
   const handleChatSend = useCallback(() => {
@@ -304,9 +325,9 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   }, []);
 
   const variants = {
-    enter: (d: number) => ({ x: d > 0 ? 280 : -280, opacity: 0, scale: 0.95 }),
-    center: { x: 0, opacity: 1, scale: 1 },
-    exit: (d: number) => ({ x: d > 0 ? -280 : 280, opacity: 0, scale: 0.95 }),
+    enter: (d: number) => ({ x: d > 0 ? 280 : -280, opacity: 0, scale: 0.98, y: 18 }),
+    center: { x: 0, opacity: 1, scale: 1, y: 0 },
+    exit: (d: number) => ({ x: d > 0 ? -280 : 280, opacity: 0, scale: 0.98, y: 18 }),
   };
 
   return (
@@ -316,17 +337,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="pres-unified-bg">
-        <video
-          src="/videos/financial_universe_bg.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="pres-unified-video"
-        />
-        <div className="pres-unified-overlay" />
-      </div>
+      <FinancialBackground slideIndex={current} />
 
       <div className="pres-progress-bar">
         <motion.div
@@ -364,51 +375,61 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ duration: 0.35, ease: "easeInOut" }}
+                transition={{ duration: 0.45, ease: "easeOut" }}
                 className="pres-slide-frame"
               >
-                <div className="pres-scene-layer">
-                  <img src={slide.image} alt="" className="pres-scene-img" />
-                  <div className="pres-scene-fade" />
-                </div>
+                {slide.type === "ecosystem" ? (
+                  <EcosystemMapSlide onAskDennis={handleEcoAskDennis} />
+                ) : (
+                  <>
+                    <div className="pres-scene-layer">
+                      <img src={slide.image} alt="" className="pres-scene-img" />
+                      <div className="pres-scene-fade" />
+                    </div>
 
-                <div className="pres-glass-card">
-                  <motion.span
-                    className="pres-slide-num"
-                    style={{ color: slide.accent }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.35 }}
-                  >
-                    {String(slide.id).padStart(2, "0")}
-                  </motion.span>
-                  <motion.h2
-                    className="pres-card-title"
-                    initial={{ opacity: 0, y: 18 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.45, ease: "easeOut" }}
-                  >
-                    {slide.title}
-                  </motion.h2>
-                  <motion.p
-                    className="pres-card-text"
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.45, duration: 0.5 }}
-                  >
-                    {slide.text.split("\n\n").map((p, i) => (
-                      <React.Fragment key={i}>
-                        {i > 0 && <><br /><br /></>}
-                        {p.split("\n").map((line, j) => (
-                          <React.Fragment key={j}>
-                            {j > 0 && <br />}
-                            {line}
+                    <motion.div 
+                      className="pres-glass-card"
+                      animate={{ scale: cardPulse ? 1.02 : 1 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <motion.span
+                        className="pres-slide-num"
+                        style={{ color: slide.accent }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.35 }}
+                      >
+                        {String(slide.id).padStart(2, "0")}
+                      </motion.span>
+                      <motion.h2
+                        className="pres-card-title"
+                        initial={{ opacity: 0, y: 18 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3, duration: 0.45, ease: "easeOut" }}
+                      >
+                        {slide.title}
+                      </motion.h2>
+                      <motion.p
+                        className="pres-card-text"
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.45, duration: 0.5 }}
+                      >
+                        {slide.text.split("\n\n").map((p, i) => (
+                          <React.Fragment key={i}>
+                            {i > 0 && <><br /><br /></>}
+                            {p.split("\n").map((line, j) => (
+                              <React.Fragment key={j}>
+                                {j > 0 && <br />}
+                                {line}
+                              </React.Fragment>
+                            ))}
                           </React.Fragment>
                         ))}
-                      </React.Fragment>
-                    ))}
-                  </motion.p>
-                </div>
+                      </motion.p>
+                    </motion.div>
+                  </>
+                )}
               </motion.div>
             </AnimatePresence>
           </motion.div>

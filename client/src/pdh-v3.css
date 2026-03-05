@@ -446,25 +446,6 @@
   position: relative;
 }
 
-.pres-unified-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.pres-unified-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-.pres-unified-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-}
 
 .pres-slide-frame {
   width: 100%;
@@ -500,7 +481,7 @@
   z-index: 2;
   margin: 0 16px 12px;
   padding: 22px 20px 20px;
-  background: rgba(12, 6, 25, 0.72);
+  background: rgba(8, 6, 20, 0.60);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 24px;
@@ -509,6 +490,189 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  transition: transform 0.2s ease-out;
+}
+
+.pres-glass-card.scaling {
+  transform: scale(1.02);
+}
+
+/* ===== ECOSYSTEM MAP SLIDE ===== */
+.eco-map-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.eco-map-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.eco-node-center {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.eco-node-center-inner {
+  width: 80px;
+  height: 80px;
+  background: rgba(124, 58, 237, 0.2);
+  border: 2px solid #7C3AED;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.4);
+}
+
+.eco-center-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.eco-center-text {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #fff;
+}
+
+.eco-center-pulse {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  border: 2px solid rgba(124, 58, 237, 0.3);
+  animation: eco-ripple 3s infinite;
+}
+
+@keyframes eco-ripple {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.eco-node-satellite {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  z-index: 11;
+}
+
+.eco-satellite-dot {
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 15px #fff;
+}
+
+.eco-satellite-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.eco-satellite-pulse {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  top: -6px;
+}
+
+.eco-card-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+}
+
+.eco-info-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 48px);
+  max-width: 320px;
+  background: rgba(8, 6, 20, 0.85);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  padding: 24px;
+  z-index: 101;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.eco-card-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: rgba(255, 255, 255, 0.4);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.eco-card-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 12px;
+}
+
+.eco-card-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 24px;
+}
+
+.eco-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eco-card-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: #7C3AED;
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
 }
 
 .pres-slide-num {

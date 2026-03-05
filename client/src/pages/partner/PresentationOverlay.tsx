@@ -640,6 +640,12 @@ const SLIDE_BG_PRESETS: Record<number, string> = {
   8: 'tech', 9: 'tech', 10: 'partner',
 };
 
+const BG_VIDEO_MAP: Record<string, { video: string; poster: string }> = {
+  market: { video: '/videos/bg_market.mp4', poster: '/images/presentation/bg_market.jpg' },
+  partner: { video: '/videos/bg_partner.mp4', poster: '/images/presentation/bg_partner.png' },
+  tech: { video: '/videos/bg_tech.mp4', poster: '/images/presentation/bg_tech.png' },
+};
+
 const FactSheet: React.FC<{
   fact: FactItem;
   t: (key: string) => string;
@@ -888,7 +894,33 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className={`pres-cinematic-bg pres-cinematic-${SLIDE_BG_PRESETS[slide.id] || 'market'}`}>
+      <div className="pres-cinematic-bg-wrap">
+        {(() => {
+          const preset = SLIDE_BG_PRESETS[slide.id] || 'market';
+          const bg = BG_VIDEO_MAP[preset];
+          return (
+            <>
+              <video
+                key={preset}
+                className="pres-cinematic-video"
+                src={bg.video}
+                poster={bg.poster}
+                autoPlay
+                loop
+                muted
+                playsInline
+                onError={(e) => {
+                  const vid = e.currentTarget;
+                  vid.style.display = 'none';
+                  const wrap = vid.parentElement;
+                  if (wrap) wrap.style.backgroundImage = `url(${bg.poster})`;
+                  wrap?.classList.add('pres-cinematic-fallback');
+                }}
+              />
+              <div className={`pres-cinematic-gradient pres-cinematic-gradient-${preset}`} />
+            </>
+          );
+        })()}
         <div className="pres-cinematic-overlay" />
         <div className="pres-cinematic-vignette" />
       </div>

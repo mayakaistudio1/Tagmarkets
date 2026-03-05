@@ -2083,38 +2083,51 @@
   50% { box-shadow: 0 4px 28px rgba(124, 58, 237, 0.4); }
 }
 
-.pres-cinematic-bg {
+.pres-cinematic-bg-wrap {
   position: absolute;
-  inset: -8%;
+  inset: 0;
   z-index: 0;
+  overflow: hidden;
+}
+
+.pres-cinematic-video {
+  position: absolute;
+  inset: -4%;
+  width: 108%;
+  height: 108%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+}
+
+.pres-cinematic-fallback {
   background-size: cover;
   background-position: center;
-  transition: background-image 0.8s ease;
   animation: kenBurns 28s ease-in-out infinite;
-  will-change: transform;
 }
 
-.pres-cinematic-market {
-  background-image:
-    linear-gradient(135deg, rgba(6, 2, 18, 0.55) 0%, rgba(15, 10, 30, 0.35) 50%, rgba(6, 2, 18, 0.65) 100%),
-    url('/images/presentation/bg_market.jpg');
+.pres-cinematic-gradient {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
-.pres-cinematic-partner {
-  background-image:
-    linear-gradient(135deg, rgba(6, 2, 18, 0.50) 0%, rgba(20, 10, 35, 0.35) 50%, rgba(6, 2, 18, 0.60) 100%),
-    url('/images/presentation/bg_partner.png');
+.pres-cinematic-gradient-market {
+  background: linear-gradient(135deg, rgba(6, 2, 18, 0.55) 0%, rgba(15, 10, 30, 0.35) 50%, rgba(6, 2, 18, 0.65) 100%);
 }
 
-.pres-cinematic-tech {
-  background-image:
-    linear-gradient(135deg, rgba(6, 2, 18, 0.55) 0%, rgba(10, 5, 25, 0.40) 50%, rgba(6, 2, 18, 0.65) 100%),
-    url('/images/presentation/bg_tech.png');
+.pres-cinematic-gradient-partner {
+  background: linear-gradient(135deg, rgba(6, 2, 18, 0.50) 0%, rgba(20, 10, 35, 0.35) 50%, rgba(6, 2, 18, 0.60) 100%);
+}
+
+.pres-cinematic-gradient-tech {
+  background: linear-gradient(135deg, rgba(6, 2, 18, 0.55) 0%, rgba(10, 5, 25, 0.40) 50%, rgba(6, 2, 18, 0.65) 100%);
 }
 
 .pres-cinematic-overlay {
   position: absolute;
   inset: 0;
+  z-index: 2;
   background: linear-gradient(
     180deg,
     rgba(6, 2, 18, 0.75) 0%,
@@ -2127,6 +2140,7 @@
 .pres-cinematic-vignette {
   position: absolute;
   inset: 0;
+  z-index: 3;
   background: radial-gradient(ellipse at center, transparent 30%, rgba(6, 2, 18, 0.75) 100%);
 }
 

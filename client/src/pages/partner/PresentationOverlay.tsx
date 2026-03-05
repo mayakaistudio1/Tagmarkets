@@ -23,6 +23,7 @@ import {
   ToggleLeft,
   ToggleRight,
   Sparkles,
+  BookOpen,
 } from "lucide-react";
 import type { SharedMessage } from "../PartnerDigitalHub";
 import FinancialBackground from "./FinancialBackground";
@@ -328,11 +329,16 @@ const MicroInfoCard: React.FC<{ item: InteractiveItem; onClose: () => void }> = 
       />
       <motion.div
         className="si-micro-card"
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        transition={{ duration: 0.25 }}
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 300 }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.2}
+        onDragEnd={(_, info: PanInfo) => { if (info.offset.y > 80) onClose(); }}
       >
+        <div className="si-micro-handle" />
         <div className="si-micro-header">
           <span className="si-micro-dot" style={{ background: item.color }} />
           <span className="si-micro-title">{item.label}</span>
@@ -539,11 +545,16 @@ const ExploreMap: React.FC<{
     />
     <motion.div
       className="pres-explore-panel"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ type: "spring", damping: 25, stiffness: 300 }}
+      initial={{ y: "100%" }}
+      animate={{ y: 0 }}
+      exit={{ y: "100%" }}
+      transition={{ type: "spring", damping: 28, stiffness: 300 }}
+      drag="y"
+      dragConstraints={{ top: 0, bottom: 0 }}
+      dragElastic={0.2}
+      onDragEnd={(_: any, info: PanInfo) => { if (info.offset.y > 80) onClose(); }}
     >
+      <div className="pres-sheet-handle" />
       <div className="pres-explore-header">
         <Compass size={18} />
         <span>{t('pdh.exploreMap')}</span>
@@ -592,6 +603,73 @@ const ExploreMap: React.FC<{
     </motion.div>
   </>
 );
+
+interface FactItem {
+  id: string;
+  titleKey: string;
+  descKey: string;
+}
+
+const SLIDE_FACTS: Record<number, FactItem[]> = {
+  1: [
+    { id: 'f1_1', titleKey: 'pdh.fact.1.1.t', descKey: 'pdh.fact.1.1.d' },
+    { id: 'f1_2', titleKey: 'pdh.fact.1.2.t', descKey: 'pdh.fact.1.2.d' },
+  ],
+  2: [
+    { id: 'f2_1', titleKey: 'pdh.fact.2.1.t', descKey: 'pdh.fact.2.1.d' },
+    { id: 'f2_2', titleKey: 'pdh.fact.2.2.t', descKey: 'pdh.fact.2.2.d' },
+  ],
+  8: [
+    { id: 'f8_1', titleKey: 'pdh.fact.8.1.t', descKey: 'pdh.fact.8.1.d' },
+    { id: 'f8_2', titleKey: 'pdh.fact.8.2.t', descKey: 'pdh.fact.8.2.d' },
+  ],
+  9: [
+    { id: 'f9_1', titleKey: 'pdh.fact.9.1.t', descKey: 'pdh.fact.9.1.d' },
+    { id: 'f9_2', titleKey: 'pdh.fact.9.2.t', descKey: 'pdh.fact.9.2.d' },
+  ],
+};
+
+const SLIDE_BG_PRESETS: Record<number, string> = {
+  1: 'market', 2: 'market', 3: 'market',
+  4: 'partner', 5: 'partner', 6: 'partner', 7: 'partner',
+  8: 'tech', 9: 'tech', 10: 'partner',
+};
+
+const FactSheet: React.FC<{
+  fact: FactItem;
+  t: (key: string) => string;
+  onClose: () => void;
+}> = ({ fact, t, onClose }) =>
+  ReactDOM.createPortal(
+    <>
+      <motion.div
+        className="fact-sheet-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      />
+      <motion.div
+        className="fact-sheet"
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 300 }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.2}
+        onDragEnd={(_, info: PanInfo) => { if (info.offset.y > 80) onClose(); }}
+      >
+        <div className="fact-sheet-handle" />
+        <div className="fact-sheet-icon">
+          <BookOpen size={20} />
+        </div>
+        <h3 className="fact-sheet-title">{t(fact.titleKey)}</h3>
+        <p className="fact-sheet-desc">{t(fact.descKey)}</p>
+      </motion.div>
+    </>,
+    document.body
+  );
 
 async function streamDennisChat(
   chatHistory: { role: string; content: string }[],
@@ -672,6 +750,9 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
   const [activeInteractiveItem, setActiveInteractiveItem] = useState<InteractiveItem | null>(null);
   const [visitedSlides, setVisitedSlides] = useState<Set<number>>(new Set([1]));
   const [showExplore, setShowExplore] = useState(false);
+  const [activeFact, setActiveFact] = useState<FactItem | null>(null);
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
 
   const slide = slides[current];
   const isLast = current === slides.length - 1;
@@ -775,6 +856,20 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
     }
   }, []);
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+      if (dx < 0) handleNext();
+      else handlePrev();
+    }
+  }, [handleNext, handlePrev]);
+
   const variants = {
     enter: (d: number) => ({ x: d > 0 ? 280 : -280, opacity: 0, scale: 0.98, y: 18 }),
     center: { x: 0, opacity: 1, scale: 1, y: 0 },
@@ -788,6 +883,10 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
+      <div className={`pres-cinematic-bg pres-cinematic-${SLIDE_BG_PRESETS[slide.id] || 'market'}`}>
+        <div className="pres-cinematic-overlay" />
+        <div className="pres-cinematic-vignette" />
+      </div>
       <FinancialBackground slideIndex={current} />
 
       <div className="pres-progress-wrap">
@@ -828,6 +927,8 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={0.3}
             onDragEnd={handleDragEnd}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
@@ -926,6 +1027,30 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
 
                       {slide.insightKey && (
                         <DennisInsight insightKey={slide.insightKey} t={t} />
+                      )}
+
+                      {SLIDE_FACTS[slide.id] && (
+                        <motion.div
+                          className="pres-facts-row"
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.9, duration: 0.35 }}
+                        >
+                          {SLIDE_FACTS[slide.id].map((fact, fi) => (
+                            <motion.button
+                              key={fact.id}
+                              className="pres-fact-chip"
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 1.0 + fi * 0.15, duration: 0.3 }}
+                              onClick={() => setActiveFact(fact)}
+                              data-testid={`fact-chip-${fact.id}`}
+                            >
+                              <BookOpen size={11} />
+                              <span>{t(fact.titleKey)}</span>
+                            </motion.button>
+                          ))}
+                        </motion.div>
                       )}
                     </motion.div>
 
@@ -1027,11 +1152,16 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
             />
             <motion.div
               className="pres-toc-panel-popup"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(_: any, info: PanInfo) => { if (info.offset.y > 80) setShowToc(false); }}
             >
+              <div className="pres-sheet-handle" />
               <div className="pres-toc-header">
                 <span>{t('pdh.toc')}</span>
                 <button className="pres-close-btn-small" onClick={() => setShowToc(false)}>
@@ -1064,6 +1194,16 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
             visitedSlides={visitedSlides}
             onNavigate={(idx) => goTo(idx)}
             onClose={() => setShowExplore(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {activeFact && (
+          <FactSheet
+            fact={activeFact}
+            t={t}
+            onClose={() => setActiveFact(null)}
           />
         )}
       </AnimatePresence>

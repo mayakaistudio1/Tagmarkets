@@ -770,19 +770,28 @@
 
 .si-micro-card {
   position: fixed;
-  inset: 0;
-  margin: auto;
-  width: calc(100% - 48px);
-  max-width: 320px;
-  height: fit-content;
-  background: rgba(8, 6, 20, 0.95);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100%;
+  background: rgba(8, 6, 20, 0.97);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px 24px 0 0;
+  padding: 8px 20px 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
   z-index: 1000;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.si-micro-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 auto 12px;
 }
 
 .si-micro-backdrop {
@@ -840,6 +849,12 @@
   overflow: hidden;
   z-index: 5;
   padding: 20px;
+  background:
+    radial-gradient(ellipse at center, transparent 30%, rgba(6, 2, 18, 0.7) 100%),
+    linear-gradient(180deg, rgba(6, 2, 18, 0.8) 0%, rgba(15, 10, 30, 0.4) 40%, rgba(6, 2, 18, 0.85) 100%),
+    url('/images/presentation/scene_09.png');
+  background-size: cover;
+  background-position: center;
 }
 
 .eco-map-zoom-wrapper {
@@ -1064,6 +1079,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 0 16px 6px;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
   position: relative;
   z-index: 3;
 }
@@ -1191,16 +1207,29 @@
 
 .pres-toc-panel-popup {
   position: fixed;
-  top: 0;
-  right: 0;
   bottom: 0;
-  width: 240px;
-  background: #0F0A1A;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  left: 0;
+  right: 0;
+  max-height: 70vh;
+  background: rgba(8, 6, 20, 0.97);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px 24px 0 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 2001;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pres-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 8px auto 0;
+  flex-shrink: 0;
 }
 
 .pres-toc-header {
@@ -1875,20 +1904,19 @@
 
 .pres-explore-panel {
   position: fixed;
-  inset: 0;
-  margin: auto;
-  width: calc(100% - 32px);
-  max-width: 360px;
-  height: fit-content;
+  bottom: 0;
+  left: 0;
+  right: 0;
   max-height: 80vh;
-  background: rgba(8, 6, 20, 0.95);
+  background: rgba(8, 6, 20, 0.97);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px 24px 0 0;
   z-index: 2001;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.7);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .pres-explore-header {
@@ -1989,4 +2017,143 @@
 .pres-explore-check {
   color: #22C55E;
   line-height: 1;
+}
+
+/* ===== CINEMATIC BACKGROUNDS ===== */
+.pres-cinematic-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  transition: background-image 0.8s ease;
+}
+
+.pres-cinematic-market {
+  background-image:
+    linear-gradient(135deg, rgba(6, 2, 18, 0.7) 0%, rgba(15, 10, 30, 0.5) 50%, rgba(6, 2, 18, 0.8) 100%),
+    url('/images/presentation/scene_01.png');
+}
+
+.pres-cinematic-partner {
+  background-image:
+    linear-gradient(135deg, rgba(6, 2, 18, 0.7) 0%, rgba(20, 10, 35, 0.5) 50%, rgba(6, 2, 18, 0.8) 100%),
+    url('/images/presentation/scene_05.png');
+}
+
+.pres-cinematic-tech {
+  background-image:
+    linear-gradient(135deg, rgba(6, 2, 18, 0.75) 0%, rgba(10, 5, 25, 0.55) 50%, rgba(6, 2, 18, 0.85) 100%),
+    url('/images/presentation/scene_08.png');
+}
+
+.pres-cinematic-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 2, 18, 0.85) 0%,
+    rgba(15, 10, 30, 0.5) 30%,
+    rgba(15, 10, 30, 0.4) 70%,
+    rgba(6, 2, 18, 0.9) 100%
+  );
+}
+
+.pres-cinematic-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(6, 2, 18, 0.7) 100%);
+}
+
+/* ===== JOURNAL FACTS ===== */
+.pres-facts-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.pres-fact-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  background: rgba(124, 58, 237, 0.08);
+  color: rgba(196, 181, 253, 0.8);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pres-fact-chip:active {
+  transform: scale(0.96);
+  background: rgba(124, 58, 237, 0.18);
+  border-color: rgba(124, 58, 237, 0.4);
+}
+
+/* ===== FACT SHEET (bottom sheet) ===== */
+.fact-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 3000;
+}
+
+.fact-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(8, 6, 20, 0.97);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px 24px 0 0;
+  padding: 8px 24px 28px;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  z-index: 3001;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.fact-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 auto 16px;
+}
+
+.fact-sheet-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #A855F7;
+  margin: 0 auto 12px;
+}
+
+.fact-sheet-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+.fact-sheet-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  text-align: center;
 }

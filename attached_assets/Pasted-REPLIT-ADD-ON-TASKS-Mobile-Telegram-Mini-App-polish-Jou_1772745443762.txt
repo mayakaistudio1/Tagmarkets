@@ -1,0 +1,66 @@
+REPLIT ADD-ON TASKS — Mobile Telegram Mini App polish + Journal Facts + Cinematic Background
+
+Objective:
+Upgrade the presentation to feel like a premium Telegram Mini App:
+mobile-first layout, bottom sheets, thumb-reachable UI.
+Add “Journal Facts” micro-cards per slide for deeper interactivity.
+Replace/extend the galaxy background with cinematic realistic backgrounds (city/people) with premium overlays.
+
+DO NOT refactor whole app. Minimal safe changes.
+
+FILES:
+- client/src/pages/partner/PresentationOverlay.tsx
+- client/src/pages/partner/EcosystemMapSlide.tsx
+- client/src/pdh-v3.css
+(Optional: create components in client/src/pages/partner/components)
+
+M001: Mobile Safe-Area + Bottom Sheet Standard
+- Ensure all overlays respect safe areas:
+  padding-bottom: env(safe-area-inset-bottom)
+- Convert centered modals/popups into bottom-sheet style on mobile widths
+- Ensure CTA and main controls are in the lower third
+Acceptance:
+- On mobile, popups open from bottom, no content hidden behind iOS safe area.
+
+M002: Swipe Navigation Like Stories (Optional if already exists)
+- Add swipe left/right to change slides (touch)
+- Keep existing buttons as fallback
+Acceptance:
+- User can swipe between slides smoothly on mobile.
+
+M003: “Journal Facts” Micro-Cards System
+- Add per-slide fact chips that appear with delay (0.6–1.2s after slide enters)
+- Each fact chip is tappable; opens a bottom sheet with short explanation (2–4 lines)
+- Add facts for at least slides: 1 (Reality), 2 (Problem), 8 (AI), 9 (Ecosystem)
+- Localize facts RU/EN/DE via LanguageContext
+Implementation:
+- Create a facts config:
+  const slideFacts: Record<number, Array<{id:string; ru:{t:string; d:string}; en:{t:string; d:string}; de:{t:string; d:string}}>>
+- Render chips on slide; on tap setActiveFact and open FactSheet
+Acceptance:
+- Facts appear, animate in, open bottom sheet, localized.
+
+M004: Cinematic Realistic Background Mode
+- Replace plain space background with realistic imagery (city/people) while keeping JetUP premium look:
+  - background image layer
+  - dark purple overlay + vignette + subtle grain
+  - optional slow parallax on scroll/swipe
+- Provide 2–3 background presets (by slide group):
+  - Market/Reality slides: city/business night
+  - Partner/Community slides: people/team
+  - AI slides: abstract tech texture
+Implementation:
+- Use CSS background images with overlay gradients; ensure performance (compressed images, no heavy video).
+Acceptance:
+- Backgrounds look cinematic, do not reduce readability, perform smoothly on mobile.
+
+M005: Hybrid “Galaxy on Reality” for Ecosystem Slide (Optional)
+- On ecosystem slide, keep nodes/planets but place them over realistic city background.
+- Add subtle glow and depth to nodes; maintain existing zoom interactions.
+Acceptance:
+- Ecosystem feels like infrastructure over real world, premium.
+
+Final QA:
+- Test on mobile viewport (390x844) and ensure no overflow or tiny text.
+- All new text localized RU/EN/DE.
+- No console errors.

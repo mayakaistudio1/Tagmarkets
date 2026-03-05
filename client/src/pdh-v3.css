@@ -2101,9 +2101,14 @@
 }
 
 .pres-cinematic-fallback {
+  position: absolute;
+  inset: -8%;
+  width: 116%;
+  height: 116%;
   background-size: cover;
   background-position: center;
   animation: kenBurns 28s ease-in-out infinite;
+  z-index: 0;
 }
 
 .pres-cinematic-gradient {

@@ -649,10 +649,33 @@ const BG_VIDEO_MAP: Record<string, { video: string; poster: string }> = {
 const CinematicVideoBg: React.FC<{ slideId: number }> = ({ slideId }) => {
   const preset = SLIDE_BG_PRESETS[slideId] || 'market';
   const bg = BG_VIDEO_MAP[preset];
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    console.log('[VIDEO-BG] mounting video for preset:', preset, 'src:', bg.video);
+    const tryPlay = () => {
+      vid.play().then(() => {
+        console.log('[VIDEO-BG] playing OK, readyState:', vid.readyState, 'size:', vid.videoWidth, 'x', vid.videoHeight);
+      }).catch((err) => {
+        console.log('[VIDEO-BG] play failed:', err.message);
+      });
+    };
+    if (vid.readyState >= 2) {
+      tryPlay();
+    } else {
+      vid.addEventListener('canplay', tryPlay, { once: true });
+    }
+    vid.addEventListener('error', (e) => {
+      console.log('[VIDEO-BG] error event:', (e.target as HTMLVideoElement)?.error?.message);
+    });
+  }, [preset]);
 
   return (
     <div className="pres-cinematic-bg-wrap">
       <video
+        ref={videoRef}
         key={`video-${preset}`}
         className="pres-cinematic-video"
         src={bg.video}

@@ -2118,15 +2118,15 @@
 }
 
 .pres-cinematic-gradient-market {
-  background: linear-gradient(135deg, rgba(6, 2, 18, 0.55) 0%, rgba(15, 10, 30, 0.35) 50%, rgba(6, 2, 18, 0.65) 100%);
+  background: linear-gradient(135deg, rgba(6, 2, 18, 0.30) 0%, rgba(15, 10, 30, 0.15) 50%, rgba(6, 2, 18, 0.35) 100%);
 }
 
 .pres-cinematic-gradient-partner {
-  background: linear-gradient(135deg, rgba(6, 2, 18, 0.50) 0%, rgba(20, 10, 35, 0.35) 50%, rgba(6, 2, 18, 0.60) 100%);
+  background: linear-gradient(135deg, rgba(6, 2, 18, 0.25) 0%, rgba(20, 10, 35, 0.15) 50%, rgba(6, 2, 18, 0.30) 100%);
 }
 
 .pres-cinematic-gradient-tech {
-  background: linear-gradient(135deg, rgba(6, 2, 18, 0.55) 0%, rgba(10, 5, 25, 0.40) 50%, rgba(6, 2, 18, 0.65) 100%);
+  background: linear-gradient(135deg, rgba(6, 2, 18, 0.30) 0%, rgba(10, 5, 25, 0.20) 50%, rgba(6, 2, 18, 0.35) 100%);
 }
 
 .pres-cinematic-overlay {
@@ -2135,10 +2135,10 @@
   z-index: 3;
   background: linear-gradient(
     180deg,
-    rgba(6, 2, 18, 0.75) 0%,
-    rgba(15, 10, 30, 0.35) 30%,
-    rgba(15, 10, 30, 0.30) 70%,
-    rgba(6, 2, 18, 0.88) 100%
+    rgba(6, 2, 18, 0.50) 0%,
+    rgba(15, 10, 30, 0.15) 30%,
+    rgba(15, 10, 30, 0.10) 70%,
+    rgba(6, 2, 18, 0.65) 100%
   );
 }
 
@@ -2146,7 +2146,7 @@
   position: absolute;
   inset: 0;
   z-index: 4;
-  background: radial-gradient(ellipse at center, transparent 30%, rgba(6, 2, 18, 0.75) 100%);
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(6, 2, 18, 0.50) 100%);
 }
 
 /* ===== JOURNAL FACTS ===== */

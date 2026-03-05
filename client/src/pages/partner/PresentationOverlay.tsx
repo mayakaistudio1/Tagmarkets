@@ -369,45 +369,50 @@ const DennisInsight: React.FC<{ insightKey: string; t: (key: string) => string }
 );
 
 const AIComparison: React.FC<{ t: (key: string) => string }> = ({ t }) => {
-  const [showAI, setShowAI] = useState(false);
   return (
     <motion.div
       className="pres-ai-compare"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.55, duration: 0.4 }}
+      data-testid="ai-comparison"
     >
-      <button
-        className={`pres-ai-toggle ${showAI ? 'pres-ai-toggle-on' : ''}`}
-        onClick={() => setShowAI(!showAI)}
-        data-testid="btn-ai-toggle"
-      >
-        {showAI ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-        {showAI ? t('pdh.withAI') : t('pdh.withoutAI')}
-      </button>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={showAI ? 'with' : 'without'}
-          className={`pres-ai-list ${showAI ? 'pres-ai-list-on' : 'pres-ai-list-off'}`}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.25 }}
-        >
-          {[1, 2, 3, 4].map((i) => (
-            <motion.div
-              key={i}
-              className="pres-ai-item"
-              initial={{ opacity: 0, x: showAI ? 15 : -15 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.08, duration: 0.25 }}
-            >
-              <span className={`pres-ai-item-dot ${showAI ? 'dot-green' : 'dot-red'}`} />
-              {t(showAI ? `pdh.withai.${i}` : `pdh.noai.${i}`)}
-            </motion.div>
-          ))}
-        </motion.div>
-      </AnimatePresence>
+      <div className="pres-ai-col">
+        <div className="pres-ai-col-header col-off">
+          <ToggleLeft size={14} />
+          {t('pdh.withoutAI')}
+        </div>
+        {[1, 2, 3, 4].map((i) => (
+          <motion.div
+            key={i}
+            className="pres-ai-item"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6 + i * 0.08, duration: 0.25 }}
+          >
+            <span className="pres-ai-item-dot dot-red" />
+            {t(`pdh.noai.${i}`)}
+          </motion.div>
+        ))}
+      </div>
+      <div className="pres-ai-col">
+        <div className="pres-ai-col-header col-on">
+          <ToggleRight size={14} />
+          {t('pdh.withAI')}
+        </div>
+        {[1, 2, 3, 4].map((i) => (
+          <motion.div
+            key={i}
+            className="pres-ai-item"
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6 + i * 0.08, duration: 0.25 }}
+          >
+            <span className="pres-ai-item-dot dot-green" />
+            {t(`pdh.withai.${i}`)}
+          </motion.div>
+        ))}
+      </div>
     </motion.div>
   );
 };
@@ -1011,7 +1016,6 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
                       {slide.id === 8 && (
                         <>
                           <AIComparison t={t} />
-                          <LivePipeline t={t} isActive={current === 7} />
                           <button
                             className="pres-try-ai-btn"
                             onClick={() => setChatOpen(true)}

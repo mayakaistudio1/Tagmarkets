@@ -852,7 +852,7 @@
   background:
     radial-gradient(ellipse at center, transparent 30%, rgba(6, 2, 18, 0.7) 100%),
     linear-gradient(180deg, rgba(6, 2, 18, 0.8) 0%, rgba(15, 10, 30, 0.4) 40%, rgba(6, 2, 18, 0.85) 100%),
-    url('/images/presentation/scene_09.png');
+    url('/images/presentation/bg_tech.jpg');
   background-size: cover;
   background-position: center;
 }
@@ -1680,57 +1680,62 @@
 
 /* ===== AI COMPARISON ===== */
 .pres-ai-compare {
-  margin-top: 12px;
-}
-
-.pres-ai-toggle {
-  display: flex;
-  align-items: center;
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
-  padding: 8px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  background: rgba(239, 68, 68, 0.1);
-  color: #FCA5A5;
-  font-size: 13px;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.25s;
-  width: 100%;
-  justify-content: center;
 }
 
-.pres-ai-toggle-on {
-  border-color: rgba(34, 197, 94, 0.4);
-  background: rgba(34, 197, 94, 0.12);
-  color: #86EFAC;
-}
-
-.pres-ai-list {
+.pres-ai-col {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 4px;
+}
+
+.pres-ai-col-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pres-ai-col-header.col-off {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #FCA5A5;
+}
+
+.pres-ai-col-header.col-on {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  color: #86EFAC;
 }
 
 .pres-ai-item {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 10px;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 4px 6px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.03);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.3;
 }
 
 .pres-ai-item-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
+  margin-top: 3px;
 }
 
 .pres-ai-item-dot.dot-red {
@@ -1741,14 +1746,6 @@
 .pres-ai-item-dot.dot-green {
   background: #22C55E;
   box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
-}
-
-.pres-ai-list-off .pres-ai-item {
-  border-left: 2px solid rgba(239, 68, 68, 0.2);
-}
-
-.pres-ai-list-on .pres-ai-item {
-  border-left: 2px solid rgba(34, 197, 94, 0.2);
 }
 
 /* ===== LIVE PIPELINE ===== */
@@ -2031,20 +2028,20 @@
 
 .pres-cinematic-market {
   background-image:
-    linear-gradient(135deg, rgba(6, 2, 18, 0.7) 0%, rgba(15, 10, 30, 0.5) 50%, rgba(6, 2, 18, 0.8) 100%),
-    url('/images/presentation/scene_01.png');
+    linear-gradient(135deg, rgba(6, 2, 18, 0.65) 0%, rgba(15, 10, 30, 0.45) 50%, rgba(6, 2, 18, 0.75) 100%),
+    url('/images/presentation/bg_market.jpg');
 }
 
 .pres-cinematic-partner {
   background-image:
-    linear-gradient(135deg, rgba(6, 2, 18, 0.7) 0%, rgba(20, 10, 35, 0.5) 50%, rgba(6, 2, 18, 0.8) 100%),
-    url('/images/presentation/scene_05.png');
+    linear-gradient(135deg, rgba(6, 2, 18, 0.65) 0%, rgba(20, 10, 35, 0.45) 50%, rgba(6, 2, 18, 0.75) 100%),
+    url('/images/presentation/bg_partner.jpg');
 }
 
 .pres-cinematic-tech {
   background-image:
-    linear-gradient(135deg, rgba(6, 2, 18, 0.75) 0%, rgba(10, 5, 25, 0.55) 50%, rgba(6, 2, 18, 0.85) 100%),
-    url('/images/presentation/scene_08.png');
+    linear-gradient(135deg, rgba(6, 2, 18, 0.7) 0%, rgba(10, 5, 25, 0.5) 50%, rgba(6, 2, 18, 0.8) 100%),
+    url('/images/presentation/bg_tech.jpg');
 }
 
 .pres-cinematic-overlay {

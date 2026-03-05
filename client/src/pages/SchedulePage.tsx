@@ -52,9 +52,7 @@ const DAY_ORDER: Record<string, number> = {
 
 function sortEvents(events: ScheduleEvent[]): ScheduleEvent[] {
   return [...events].sort((a, b) => {
-    const dayA = DAY_ORDER[a.day.toLowerCase()] ?? 99;
-    const dayB = DAY_ORDER[b.day.toLowerCase()] ?? 99;
-    if (dayA !== dayB) return dayA - dayB;
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
     const [hA, mA] = (a.time || "00:00").split(":").map(Number);
     const [hB, mB] = (b.time || "00:00").split(":").map(Number);
     return (hA * 60 + (mA || 0)) - (hB * 60 + (mB || 0));

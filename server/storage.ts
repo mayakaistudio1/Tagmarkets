@@ -169,7 +169,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(scheduleEvents)
       .leftJoin(speakers, eq(scheduleEvents.speakerId, speakers.id))
-      .orderBy(scheduleEvents.sortOrder);
+      .orderBy(scheduleEvents.date, scheduleEvents.time);
 
     if (activeOnly) {
       return query.where(eq(scheduleEvents.isActive, true));

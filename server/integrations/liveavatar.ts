@@ -84,15 +84,33 @@ const LIVEAVATAR_VOICE_ID = process.env.LIVEAVATAR_VOICE_ID || "YOUR_VOICE_ID";
 const LIVEAVATAR_CONTEXT_ID = process.env.LIVEAVATAR_CONTEXT_ID || "YOUR_CONTEXT_ID";
 const LIVEAVATAR_BASE_URL = "https://api.liveavatar.com/v1";
 
-export async function getSessionToken(language: string = "ru"): Promise<any> {
+const DENNIS_AVATAR_ID = process.env.DENNIS_AVATAR_ID || LIVEAVATAR_AVATAR_ID;
+const DENNIS_VOICE_ID = process.env.DENNIS_VOICE_ID || LIVEAVATAR_VOICE_ID;
+const DENNIS_CONTEXT_ID = process.env.DENNIS_CONTEXT_ID || LIVEAVATAR_CONTEXT_ID;
+
+export async function getSessionToken(language: string = "ru", persona?: string): Promise<any> {
   if (!LIVEAVATAR_API_KEY) {
     throw new Error("Missing LIVEAVATAR_API_KEY in environment");
   }
 
-  const LIVEAVATAR_VOICE_ID_EN = process.env.LIVEAVATAR_VOICE_ID_EN || LIVEAVATAR_VOICE_ID;
-  const LIVEAVATAR_VOICE_ID_DE = process.env.LIVEAVATAR_VOICE_ID_DE || LIVEAVATAR_VOICE_ID;
-  const LIVEAVATAR_CONTEXT_ID_EN = process.env.LIVEAVATAR_CONTEXT_ID_EN || LIVEAVATAR_CONTEXT_ID;
-  const LIVEAVATAR_CONTEXT_ID_DE = process.env.LIVEAVATAR_CONTEXT_ID_DE || LIVEAVATAR_CONTEXT_ID;
+  const isDennis = persona === "dennis";
+
+  const baseAvatarId = isDennis ? DENNIS_AVATAR_ID : LIVEAVATAR_AVATAR_ID;
+  const baseVoiceId = isDennis ? DENNIS_VOICE_ID : LIVEAVATAR_VOICE_ID;
+  const baseContextId = isDennis ? DENNIS_CONTEXT_ID : LIVEAVATAR_CONTEXT_ID;
+
+  const voiceIdEn = isDennis
+    ? (process.env.DENNIS_VOICE_ID_EN || baseVoiceId)
+    : (process.env.LIVEAVATAR_VOICE_ID_EN || baseVoiceId);
+  const voiceIdDe = isDennis
+    ? (process.env.DENNIS_VOICE_ID_DE || baseVoiceId)
+    : (process.env.LIVEAVATAR_VOICE_ID_DE || baseVoiceId);
+  const contextIdEn = isDennis
+    ? (process.env.DENNIS_CONTEXT_ID_EN || baseContextId)
+    : (process.env.LIVEAVATAR_CONTEXT_ID_EN || baseContextId);
+  const contextIdDe = isDennis
+    ? (process.env.DENNIS_CONTEXT_ID_DE || baseContextId)
+    : (process.env.LIVEAVATAR_CONTEXT_ID_DE || baseContextId);
 
   let heygenLanguage: string;
   let voiceId: string;
@@ -101,24 +119,24 @@ export async function getSessionToken(language: string = "ru"): Promise<any> {
   switch (language) {
     case "en":
       heygenLanguage = "en";
-      voiceId = LIVEAVATAR_VOICE_ID_EN;
-      contextId = LIVEAVATAR_CONTEXT_ID_EN;
+      voiceId = voiceIdEn;
+      contextId = contextIdEn;
       break;
     case "de":
       heygenLanguage = "de";
-      voiceId = LIVEAVATAR_VOICE_ID_DE;
-      contextId = LIVEAVATAR_CONTEXT_ID_DE;
+      voiceId = voiceIdDe;
+      contextId = contextIdDe;
       break;
     default:
       heygenLanguage = "ru";
-      voiceId = LIVEAVATAR_VOICE_ID;
-      contextId = LIVEAVATAR_CONTEXT_ID;
+      voiceId = baseVoiceId;
+      contextId = baseContextId;
       break;
   }
 
   const payload = {
     mode: "FULL",
-    avatar_id: LIVEAVATAR_AVATAR_ID,
+    avatar_id: baseAvatarId,
     avatar_persona: {
       voice_id: voiceId,
       context_id: contextId,
@@ -232,8 +250,8 @@ export async function sendEvent(sessionToken: string, eventType: string, data?: 
 export function registerLiveAvatarRoutes(app: Express): void {
   app.post("/api/liveavatar/token", async (req: Request, res: Response) => {
     try {
-      const { language = "ru" } = req.body || {};
-      const result = await getSessionToken(language);
+      const { language = "ru", persona } = req.body || {};
+      const result = await getSessionToken(language, persona);
       res.status(200).json(result);
     } catch (error: any) {
       console.error("Token generation error:", error);

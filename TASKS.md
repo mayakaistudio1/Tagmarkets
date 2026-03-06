@@ -38,6 +38,42 @@
 
 ---
 
+## Партнёрская админ-панель
+
+Каждый партнёр (например, Деннис) получает свою персональную админ-панель с доступом только к своим данным. Главный админ управляет списком партнёров.
+
+### База данных
+- ⬜ Таблица `partners` в `shared/schema.ts`: `id`, `slug` (unique, например "dennis"), `name`, `password`, `aiPersona`, `systemPrompt` (nullable), `isActive`, `createdAt`
+- ⬜ Колонка `partnerId` (text, nullable) в таблице `chat_sessions` — привязка сессий к партнёру
+- ⬜ Insert/select схемы через drizzle-zod
+
+### Хранилище
+- ⬜ Методы в `server/storage.ts`: `getPartnerBySlug()`, `getPartners()`, `createPartner()`, `updatePartner()`, `deletePartner()`
+- ⬜ `getPartnerChatSessions(slug)` — только сессии с `partnerId === slug`
+
+### Привязка чатов к партнёру
+- ⬜ В `dennis-chat.ts`: принимать `partnerSlug` из запроса, передавать в `createChatSession`
+- ⬜ На фронте: извлекать slug из URL и отправлять в API
+
+### API партнёр-админа
+- ⬜ `POST /api/partner-admin/login` — авторизация по slug + пароль
+- ⬜ `GET /api/partner-admin/:slug/chat-sessions` — скоупленные чат-логи (с `x-partner-password` заголовком)
+- ⬜ `GET /api/partner-admin/:slug/chat-sessions/:sessionId/messages` — сообщения сессии
+- ⬜ Middleware `requirePartnerAdmin` — проверка пароля партнёра
+
+### UI партнёрской админки
+- ⬜ Страница `client/src/pages/partner/PartnerAdminPage.tsx`
+- ⬜ Маршрут: `/:slug/admin` (например, `/dennis/admin`)
+- ⬜ Логин-экран (slug + пароль)
+- ⬜ Вкладка «Чат-логи»: список сессий посетителей, раскрытие сообщений, CSV-экспорт
+- ⬜ Вкладка «Настройки страницы» (placeholder на будущее)
+
+### Управление партнёрами в главной админке
+- ⬜ Вкладка «Партнёры» в `AdminPage.tsx`: список, создание, редактирование (имя/slug/пароль), удаление
+- ⬜ Сид Денниса как первого партнёра при старте сервера
+
+---
+
 ## Telegram Admin Agent — AI-ассистент проекта
 
 Личный AI-ассистент в Telegram. Знает весь проект JetUP, понимает неформальный стиль общения, имеет полную историю переписки (как ChatGPT), долгосрочную память и доступ к данным в реальном времени.

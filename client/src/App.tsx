@@ -49,12 +49,13 @@ function AppContent() {
   const eventMatch = basePath.match(/^\/event\/(\d+)$/);
   const promoSingleMatch = basePath.match(/^\/promo\/(\d+)$/);
   const partnerMatch = basePath.match(/^\/p\/[\w-]+$/);
+  const directPartnerMatch = basePath === "/dennis";
 
   const renderPage = () => {
     if (basePath === "/live") return <LiveCallScreen />;
     if (eventMatch) return <EventDetailPage />;
     if (promoSingleMatch) return <PromoSinglePage />;
-    if (partnerMatch) return <PartnerDigitalHub />;
+    if (partnerMatch || directPartnerMatch) return <PartnerDigitalHub />;
 
     switch (basePath) {
       case "/":

@@ -16,11 +16,6 @@ export interface SharedMessage {
 
 type AppState = "HERO" | "CHAT_OVERLAY" | "PRESENTATION_OVERLAY" | "ECOSYSTEM_OVERLAY";
 
-const LANG_FLAGS: Record<Language, string> = {
-  ru: "🇷🇺",
-  de: "🇩🇪",
-  en: "🇬🇧",
-};
 
 const PartnerDigitalHub: React.FC = () => {
   const [, setLocation] = useLocation();
@@ -81,7 +76,6 @@ const PartnerDigitalHub: React.FC = () => {
             onClick={() => setLanguage(lang)}
             data-testid={`pdh-lang-${lang}`}
           >
-            <span className="pdh-lang-flag">{LANG_FLAGS[lang]}</span>
             <span className="pdh-lang-code">{lang.toUpperCase()}</span>
           </button>
         ))}

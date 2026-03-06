@@ -62,7 +62,7 @@ const PartnerDigitalHub: React.FC = () => {
   };
   const showEcosystem = () => setState("ECOSYSTEM_OVERLAY");
   const closeEcosystem = () => setState("PRESENTATION_OVERLAY");
-  const openLive = () => setLocation("/live");
+  const openLive = () => setLocation("/dennis/live");
 
   const showChat = state === "CHAT_OVERLAY" || state === "PRESENTATION_OVERLAY" || state === "ECOSYSTEM_OVERLAY";
 

@@ -52,7 +52,7 @@ function AppContent() {
   const directPartnerMatch = basePath === "/dennis";
 
   const renderPage = () => {
-    if (basePath === "/live") return <LiveCallScreen />;
+    if (basePath === "/dennis/live") return <LiveCallScreen />;
     if (eventMatch) return <EventDetailPage />;
     if (promoSingleMatch) return <PromoSinglePage />;
     if (partnerMatch || directPartnerMatch) return <PartnerDigitalHub />;

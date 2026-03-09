@@ -678,6 +678,7 @@ function AdminPage() {
             exportPromoAppsCSV={exportPromoAppsCSV}
             promoSubTab={promoSubTab}
             setPromoSubTab={setPromoSubTab}
+            adminPassword={adminPassword}
           />
         )}
       </main>
@@ -1767,7 +1768,7 @@ function ToggleField({ label, value, onChange, testId }: {
 
 function DennisPromoTab({
   dennisPromos, dennisPromosLoading, formOpen, setFormOpen, editing, setEditing, onSave, onDelete,
-  promoApps, promoAppsLoading, updatePromoAppStatus, exportPromoAppsCSV, promoSubTab, setPromoSubTab,
+  promoApps, promoAppsLoading, updatePromoAppStatus, exportPromoAppsCSV, promoSubTab, setPromoSubTab, adminPassword,
 }: {
   dennisPromos: any[]; dennisPromosLoading: boolean;
   formOpen: boolean; setFormOpen: (v: boolean) => void;
@@ -1778,6 +1779,7 @@ function DennisPromoTab({
   exportPromoAppsCSV: () => void;
   promoSubTab: "offers" | "applications";
   setPromoSubTab: (v: "offers" | "applications") => void;
+  adminPassword: string;
 }) {
   const [form, setForm] = useState<any>({
     title: "", shortDesc: "", description: "", rules: [], isActive: true, sortOrder: 0, language: "ru", translationGroup: "",
@@ -2014,83 +2016,150 @@ function DennisPromoTab({
       )}
 
       {promoSubTab === "applications" && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Заявки на промо-акции</h2>
-            <button
-              onClick={exportPromoAppsCSV}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-              data-testid="btn-export-promo-csv"
-            >
-              <Download size={16} />
-              CSV Export
-            </button>
-          </div>
-          {promoAppsLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 size={24} className="animate-spin text-purple-600" />
-            </div>
-          ) : promoApps.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">Нет заявок</div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">ID</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Email</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">CU Number</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Date</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {promoApps.map((app: any) => (
-                    <tr key={app.id} className="border-b last:border-0 hover:bg-gray-50" data-testid={`row-promo-app-${app.id}`}>
-                      <td className="px-4 py-3 text-gray-500">#{app.id}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900">{app.name}</td>
-                      <td className="px-4 py-3 text-gray-700">{app.email}</td>
-                      <td className="px-4 py-3 text-gray-700 font-mono">{app.cuNumber}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                          app.status === "approved" ? "bg-green-100 text-green-700" :
-                          app.status === "rejected" ? "bg-red-100 text-red-700" :
-                          "bg-yellow-100 text-yellow-700"
-                        }`} data-testid={`badge-status-${app.id}`}>
-                          {app.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          {app.status !== "approved" && (
-                            <button
-                              onClick={() => updatePromoAppStatus(app.id, "approved")}
-                              className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200"
-                              data-testid={`btn-approve-${app.id}`}
-                            >
-                              <Check size={14} />
-                            </button>
-                          )}
-                          {app.status !== "rejected" && (
-                            <button
-                              onClick={() => updatePromoAppStatus(app.id, "rejected")}
-                              className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200"
-                              data-testid={`btn-reject-${app.id}`}
-                            >
-                              <X size={14} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+        <PromoApplicationsSubTab
+          promoApps={promoApps}
+          promoAppsLoading={promoAppsLoading}
+          updatePromoAppStatus={updatePromoAppStatus}
+          exportPromoAppsCSV={exportPromoAppsCSV}
+          adminPassword={adminPassword}
+        />
+      )}
+    </div>
+  );
+}
+
+function PromoApplicationsSubTab({
+  promoApps, promoAppsLoading, updatePromoAppStatus, exportPromoAppsCSV, adminPassword,
+}: {
+  promoApps: any[]; promoAppsLoading: boolean;
+  updatePromoAppStatus: (id: number, status: string) => void;
+  exportPromoAppsCSV: () => void;
+  adminPassword: string;
+}) {
+  const [syncing, setSyncing] = useState(false);
+  const [sheetUrl, setSheetUrl] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  const syncToSheets = async () => {
+    setSyncing(true);
+    setSyncError(null);
+    try {
+      const res = await fetch("/api/admin/sync-promo-sheets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-password": adminPassword },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSheetUrl(data.spreadsheetUrl);
+      } else {
+        setSyncError(data.error || "Sync failed");
+      }
+    } catch (err: any) {
+      setSyncError(err.message || "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h2 className="text-xl font-bold text-gray-900">Заявки на промо-акции</h2>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={syncToSheets}
+            disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+            data-testid="btn-sync-promo-sheets"
+          >
+            {syncing ? <Loader2 size={16} className="animate-spin" /> : <FileSpreadsheet size={16} />}
+            Google Sheets
+          </button>
+          <button
+            onClick={exportPromoAppsCSV}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+            data-testid="btn-export-promo-csv"
+          >
+            <Download size={16} />
+            CSV Export
+          </button>
+        </div>
+      </div>
+      {sheetUrl && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 text-sm">
+          <FileSpreadsheet size={16} className="text-blue-600 flex-shrink-0" />
+          <span className="text-blue-800">Синхронизировано!</span>
+          <a href={sheetUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline flex items-center gap-1 ml-1" data-testid="link-promo-sheet">
+            Открыть таблицу <ExternalLink size={12} />
+          </a>
+        </div>
+      )}
+      {syncError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{syncError}</div>
+      )}
+      {promoAppsLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 size={24} className="animate-spin text-purple-600" />
+        </div>
+      ) : promoApps.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">Нет заявок</div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">ID</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Email</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">CU Number</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Date</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {promoApps.map((app: any) => (
+                <tr key={app.id} className="border-b last:border-0 hover:bg-gray-50" data-testid={`row-promo-app-${app.id}`}>
+                  <td className="px-4 py-3 text-gray-500">#{app.id}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">{app.name}</td>
+                  <td className="px-4 py-3 text-gray-700">{app.email}</td>
+                  <td className="px-4 py-3 text-gray-700 font-mono">{app.cuNumber}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      app.status === "approved" ? "bg-green-100 text-green-700" :
+                      app.status === "rejected" ? "bg-red-100 text-red-700" :
+                      "bg-yellow-100 text-yellow-700"
+                    }`} data-testid={`badge-status-${app.id}`}>
+                      {app.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-1">
+                      {app.status !== "approved" && (
+                        <button
+                          onClick={() => updatePromoAppStatus(app.id, "approved")}
+                          className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200"
+                          data-testid={`btn-approve-${app.id}`}
+                        >
+                          <Check size={14} />
+                        </button>
+                      )}
+                      {app.status !== "rejected" && (
+                        <button
+                          onClick={() => updatePromoAppStatus(app.id, "rejected")}
+                          className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200"
+                          data-testid={`btn-reject-${app.id}`}
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

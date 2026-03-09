@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 import { db } from './db';
-import { chatSessions, chatMessages } from '@shared/schema';
+import { chatSessions, chatMessages, promoApplications, dennisPromos } from '@shared/schema';
 import { desc, eq } from 'drizzle-orm';
 
 let connectionSettings: any;
@@ -577,4 +577,251 @@ async function updateOverviewForSession(
   } catch (error) {
     console.error('Failed to update Übersicht:', error);
   }
+}
+
+const PROMO_SHEET_NAME = 'Promo Applications';
+let cachedPromoSpreadsheetIdDev: string | null = null;
+let cachedPromoSpreadsheetIdProd: string | null = null;
+
+function getPromoSpreadsheetTitle(): string {
+  return isProduction() ? 'JetUP Promo Applications PROD' : 'JetUP Promo Applications DEV';
+}
+
+function getCachedPromoId(): string | null {
+  return isProduction() ? cachedPromoSpreadsheetIdProd : cachedPromoSpreadsheetIdDev;
+}
+
+function setCachedPromoId(id: string | null): void {
+  if (isProduction()) {
+    cachedPromoSpreadsheetIdProd = id;
+  } else {
+    cachedPromoSpreadsheetIdDev = id;
+  }
+}
+
+async function getOrCreatePromoSpreadsheet(): Promise<string> {
+  const cached = getCachedPromoId();
+  if (cached) {
+    try {
+      const sheets = await getSheetsClient();
+      await sheets.spreadsheets.get({ spreadsheetId: cached });
+      return cached;
+    } catch {
+      setCachedPromoId(null);
+    }
+  }
+
+  const title = getPromoSpreadsheetTitle();
+  const drive = await getDriveClient();
+  const res = await drive.files.list({
+    q: `name='${title}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`,
+    fields: 'files(id, name)',
+    spaces: 'drive',
+  });
+
+  if (res.data.files && res.data.files.length > 0) {
+    setCachedPromoId(res.data.files[0].id!);
+    return getCachedPromoId()!;
+  }
+
+  const sheets = await getSheetsClient();
+  const createRes = await sheets.spreadsheets.create({
+    requestBody: {
+      properties: { title },
+      sheets: [{ properties: { title: PROMO_SHEET_NAME } }],
+    },
+  });
+
+  const spreadsheetId = createRes.data.spreadsheetId!;
+  setCachedPromoId(spreadsheetId);
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `'${PROMO_SHEET_NAME}'!A1`,
+    valueInputOption: 'RAW',
+    requestBody: {
+      values: [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum']],
+    },
+  });
+
+  const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+  const sheetId = spreadsheet.data.sheets?.[0]?.properties?.sheetId;
+  if (sheetId !== undefined) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            repeatCell: {
+              range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
+              cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 1.0, green: 0.93, blue: 0.8 } } },
+              fields: 'userEnteredFormat(textFormat,backgroundColor)',
+            }
+          },
+          {
+            updateSheetProperties: {
+              properties: { sheetId, gridProperties: { frozenRowCount: 1 } },
+              fields: 'gridProperties.frozenRowCount',
+            }
+          },
+          {
+            updateDimensionProperties: {
+              range: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 },
+              properties: { pixelSize: 50 },
+              fields: 'pixelSize',
+            }
+          },
+          {
+            updateDimensionProperties: {
+              range: { sheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
+              properties: { pixelSize: 180 },
+              fields: 'pixelSize',
+            }
+          },
+          {
+            updateDimensionProperties: {
+              range: { sheetId, dimension: 'COLUMNS', startIndex: 2, endIndex: 3 },
+              properties: { pixelSize: 220 },
+              fields: 'pixelSize',
+            }
+          },
+          {
+            updateDimensionProperties: {
+              range: { sheetId, dimension: 'COLUMNS', startIndex: 3, endIndex: 4 },
+              properties: { pixelSize: 120 },
+              fields: 'pixelSize',
+            }
+          },
+          {
+            updateDimensionProperties: {
+              range: { sheetId, dimension: 'COLUMNS', startIndex: 4, endIndex: 5 },
+              properties: { pixelSize: 220 },
+              fields: 'pixelSize',
+            }
+          },
+          {
+            updateDimensionProperties: {
+              range: { sheetId, dimension: 'COLUMNS', startIndex: 5, endIndex: 6 },
+              properties: { pixelSize: 100 },
+              fields: 'pixelSize',
+            }
+          },
+          {
+            updateDimensionProperties: {
+              range: { sheetId, dimension: 'COLUMNS', startIndex: 6, endIndex: 7 },
+              properties: { pixelSize: 160 },
+              fields: 'pixelSize',
+            }
+          },
+        ]
+      },
+    });
+  }
+
+  return spreadsheetId;
+}
+
+export async function appendPromoApplicationToSheet(app: {
+  name: string;
+  email: string;
+  cuNumber: string;
+  promoTitle?: string;
+  status: string;
+  createdAt: Date | string;
+}): Promise<void> {
+  try {
+    const spreadsheetId = await getOrCreatePromoSpreadsheet();
+    const sheets = await getSheetsClient();
+
+    const existing = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `'${PROMO_SHEET_NAME}'!A:A`,
+    });
+    const rowCount = (existing.data.values || []).length;
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: `'${PROMO_SHEET_NAME}'!A:G`,
+      valueInputOption: 'RAW',
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: {
+        values: [[
+          rowCount,
+          app.name,
+          app.email,
+          app.cuNumber,
+          app.promoTitle || '',
+          app.status,
+          formatDate(typeof app.createdAt === 'string' ? new Date(app.createdAt) : app.createdAt),
+        ]],
+      },
+    });
+  } catch (error) {
+    console.error('Failed to append promo application to Google Sheets:', error);
+  }
+}
+
+export async function syncAllPromoApplications(): Promise<{ spreadsheetId: string; count: number }> {
+  const spreadsheetId = await getOrCreatePromoSpreadsheet();
+  const sheets = await getSheetsClient();
+
+  const applications = await db.select().from(promoApplications).orderBy(desc(promoApplications.createdAt));
+  const allPromos = await db.select().from(dennisPromos);
+  const promoMap = new Map<number, string>();
+  for (const p of allPromos) {
+    promoMap.set(p.id, p.title);
+  }
+
+  const rows: any[][] = [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum']];
+  for (let i = 0; i < applications.length; i++) {
+    const app = applications[i];
+    rows.push([
+      i + 1,
+      app.name,
+      app.email,
+      app.cuNumber,
+      app.promoId ? (promoMap.get(app.promoId) || `#${app.promoId}`) : '',
+      app.status,
+      formatDate(app.createdAt),
+    ]);
+  }
+
+  await sheets.spreadsheets.values.clear({
+    spreadsheetId,
+    range: `'${PROMO_SHEET_NAME}'!A:G`,
+  });
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `'${PROMO_SHEET_NAME}'!A1`,
+    valueInputOption: 'RAW',
+    requestBody: { values: rows },
+  });
+
+  const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+  const sheetId = spreadsheet.data.sheets?.[0]?.properties?.sheetId;
+  if (sheetId !== undefined) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            repeatCell: {
+              range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
+              cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 1.0, green: 0.93, blue: 0.8 } } },
+              fields: 'userEnteredFormat(textFormat,backgroundColor)',
+            }
+          },
+          {
+            updateSheetProperties: {
+              properties: { sheetId, gridProperties: { frozenRowCount: 1 } },
+              fields: 'gridProperties.frozenRowCount',
+            }
+          },
+        ]
+      },
+    });
+  }
+
+  return { spreadsheetId, count: applications.length };
 }

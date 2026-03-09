@@ -14,7 +14,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { objectStorageClient } from "./replit_integrations/object_storage";
-import { syncAllChatSessions } from "./googleSheets";
+import { syncAllChatSessions, appendPromoApplicationToSheet, syncAllPromoApplications } from "./googleSheets";
 import { MARIA_SYSTEM_PROMPT_DE, MARIA_SYSTEM_PROMPT_EN, MARIA_SYSTEM_PROMPT_RU } from "./integrations/maria-chat";
 import { LIVEAVATAR_SYSTEM_PROMPT } from "./integrations/liveavatar";
 import OpenAI from "openai";
@@ -140,6 +140,15 @@ export async function registerRoutes(
       sendTelegramNotification(tgMessage).catch((err) =>
         console.error("TG notify error:", err)
       );
+
+      appendPromoApplicationToSheet({
+        name: validatedData.name,
+        email: validatedData.email,
+        cuNumber: validatedData.cuNumber,
+        promoTitle,
+        status: "pending",
+        createdAt: application.createdAt,
+      }).catch((err) => console.error("Sheets append error:", err));
 
       res.status(201).json(application);
     } catch (error: any) {
@@ -693,6 +702,21 @@ Return ONLY valid JSON in this format:
     } catch (error: any) {
       console.error("Google Sheets sync error:", error);
       res.status(500).json({ error: error.message || "Failed to sync with Google Sheets" });
+    }
+  });
+
+  app.post("/api/admin/sync-promo-sheets", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const result = await syncAllPromoApplications();
+      res.json({
+        success: true,
+        count: result.count,
+        spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${result.spreadsheetId}`,
+      });
+    } catch (error: any) {
+      console.error("Promo Sheets sync error:", error);
+      res.status(500).json({ error: error.message || "Failed to sync promo applications" });
     }
   });
 

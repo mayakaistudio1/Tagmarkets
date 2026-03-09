@@ -38,9 +38,10 @@ export function formatPromoApplicationMessage(app: {
   email: string;
   cuNumber: string;
   promoTitle?: string;
+  isDuplicate?: boolean;
 }): string {
   const lines = [
-    `🎯 <b>Neue Promo-Anmeldung!</b>`,
+    app.isDuplicate ? `⚠️ <b>Wiederholte Anmeldung!</b>` : `🎯 <b>Neue Promo-Anmeldung!</b>`,
     ``,
     `👤 <b>Name:</b> ${app.name}`,
     `📧 <b>E-Mail:</b> ${app.email}`,
@@ -49,6 +50,10 @@ export function formatPromoApplicationMessage(app: {
 
   if (app.promoTitle) {
     lines.push(`📋 <b>Aktion:</b> ${app.promoTitle}`);
+  }
+
+  if (app.isDuplicate) {
+    lines.push(``, `🔁 <i>Diese E-Mail oder CU-Nummer wurde bereits verwendet.</i>`);
   }
 
   lines.push(``, `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`);

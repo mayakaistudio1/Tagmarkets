@@ -124,7 +124,18 @@ export async function registerRoutes(
   app.post("/api/partner/promo-apply", async (req, res) => {
     try {
       const validatedData = insertPromoApplicationSchema.parse(req.body);
-      const application = await storage.createPromoApplication(validatedData);
+
+      if (!validatedData.cuNumber.toUpperCase().startsWith("CU")) {
+        return res.status(400).json({ error: "CU-Nummer muss mit 'CU' beginnen" });
+      }
+
+      const existing = await storage.findDuplicatePromoApplication(validatedData.email, validatedData.cuNumber);
+      const isDuplicate = !!existing;
+
+      const application = await storage.createPromoApplication({
+        ...validatedData,
+        ...(isDuplicate ? { status: "duplicate" } : {}),
+      });
 
       let promoTitle: string | undefined;
       if (validatedData.promoId) {
@@ -136,6 +147,7 @@ export async function registerRoutes(
         email: validatedData.email,
         cuNumber: validatedData.cuNumber,
         promoTitle,
+        isDuplicate,
       });
       sendTelegramNotification(tgMessage).catch((err) =>
         console.error("TG notify error:", err)
@@ -146,7 +158,7 @@ export async function registerRoutes(
         email: validatedData.email,
         cuNumber: validatedData.cuNumber,
         promoTitle,
-        status: "pending",
+        status: isDuplicate ? "duplicate" : "pending",
         createdAt: application.createdAt,
       }).catch((err) => console.error("Sheets append error:", err));
 

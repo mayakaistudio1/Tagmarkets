@@ -2128,9 +2128,10 @@ function PromoApplicationsSubTab({
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
                       app.status === "approved" ? "bg-green-100 text-green-700" :
                       app.status === "rejected" ? "bg-red-100 text-red-700" :
+                      app.status === "duplicate" ? "bg-orange-100 text-orange-700" :
                       "bg-yellow-100 text-yellow-700"
                     }`} data-testid={`badge-status-${app.id}`}>
-                      {app.status}
+                      {app.status === "duplicate" ? "повторная" : app.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>

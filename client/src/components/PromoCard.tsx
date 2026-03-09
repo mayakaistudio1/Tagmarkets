@@ -41,11 +41,20 @@ const PromoCard: React.FC = () => {
     setFormData((prev) => ({ ...prev, [id]: { ...getFormData(id), [field]: value } }));
   };
 
+  const isCuValid = (value: string) => {
+    if (!value) return true;
+    return value.toUpperCase().startsWith("CU");
+  };
+
   const handleSubmit = async (e: React.FormEvent, promoId: number) => {
     e.preventDefault();
     setError("");
-    setLoading(promoId);
     const data = getFormData(promoId);
+    if (!isCuValid(data.cuNumber)) {
+      setError(t("dp.cuError"));
+      return;
+    }
+    setLoading(promoId);
     try {
       const res = await fetch("/api/partner/promo-apply", {
         method: "POST",
@@ -217,9 +226,18 @@ const PromoCard: React.FC = () => {
                           value={fd.cuNumber}
                           onChange={(e) => updateFormData(promo.id, "cuNumber", e.target.value)}
                           placeholder={t("dp.cuPlaceholder")}
-                          className="w-full bg-gray-50 text-gray-900 placeholder-gray-300 text-[13px] rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-orange-300 border border-gray-100"
+                          className={`w-full bg-gray-50 text-gray-900 placeholder-gray-300 text-[13px] rounded-lg px-3 py-2.5 outline-none focus:ring-2 border ${
+                            fd.cuNumber && !isCuValid(fd.cuNumber)
+                              ? "border-red-300 focus:ring-red-300"
+                              : "border-gray-100 focus:ring-orange-300"
+                          }`}
                           data-testid={`input-promo-cu-${promo.id}`}
                         />
+                        {fd.cuNumber && !isCuValid(fd.cuNumber) && (
+                          <p className="text-[10px] text-red-500 mt-1" data-testid={`text-cu-error-${promo.id}`}>
+                            {t("dp.cuError")}
+                          </p>
+                        )}
                       </div>
 
                       {error && expandedId === promo.id && (
@@ -239,7 +257,7 @@ const PromoCard: React.FC = () => {
                         </button>
                         <button
                           type="submit"
-                          disabled={loading === promo.id}
+                          disabled={loading === promo.id || (!!fd.cuNumber && !isCuValid(fd.cuNumber))}
                           className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-[13px] rounded-lg py-2.5 active:scale-[0.98] transition-transform shadow-md disabled:opacity-60 flex items-center justify-center gap-2"
                           data-testid={`btn-promo-submit-${promo.id}`}
                         >

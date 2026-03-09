@@ -5,7 +5,7 @@ import {
   type DennisPromo, type InsertDennisPromo,
   users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers, promoApplications, dennisPromos,
 } from "@shared/schema";
-import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql, count, or } from "drizzle-orm";
 import { db } from "./db";
 
 export interface IStorage {
@@ -35,6 +35,7 @@ export interface IStorage {
   createPromoApplication(application: InsertPromoApplication): Promise<PromoApplication>;
   getPromoApplications(): Promise<PromoApplication[]>;
   updatePromoApplicationStatus(id: number, status: string): Promise<PromoApplication>;
+  findDuplicatePromoApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined>;
 
   getDennisPromos(activeOnly?: boolean, language?: string): Promise<DennisPromo[]>;
   getDennisPromo(id: number): Promise<DennisPromo | undefined>;
@@ -245,6 +246,13 @@ export class DatabaseStorage implements IStorage {
   async updatePromoApplicationStatus(id: number, status: string): Promise<PromoApplication> {
     const [updated] = await db.update(promoApplications).set({ status }).where(eq(promoApplications.id, id)).returning();
     return updated;
+  }
+
+  async findDuplicatePromoApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined> {
+    const [found] = await db.select().from(promoApplications)
+      .where(or(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)))
+      .limit(1);
+    return found;
   }
 
   async getSpeakers(activeOnly?: boolean): Promise<any[]> {

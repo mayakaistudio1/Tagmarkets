@@ -32,9 +32,12 @@ const PromoBanner: React.FC = () => {
     }
   };
 
+  const bannerW = format === "vertical" ? 1080 : 1200;
+  const bannerH = format === "vertical" ? 1350 : 675;
+
   return (
-    <div style={{ padding: 32, background: "#0a0510", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
-      <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+    <div style={{ padding: 20, background: "#0a0510", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 4 }}>
         <button
           onClick={() => setFormat("vertical")}
           style={{
@@ -69,11 +72,23 @@ const PromoBanner: React.FC = () => {
         </button>
       </div>
 
-      {format === "vertical" ? (
-        <VerticalBanner ref={bannerRef} />
-      ) : (
-        <HorizontalBanner ref={bannerRef} />
-      )}
+      <div style={{ width: "100%", maxWidth: 500, overflow: "hidden" }}>
+        <div
+          style={{
+            transform: `scale(${Math.min(500 / bannerW, 1)})`,
+            transformOrigin: "top center",
+            width: bannerW,
+            height: bannerH,
+            margin: "0 auto",
+          }}
+        >
+          {format === "vertical" ? (
+            <VerticalBanner ref={bannerRef} />
+          ) : (
+            <HorizontalBanner ref={bannerRef} />
+          )}
+        </div>
+      </div>
 
       <button
         onClick={exportPNG}

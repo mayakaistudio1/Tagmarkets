@@ -18,6 +18,7 @@ import EventDetailPage from "@/pages/EventDetailPage";
 import PromoSinglePage from "@/pages/PromoSinglePage";
 import PartnerDigitalHub from "@/pages/PartnerDigitalHub";
 import LiveCallScreen from "@/pages/partner/LiveCallScreen";
+import PromoBanner from "@/components/PromoBanner";
 
 const PresentationPage = React.lazy(() => import("@/pages/PresentationPage"));
 
@@ -36,6 +37,10 @@ function AppContent() {
 
   if (basePath === "/promo-preview") {
     return <TurkeyPromoPreview />;
+  }
+
+  if (basePath === "/promo-banner") {
+    return <PromoBanner />;
   }
 
   if (basePath === "/presentation" && import.meta.env.DEV) {

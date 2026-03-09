@@ -57,7 +57,7 @@ const PromoBanner: React.FC = () => {
           style={{
             position: "absolute",
             inset: 0,
-            background: "linear-gradient(135deg, rgba(10,5,30,0.85) 0%, rgba(30,10,60,0.6) 40%, rgba(10,15,40,0.4) 70%, rgba(10,5,30,0.75) 100%)",
+            background: "linear-gradient(135deg, rgba(10,5,30,0.88) 0%, rgba(40,15,80,0.55) 40%, rgba(10,15,40,0.35) 70%, rgba(10,5,30,0.8) 100%)",
           }}
         />
 
@@ -81,21 +81,10 @@ const PromoBanner: React.FC = () => {
               height: "95%",
               objectFit: "contain",
               objectPosition: "bottom",
-              filter: "drop-shadow(0 0 40px rgba(124,58,237,0.4))",
+              filter: "drop-shadow(0 0 40px rgba(124,58,237,0.5))",
             }}
           />
         </div>
-
-        <div
-          style={{
-            position: "absolute",
-            right: 60,
-            bottom: 0,
-            width: 400,
-            height: "100%",
-            background: "linear-gradient(to left, rgba(10,5,30,0.0) 0%, rgba(10,5,30,0.0) 100%)",
-          }}
-        />
 
         <div
           style={{
@@ -106,146 +95,137 @@ const PromoBanner: React.FC = () => {
             bottom: 48,
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
+            justifyContent: "center",
+            gap: 0,
           }}
         >
-          <div>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                background: "rgba(124,58,237,0.25)",
-                border: "1px solid rgba(168,85,247,0.4)",
-                borderRadius: 8,
-                padding: "6px 16px",
-                marginBottom: 20,
-              }}
-            >
-              <span style={{ fontSize: 14, fontWeight: 600, color: "#c4b5fd", letterSpacing: 2, textTransform: "uppercase" }}>
-                JetUP Partner Promo
-              </span>
-            </div>
-
-            <h1
-              style={{
-                fontSize: 52,
-                fontWeight: 800,
-                color: "#ffffff",
-                lineHeight: 1.1,
-                margin: 0,
-                marginBottom: 8,
-                letterSpacing: -1,
-              }}
-            >
-              FAST START
-            </h1>
-            <h2
-              style={{
-                fontSize: 44,
-                fontWeight: 800,
-                background: "linear-gradient(135deg, #f59e0b, #f97316, #ef4444)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                lineHeight: 1.1,
-                margin: 0,
-                marginBottom: 24,
-                letterSpacing: -0.5,
-              }}
-            >
-              BONUS PROMO
-            </h2>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                gap: 12,
-                marginBottom: 16,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 72,
-                  fontWeight: 800,
-                  color: "#f59e0b",
-                  lineHeight: 1,
-                  textShadow: "0 0 30px rgba(245,158,11,0.4)",
-                }}
-              >
-                100
-              </span>
-              <span
-                style={{
-                  fontSize: 36,
-                  fontWeight: 700,
-                  color: "#ffffff",
-                  lineHeight: 1,
-                }}
-              >
-                +
-              </span>
-              <span
-                style={{
-                  fontSize: 72,
-                  fontWeight: 800,
-                  color: "#f59e0b",
-                  lineHeight: 1,
-                  textShadow: "0 0 30px rgba(245,158,11,0.4)",
-                }}
-              >
-                100
-              </span>
-              <span
-                style={{
-                  fontSize: 28,
-                  fontWeight: 600,
-                  color: "rgba(255,255,255,0.7)",
-                  lineHeight: 1,
-                  alignSelf: "center",
-                }}
-              >
-                USD
-              </span>
-            </div>
-
-            <p
-              style={{
-                fontSize: 17,
-                fontWeight: 500,
-                color: "rgba(255,255,255,0.75)",
-                lineHeight: 1.5,
-                margin: 0,
-                maxWidth: 500,
-              }}
-            >
-              Zahle 100 USD ein und erhalte
-              <span style={{ color: "#f59e0b", fontWeight: 700 }}> +100 USD Bonus</span>.
-              <br />
-              Amplify 24x &bull; Sonic Strategy &bull; 4.800 USD Konto
-            </p>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div
-              style={{
-                background: "linear-gradient(135deg, #f59e0b, #f97316)",
-                borderRadius: 12,
-                padding: "12px 28px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <span style={{ fontSize: 15, fontWeight: 700, color: "#ffffff", letterSpacing: 0.5 }}>
-                Jetzt teilnehmen
-              </span>
-              <span style={{ fontSize: 18, color: "#ffffff" }}>&#8594;</span>
-            </div>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
-              Nur für neue Partner
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.2))",
+              border: "1px solid rgba(168,85,247,0.45)",
+              borderRadius: 8,
+              padding: "6px 16px",
+              marginBottom: 22,
+              alignSelf: "flex-start",
+            }}
+          >
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#c4b5fd", letterSpacing: 2.5, textTransform: "uppercase" }}>
+              JetUP Partner Promo
             </span>
           </div>
+
+          <h1
+            style={{
+              fontSize: 54,
+              fontWeight: 800,
+              color: "#ffffff",
+              lineHeight: 1.05,
+              margin: 0,
+              marginBottom: 6,
+              letterSpacing: -1,
+            }}
+          >
+            FAST START
+          </h1>
+          <h2
+            style={{
+              fontSize: 46,
+              fontWeight: 800,
+              background: "linear-gradient(135deg, #7C3AED, #A855F7, #C084FC)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              lineHeight: 1.1,
+              margin: 0,
+              marginBottom: 28,
+              letterSpacing: -0.5,
+            }}
+          >
+            BONUS PROMO
+          </h2>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: 14,
+              marginBottom: 20,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 76,
+                fontWeight: 800,
+                color: "#A855F7",
+                lineHeight: 1,
+                textShadow: "0 0 30px rgba(168,85,247,0.45)",
+              }}
+            >
+              100
+            </span>
+            <span
+              style={{
+                fontSize: 38,
+                fontWeight: 700,
+                color: "rgba(255,255,255,0.85)",
+                lineHeight: 1,
+              }}
+            >
+              +
+            </span>
+            <span
+              style={{
+                fontSize: 76,
+                fontWeight: 800,
+                color: "#A855F7",
+                lineHeight: 1,
+                textShadow: "0 0 30px rgba(168,85,247,0.45)",
+              }}
+            >
+              100
+            </span>
+            <span
+              style={{
+                fontSize: 30,
+                fontWeight: 600,
+                color: "rgba(255,255,255,0.6)",
+                lineHeight: 1,
+                alignSelf: "center",
+              }}
+            >
+              USD
+            </span>
+          </div>
+
+          <p
+            style={{
+              fontSize: 17,
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.7)",
+              lineHeight: 1.6,
+              margin: 0,
+              maxWidth: 520,
+            }}
+          >
+            Deposit 100 USD and receive
+            <span style={{ color: "#C084FC", fontWeight: 700 }}> +100 USD Bonus</span>
+            <br />
+            Amplify 24x &bull; Sonic Strategy &bull; 4,800 USD Account
+          </p>
+
+          <p
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.4)",
+              margin: 0,
+              marginTop: 14,
+            }}
+          >
+            Exclusive offer for new partners
+          </p>
         </div>
 
         <div
@@ -258,7 +238,7 @@ const PromoBanner: React.FC = () => {
             gap: 6,
           }}
         >
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: 1 }}>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: 1 }}>
             DENNIS &bull; FOUNDER JETUP
           </span>
         </div>

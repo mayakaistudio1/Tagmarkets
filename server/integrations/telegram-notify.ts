@@ -40,18 +40,18 @@ export function formatPromoApplicationMessage(app: {
   promoTitle?: string;
 }): string {
   const lines = [
-    `🎯 <b>Новая заявка на промо!</b>`,
+    `🎯 <b>Neue Promo-Anmeldung!</b>`,
     ``,
-    `👤 <b>Имя:</b> ${app.name}`,
-    `📧 <b>Email:</b> ${app.email}`,
-    `🔢 <b>CU Number:</b> ${app.cuNumber}`,
+    `👤 <b>Name:</b> ${app.name}`,
+    `📧 <b>E-Mail:</b> ${app.email}`,
+    `🔢 <b>CU-Nummer:</b> ${app.cuNumber}`,
   ];
 
   if (app.promoTitle) {
-    lines.push(`📋 <b>Промо:</b> ${app.promoTitle}`);
+    lines.push(`📋 <b>Aktion:</b> ${app.promoTitle}`);
   }
 
-  lines.push(``, `⏰ ${new Date().toLocaleString("ru-RU", { timeZone: "Europe/Berlin" })}`);
+  lines.push(``, `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`);
 
   return lines.join("\n");
 }

@@ -10,10 +10,11 @@ interface DennisPromo {
   description: string;
   rules: string[];
   isActive: boolean;
+  language: string;
 }
 
 const PromoCard: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [promos, setPromos] = useState<DennisPromo[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [rulesOpenId, setRulesOpenId] = useState<number | null>(null);
@@ -23,15 +24,17 @@ const PromoCard: React.FC = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/dennis-promos")
+    fetch(`/api/dennis-promos?language=${language}`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           setPromos(data);
+        } else {
+          setPromos([]);
         }
       })
       .catch(() => {});
-  }, []);
+  }, [language]);
 
   const getFormData = (id: number) => formData[id] || { name: "", email: "", cuNumber: "" };
   const updateFormData = (id: number, field: string, value: string) => {

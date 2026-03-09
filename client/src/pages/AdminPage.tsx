@@ -1780,7 +1780,7 @@ function DennisPromoTab({
   setPromoSubTab: (v: "offers" | "applications") => void;
 }) {
   const [form, setForm] = useState<any>({
-    title: "", shortDesc: "", description: "", rules: [], isActive: true, sortOrder: 0,
+    title: "", shortDesc: "", description: "", rules: [], isActive: true, sortOrder: 0, language: "ru", translationGroup: "",
   });
   const [rulesText, setRulesText] = useState("");
 
@@ -1789,7 +1789,7 @@ function DennisPromoTab({
       setForm(editing);
       setRulesText((editing.rules || []).join("\n"));
     } else {
-      setForm({ title: "", shortDesc: "", description: "", rules: [], isActive: true, sortOrder: 0 });
+      setForm({ title: "", shortDesc: "", description: "", rules: [], isActive: true, sortOrder: 0, language: "ru", translationGroup: "" });
       setRulesText("");
     }
   }, [editing]);
@@ -1886,6 +1886,32 @@ function DennisPromoTab({
                     data-testid="input-dp-rules"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Sprache / Язык</label>
+                    <select
+                      value={form.language}
+                      onChange={(e) => setForm({ ...form, language: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none"
+                      data-testid="select-dp-language"
+                    >
+                      <option value="ru">🇷🇺 Русский</option>
+                      <option value="de">🇩🇪 Deutsch</option>
+                      <option value="en">🇬🇧 English</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Gruppe / Группа перевода</label>
+                    <input
+                      type="text"
+                      value={form.translationGroup || ""}
+                      onChange={(e) => setForm({ ...form, translationGroup: e.target.value })}
+                      placeholder="fast-start-100"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none"
+                      data-testid="input-dp-translation-group"
+                    />
+                  </div>
+                </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-medium text-gray-700">Активна</label>
@@ -1945,9 +1971,17 @@ function DennisPromoTab({
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-sm font-bold text-gray-900">{promo.title}</h3>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${LANG_COLORS[promo.language] || "bg-gray-100 text-gray-700"}`}>
+                          {LANG_LABELS[promo.language] || promo.language}
+                        </span>
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${promo.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                           {promo.isActive ? "Активна" : "Выключена"}
                         </span>
+                        {promo.translationGroup && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-600">
+                            {promo.translationGroup}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500 mb-1">{promo.shortDesc}</p>
                       <p className="text-xs text-gray-400">{promo.description?.substring(0, 100)}{promo.description?.length > 100 ? "..." : ""}</p>

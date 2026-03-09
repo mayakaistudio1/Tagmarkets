@@ -119,6 +119,8 @@ export const dennisPromos = pgTable("dennis_promos", {
   rules: text("rules").array().notNull(),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
+  language: text("language").notNull().default("ru"),
+  translationGroup: text("translation_group"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

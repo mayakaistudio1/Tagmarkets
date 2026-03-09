@@ -36,7 +36,7 @@ export interface IStorage {
   getPromoApplications(): Promise<PromoApplication[]>;
   updatePromoApplicationStatus(id: number, status: string): Promise<PromoApplication>;
 
-  getDennisPromos(activeOnly?: boolean): Promise<DennisPromo[]>;
+  getDennisPromos(activeOnly?: boolean, language?: string): Promise<DennisPromo[]>;
   getDennisPromo(id: number): Promise<DennisPromo | undefined>;
   createDennisPromo(promo: InsertDennisPromo): Promise<DennisPromo>;
   updateDennisPromo(id: number, promo: Partial<InsertDennisPromo>): Promise<DennisPromo>;
@@ -274,9 +274,12 @@ export class DatabaseStorage implements IStorage {
     await db.delete(speakers).where(eq(speakers.id, id));
   }
 
-  async getDennisPromos(activeOnly?: boolean): Promise<DennisPromo[]> {
-    if (activeOnly) {
-      return db.select().from(dennisPromos).where(eq(dennisPromos.isActive, true)).orderBy(dennisPromos.sortOrder);
+  async getDennisPromos(activeOnly?: boolean, language?: string): Promise<DennisPromo[]> {
+    const conditions = [];
+    if (activeOnly) conditions.push(eq(dennisPromos.isActive, true));
+    if (language) conditions.push(eq(dennisPromos.language, language));
+    if (conditions.length > 0) {
+      return db.select().from(dennisPromos).where(and(...conditions)).orderBy(dennisPromos.sortOrder);
     }
     return db.select().from(dennisPromos).orderBy(dennisPromos.sortOrder);
   }

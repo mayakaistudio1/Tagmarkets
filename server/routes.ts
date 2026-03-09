@@ -181,7 +181,8 @@ export async function registerRoutes(
 
   app.get("/api/dennis-promos", async (req, res) => {
     try {
-      const promos = await storage.getDennisPromos(true);
+      const language = req.query.language as string | undefined;
+      const promos = await storage.getDennisPromos(true, language);
       res.json(promos);
     } catch (error) {
       console.error("Error fetching dennis promos:", error);

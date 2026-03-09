@@ -128,7 +128,7 @@ const PromoBanner: React.FC = () => {
                 letterSpacing: -1,
               }}
             >
-              Fast Start Promo
+              For new partners
             </h1>
             <p
               style={{
@@ -140,7 +140,7 @@ const PromoBanner: React.FC = () => {
                 lineHeight: 1.4,
               }}
             >
-              For new partners &bull; by Dennis, JetUP Founder
+              by Dennis, JetUp Founder
             </p>
 
             <div

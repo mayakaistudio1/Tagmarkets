@@ -174,11 +174,6 @@ const PromoBanner: React.FC = () => {
             </p>
           </div>
 
-          <div style={{ position: "absolute", bottom: 20, right: 30 }}>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: 1 }}>
-              DENNIS &bull; FOUNDER JETUP
-            </span>
-          </div>
         </div>
       </div>
 

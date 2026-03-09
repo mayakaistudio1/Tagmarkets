@@ -157,7 +157,7 @@ const PromoBanner: React.FC = () => {
               <span style={{ fontSize: 26, fontWeight: 600, color: "rgba(255,255,255,0.5)", lineHeight: 1, alignSelf: "center" }}>
                 USDT
               </span>
-              <span style={{ fontSize: 38, fontWeight: 700, color: "rgba(255,255,255,0.7)", lineHeight: 1 }}>
+              <span style={{ fontSize: 38, fontWeight: 700, color: "rgba(255,255,255,0.7)", lineHeight: 1, alignSelf: "center", marginBottom: "4px" }}>
                 +
               </span>
               <span style={{ fontSize: 76, fontWeight: 800, color: "#C084FC", lineHeight: 1, textShadow: "0 0 30px rgba(168,85,247,0.45)" }}>

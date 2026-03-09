@@ -1,7 +1,8 @@
 import {
   type User, type InsertUser,
   type Application, type InsertApplication,
-  users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers,
+  type PromoApplication, type InsertPromoApplication,
+  users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers, promoApplications,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
 import { db } from "./db";
@@ -29,6 +30,10 @@ export interface IStorage {
   createScheduleEvent(event: any): Promise<any>;
   updateScheduleEvent(id: number, event: any): Promise<any>;
   deleteScheduleEvent(id: number): Promise<void>;
+
+  createPromoApplication(application: InsertPromoApplication): Promise<PromoApplication>;
+  getPromoApplications(): Promise<PromoApplication[]>;
+  updatePromoApplicationStatus(id: number, status: string): Promise<PromoApplication>;
 
   getSpeakers(activeOnly?: boolean): Promise<any[]>;
   getSpeaker(id: number): Promise<any | undefined>;
@@ -219,6 +224,20 @@ export class DatabaseStorage implements IStorage {
 
   async deleteScheduleEvent(id: number): Promise<void> {
     await db.delete(scheduleEvents).where(eq(scheduleEvents.id, id));
+  }
+
+  async createPromoApplication(application: InsertPromoApplication): Promise<PromoApplication> {
+    const [created] = await db.insert(promoApplications).values(application).returning();
+    return created;
+  }
+
+  async getPromoApplications(): Promise<PromoApplication[]> {
+    return db.select().from(promoApplications).orderBy(desc(promoApplications.createdAt));
+  }
+
+  async updatePromoApplicationStatus(id: number, status: string): Promise<PromoApplication> {
+    const [updated] = await db.update(promoApplications).set({ status }).where(eq(promoApplications.id, id)).returning();
+    return updated;
   }
 
   async getSpeakers(activeOnly?: boolean): Promise<any[]> {

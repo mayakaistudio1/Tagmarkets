@@ -26,9 +26,10 @@ import {
   ExternalLink,
   BarChart3,
   Brain,
+  Gift,
 } from "lucide-react";
 
-type Tab = "chat" | "promotions" | "schedule" | "speakers";
+type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo";
 
 interface AnalysisSection {
   title: string;
@@ -181,6 +182,9 @@ function AdminPage() {
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
   const [eventFormOpen, setEventFormOpen] = useState(false);
 
+  const [promoApps, setPromoApps] = useState<any[]>([]);
+  const [promoAppsLoading, setPromoAppsLoading] = useState(false);
+
   const headers = useCallback(
     () => ({
       "Content-Type": "application/json",
@@ -265,6 +269,49 @@ function AdminPage() {
     } catch {
       setErrorMsg("Verbindungsfehler");
     }
+  };
+
+  const fetchPromoApps = useCallback(async () => {
+    setPromoAppsLoading(true);
+    try {
+      const res = await fetch("/api/admin/promo-applications", { headers: headers() });
+      if (handleAuthError(res)) return;
+      if (res.ok) setPromoApps(await res.json());
+      else setErrorMsg("Fehler beim Laden der Promo-Anträge");
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    } finally {
+      setPromoAppsLoading(false);
+    }
+  }, [headers]);
+
+  const updatePromoAppStatus = async (id: number, status: string) => {
+    try {
+      const res = await fetch(`/api/admin/promo-applications/${id}/status`, {
+        method: "PATCH",
+        headers: headers(),
+        body: JSON.stringify({ status }),
+      });
+      if (handleAuthError(res)) return;
+      if (res.ok) fetchPromoApps();
+      else setErrorMsg("Fehler beim Aktualisieren");
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    }
+  };
+
+  const exportPromoAppsCSV = () => {
+    const csvHeader = "ID,Name,Email,CU Number,Status,Date\n";
+    const csvRows = promoApps.map((a: any) =>
+      `${a.id},"${a.name}","${a.email}","${a.cuNumber}","${a.status}","${new Date(a.createdAt).toLocaleString()}"`
+    ).join("\n");
+    const blob = new Blob([csvHeader + csvRows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `promo-applications-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const fetchSpeakers = useCallback(async () => {
@@ -405,7 +452,8 @@ function AdminPage() {
     if (activeTab === "promotions") fetchPromotions();
     if (activeTab === "schedule") { fetchEvents(); fetchSpeakers(); }
     if (activeTab === "speakers") fetchSpeakers();
-  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers]);
+    if (activeTab === "promo") fetchPromoApps();
+  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps]);
 
   if (!isLoggedIn) {
     return (
@@ -461,6 +509,7 @@ function AdminPage() {
     { key: "promotions", label: "Aktionen", icon: <Tag size={18} /> },
     { key: "schedule", label: "Webinare", icon: <Calendar size={18} /> },
     { key: "speakers", label: "Sprecher", icon: <Users size={18} /> },
+    { key: "promo", label: "Promo", icon: <Gift size={18} /> },
   ];
 
   return (
@@ -562,6 +611,86 @@ function AdminPage() {
             onDelete={deleteSpeaker}
             adminPassword={adminPassword}
           />
+        )}
+        {activeTab === "promo" && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Dennis Fast Start — Promo Applications</h2>
+              <button
+                onClick={exportPromoAppsCSV}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                data-testid="btn-export-promo-csv"
+              >
+                <Download size={16} />
+                CSV Export
+              </button>
+            </div>
+            {promoAppsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 size={24} className="animate-spin text-purple-600" />
+              </div>
+            ) : promoApps.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">Keine Promo-Anträge vorhanden</div>
+            ) : (
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">ID</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Email</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">CU Number</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Date</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {promoApps.map((app: any) => (
+                      <tr key={app.id} className="border-b last:border-0 hover:bg-gray-50" data-testid={`row-promo-app-${app.id}`}>
+                        <td className="px-4 py-3 text-gray-500">#{app.id}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900">{app.name}</td>
+                        <td className="px-4 py-3 text-gray-700">{app.email}</td>
+                        <td className="px-4 py-3 text-gray-700 font-mono">{app.cuNumber}</td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            app.status === "approved" ? "bg-green-100 text-green-700" :
+                            app.status === "rejected" ? "bg-red-100 text-red-700" :
+                            "bg-yellow-100 text-yellow-700"
+                          }`} data-testid={`badge-status-${app.id}`}>
+                            {app.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-1">
+                            {app.status !== "approved" && (
+                              <button
+                                onClick={() => updatePromoAppStatus(app.id, "approved")}
+                                className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200"
+                                data-testid={`btn-approve-${app.id}`}
+                              >
+                                <Check size={14} />
+                              </button>
+                            )}
+                            {app.status !== "rejected" && (
+                              <button
+                                onClick={() => updatePromoAppStatus(app.id, "rejected")}
+                                className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200"
+                                data-testid={`btn-reject-${app.id}`}
+                              >
+                                <X size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         )}
       </main>
     </div>

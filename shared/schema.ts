@@ -111,6 +111,24 @@ export const insertPromotionSchema = createInsertSchema(promotions).omit({
 export type InsertPromotion = z.infer<typeof insertPromotionSchema>;
 export type Promotion = typeof promotions.$inferSelect;
 
+export const promoApplications = pgTable("promo_applications", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  cuNumber: text("cu_number").notNull(),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPromoApplicationSchema = createInsertSchema(promoApplications).omit({
+  id: true,
+  createdAt: true,
+  status: true,
+});
+
+export type InsertPromoApplication = z.infer<typeof insertPromoApplicationSchema>;
+export type PromoApplication = typeof promoApplications.$inferSelect;
+
 export const scheduleEvents = pgTable("schedule_events", {
   id: serial("id").primaryKey(),
   day: text("day").notNull(),

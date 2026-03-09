@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertApplicationSchema } from "@shared/schema";
+import { insertApplicationSchema, insertPromoApplicationSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { registerLiveAvatarRoutes } from "./integrations/liveavatar";
 import { registerMariaChatRoutes } from "./integrations/maria-chat";
@@ -116,6 +116,48 @@ export async function registerRoutes(
       res.json(applications);
     } catch (error) {
       console.error("Error fetching applications:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/partner/promo-apply", async (req, res) => {
+    try {
+      const validatedData = insertPromoApplicationSchema.parse(req.body);
+      const application = await storage.createPromoApplication(validatedData);
+      res.status(201).json(application);
+    } catch (error: any) {
+      if (error.name === "ZodError") {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ error: validationError.message });
+      }
+      console.error("Error creating promo application:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/admin/promo-applications", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const applications = await storage.getPromoApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching promo applications:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/admin/promo-applications/:id/status", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      if (!["pending", "approved", "rejected"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+      const updated = await storage.updatePromoApplicationStatus(id, status);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating promo application status:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

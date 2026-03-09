@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAppNavigation } from "@/hooks/use-app-navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import PromoCard from "@/components/PromoCard";
 
 const HomePage: React.FC = () => {
   const [, setLocation] = useAppNavigation();
@@ -173,6 +174,8 @@ const HomePage: React.FC = () => {
               </div>
             </button>
           </motion.div>
+
+          <PromoCard />
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}

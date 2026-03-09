@@ -185,6 +185,12 @@ function AdminPage() {
   const [promoApps, setPromoApps] = useState<any[]>([]);
   const [promoAppsLoading, setPromoAppsLoading] = useState(false);
 
+  const [dennisPromos, setDennisPromos] = useState<any[]>([]);
+  const [dennisPromosLoading, setDennisPromosLoading] = useState(false);
+  const [editingDennisPromo, setEditingDennisPromo] = useState<any | null>(null);
+  const [dennisPromoFormOpen, setDennisPromoFormOpen] = useState(false);
+  const [promoSubTab, setPromoSubTab] = useState<"offers" | "applications">("offers");
+
   const headers = useCallback(
     () => ({
       "Content-Type": "application/json",
@@ -312,6 +318,50 @@ function AdminPage() {
     link.download = `promo-applications-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const fetchDennisPromos = useCallback(async () => {
+    setDennisPromosLoading(true);
+    try {
+      const res = await fetch("/api/admin/dennis-promos", { headers: headers() });
+      if (handleAuthError(res)) return;
+      if (res.ok) setDennisPromos(await res.json());
+      else setErrorMsg("Fehler beim Laden der Dennis Promos");
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    } finally {
+      setDennisPromosLoading(false);
+    }
+  }, [headers]);
+
+  const saveDennisPromo = async (promo: any) => {
+    const method = promo.id ? "PUT" : "POST";
+    const url = promo.id ? `/api/admin/dennis-promos/${promo.id}` : "/api/admin/dennis-promos";
+    try {
+      const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(promo) });
+      if (handleAuthError(res)) return;
+      if (res.ok) {
+        setDennisPromoFormOpen(false);
+        setEditingDennisPromo(null);
+        fetchDennisPromos();
+      } else {
+        setErrorMsg("Fehler beim Speichern");
+      }
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    }
+  };
+
+  const deleteDennisPromo = async (id: number) => {
+    if (!confirm("Promo wirklich löschen?")) return;
+    try {
+      const res = await fetch(`/api/admin/dennis-promos/${id}`, { method: "DELETE", headers: headers() });
+      if (handleAuthError(res)) return;
+      if (!res.ok) setErrorMsg("Fehler beim Löschen");
+      fetchDennisPromos();
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    }
   };
 
   const fetchSpeakers = useCallback(async () => {
@@ -452,7 +502,7 @@ function AdminPage() {
     if (activeTab === "promotions") fetchPromotions();
     if (activeTab === "schedule") { fetchEvents(); fetchSpeakers(); }
     if (activeTab === "speakers") fetchSpeakers();
-    if (activeTab === "promo") fetchPromoApps();
+    if (activeTab === "promo") { fetchPromoApps(); fetchDennisPromos(); }
   }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps]);
 
   if (!isLoggedIn) {
@@ -613,84 +663,22 @@ function AdminPage() {
           />
         )}
         {activeTab === "promo" && (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Dennis Fast Start — Promo Applications</h2>
-              <button
-                onClick={exportPromoAppsCSV}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                data-testid="btn-export-promo-csv"
-              >
-                <Download size={16} />
-                CSV Export
-              </button>
-            </div>
-            {promoAppsLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 size={24} className="animate-spin text-purple-600" />
-              </div>
-            ) : promoApps.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">Keine Promo-Anträge vorhanden</div>
-            ) : (
-              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">ID</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Email</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">CU Number</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Date</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {promoApps.map((app: any) => (
-                      <tr key={app.id} className="border-b last:border-0 hover:bg-gray-50" data-testid={`row-promo-app-${app.id}`}>
-                        <td className="px-4 py-3 text-gray-500">#{app.id}</td>
-                        <td className="px-4 py-3 font-medium text-gray-900">{app.name}</td>
-                        <td className="px-4 py-3 text-gray-700">{app.email}</td>
-                        <td className="px-4 py-3 text-gray-700 font-mono">{app.cuNumber}</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                            app.status === "approved" ? "bg-green-100 text-green-700" :
-                            app.status === "rejected" ? "bg-red-100 text-red-700" :
-                            "bg-yellow-100 text-yellow-700"
-                          }`} data-testid={`badge-status-${app.id}`}>
-                            {app.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-1">
-                            {app.status !== "approved" && (
-                              <button
-                                onClick={() => updatePromoAppStatus(app.id, "approved")}
-                                className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200"
-                                data-testid={`btn-approve-${app.id}`}
-                              >
-                                <Check size={14} />
-                              </button>
-                            )}
-                            {app.status !== "rejected" && (
-                              <button
-                                onClick={() => updatePromoAppStatus(app.id, "rejected")}
-                                className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200"
-                                data-testid={`btn-reject-${app.id}`}
-                              >
-                                <X size={14} />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          <DennisPromoTab
+            dennisPromos={dennisPromos}
+            dennisPromosLoading={dennisPromosLoading}
+            formOpen={dennisPromoFormOpen}
+            setFormOpen={setDennisPromoFormOpen}
+            editing={editingDennisPromo}
+            setEditing={setEditingDennisPromo}
+            onSave={saveDennisPromo}
+            onDelete={deleteDennisPromo}
+            promoApps={promoApps}
+            promoAppsLoading={promoAppsLoading}
+            updatePromoAppStatus={updatePromoAppStatus}
+            exportPromoAppsCSV={exportPromoAppsCSV}
+            promoSubTab={promoSubTab}
+            setPromoSubTab={setPromoSubTab}
+          />
         )}
       </main>
     </div>
@@ -1773,6 +1761,304 @@ function ToggleField({ label, value, onChange, testId }: {
         className={`w-10 h-6 rounded-full transition-colors relative ${value ? "bg-purple-600" : "bg-gray-300"}`}>
         <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${value ? "left-[18px]" : "left-0.5"}`} />
       </button>
+    </div>
+  );
+}
+
+function DennisPromoTab({
+  dennisPromos, dennisPromosLoading, formOpen, setFormOpen, editing, setEditing, onSave, onDelete,
+  promoApps, promoAppsLoading, updatePromoAppStatus, exportPromoAppsCSV, promoSubTab, setPromoSubTab,
+}: {
+  dennisPromos: any[]; dennisPromosLoading: boolean;
+  formOpen: boolean; setFormOpen: (v: boolean) => void;
+  editing: any | null; setEditing: (v: any | null) => void;
+  onSave: (promo: any) => void; onDelete: (id: number) => void;
+  promoApps: any[]; promoAppsLoading: boolean;
+  updatePromoAppStatus: (id: number, status: string) => void;
+  exportPromoAppsCSV: () => void;
+  promoSubTab: "offers" | "applications";
+  setPromoSubTab: (v: "offers" | "applications") => void;
+}) {
+  const [form, setForm] = useState<any>({
+    title: "", shortDesc: "", description: "", rules: [], isActive: true, sortOrder: 0,
+  });
+  const [rulesText, setRulesText] = useState("");
+
+  useEffect(() => {
+    if (editing) {
+      setForm(editing);
+      setRulesText((editing.rules || []).join("\n"));
+    } else {
+      setForm({ title: "", shortDesc: "", description: "", rules: [], isActive: true, sortOrder: 0 });
+      setRulesText("");
+    }
+  }, [editing]);
+
+  const handleSave = () => {
+    const rules = rulesText.split("\n").map((r: string) => r.trim()).filter(Boolean);
+    onSave({ ...form, rules });
+  };
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={() => setPromoSubTab("offers")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            promoSubTab === "offers" ? "bg-orange-100 text-orange-700" : "text-gray-600 hover:bg-gray-100"
+          }`}
+          data-testid="subtab-offers"
+        >
+          <Gift size={16} className="inline mr-1.5" />
+          Промо-акции
+        </button>
+        <button
+          onClick={() => setPromoSubTab("applications")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            promoSubTab === "applications" ? "bg-orange-100 text-orange-700" : "text-gray-600 hover:bg-gray-100"
+          }`}
+          data-testid="subtab-applications"
+        >
+          <Users size={16} className="inline mr-1.5" />
+          Заявки ({promoApps.length})
+        </button>
+      </div>
+
+      {promoSubTab === "offers" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900">Dennis Promo — Управление акциями</h2>
+            <button
+              onClick={() => { setEditing(null); setFormOpen(true); }}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors"
+              data-testid="btn-add-dennis-promo"
+            >
+              <Plus size={16} />
+              Добавить акцию
+            </button>
+          </div>
+
+          {formOpen && (
+            <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-orange-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">{editing?.id ? "Редактировать" : "Новая"} промо-акция</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Заголовок</label>
+                  <input
+                    type="text"
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    placeholder="Dennis Fast Start Promo"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none"
+                    data-testid="input-dp-title"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Краткое описание (кнопка)</label>
+                  <input
+                    type="text"
+                    value={form.shortDesc}
+                    onChange={(e) => setForm({ ...form, shortDesc: e.target.value })}
+                    placeholder="Пополни баланс на 100 и получи ещё +100"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none"
+                    data-testid="input-dp-short-desc"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Полное описание</label>
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    rows={3}
+                    placeholder="Подробное описание акции..."
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none resize-y"
+                    data-testid="input-dp-description"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Правила (каждое с новой строки)</label>
+                  <textarea
+                    value={rulesText}
+                    onChange={(e) => setRulesText(e.target.value)}
+                    rows={4}
+                    placeholder={"Правило 1\nПравило 2\nПравило 3"}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none resize-y font-mono"
+                    data-testid="input-dp-rules"
+                  />
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700">Активна</label>
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, isActive: !form.isActive })}
+                      className={`w-10 h-6 rounded-full transition-colors relative ${form.isActive ? "bg-green-500" : "bg-gray-300"}`}
+                      data-testid="toggle-dp-active"
+                    >
+                      <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.isActive ? "left-[18px]" : "left-0.5"}`} />
+                    </button>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mr-2">Порядок</label>
+                    <input
+                      type="number"
+                      value={form.sortOrder}
+                      onChange={(e) => setForm({ ...form, sortOrder: parseInt(e.target.value) || 0 })}
+                      className="w-20 px-2 py-1 border border-gray-200 rounded-lg text-sm"
+                      data-testid="input-dp-sort"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    onClick={handleSave}
+                    className="px-6 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700"
+                    data-testid="btn-save-dp"
+                  >
+                    Сохранить
+                  </button>
+                  <button
+                    onClick={() => { setFormOpen(false); setEditing(null); }}
+                    className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200"
+                    data-testid="btn-cancel-dp"
+                  >
+                    Отмена
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {dennisPromosLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 size={24} className="animate-spin text-orange-600" />
+            </div>
+          ) : dennisPromos.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              Нет промо-акций. Добавьте первую акцию.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {dennisPromos.map((promo: any) => (
+                <div key={promo.id} className="bg-white rounded-xl shadow-sm p-4 border border-gray-100" data-testid={`dp-card-${promo.id}`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-sm font-bold text-gray-900">{promo.title}</h3>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${promo.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                          {promo.isActive ? "Активна" : "Выключена"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mb-1">{promo.shortDesc}</p>
+                      <p className="text-xs text-gray-400">{promo.description?.substring(0, 100)}{promo.description?.length > 100 ? "..." : ""}</p>
+                      {promo.rules?.length > 0 && (
+                        <p className="text-[10px] text-gray-400 mt-1">Правила: {promo.rules.length} шт.</p>
+                      )}
+                    </div>
+                    <div className="flex gap-1 ml-3">
+                      <button
+                        onClick={() => { setEditing(promo); setFormOpen(true); }}
+                        className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                        data-testid={`btn-edit-dp-${promo.id}`}
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => onDelete(promo.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        data-testid={`btn-delete-dp-${promo.id}`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {promoSubTab === "applications" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900">Заявки на промо-акции</h2>
+            <button
+              onClick={exportPromoAppsCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+              data-testid="btn-export-promo-csv"
+            >
+              <Download size={16} />
+              CSV Export
+            </button>
+          </div>
+          {promoAppsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 size={24} className="animate-spin text-purple-600" />
+            </div>
+          ) : promoApps.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">Нет заявок</div>
+          ) : (
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600">ID</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Email</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600">CU Number</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Date</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {promoApps.map((app: any) => (
+                    <tr key={app.id} className="border-b last:border-0 hover:bg-gray-50" data-testid={`row-promo-app-${app.id}`}>
+                      <td className="px-4 py-3 text-gray-500">#{app.id}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900">{app.name}</td>
+                      <td className="px-4 py-3 text-gray-700">{app.email}</td>
+                      <td className="px-4 py-3 text-gray-700 font-mono">{app.cuNumber}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          app.status === "approved" ? "bg-green-100 text-green-700" :
+                          app.status === "rejected" ? "bg-red-100 text-red-700" :
+                          "bg-yellow-100 text-yellow-700"
+                        }`} data-testid={`badge-status-${app.id}`}>
+                          {app.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1">
+                          {app.status !== "approved" && (
+                            <button
+                              onClick={() => updatePromoAppStatus(app.id, "approved")}
+                              className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200"
+                              data-testid={`btn-approve-${app.id}`}
+                            >
+                              <Check size={14} />
+                            </button>
+                          )}
+                          {app.status !== "rejected" && (
+                            <button
+                              onClick={() => updatePromoAppStatus(app.id, "rejected")}
+                              className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200"
+                              data-testid={`btn-reject-${app.id}`}
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

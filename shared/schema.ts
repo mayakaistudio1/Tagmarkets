@@ -111,8 +111,28 @@ export const insertPromotionSchema = createInsertSchema(promotions).omit({
 export type InsertPromotion = z.infer<typeof insertPromotionSchema>;
 export type Promotion = typeof promotions.$inferSelect;
 
+export const dennisPromos = pgTable("dennis_promos", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  shortDesc: text("short_desc").notNull(),
+  description: text("description").notNull(),
+  rules: text("rules").array().notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertDennisPromoSchema = createInsertSchema(dennisPromos).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertDennisPromo = z.infer<typeof insertDennisPromoSchema>;
+export type DennisPromo = typeof dennisPromos.$inferSelect;
+
 export const promoApplications = pgTable("promo_applications", {
   id: serial("id").primaryKey(),
+  promoId: integer("promo_id"),
   name: text("name").notNull(),
   email: text("email").notNull(),
   cuNumber: text("cu_number").notNull(),

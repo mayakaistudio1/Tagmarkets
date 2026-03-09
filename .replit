@@ -57,3 +57,4 @@ integrations = ["javascript_openai_ai_integrations:2.0.0", "javascript_object_st
 DENNIS_AVATAR_ID = "66551172-4a5a-4b67-851c-e1225095a438"
 DENNIS_VOICE_ID = "120513e3-901f-43a4-a120-b56ef124e568"
 DENNIS_CONTEXT_ID = "dabeb13d-4e2b-4347-be97-a47084cf4a14"
+TELEGRAM_NOTIFY_CHAT_ID = "-5142513382"

@@ -2,7 +2,8 @@ import {
   type User, type InsertUser,
   type Application, type InsertApplication,
   type PromoApplication, type InsertPromoApplication,
-  users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers, promoApplications,
+  type DennisPromo, type InsertDennisPromo,
+  users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers, promoApplications, dennisPromos,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
 import { db } from "./db";
@@ -34,6 +35,12 @@ export interface IStorage {
   createPromoApplication(application: InsertPromoApplication): Promise<PromoApplication>;
   getPromoApplications(): Promise<PromoApplication[]>;
   updatePromoApplicationStatus(id: number, status: string): Promise<PromoApplication>;
+
+  getDennisPromos(activeOnly?: boolean): Promise<DennisPromo[]>;
+  getDennisPromo(id: number): Promise<DennisPromo | undefined>;
+  createDennisPromo(promo: InsertDennisPromo): Promise<DennisPromo>;
+  updateDennisPromo(id: number, promo: Partial<InsertDennisPromo>): Promise<DennisPromo>;
+  deleteDennisPromo(id: number): Promise<void>;
 
   getSpeakers(activeOnly?: boolean): Promise<any[]>;
   getSpeaker(id: number): Promise<any | undefined>;
@@ -265,6 +272,32 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSpeaker(id: number): Promise<void> {
     await db.delete(speakers).where(eq(speakers.id, id));
+  }
+
+  async getDennisPromos(activeOnly?: boolean): Promise<DennisPromo[]> {
+    if (activeOnly) {
+      return db.select().from(dennisPromos).where(eq(dennisPromos.isActive, true)).orderBy(dennisPromos.sortOrder);
+    }
+    return db.select().from(dennisPromos).orderBy(dennisPromos.sortOrder);
+  }
+
+  async getDennisPromo(id: number): Promise<DennisPromo | undefined> {
+    const [promo] = await db.select().from(dennisPromos).where(eq(dennisPromos.id, id));
+    return promo;
+  }
+
+  async createDennisPromo(promo: InsertDennisPromo): Promise<DennisPromo> {
+    const [created] = await db.insert(dennisPromos).values(promo).returning();
+    return created;
+  }
+
+  async updateDennisPromo(id: number, promo: Partial<InsertDennisPromo>): Promise<DennisPromo> {
+    const [updated] = await db.update(dennisPromos).set(promo).where(eq(dennisPromos.id, id)).returning();
+    return updated;
+  }
+
+  async deleteDennisPromo(id: number): Promise<void> {
+    await db.delete(dennisPromos).where(eq(dennisPromos.id, id));
   }
 }
 

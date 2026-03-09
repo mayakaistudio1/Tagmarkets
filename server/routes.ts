@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertApplicationSchema, insertPromoApplicationSchema } from "@shared/schema";
+import { insertApplicationSchema, insertPromoApplicationSchema, insertDennisPromoSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { registerLiveAvatarRoutes } from "./integrations/liveavatar";
 import { registerMariaChatRoutes } from "./integrations/maria-chat";
@@ -18,6 +18,7 @@ import { syncAllChatSessions } from "./googleSheets";
 import { MARIA_SYSTEM_PROMPT_DE, MARIA_SYSTEM_PROMPT_EN, MARIA_SYSTEM_PROMPT_RU } from "./integrations/maria-chat";
 import { LIVEAVATAR_SYSTEM_PROMPT } from "./integrations/liveavatar";
 import OpenAI from "openai";
+import { sendTelegramNotification, formatPromoApplicationMessage } from "./integrations/telegram-notify";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -124,6 +125,22 @@ export async function registerRoutes(
     try {
       const validatedData = insertPromoApplicationSchema.parse(req.body);
       const application = await storage.createPromoApplication(validatedData);
+
+      let promoTitle: string | undefined;
+      if (validatedData.promoId) {
+        const promo = await storage.getDennisPromo(validatedData.promoId);
+        promoTitle = promo?.title;
+      }
+      const tgMessage = formatPromoApplicationMessage({
+        name: validatedData.name,
+        email: validatedData.email,
+        cuNumber: validatedData.cuNumber,
+        promoTitle,
+      });
+      sendTelegramNotification(tgMessage).catch((err) =>
+        console.error("TG notify error:", err)
+      );
+
       res.status(201).json(application);
     } catch (error: any) {
       if (error.name === "ZodError") {
@@ -158,6 +175,64 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error) {
       console.error("Error updating promo application status:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/dennis-promos", async (req, res) => {
+    try {
+      const promos = await storage.getDennisPromos(true);
+      res.json(promos);
+    } catch (error) {
+      console.error("Error fetching dennis promos:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/admin/dennis-promos", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const promos = await storage.getDennisPromos(false);
+      res.json(promos);
+    } catch (error) {
+      console.error("Error fetching dennis promos:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/admin/dennis-promos", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const promo = await storage.createDennisPromo(req.body);
+      res.status(201).json(promo);
+    } catch (error) {
+      console.error("Error creating dennis promo:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/admin/dennis-promos/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      const { id: _, createdAt, ...data } = req.body;
+      const promo = await storage.updateDennisPromo(id, data);
+      if (!promo) return res.status(404).json({ error: "Not found" });
+      res.json(promo);
+    } catch (error) {
+      console.error("Error updating dennis promo:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/admin/dennis-promos/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteDennisPromo(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting dennis promo:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

@@ -1,0 +1,57 @@
+const TELEGRAM_API = "https://api.telegram.org";
+
+export async function sendTelegramNotification(message: string): Promise<boolean> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_NOTIFY_CHAT_ID;
+
+  if (!token || !chatId) {
+    console.warn("Telegram notification skipped: TELEGRAM_BOT_TOKEN or TELEGRAM_NOTIFY_CHAT_ID not set");
+    return false;
+  }
+
+  try {
+    const res = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: "HTML",
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("Telegram send error:", err);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Telegram notification failed:", error);
+    return false;
+  }
+}
+
+export function formatPromoApplicationMessage(app: {
+  name: string;
+  email: string;
+  cuNumber: string;
+  promoTitle?: string;
+}): string {
+  const lines = [
+    `🎯 <b>Новая заявка на промо!</b>`,
+    ``,
+    `👤 <b>Имя:</b> ${app.name}`,
+    `📧 <b>Email:</b> ${app.email}`,
+    `🔢 <b>CU Number:</b> ${app.cuNumber}`,
+  ];
+
+  if (app.promoTitle) {
+    lines.push(`📋 <b>Промо:</b> ${app.promoTitle}`);
+  }
+
+  lines.push(``, `⏰ ${new Date().toLocaleString("ru-RU", { timeZone: "Europe/Berlin" })}`);
+
+  return lines.join("\n");
+}

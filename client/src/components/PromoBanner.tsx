@@ -162,7 +162,7 @@ const PromoBanner: React.FC = () => {
 
             <p style={{ fontSize: 17, fontWeight: 500, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, margin: 0, maxWidth: 520 }}>
               Deposit 100 USDT and get{" "}
-              <span style={{ color: "#C084FC", fontWeight: 700 }}>+100 USDT bonus</span>
+              <span style={{ color: "#C084FC", fontWeight: 700 }}>+100 bonus</span>
             </p>
           </div>
 

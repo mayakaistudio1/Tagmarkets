@@ -112,9 +112,7 @@ const PromoBanner: React.FC = () => {
                 alignSelf: "flex-start",
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#c4b5fd", letterSpacing: 2.5, textTransform: "uppercase" }}>
-                JetUP Partner Promo
-              </span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#c4b5fd", letterSpacing: 2.5, textTransform: "uppercase" }}>For new partners</span>
             </div>
 
             <h1
@@ -176,7 +174,6 @@ const PromoBanner: React.FC = () => {
 
         </div>
       </div>
-
       <button
         onClick={exportPNG}
         disabled={exporting}

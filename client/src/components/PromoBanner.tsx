@@ -135,7 +135,7 @@ const PromoBanner: React.FC = () => {
                 marginBottom: 24,
                 lineHeight: 1.4,
               }}
-            >
+              className="text-[25px] font-medium">
               by Dennis, JetUp Founder
             </p>
 

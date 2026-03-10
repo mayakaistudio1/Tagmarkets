@@ -58,16 +58,16 @@ const PromoBanner: React.FC = () => {
             style={{
               position: "absolute",
               inset: 0,
-              background: "linear-gradient(135deg, rgba(10,5,30,0.88) 0%, rgba(40,15,80,0.55) 40%, rgba(10,15,40,0.35) 70%, rgba(10,5,30,0.8) 100%)",
+              background: "linear-gradient(135deg, rgba(10,5,30,0.85) 0%, rgba(30,12,65,0.5) 35%, rgba(10,15,40,0.3) 65%, rgba(10,5,30,0.75) 100%)",
             }}
           />
 
           <div
             style={{
               position: "absolute",
-              right: -20,
+              right: -10,
               bottom: 0,
-              width: 480,
+              width: 500,
               height: "100%",
               display: "flex",
               alignItems: "flex-end",
@@ -79,10 +79,10 @@ const PromoBanner: React.FC = () => {
               alt="Dennis"
               crossOrigin="anonymous"
               style={{
-                height: "95%",
+                height: "97%",
                 objectFit: "contain",
                 objectPosition: "bottom",
-                filter: "drop-shadow(0 0 40px rgba(124,58,237,0.5))",
+                filter: "drop-shadow(-10px 0 50px rgba(124,58,237,0.4)) drop-shadow(0 0 80px rgba(124,58,237,0.15))",
               }}
             />
           </div>
@@ -90,84 +90,132 @@ const PromoBanner: React.FC = () => {
           <div
             style={{
               position: "absolute",
-              left: 60,
-              top: 48,
-              right: 500,
-              bottom: 48,
+              left: 65,
+              top: 55,
+              right: 480,
+              bottom: 55,
               display: "flex",
               flexDirection: "column",
-              justifyContent: "center",
-              gap: 0,
+              justifyContent: "space-between",
             }}
           >
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.2))",
-                border: "1px solid rgba(168,85,247,0.45)",
-                borderRadius: 8,
-                padding: "6px 16px",
-                marginBottom: 22,
-                alignSelf: "flex-start",
-              }}
-            >
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#c4b5fd", letterSpacing: 2.5, textTransform: "uppercase" }}>For new partners</span>
+            <div>
+              <h1
+                style={{
+                  fontSize: 58,
+                  fontWeight: 800,
+                  color: "#ffffff",
+                  lineHeight: 1.08,
+                  margin: 0,
+                  letterSpacing: -1.5,
+                  textShadow: "0 2px 30px rgba(0,0,0,0.4)",
+                }}
+              >
+                Fast Start Promo
+              </h1>
+              <p
+                style={{
+                  fontSize: 36,
+                  fontWeight: 600,
+                  color: "#C084FC",
+                  margin: 0,
+                  marginTop: 4,
+                  lineHeight: 1.2,
+                  letterSpacing: -0.5,
+                }}
+              >
+                For new partners
+              </p>
             </div>
 
-            <h1
-              style={{
-                fontSize: 48,
-                fontWeight: 800,
-                color: "#ffffff",
-                lineHeight: 1.05,
-                margin: 0,
-                marginBottom: 4,
-                letterSpacing: -1,
-              }}
-              className="text-[54px] font-extrabold">Fast Start Promo</h1>
-            <p
-              style={{
-                fontSize: 16,
-                fontWeight: 500,
-                color: "rgba(255,255,255,0.5)",
-                margin: 0,
-                marginBottom: 24,
-                lineHeight: 1.4,
-              }}
-              className="text-[25px] font-medium">
-              by Dennis, JetUp Founder
-            </p>
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 16,
+                  marginBottom: 8,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 88,
+                    fontWeight: 800,
+                    color: "#C084FC",
+                    lineHeight: 1,
+                    textShadow: "0 0 40px rgba(168,85,247,0.4), 0 0 80px rgba(124,58,237,0.2)",
+                    letterSpacing: -2,
+                  }}
+                >
+                  100
+                </span>
+                <span
+                  style={{
+                    fontSize: 44,
+                    fontWeight: 700,
+                    color: "rgba(255,255,255,0.6)",
+                    lineHeight: 1,
+                  }}
+                >
+                  +
+                </span>
+                <span
+                  style={{
+                    fontSize: 88,
+                    fontWeight: 800,
+                    color: "#C084FC",
+                    lineHeight: 1,
+                    textShadow: "0 0 40px rgba(168,85,247,0.4), 0 0 80px rgba(124,58,237,0.2)",
+                    letterSpacing: -2,
+                  }}
+                >
+                  100
+                </span>
+              </div>
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                gap: 14,
-                marginBottom: 20,
-              }}
-            >
-              <span style={{ fontSize: 76, fontWeight: 800, color: "#C084FC", lineHeight: 1, textShadow: "0 0 30px rgba(168,85,247,0.45)" }}>
-                100
-              </span>
-
-              <span style={{ fontSize: 38, fontWeight: 700, color: "rgba(255,255,255,0.7)", lineHeight: 1, alignSelf: "center", marginBottom: "4px" }}>
-                +
-              </span>
-              <span style={{ fontSize: 76, fontWeight: 800, color: "#C084FC", lineHeight: 1, textShadow: "0 0 30px rgba(168,85,247,0.45)" }}>
-                100
-              </span>
-
+              <p
+                style={{
+                  fontSize: 15,
+                  fontWeight: 500,
+                  color: "rgba(196,181,253,0.6)",
+                  margin: 0,
+                  marginBottom: 20,
+                  letterSpacing: 0.5,
+                }}
+              >
+                by Dennis, JetUp Founder
+              </p>
             </div>
 
-            <p style={{ fontSize: 17, fontWeight: 500, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, margin: 0, maxWidth: 520 }}>
-              Deposit 100 USDT and get{" "}
-              <span style={{ color: "#C084FC", fontWeight: 700 }}>+100 USDT bonus</span>
-            </p>
+            <div>
+              <p
+                style={{
+                  fontSize: 20,
+                  fontWeight: 500,
+                  color: "rgba(255,255,255,0.7)",
+                  margin: 0,
+                  lineHeight: 1.5,
+                }}
+              >
+                Deposit 100 USD
+              </p>
+              <p
+                style={{
+                  fontSize: 20,
+                  fontWeight: 500,
+                  color: "rgba(255,255,255,0.7)",
+                  margin: 0,
+                  lineHeight: 1.5,
+                }}
+              >
+                get{" "}
+                <span style={{ color: "#C084FC", fontWeight: 700 }}>100 USD on top</span>
+              </p>
+            </div>
           </div>
-
         </div>
       </div>
+
       <button
         onClick={exportPNG}
         disabled={exporting}

@@ -27,9 +27,10 @@ import {
   BarChart3,
   Brain,
   Gift,
+  Link as LinkIcon,
 } from "lucide-react";
 
-type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo";
+type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo" | "invites";
 
 interface AnalysisSection {
   title: string;
@@ -55,6 +56,30 @@ interface ChatSession {
   language: string;
   createdAt: string;
   messageCount: number;
+}
+
+interface InviteGuest {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  registeredAt: string;
+  clickedZoom: boolean;
+  clickedAt?: string;
+}
+
+interface InviteEvent {
+  id: number;
+  partnerName: string;
+  partnerCu: string;
+  zoomLink: string;
+  title: string;
+  eventDate: string;
+  eventTime: string;
+  inviteCode: string;
+  isActive: boolean;
+  createdAt: string;
+  guestCount?: { registered: number; clicked: number };
 }
 
 interface Speaker {
@@ -190,6 +215,14 @@ function AdminPage() {
   const [editingDennisPromo, setEditingDennisPromo] = useState<any | null>(null);
   const [dennisPromoFormOpen, setDennisPromoFormOpen] = useState(false);
   const [promoSubTab, setPromoSubTab] = useState<"offers" | "applications">("offers");
+
+  const [inviteEvents, setInviteEvents] = useState<InviteEvent[]>([]);
+  const [invitesLoading, setInvitesLoading] = useState(false);
+  const [editingInvite, setEditingInvite] = useState<Partial<InviteEvent> | null>(null);
+  const [inviteFormOpen, setInviteFormOpen] = useState(false);
+  const [selectedInviteReport, setSelectedInviteReport] = useState<InviteEvent | null>(null);
+  const [inviteGuests, setInviteGuests] = useState<InviteGuest[]>([]);
+  const [guestsLoading, setGuestsLoading] = useState(false);
 
   const headers = useCallback(
     () => ({
@@ -496,6 +529,75 @@ function AdminPage() {
     }
   };
 
+  const fetchInviteEvents = useCallback(async () => {
+    setInvitesLoading(true);
+    try {
+      const res = await fetch("/api/admin/invite-events", { headers: headers() });
+      if (handleAuthError(res)) return;
+      if (res.ok) setInviteEvents(await res.json());
+      else setErrorMsg("Fehler beim Laden der Einladungen");
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    } finally {
+      setInvitesLoading(false);
+    }
+  }, [headers]);
+
+  const saveInviteEvent = async (event: Partial<InviteEvent>) => {
+    const method = "POST";
+    const url = "/api/admin/invite-events";
+    try {
+      const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(event) });
+      if (handleAuthError(res)) return;
+      if (res.ok) {
+        setInviteFormOpen(false);
+        setEditingInvite(null);
+        fetchInviteEvents();
+      } else {
+        const data = await res.json();
+        setErrorMsg(data.error || "Fehler beim Speichern");
+      }
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    }
+  };
+
+  const fetchInviteReport = async (id: number) => {
+    setGuestsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/invite-events/${id}/report`, { headers: headers() });
+      if (handleAuthError(res)) return;
+      if (res.ok) {
+        const data = await res.json();
+        setInviteGuests(data.guests);
+        setSelectedInviteReport(data.event);
+      } else {
+        setErrorMsg("Fehler beim Laden des Berichts");
+      }
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    } finally {
+      setGuestsLoading(false);
+    }
+  };
+
+  const sendInviteTelegramReport = async (id: number) => {
+    try {
+      const res = await fetch(`/api/admin/invite-events/${id}/send-report`, {
+        method: "POST",
+        headers: headers(),
+      });
+      if (handleAuthError(res)) return;
+      if (res.ok) {
+        alert("Bericht gesendet!");
+      } else {
+        setErrorMsg("Fehler beim Senden des Berichts");
+      }
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    }
+  };
+
   useEffect(() => {
     if (!isLoggedIn) return;
     if (activeTab === "chat") fetchChatSessions();
@@ -503,7 +605,8 @@ function AdminPage() {
     if (activeTab === "schedule") { fetchEvents(); fetchSpeakers(); }
     if (activeTab === "speakers") fetchSpeakers();
     if (activeTab === "promo") { fetchPromoApps(); fetchDennisPromos(); }
-  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps]);
+    if (activeTab === "invites") fetchInviteEvents();
+  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps, fetchInviteEvents]);
 
   if (!isLoggedIn) {
     return (
@@ -560,6 +663,7 @@ function AdminPage() {
     { key: "schedule", label: "Webinare", icon: <Calendar size={18} /> },
     { key: "speakers", label: "Sprecher", icon: <Users size={18} /> },
     { key: "promo", label: "Promo", icon: <Gift size={18} /> },
+    { key: "invites", label: "Invites", icon: <LinkIcon size={18} /> },
   ];
 
   return (
@@ -679,6 +783,23 @@ function AdminPage() {
             promoSubTab={promoSubTab}
             setPromoSubTab={setPromoSubTab}
             adminPassword={adminPassword}
+          />
+        )}
+        {activeTab === "invites" && (
+          <InvitesTab
+            events={inviteEvents}
+            loading={invitesLoading}
+            formOpen={inviteFormOpen}
+            setFormOpen={setInviteFormOpen}
+            editing={editingInvite}
+            setEditing={setEditingInvite}
+            onSave={saveInviteEvent}
+            onReport={fetchInviteReport}
+            onSendTelegramReport={sendInviteTelegramReport}
+            selectedReport={selectedInviteReport}
+            setSelectedReport={setSelectedInviteReport}
+            guests={inviteGuests}
+            guestsLoading={guestsLoading}
           />
         )}
       </main>
@@ -2168,3 +2289,195 @@ function PromoApplicationsSubTab({
 }
 
 export default AdminPage;
+
+function InvitesTab({
+  events, loading, formOpen, setFormOpen, editing, setEditing, onSave, onReport, onSendTelegramReport, selectedReport, setSelectedReport, guests, guestsLoading
+}: {
+  events: InviteEvent[]; loading: boolean; formOpen: boolean; setFormOpen: (v: boolean) => void;
+  editing: Partial<InviteEvent> | null; setEditing: (v: Partial<InviteEvent> | null) => void;
+  onSave: (e: Partial<InviteEvent>) => void;
+  onReport: (id: number) => void;
+  onSendTelegramReport: (id: number) => void;
+  selectedReport: InviteEvent | null;
+  setSelectedReport: (v: InviteEvent | null) => void;
+  guests: InviteGuest[];
+  guestsLoading: boolean;
+}) {
+  const openNew = () => { setEditing({ partnerName: "", partnerCu: "", zoomLink: "", title: "", eventDate: "", eventTime: "", isActive: true }); setFormOpen(true); };
+  const closeForm = () => { setFormOpen(false); setEditing(null); };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert("Kopiert!");
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Partner Invites Management</h2>
+        <button data-testid="button-new-invite" onClick={openNew}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+          <Plus size={16} /> Create Invite
+        </button>
+      </div>
+
+      {formOpen && editing && (
+        <InviteForm event={editing} setEvent={setEditing} onSave={() => onSave(editing)} onClose={closeForm} />
+      )}
+
+      {loading ? (
+        <div className="p-8 text-center text-gray-500">Laden...</div>
+      ) : events.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No invite events found</div>
+      ) : (
+        <div className="grid gap-4">
+          {events.map((event) => (
+            <div key={event.id} data-testid={`card-invite-${event.id}`} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-lg text-gray-900">{event.title}</h3>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${event.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                      {event.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600">Partner: <span className="font-medium">{event.partnerName}</span> ({event.partnerCu})</p>
+                  <p className="text-sm text-gray-500">{event.eventDate} at {event.eventTime}</p>
+                </div>
+
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center gap-4 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
+                    <div className="text-center">
+                      <p className="text-[10px] uppercase text-gray-400 font-bold">Registered</p>
+                      <p className="text-lg font-bold text-purple-600">{event.guestCount?.registered || 0}</p>
+                    </div>
+                    <div className="w-px h-8 bg-gray-200" />
+                    <div className="text-center">
+                      <p className="text-[10px] uppercase text-gray-400 font-bold">Clicked Zoom</p>
+                      <p className="text-lg font-bold text-blue-600">{event.guestCount?.clicked || 0}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-3 pt-4 border-t border-gray-50">
+                <div className="flex-1 flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 max-w-md">
+                  <LinkIcon size={14} className="text-gray-400 shrink-0" />
+                  <span className="text-xs text-gray-500 truncate font-mono">{`${window.location.origin}/invite/${event.inviteCode}`}</span>
+                  <button onClick={() => copyToClipboard(`${window.location.origin}/invite/${event.inviteCode}`)}
+                    className="ml-auto text-purple-600 hover:text-purple-700 font-medium text-xs">Copy</button>
+                </div>
+
+                <button onClick={() => onReport(event.id)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200">
+                  <BarChart3 size={14} /> View Details
+                </button>
+                
+                <button onClick={() => onSendTelegramReport(event.id)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-100">
+                  <MessageSquare size={14} /> Send TG Report
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selectedReport && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Guest Report: {selectedReport.title}</h3>
+                <p className="text-sm text-gray-500">Partner: {selectedReport.partnerName} ({selectedReport.partnerCu})</p>
+              </div>
+              <button onClick={() => setSelectedReport(null)} className="text-gray-400 hover:text-gray-600 p-2"><X size={24} /></button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              {guestsLoading ? (
+                <div className="flex items-center justify-center py-12"><Loader2 size={32} className="animate-spin text-purple-500" /></div>
+              ) : guests.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">No guests registered yet</div>
+              ) : (
+                <div className="border rounded-xl overflow-hidden">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-50 border-b">
+                      <tr>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Name</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Email</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Phone</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Registered</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Clicked Zoom</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {guests.map((guest) => (
+                        <tr key={guest.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{guest.name}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{guest.email}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{guest.phone || "-"}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">{new Date(guest.registeredAt).toLocaleString()}</td>
+                          <td className="px-4 py-3 text-center">
+                            {guest.clickedZoom ? (
+                              <div className="flex flex-col items-center">
+                                <Check className="text-green-500" size={18} />
+                                <span className="text-[10px] text-gray-400">{new Date(guest.clickedAt!).toLocaleTimeString()}</span>
+                              </div>
+                            ) : (
+                              <X className="text-gray-300 mx-auto" size={18} />
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InviteForm({ event, setEvent, onSave, onClose }: {
+  event: Partial<InviteEvent>; setEvent: (e: Partial<InviteEvent>) => void; onSave: () => void; onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold text-gray-900">Create New Invite Event</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+        </div>
+        
+        <InputField label="Event Title" value={event.title || ""} onChange={(v) => setEvent({ ...event, title: v })} testId="input-invite-title" />
+        
+        <div className="grid grid-cols-2 gap-4">
+          <InputField label="Partner Name" value={event.partnerName || ""} onChange={(v) => setEvent({ ...event, partnerName: v })} testId="input-invite-partner-name" />
+          <InputField label="Partner CU Number" value={event.partnerCu || ""} onChange={(v) => setEvent({ ...event, partnerCu: v })} testId="input-invite-partner-cu" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <InputField label="Date" value={event.eventDate || ""} onChange={(v) => setEvent({ ...event, eventDate: v })} testId="input-invite-date" />
+          <InputField label="Time" value={event.eventTime || ""} onChange={(v) => setEvent({ ...event, eventTime: v })} testId="input-invite-time" />
+        </div>
+
+        <InputField label="Zoom Link" value={event.zoomLink || ""} onChange={(v) => setEvent({ ...event, zoomLink: v })} testId="input-invite-zoom-link" />
+        
+        <ToggleField label="Active" value={event.isActive ?? true} onChange={(v) => setEvent({ ...event, isActive: v })} testId="toggle-invite-active" />
+
+        <div className="flex justify-end gap-3 pt-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Abbrechen</button>
+          <button data-testid="button-save-invite" onClick={onSave}
+            disabled={!event.title || !event.partnerName || !event.partnerCu || !event.zoomLink}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-50">
+            <Check size={16} /> Create
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

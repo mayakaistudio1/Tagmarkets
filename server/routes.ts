@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertApplicationSchema, insertPromoApplicationSchema, insertDennisPromoSchema } from "@shared/schema";
+import { insertApplicationSchema, insertPromoApplicationSchema, insertDennisPromoSchema, insertInviteEventSchema, insertInviteGuestSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { registerLiveAvatarRoutes } from "./integrations/liveavatar";
 import { registerMariaChatRoutes } from "./integrations/maria-chat";
@@ -729,6 +729,142 @@ Return ONLY valid JSON in this format:
     } catch (error: any) {
       console.error("Promo Sheets sync error:", error);
       res.status(500).json({ error: error.message || "Failed to sync promo applications" });
+    }
+  });
+
+  app.get("/api/invite/:code", async (req, res) => {
+    try {
+      const event = await storage.getInviteEventByCode(req.params.code);
+      if (!event || !event.isActive) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      const { zoomLink, ...publicEvent } = event;
+      res.json(publicEvent);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/invite/:code/register", async (req, res) => {
+    try {
+      const event = await storage.getInviteEventByCode(req.params.code);
+      if (!event || !event.isActive) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      const parsed = insertInviteGuestSchema.safeParse({
+        ...req.body,
+        inviteEventId: event.id,
+      });
+      if (!parsed.success) {
+        return res.status(400).json({ error: fromZodError(parsed.error).message });
+      }
+      const guest = await storage.addInviteGuest(parsed.data);
+      await sendTelegramNotification(
+        `🎟 <b>Neue Registrierung!</b>\n\n` +
+        `📋 <b>Event:</b> ${event.title}\n` +
+        `👤 <b>Gast:</b> ${guest.name}\n` +
+        `📧 <b>E-Mail:</b> ${guest.email}\n` +
+        `${guest.phone ? `📱 <b>Tel:</b> ${guest.phone}\n` : ""}` +
+        `👥 <b>Eingeladen von:</b> ${event.partnerName} (${event.partnerCu})\n` +
+        `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
+      );
+      res.json({ success: true, guestId: guest.id });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/invite/:code/click", async (req, res) => {
+    try {
+      const event = await storage.getInviteEventByCode(req.params.code);
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      const { guestId } = req.body;
+      if (guestId) {
+        await storage.markGuestClickedZoom(guestId);
+      }
+      res.json({ zoomLink: event.zoomLink });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admin/invite-events", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const parsed = insertInviteEventSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: fromZodError(parsed.error).message });
+      }
+      const event = await storage.createInviteEvent(parsed.data);
+      res.json(event);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/admin/invite-events", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const events = await storage.getAllInviteEvents();
+      res.json(events);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/admin/invite-events/:id/report", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const event = await storage.getInviteEventById(Number(req.params.id));
+      if (!event) return res.status(404).json({ error: "Event not found" });
+      const guests = await storage.getGuestsByEventId(event.id);
+      const clicked = guests.filter(g => g.clickedZoom);
+      const notClicked = guests.filter(g => !g.clickedZoom);
+      res.json({
+        event,
+        guests,
+        stats: {
+          totalRegistered: guests.length,
+          totalClicked: clicked.length,
+          totalNotClicked: notClicked.length,
+        },
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admin/invite-events/:id/send-report", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const event = await storage.getInviteEventById(Number(req.params.id));
+      if (!event) return res.status(404).json({ error: "Event not found" });
+      const guests = await storage.getGuestsByEventId(event.id);
+      const clicked = guests.filter(g => g.clickedZoom);
+      const notClicked = guests.filter(g => !g.clickedZoom);
+
+      let msg = `📊 <b>Event-Bericht: ${event.title}</b>\n`;
+      msg += `📅 ${event.eventDate} ${event.eventTime}\n`;
+      msg += `👤 Partner: ${event.partnerName} (${event.partnerCu})\n\n`;
+      msg += `📝 Registriert: ${guests.length} Gäste\n`;
+      msg += `✅ Zoom beigetreten: ${clicked.length}\n`;
+      msg += `❌ Nicht beigetreten: ${notClicked.length}\n`;
+
+      if (clicked.length > 0) {
+        msg += `\n<b>✅ Beigetreten:</b>\n`;
+        clicked.forEach(g => { msg += `  • ${g.name} (${g.email})\n`; });
+      }
+      if (notClicked.length > 0) {
+        msg += `\n<b>❌ Nicht beigetreten:</b>\n`;
+        notClicked.forEach(g => { msg += `  • ${g.name} (${g.email})\n`; });
+      }
+
+      await sendTelegramNotification(msg);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
   });
 

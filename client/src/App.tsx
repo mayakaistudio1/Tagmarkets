@@ -19,6 +19,7 @@ import PromoSinglePage from "@/pages/PromoSinglePage";
 import PartnerDigitalHub from "@/pages/PartnerDigitalHub";
 import LiveCallScreen from "@/pages/partner/LiveCallScreen";
 import PromoBanner from "@/components/PromoBanner";
+import InvitePage from "@/pages/InvitePage";
 
 const PresentationPage = React.lazy(() => import("@/pages/PresentationPage"));
 
@@ -54,12 +55,14 @@ function AppContent() {
   const eventMatch = basePath.match(/^\/event\/(\d+)$/);
   const promoSingleMatch = basePath.match(/^\/promo\/(\d+)$/);
   const partnerMatch = basePath.match(/^\/p\/[\w-]+$/);
+  const inviteMatch = basePath.match(/^\/invite\/([\w-]+)$/);
   const directPartnerMatch = basePath === "/dennis";
 
   const renderPage = () => {
     if (basePath === "/dennis/live") return <LiveCallScreen />;
     if (eventMatch) return <EventDetailPage />;
     if (promoSingleMatch) return <PromoSinglePage />;
+    if (inviteMatch) return <InvitePage />;
     if (partnerMatch || directPartnerMatch) return <PartnerDigitalHub />;
 
     switch (basePath) {

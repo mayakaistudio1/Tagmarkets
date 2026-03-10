@@ -179,3 +179,46 @@ export const insertScheduleEventSchema = createInsertSchema(scheduleEvents).omit
 
 export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
 export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
+
+export const inviteEvents = pgTable("invite_events", {
+  id: serial("id").primaryKey(),
+  partnerName: text("partner_name").notNull(),
+  partnerCu: text("partner_cu").notNull(),
+  zoomLink: text("zoom_link").notNull(),
+  title: text("title").notNull(),
+  eventDate: text("event_date").notNull(),
+  eventTime: text("event_time").notNull(),
+  inviteCode: text("invite_code").notNull().unique(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertInviteEventSchema = createInsertSchema(inviteEvents).omit({
+  id: true,
+  createdAt: true,
+  inviteCode: true,
+});
+
+export type InsertInviteEvent = z.infer<typeof insertInviteEventSchema>;
+export type InviteEvent = typeof inviteEvents.$inferSelect;
+
+export const inviteGuests = pgTable("invite_guests", {
+  id: serial("id").primaryKey(),
+  inviteEventId: integer("invite_event_id").notNull(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  registeredAt: timestamp("registered_at").defaultNow().notNull(),
+  clickedZoom: boolean("clicked_zoom").notNull().default(false),
+  clickedAt: timestamp("clicked_at"),
+});
+
+export const insertInviteGuestSchema = createInsertSchema(inviteGuests).omit({
+  id: true,
+  registeredAt: true,
+  clickedZoom: true,
+  clickedAt: true,
+});
+
+export type InsertInviteGuest = z.infer<typeof insertInviteGuestSchema>;
+export type InviteGuest = typeof inviteGuests.$inferSelect;

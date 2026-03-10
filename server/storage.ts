@@ -3,7 +3,10 @@ import {
   type Application, type InsertApplication,
   type PromoApplication, type InsertPromoApplication,
   type DennisPromo, type InsertDennisPromo,
+  type InviteEvent, type InsertInviteEvent,
+  type InviteGuest, type InsertInviteGuest,
   users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers, promoApplications, dennisPromos,
+  inviteEvents, inviteGuests,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql, count, or } from "drizzle-orm";
 import { db } from "./db";
@@ -48,6 +51,14 @@ export interface IStorage {
   createSpeaker(speaker: any): Promise<any>;
   updateSpeaker(id: number, speaker: any): Promise<any>;
   deleteSpeaker(id: number): Promise<void>;
+
+  createInviteEvent(data: InsertInviteEvent): Promise<InviteEvent>;
+  getInviteEventByCode(code: string): Promise<InviteEvent | undefined>;
+  getInviteEventById(id: number): Promise<InviteEvent | undefined>;
+  getAllInviteEvents(): Promise<(InviteEvent & { guestCount: number; clickedCount: number })[]>;
+  addInviteGuest(data: InsertInviteGuest): Promise<InviteGuest>;
+  getGuestsByEventId(eventId: number): Promise<InviteGuest[]>;
+  markGuestClickedZoom(guestId: number): Promise<InviteGuest>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -309,6 +320,53 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDennisPromo(id: number): Promise<void> {
     await db.delete(dennisPromos).where(eq(dennisPromos.id, id));
+  }
+
+  async createInviteEvent(data: InsertInviteEvent): Promise<InviteEvent> {
+    const inviteCode = Math.random().toString(36).substring(2, 8);
+    const [created] = await db.insert(inviteEvents).values({ ...data, inviteCode }).returning();
+    return created;
+  }
+
+  async getInviteEventByCode(code: string): Promise<InviteEvent | undefined> {
+    const [event] = await db.select().from(inviteEvents).where(eq(inviteEvents.inviteCode, code));
+    return event;
+  }
+
+  async getInviteEventById(id: number): Promise<InviteEvent | undefined> {
+    const [event] = await db.select().from(inviteEvents).where(eq(inviteEvents.id, id));
+    return event;
+  }
+
+  async getAllInviteEvents(): Promise<(InviteEvent & { guestCount: number; clickedCount: number })[]> {
+    const events = await db.select().from(inviteEvents).orderBy(desc(inviteEvents.createdAt));
+    const results = [];
+    for (const event of events) {
+      const guests = await db.select().from(inviteGuests).where(eq(inviteGuests.inviteEventId, event.id));
+      results.push({
+        ...event,
+        guestCount: guests.length,
+        clickedCount: guests.filter(g => g.clickedZoom).length,
+      });
+    }
+    return results;
+  }
+
+  async addInviteGuest(data: InsertInviteGuest): Promise<InviteGuest> {
+    const [created] = await db.insert(inviteGuests).values(data).returning();
+    return created;
+  }
+
+  async getGuestsByEventId(eventId: number): Promise<InviteGuest[]> {
+    return db.select().from(inviteGuests).where(eq(inviteGuests.inviteEventId, eventId)).orderBy(desc(inviteGuests.registeredAt));
+  }
+
+  async markGuestClickedZoom(guestId: number): Promise<InviteGuest> {
+    const [updated] = await db.update(inviteGuests)
+      .set({ clickedZoom: true, clickedAt: new Date() })
+      .where(eq(inviteGuests.id, guestId))
+      .returning();
+    return updated;
   }
 }
 

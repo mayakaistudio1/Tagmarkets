@@ -125,9 +125,7 @@ const PromoBanner: React.FC = () => {
                 marginBottom: 4,
                 letterSpacing: -1,
               }}
-            >
-              For new partners
-            </h1>
+              className="text-[54px] font-extrabold">Fast Start Promo</h1>
             <p
               style={{
                 fontSize: 16,

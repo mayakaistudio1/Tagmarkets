@@ -100,42 +100,30 @@ const PromoBanner: React.FC = () => {
               gap: 0,
             }}
           >
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.2))",
-                border: "1px solid rgba(168,85,247,0.45)",
-                borderRadius: 8,
-                padding: "6px 16px",
-                marginBottom: 22,
-                alignSelf: "flex-start",
-              }}
-            >
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#c4b5fd", letterSpacing: 2.5, textTransform: "uppercase" }}>For new partners</span>
-            </div>
 
             <h1
               style={{
-                fontSize: 48,
+                fontSize: 84,
                 fontWeight: 800,
                 color: "#ffffff",
                 lineHeight: 1.05,
                 margin: 0,
-                marginBottom: 4,
-                letterSpacing: -1,
+                marginBottom: 16,
+                letterSpacing: -1.5,
               }}
-              className="text-[54px] font-extrabold">Fast Start Promo</h1>
+            >
+              FOR NEW PARTNERS
+            </h1>
             <p
               style={{
-                fontSize: 16,
-                fontWeight: 500,
-                color: "rgba(255,255,255,0.5)",
+                fontSize: 38,
+                fontWeight: 700,
+                color: "rgba(255,255,255,0.65)",
                 margin: 0,
-                marginBottom: 24,
+                marginBottom: 56,
                 lineHeight: 1.4,
               }}
-              className="text-[25px] font-medium">
+            >
               by Dennis, JetUp Founder
             </p>
 
@@ -143,26 +131,25 @@ const PromoBanner: React.FC = () => {
               style={{
                 display: "flex",
                 alignItems: "baseline",
-                gap: 14,
-                marginBottom: 20,
+                gap: 28,
+                marginBottom: 42,
               }}
             >
-              <span style={{ fontSize: 76, fontWeight: 800, color: "#C084FC", lineHeight: 1, textShadow: "0 0 30px rgba(168,85,247,0.45)" }}>
+              <span style={{ fontSize: 160, fontWeight: 800, color: "#C084FC", lineHeight: 1, textShadow: "0 0 50px rgba(168,85,247,0.6)" }}>
                 100
               </span>
 
-              <span style={{ fontSize: 38, fontWeight: 700, color: "rgba(255,255,255,0.7)", lineHeight: 1, alignSelf: "center", marginBottom: "4px" }}>
+              <span style={{ fontSize: 72, fontWeight: 700, color: "rgba(255,255,255,0.85)", lineHeight: 1, alignSelf: "center", marginBottom: "10px" }}>
                 +
               </span>
-              <span style={{ fontSize: 76, fontWeight: 800, color: "#C084FC", lineHeight: 1, textShadow: "0 0 30px rgba(168,85,247,0.45)" }}>
+              <span style={{ fontSize: 160, fontWeight: 800, color: "#C084FC", lineHeight: 1, textShadow: "0 0 50px rgba(168,85,247,0.6)" }}>
                 100
               </span>
-
             </div>
 
-            <p style={{ fontSize: 17, fontWeight: 500, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, margin: 0, maxWidth: 520 }}>
+            <p style={{ fontSize: 38, fontWeight: 700, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, margin: 0, maxWidth: 850 }}>
               Deposit 100 USDT and get{" "}
-              <span style={{ color: "#C084FC", fontWeight: 700 }}>+100 USDT bonus</span>
+              <span style={{ color: "#C084FC", fontWeight: 900 }}>+100 USDT bonus</span>
             </p>
           </div>
 

@@ -13,7 +13,11 @@ interface DennisPromo {
   language: string;
 }
 
-const PromoCard: React.FC = () => {
+interface PromoCardProps {
+  autoExpand?: boolean;
+}
+
+const PromoCard: React.FC<PromoCardProps> = ({ autoExpand = false }) => {
   const { t, language } = useLanguage();
   const [promos, setPromos] = useState<DennisPromo[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -29,12 +33,15 @@ const PromoCard: React.FC = () => {
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           setPromos(data);
+          if (autoExpand && data[0]) {
+            setExpandedId(data[0].id);
+          }
         } else {
           setPromos([]);
         }
       })
       .catch(() => {});
-  }, [language]);
+  }, [language, autoExpand]);
 
   const getFormData = (id: number) => formData[id] || { name: "", email: "", cuNumber: "" };
   const updateFormData = (id: number, field: string, value: string) => {

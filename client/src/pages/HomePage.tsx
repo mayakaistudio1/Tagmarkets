@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -21,6 +21,18 @@ import PromoCard from "@/components/PromoCard";
 const HomePage: React.FC = () => {
   const [, setLocation] = useAppNavigation();
   const { language, setLanguage, t } = useLanguage();
+  const promoRef = useRef<HTMLDivElement>(null);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const promoOpen = urlParams.get("promo") === "open";
+
+  useEffect(() => {
+    if (promoOpen && promoRef.current) {
+      setTimeout(() => {
+        promoRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 400);
+    }
+  }, [promoOpen]);
 
   const goToMaria = () => setLocation("/maria");
   const goToTrading = () => setLocation("/trading");
@@ -175,7 +187,9 @@ const HomePage: React.FC = () => {
             </button>
           </motion.div>
 
-          <PromoCard />
+          <div ref={promoRef} id="promo">
+            <PromoCard autoExpand={promoOpen} />
+          </div>
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}

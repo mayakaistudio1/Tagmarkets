@@ -19,7 +19,6 @@ import PromoSinglePage from "@/pages/PromoSinglePage";
 import PartnerDigitalHub from "@/pages/PartnerDigitalHub";
 import LiveCallScreen from "@/pages/partner/LiveCallScreen";
 import PromoBanner from "@/components/PromoBanner";
-import FastStartPromoPage from "@/pages/FastStartPromoPage";
 
 const PresentationPage = React.lazy(() => import("@/pages/PresentationPage"));
 
@@ -42,10 +41,6 @@ function AppContent() {
 
   if (basePath === "/promo-banner") {
     return <PromoBanner />;
-  }
-
-  if (basePath === "/fast-start") {
-    return <FastStartPromoPage />;
   }
 
   if (basePath === "/presentation" && import.meta.env.DEV) {

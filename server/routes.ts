@@ -799,15 +799,6 @@ Return ONLY valid JSON in this format:
         return res.status(400).json({ error: fromZodError(parsed.error).message });
       }
       const guest = await storage.addInviteGuest(parsed.data);
-      await sendTelegramNotification(
-        `🎟 <b>Neue Registrierung!</b>\n\n` +
-        `📋 <b>Event:</b> ${event.title}\n` +
-        `👤 <b>Gast:</b> ${guest.name}\n` +
-        `📧 <b>E-Mail:</b> ${guest.email}\n` +
-        `${guest.phone ? `📱 <b>Tel:</b> ${guest.phone}\n` : ""}` +
-        `👥 <b>Eingeladen von:</b> ${event.partnerName} (${event.partnerCu})\n` +
-        `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
-      );
       notifyPartnerNewRegistration(event, guest).catch(err =>
         console.error("Partner notification error:", err)
       );

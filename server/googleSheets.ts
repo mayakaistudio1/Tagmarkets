@@ -640,7 +640,7 @@ async function getOrCreatePromoSpreadsheet(): Promise<string> {
     range: `'${PROMO_SHEET_NAME}'!A1`,
     valueInputOption: 'RAW',
     requestBody: {
-      values: [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum']],
+      values: [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum', 'Verified']],
     },
   });
 
@@ -741,7 +741,7 @@ export async function appendPromoApplicationToSheet(app: {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: `'${PROMO_SHEET_NAME}'!A:G`,
+      range: `'${PROMO_SHEET_NAME}'!A:H`,
       valueInputOption: 'RAW',
       insertDataOption: 'INSERT_ROWS',
       requestBody: {
@@ -753,6 +753,7 @@ export async function appendPromoApplicationToSheet(app: {
           app.promoTitle || '',
           app.status,
           formatDate(typeof app.createdAt === 'string' ? new Date(app.createdAt) : app.createdAt),
+          '',
         ]],
       },
     });
@@ -772,7 +773,7 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
     promoMap.set(p.id, p.title);
   }
 
-  const rows: any[][] = [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum']];
+  const rows: any[][] = [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum', 'Verified']];
   for (let i = 0; i < applications.length; i++) {
     const app = applications[i];
     rows.push([
@@ -783,12 +784,13 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
       app.promoId ? (promoMap.get(app.promoId) || `#${app.promoId}`) : '',
       app.status,
       formatDate(app.createdAt),
+      app.verifiedAt ? 'YES' : '',
     ]);
   }
 
   await sheets.spreadsheets.values.clear({
     spreadsheetId,
-    range: `'${PROMO_SHEET_NAME}'!A:G`,
+    range: `'${PROMO_SHEET_NAME}'!A:H`,
   });
 
   await sheets.spreadsheets.values.update({
@@ -824,4 +826,38 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
   }
 
   return { spreadsheetId, count: applications.length };
+}
+
+export async function pollPromoSheetForVerifications(): Promise<{ email: string; cuNumber: string; name: string }[]> {
+  try {
+    const spreadsheetId = await getOrCreatePromoSpreadsheet();
+    const sheets = await getSheetsClient();
+
+    const result = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `'${PROMO_SHEET_NAME}'!A:H`,
+    });
+
+    const rows = result.data.values || [];
+    if (rows.length <= 1) return [];
+
+    const verified: { email: string; cuNumber: string; name: string }[] = [];
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const name = row[1] || '';
+      const email = row[2] || '';
+      const cuNumber = row[3] || '';
+      const verifiedCol = (row[7] || '').toString().trim().toUpperCase();
+
+      if (verifiedCol === 'YES' || verifiedCol === 'Y' || verifiedCol === '1' || verifiedCol === 'TRUE' || verifiedCol === 'X') {
+        verified.push({ email, cuNumber, name });
+      }
+    }
+
+    return verified;
+  } catch (error) {
+    console.error('Failed to poll promo sheet for verifications:', error);
+    return [];
+  }
 }

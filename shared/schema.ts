@@ -139,6 +139,8 @@ export const promoApplications = pgTable("promo_applications", {
   email: text("email").notNull(),
   cuNumber: text("cu_number").notNull(),
   status: text("status").notNull().default("pending"),
+  verifiedAt: timestamp("verified_at"),
+  emailSentAt: timestamp("email_sent_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -146,6 +148,8 @@ export const insertPromoApplicationSchema = createInsertSchema(promoApplications
   id: true,
   createdAt: true,
   status: true,
+  verifiedAt: true,
+  emailSentAt: true,
 });
 
 export type InsertPromoApplication = z.infer<typeof insertPromoApplicationSchema>;

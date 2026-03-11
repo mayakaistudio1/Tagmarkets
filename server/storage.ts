@@ -39,6 +39,9 @@ export interface IStorage {
   getPromoApplications(): Promise<PromoApplication[]>;
   updatePromoApplicationStatus(id: number, status: string): Promise<PromoApplication>;
   findDuplicatePromoApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined>;
+  getUnverifiedPromoApplicationByEmail(email: string, cuNumber?: string): Promise<PromoApplication | undefined>;
+  markPromoApplicationVerified(id: number): Promise<PromoApplication>;
+  markPromoApplicationEmailSent(id: number): Promise<PromoApplication>;
 
   getDennisPromos(activeOnly?: boolean, language?: string): Promise<DennisPromo[]>;
   getDennisPromo(id: number): Promise<DennisPromo | undefined>;
@@ -264,6 +267,32 @@ export class DatabaseStorage implements IStorage {
       .where(or(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)))
       .limit(1);
     return found;
+  }
+
+  async getUnverifiedPromoApplicationByEmail(email: string, cuNumber?: string): Promise<PromoApplication | undefined> {
+    const conditions = cuNumber
+      ? and(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber))
+      : eq(promoApplications.email, email);
+    const results = await db.select().from(promoApplications)
+      .where(conditions!)
+      .orderBy(desc(promoApplications.createdAt));
+    return results.find(app => !app.verifiedAt && app.status !== 'duplicate');
+  }
+
+  async markPromoApplicationVerified(id: number): Promise<PromoApplication> {
+    const [updated] = await db.update(promoApplications)
+      .set({ status: 'verified', verifiedAt: new Date() })
+      .where(eq(promoApplications.id, id))
+      .returning();
+    return updated;
+  }
+
+  async markPromoApplicationEmailSent(id: number): Promise<PromoApplication> {
+    const [updated] = await db.update(promoApplications)
+      .set({ emailSentAt: new Date() })
+      .where(eq(promoApplications.id, id))
+      .returning();
+    return updated;
   }
 
   async getSpeakers(activeOnly?: boolean): Promise<any[]> {

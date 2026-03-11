@@ -19,6 +19,7 @@ import { MARIA_SYSTEM_PROMPT_DE, MARIA_SYSTEM_PROMPT_EN, MARIA_SYSTEM_PROMPT_RU 
 import { LIVEAVATAR_SYSTEM_PROMPT } from "./integrations/liveavatar";
 import OpenAI from "openai";
 import { sendTelegramNotification, formatPromoApplicationMessage } from "./integrations/telegram-notify";
+import { startVerificationPoller, checkAndProcessVerifications } from "./integrations/promo-verification-poller";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -189,10 +190,15 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id);
       const { status } = req.body;
-      if (!["pending", "approved", "rejected"].includes(status)) {
+      if (!["pending", "approved", "rejected", "verified"].includes(status)) {
         return res.status(400).json({ error: "Invalid status" });
       }
-      const updated = await storage.updatePromoApplicationStatus(id, status);
+      let updated;
+      if (status === "verified") {
+        updated = await storage.markPromoApplicationVerified(id);
+      } else {
+        updated = await storage.updatePromoApplicationStatus(id, status);
+      }
       res.json(updated);
     } catch (error) {
       console.error("Error updating promo application status:", error);
@@ -731,6 +737,19 @@ Return ONLY valid JSON in this format:
       res.status(500).json({ error: error.message || "Failed to sync promo applications" });
     }
   });
+
+  app.post("/api/admin/check-promo-verifications", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const count = await checkAndProcessVerifications();
+      res.json({ success: true, processedCount: count });
+    } catch (error: any) {
+      console.error("Manual verification check error:", error);
+      res.status(500).json({ error: error.message || "Failed to check verifications" });
+    }
+  });
+
+  startVerificationPoller();
 
   app.get("/api/invite/:code", async (req, res) => {
     try {

@@ -2158,8 +2158,34 @@ function PromoApplicationsSubTab({
   adminPassword: string;
 }) {
   const [syncing, setSyncing] = useState(false);
+  const [checkingVerifications, setCheckingVerifications] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<string | null>(null);
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
+
+  const checkVerifications = async () => {
+    setCheckingVerifications(true);
+    setVerificationResult(null);
+    try {
+      const res = await fetch("/api/admin/check-promo-verifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-password": adminPassword },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setVerificationResult(data.processedCount > 0 ? `${data.processedCount} verification(s) processed` : "No new verifications found");
+        if (data.processedCount > 0) {
+          window.location.reload();
+        }
+      } else {
+        setVerificationResult(data.error || "Check failed");
+      }
+    } catch (err: any) {
+      setVerificationResult(err.message || "Check failed");
+    } finally {
+      setCheckingVerifications(false);
+    }
+  };
 
   const syncToSheets = async () => {
     setSyncing(true);
@@ -2188,6 +2214,15 @@ function PromoApplicationsSubTab({
         <h2 className="text-xl font-bold text-gray-900">Заявки на промо-акции</h2>
         <div className="flex gap-2 flex-wrap">
           <button
+            onClick={checkVerifications}
+            disabled={checkingVerifications}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-50"
+            data-testid="btn-check-verifications"
+          >
+            {checkingVerifications ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+            Check Verifications
+          </button>
+          <button
             onClick={syncToSheets}
             disabled={syncing}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
@@ -2215,6 +2250,11 @@ function PromoApplicationsSubTab({
           </a>
         </div>
       )}
+      {verificationResult && (
+        <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg text-sm text-purple-700" data-testid="verification-result">
+          {verificationResult}
+        </div>
+      )}
       {syncError && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{syncError}</div>
       )}
@@ -2234,6 +2274,7 @@ function PromoApplicationsSubTab({
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Email</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">CU Number</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Verified</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Date</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
               </tr>
@@ -2247,6 +2288,7 @@ function PromoApplicationsSubTab({
                   <td className="px-4 py-3 text-gray-700 font-mono">{app.cuNumber}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      app.status === "verified" ? "bg-blue-100 text-blue-700" :
                       app.status === "approved" ? "bg-green-100 text-green-700" :
                       app.status === "rejected" ? "bg-red-100 text-red-700" :
                       app.status === "duplicate" ? "bg-orange-100 text-orange-700" :
@@ -2254,6 +2296,16 @@ function PromoApplicationsSubTab({
                     }`} data-testid={`badge-status-${app.id}`}>
                       {app.status === "duplicate" ? "повторная" : app.status}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    {app.verifiedAt ? (
+                      <div>
+                        <span className="text-blue-600 font-medium" data-testid={`verified-date-${app.id}`}>{new Date(app.verifiedAt).toLocaleString()}</span>
+                        {app.emailSentAt && <span className="block text-green-600 mt-0.5" data-testid={`email-sent-${app.id}`}>Email sent</span>}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
                   <td className="px-4 py-3">

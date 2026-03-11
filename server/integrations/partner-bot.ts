@@ -188,13 +188,7 @@ async function handleRegistration(chatId: number, text: string): Promise<boolean
         `/help — Hilfe`
       );
 
-      await sendTelegramNotification(
-        `🤝 <b>Neuer Partner registriert!</b>\n\n` +
-        `👤 ${partner.name}\n` +
-        `🔢 CU: ${partner.cuNumber}\n` +
-        `📱 Telegram: @${partner.telegramUsername || "—"}\n` +
-        `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
-      );
+      console.log(`New partner registered: ${partner.name} (CU: ${partner.cuNumber})`);
     } catch (error: any) {
       registrationState.delete(String(chatId));
       if (error.message?.includes("unique")) {

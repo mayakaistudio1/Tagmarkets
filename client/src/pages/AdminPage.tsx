@@ -28,9 +28,10 @@ import {
   Brain,
   Gift,
   Link as LinkIcon,
+  UserCheck,
 } from "lucide-react";
 
-type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo" | "invites";
+type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo" | "invites" | "partners";
 
 interface AnalysisSection {
   title: string;
@@ -80,6 +81,17 @@ interface InviteEvent {
   isActive: boolean;
   createdAt: string;
   guestCount?: { registered: number; clicked: number };
+}
+
+interface AdminPartner {
+  id: number;
+  name: string;
+  cuNumber: string;
+  telegramUsername?: string;
+  phone?: string;
+  email?: string;
+  status: string;
+  createdAt: string;
 }
 
 interface Speaker {
@@ -217,6 +229,7 @@ function AdminPage() {
   const [promoSubTab, setPromoSubTab] = useState<"offers" | "applications">("offers");
 
   const [inviteEvents, setInviteEvents] = useState<InviteEvent[]>([]);
+  const [adminPartners, setAdminPartners] = useState<AdminPartner[]>([]);
   const [invitesLoading, setInvitesLoading] = useState(false);
   const [editingInvite, setEditingInvite] = useState<Partial<InviteEvent> | null>(null);
   const [inviteFormOpen, setInviteFormOpen] = useState(false);
@@ -529,6 +542,14 @@ function AdminPage() {
     }
   };
 
+  const fetchPartners = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/partners", { headers: headers() });
+      if (handleAuthError(res)) return;
+      if (res.ok) setAdminPartners(await res.json());
+    } catch {}
+  }, [headers]);
+
   const fetchInviteEvents = useCallback(async () => {
     setInvitesLoading(true);
     try {
@@ -606,7 +627,8 @@ function AdminPage() {
     if (activeTab === "speakers") fetchSpeakers();
     if (activeTab === "promo") { fetchPromoApps(); fetchDennisPromos(); }
     if (activeTab === "invites") fetchInviteEvents();
-  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps, fetchInviteEvents]);
+    if (activeTab === "partners") fetchPartners();
+  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps, fetchInviteEvents, fetchPartners]);
 
   if (!isLoggedIn) {
     return (
@@ -664,6 +686,7 @@ function AdminPage() {
     { key: "speakers", label: "Sprecher", icon: <Users size={18} /> },
     { key: "promo", label: "Promo", icon: <Gift size={18} /> },
     { key: "invites", label: "Invites", icon: <LinkIcon size={18} /> },
+    { key: "partners", label: "Partners", icon: <UserCheck size={18} /> },
   ];
 
   return (
@@ -801,6 +824,9 @@ function AdminPage() {
             guests={inviteGuests}
             guestsLoading={guestsLoading}
           />
+        )}
+        {activeTab === "partners" && (
+          <PartnersTab partners={adminPartners} />
         )}
       </main>
     </div>
@@ -2530,6 +2556,53 @@ function InviteForm({ event, setEvent, onSave, onClose }: {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function PartnersTab({ partners }: { partners: AdminPartner[] }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold" data-testid="text-partners-title">
+          Registrierte Partner ({partners.length})
+        </h2>
+      </div>
+      {partners.length === 0 ? (
+        <p className="text-gray-500" data-testid="text-no-partners">Noch keine Partner registriert.</p>
+      ) : (
+        <div className="space-y-3">
+          {partners.map((p) => (
+            <div key={p.id} className="bg-white rounded-xl p-4 border border-gray-200 hover:shadow-sm transition-shadow" data-testid={`card-partner-${p.id}`}>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="font-semibold text-gray-900" data-testid={`text-partner-name-${p.id}`}>{p.name}</span>
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{p.cuNumber}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                      {p.status === "active" ? "Aktiv" : p.status}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-500 mt-2">
+                    {p.telegramUsername && (
+                      <span>📱 @{p.telegramUsername}</span>
+                    )}
+                    {p.email && (
+                      <span>📧 {p.email}</span>
+                    )}
+                    {p.phone && (
+                      <span>📞 {p.phone}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-xs text-gray-400">
+                  {new Date(p.createdAt).toLocaleDateString("de-DE")}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

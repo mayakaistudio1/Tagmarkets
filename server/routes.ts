@@ -902,5 +902,15 @@ Return ONLY valid JSON in this format:
     }
   });
 
+  app.get("/api/admin/partners", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const partnersList = await storage.getAllPartners();
+      res.json(partnersList);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   return httpServer;
 }

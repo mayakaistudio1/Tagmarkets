@@ -20,6 +20,7 @@ import { LIVEAVATAR_SYSTEM_PROMPT } from "./integrations/liveavatar";
 import OpenAI from "openai";
 import { sendTelegramNotification, formatPromoApplicationMessage } from "./integrations/telegram-notify";
 import { startVerificationPoller, checkAndProcessVerifications } from "./integrations/promo-verification-poller";
+import { registerPartnerBotRoutes, notifyPartnerNewRegistration } from "./integrations/partner-bot";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -79,6 +80,7 @@ export async function registerRoutes(
   registerLiveAvatarRoutes(app);
   registerMariaChatRoutes(app);
   registerDennisChatRoutes(app);
+  registerPartnerBotRoutes(app);
 
   const objectStorage = new (await import("./replit_integrations/object_storage")).ObjectStorageService();
   app.get("/uploads/:filename", async (req, res, next) => {
@@ -758,7 +760,26 @@ Return ONLY valid JSON in this format:
         return res.status(404).json({ error: "Event not found" });
       }
       const { zoomLink, ...publicEvent } = event;
-      res.json(publicEvent);
+
+      let scheduleEventData = null;
+      if (event.scheduleEventId) {
+        const se = await storage.getScheduleEvent(event.scheduleEventId);
+        if (se) {
+          scheduleEventData = {
+            speaker: se.speaker,
+            speakerPhoto: se.speakerPhoto,
+            banner: se.banner,
+            highlights: se.highlights,
+            type: se.type,
+            typeBadge: se.typeBadge,
+            timezone: se.timezone,
+            day: se.day,
+            language: se.language,
+          };
+        }
+      }
+
+      res.json({ ...publicEvent, scheduleEvent: scheduleEventData });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -786,6 +807,9 @@ Return ONLY valid JSON in this format:
         `${guest.phone ? `📱 <b>Tel:</b> ${guest.phone}\n` : ""}` +
         `👥 <b>Eingeladen von:</b> ${event.partnerName} (${event.partnerCu})\n` +
         `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
+      );
+      notifyPartnerNewRegistration(event, guest).catch(err =>
+        console.error("Partner notification error:", err)
       );
       res.json({ success: true, guestId: guest.id });
     } catch (error: any) {

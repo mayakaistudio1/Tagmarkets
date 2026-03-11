@@ -184,10 +184,32 @@ export const insertScheduleEventSchema = createInsertSchema(scheduleEvents).omit
 export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
 export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
 
+export const partners = pgTable("partners", {
+  id: serial("id").primaryKey(),
+  telegramChatId: text("telegram_chat_id").notNull().unique(),
+  telegramUsername: text("telegram_username"),
+  name: text("name").notNull(),
+  cuNumber: text("cu_number").notNull(),
+  phone: text("phone"),
+  email: text("email"),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPartnerSchema = createInsertSchema(partners).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPartner = z.infer<typeof insertPartnerSchema>;
+export type Partner = typeof partners.$inferSelect;
+
 export const inviteEvents = pgTable("invite_events", {
   id: serial("id").primaryKey(),
   partnerName: text("partner_name").notNull(),
   partnerCu: text("partner_cu").notNull(),
+  partnerId: integer("partner_id"),
+  scheduleEventId: integer("schedule_event_id"),
   zoomLink: text("zoom_link").notNull(),
   title: text("title").notNull(),
   eventDate: text("event_date").notNull(),
@@ -226,3 +248,24 @@ export const insertInviteGuestSchema = createInsertSchema(inviteGuests).omit({
 
 export type InsertInviteGuest = z.infer<typeof insertInviteGuestSchema>;
 export type InviteGuest = typeof inviteGuests.$inferSelect;
+
+export const zoomAttendance = pgTable("zoom_attendance", {
+  id: serial("id").primaryKey(),
+  inviteGuestId: integer("invite_guest_id"),
+  inviteEventId: integer("invite_event_id").notNull(),
+  participantEmail: text("participant_email").notNull(),
+  participantName: text("participant_name"),
+  joinTime: timestamp("join_time"),
+  leaveTime: timestamp("leave_time"),
+  durationMinutes: integer("duration_minutes").notNull().default(0),
+  questionsAsked: integer("questions_asked").notNull().default(0),
+  fetchedAt: timestamp("fetched_at").defaultNow().notNull(),
+});
+
+export const insertZoomAttendanceSchema = createInsertSchema(zoomAttendance).omit({
+  id: true,
+  fetchedAt: true,
+});
+
+export type InsertZoomAttendance = z.infer<typeof insertZoomAttendanceSchema>;
+export type ZoomAttendance = typeof zoomAttendance.$inferSelect;

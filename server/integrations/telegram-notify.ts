@@ -9,6 +9,17 @@ export async function sendTelegramNotification(message: string): Promise<boolean
     return false;
   }
 
+  return sendTelegramMessageToChat(chatId, message);
+}
+
+export async function sendTelegramMessageToChat(chatId: string, message: string): Promise<boolean> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+
+  if (!token) {
+    console.warn("Telegram message skipped: TELEGRAM_BOT_TOKEN not set");
+    return false;
+  }
+
   try {
     const res = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
       method: "POST",
@@ -28,7 +39,7 @@ export async function sendTelegramNotification(message: string): Promise<boolean
 
     return true;
   } catch (error) {
-    console.error("Telegram notification failed:", error);
+    console.error("Telegram message failed:", error);
     return false;
   }
 }

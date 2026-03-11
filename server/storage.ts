@@ -5,8 +5,10 @@ import {
   type DennisPromo, type InsertDennisPromo,
   type InviteEvent, type InsertInviteEvent,
   type InviteGuest, type InsertInviteGuest,
+  type Partner, type InsertPartner,
+  type ZoomAttendance, type InsertZoomAttendance,
   users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers, promoApplications, dennisPromos,
-  inviteEvents, inviteGuests,
+  inviteEvents, inviteGuests, partners, zoomAttendance,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql, count, or } from "drizzle-orm";
 import { db } from "./db";
@@ -59,9 +61,19 @@ export interface IStorage {
   getInviteEventByCode(code: string): Promise<InviteEvent | undefined>;
   getInviteEventById(id: number): Promise<InviteEvent | undefined>;
   getAllInviteEvents(): Promise<(InviteEvent & { guestCount: number; clickedCount: number })[]>;
+  getInviteEventsByPartnerId(partnerId: number): Promise<(InviteEvent & { guestCount: number; clickedCount: number })[]>;
   addInviteGuest(data: InsertInviteGuest): Promise<InviteGuest>;
   getGuestsByEventId(eventId: number): Promise<InviteGuest[]>;
   markGuestClickedZoom(guestId: number): Promise<InviteGuest>;
+
+  createPartner(data: InsertPartner): Promise<Partner>;
+  getPartnerByTelegramChatId(chatId: string): Promise<Partner | undefined>;
+  getPartnerById(id: number): Promise<Partner | undefined>;
+  getAllPartners(): Promise<Partner[]>;
+  updatePartnerStatus(id: number, status: string): Promise<Partner>;
+
+  createZoomAttendance(data: InsertZoomAttendance): Promise<ZoomAttendance>;
+  getZoomAttendanceByEventId(eventId: number): Promise<ZoomAttendance[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -396,6 +408,55 @@ export class DatabaseStorage implements IStorage {
       .where(eq(inviteGuests.id, guestId))
       .returning();
     return updated;
+  }
+
+  async getInviteEventsByPartnerId(partnerId: number): Promise<(InviteEvent & { guestCount: number; clickedCount: number })[]> {
+    const events = await db.select().from(inviteEvents)
+      .where(eq(inviteEvents.partnerId, partnerId))
+      .orderBy(desc(inviteEvents.createdAt));
+    const results = [];
+    for (const event of events) {
+      const guests = await db.select().from(inviteGuests).where(eq(inviteGuests.inviteEventId, event.id));
+      results.push({
+        ...event,
+        guestCount: guests.length,
+        clickedCount: guests.filter(g => g.clickedZoom).length,
+      });
+    }
+    return results;
+  }
+
+  async createPartner(data: InsertPartner): Promise<Partner> {
+    const [created] = await db.insert(partners).values(data).returning();
+    return created;
+  }
+
+  async getPartnerByTelegramChatId(chatId: string): Promise<Partner | undefined> {
+    const [partner] = await db.select().from(partners).where(eq(partners.telegramChatId, chatId));
+    return partner;
+  }
+
+  async getPartnerById(id: number): Promise<Partner | undefined> {
+    const [partner] = await db.select().from(partners).where(eq(partners.id, id));
+    return partner;
+  }
+
+  async getAllPartners(): Promise<Partner[]> {
+    return db.select().from(partners).orderBy(desc(partners.createdAt));
+  }
+
+  async updatePartnerStatus(id: number, status: string): Promise<Partner> {
+    const [updated] = await db.update(partners).set({ status }).where(eq(partners.id, id)).returning();
+    return updated;
+  }
+
+  async createZoomAttendance(data: InsertZoomAttendance): Promise<ZoomAttendance> {
+    const [created] = await db.insert(zoomAttendance).values(data).returning();
+    return created;
+  }
+
+  async getZoomAttendanceByEventId(eventId: number): Promise<ZoomAttendance[]> {
+    return db.select().from(zoomAttendance).where(eq(zoomAttendance.inviteEventId, eventId));
   }
 }
 

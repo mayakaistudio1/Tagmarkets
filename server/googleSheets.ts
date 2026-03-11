@@ -640,7 +640,7 @@ async function getOrCreatePromoSpreadsheet(): Promise<string> {
     range: `'${PROMO_SHEET_NAME}'!A1`,
     valueInputOption: 'RAW',
     requestBody: {
-      values: [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum', 'Verified']],
+      values: [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum', 'Verified', 'Email Sent']],
     },
   });
 
@@ -713,6 +713,20 @@ async function getOrCreatePromoSpreadsheet(): Promise<string> {
               fields: 'pixelSize',
             }
           },
+          {
+            updateDimensionProperties: {
+              range: { sheetId, dimension: 'COLUMNS', startIndex: 7, endIndex: 8 },
+              properties: { pixelSize: 100 },
+              fields: 'pixelSize',
+            }
+          },
+          {
+            updateDimensionProperties: {
+              range: { sheetId, dimension: 'COLUMNS', startIndex: 8, endIndex: 9 },
+              properties: { pixelSize: 160 },
+              fields: 'pixelSize',
+            }
+          },
         ]
       },
     });
@@ -728,6 +742,7 @@ export async function appendPromoApplicationToSheet(app: {
   promoTitle?: string;
   status: string;
   createdAt: Date | string;
+  emailSentAt?: Date | string | null;
 }): Promise<void> {
   try {
     const spreadsheetId = await getOrCreatePromoSpreadsheet();
@@ -741,7 +756,7 @@ export async function appendPromoApplicationToSheet(app: {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: `'${PROMO_SHEET_NAME}'!A:H`,
+      range: `'${PROMO_SHEET_NAME}'!A:I`,
       valueInputOption: 'RAW',
       insertDataOption: 'INSERT_ROWS',
       requestBody: {
@@ -754,6 +769,7 @@ export async function appendPromoApplicationToSheet(app: {
           app.status,
           formatDate(typeof app.createdAt === 'string' ? new Date(app.createdAt) : app.createdAt),
           '',
+          app.emailSentAt ? formatDate(typeof app.emailSentAt === 'string' ? new Date(app.emailSentAt) : app.emailSentAt) : '',
         ]],
       },
     });
@@ -773,7 +789,7 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
     promoMap.set(p.id, p.title);
   }
 
-  const rows: any[][] = [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum', 'Verified']];
+  const rows: any[][] = [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum', 'Verified', 'Email Sent']];
   for (let i = 0; i < applications.length; i++) {
     const app = applications[i];
     rows.push([
@@ -785,12 +801,13 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
       app.status,
       formatDate(app.createdAt),
       app.verifiedAt ? 'YES' : '',
+      app.emailSentAt ? formatDate(app.emailSentAt) : '',
     ]);
   }
 
   await sheets.spreadsheets.values.clear({
     spreadsheetId,
-    range: `'${PROMO_SHEET_NAME}'!A:H`,
+    range: `'${PROMO_SHEET_NAME}'!A:I`,
   });
 
   await sheets.spreadsheets.values.update({

@@ -45,7 +45,7 @@ function getAppUrl(): string {
 
 function buildPromoConfirmationHtml(name: string): string {
   const appUrl = getAppUrl();
-  const logoUrl = `${appUrl}/jetup-logo-banner.png`;
+  const logoUrl = `${appUrl}/assets/jetup-logo-banner.png`;
 
   return `<!DOCTYPE html>
 <html lang="en">

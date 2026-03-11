@@ -99,6 +99,22 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/assets/:filename", async (req, res, next) => {
+    try {
+      const filename = req.params.filename;
+      const file = await objectStorage.searchPublicObject(filename);
+      if (!file) {
+        return next();
+      }
+      await objectStorage.downloadObject(file, res, 86400);
+    } catch (error) {
+      console.error("Error serving asset:", error);
+      if (!res.headersSent) {
+        next(error);
+      }
+    }
+  });
+
   app.post("/api/applications", async (req, res) => {
     try {
       const validatedData = insertApplicationSchema.parse(req.body);

@@ -21,6 +21,7 @@ import OpenAI from "openai";
 import { sendTelegramNotification, formatPromoApplicationMessage } from "./integrations/telegram-notify";
 import { startVerificationPoller, checkAndProcessVerifications } from "./integrations/promo-verification-poller";
 import { registerPartnerBotRoutes, notifyPartnerNewRegistration } from "./integrations/partner-bot";
+import { registerPartnerAppRoutes } from "./partner-app-routes";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -81,6 +82,7 @@ export async function registerRoutes(
   registerMariaChatRoutes(app);
   registerDennisChatRoutes(app);
   registerPartnerBotRoutes(app);
+  registerPartnerAppRoutes(app);
 
   const objectStorage = new (await import("./replit_integrations/object_storage")).ObjectStorageService();
   app.get("/uploads/:filename", async (req, res, next) => {

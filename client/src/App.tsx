@@ -21,6 +21,7 @@ import LiveCallScreen from "@/pages/partner/LiveCallScreen";
 import PromoBanner from "@/components/PromoBanner";
 import InvitePage from "@/pages/InvitePage";
 import PromoAdminPage from "@/pages/PromoAdminPage";
+import PartnerApp from "@/pages/partner-app/PartnerApp";
 
 const PresentationPage = React.lazy(() => import("@/pages/PresentationPage"));
 
@@ -39,6 +40,10 @@ function AppContent() {
 
   if (basePath === "/promo-admin") {
     return <PromoAdminPage />;
+  }
+
+  if (basePath.startsWith("/partner-app")) {
+    return <PartnerApp />;
   }
 
   if (basePath === "/promo-preview") {

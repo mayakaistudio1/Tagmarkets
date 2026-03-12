@@ -21,6 +21,22 @@ function partnerAppGuard(req: any, res: any): boolean {
 async function getPartnerFromRequest(req: any): Promise<any | null> {
   const telegramId = req.headers["x-telegram-id"] as string;
   if (!telegramId) return null;
+
+  if (telegramId === "demo" && process.env.NODE_ENV === "development") {
+    const allPartners = await storage.getAllPartners();
+    if (allPartners.length > 0) return allPartners[0];
+    return {
+      id: 0,
+      telegramChatId: "demo",
+      name: "Demo Partner",
+      cuNumber: "CU00000",
+      phone: null,
+      email: null,
+      status: "active",
+      createdAt: new Date(),
+    };
+  }
+
   return storage.getPartnerByTelegramChatId(telegramId);
 }
 

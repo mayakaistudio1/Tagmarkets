@@ -214,6 +214,33 @@ export async function registerRoutes(
       let updated;
       if (status === "verified") {
         updated = await storage.markPromoApplicationVerified(id);
+
+        const allApps = await storage.getPromoApplications();
+        const application = allApps.find(a => a.id === id);
+        if (application) {
+          const { sendPromoVerificationEmail } = await import("./integrations/resend-email");
+          const emailSent = await sendPromoVerificationEmail(application.email, application.name);
+          if (emailSent) {
+            await storage.markPromoApplicationEmailSent(id);
+          }
+
+          const { sendTelegramNotification } = await import("./integrations/telegram-notify");
+          sendTelegramNotification(
+            `✅ <b>Promo Verified (Main Admin)</b>\n\n` +
+            `👤 ${application.name}\n` +
+            `📧 ${application.email}\n` +
+            `🔢 ${application.cuNumber}\n` +
+            `📨 Email: ${emailSent ? "Sent" : "Failed"}\n` +
+            `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
+          ).catch(err => console.error("TG notify error:", err));
+
+          try {
+            const { syncAllPromoApplications } = await import("./googleSheets");
+            await syncAllPromoApplications();
+          } catch (err) {
+            console.error("Google Sheet sync error:", err);
+          }
+        }
       } else {
         updated = await storage.updatePromoApplicationStatus(id, status);
       }

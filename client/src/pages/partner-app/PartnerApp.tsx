@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Calendar, BarChart3, Bot, Loader2 } from "lucide-react";
+import { LayoutDashboard, Video, BarChart3, Bot, Loader2 } from "lucide-react";
 import DashboardScreen from "./DashboardScreen";
 import WebinarsScreen from "./WebinarsScreen";
 import ReportsScreen from "./ReportsScreen";
 import AIAssistantScreen from "./AIAssistantScreen";
 
 const tabs = [
-  { id: "dashboard", label: "Dashboard", icon: Home },
-  { id: "webinars", label: "Webinare", icon: Calendar },
-  { id: "reports", label: "Berichte", icon: BarChart3 },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "webinars", label: "Meetings", icon: Video },
+  { id: "reports", label: "Statistics", icon: BarChart3 },
   { id: "ai", label: "AI", icon: Bot },
 ] as const;
 
@@ -48,55 +48,40 @@ export default function PartnerApp() {
 
   if (loading) {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-[#0a0a1a]">
-        <div className="relative">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center animate-pulse">
-            <Loader2 className="w-8 h-8 text-white animate-spin" />
-          </div>
-          <div className="absolute -inset-2 rounded-full bg-purple-500/20 animate-ping" />
-        </div>
-        <p className="mt-6 text-sm text-gray-400 font-medium">Loading Partner App...</p>
+      <div className="h-full flex flex-col items-center justify-center bg-white">
+        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-[#0a0a1a] px-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
-          <span className="text-3xl">🔒</span>
+      <div className="h-full flex flex-col items-center justify-center bg-white px-8 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-5">
+          <span className="text-2xl">🔒</span>
         </div>
-        <h2 className="text-lg font-bold text-white mb-2">Zugang nicht verfügbar</h2>
-        <p className="text-sm text-gray-400 max-w-xs">
-          Bitte registriere dich zuerst über den Partner Bot, um Zugang zur Partner App zu erhalten.
+        <h2 className="text-base font-semibold text-gray-900 mb-1.5">Access Restricted</h2>
+        <p className="text-sm text-gray-400 leading-relaxed">
+          Please register via the Partner Bot to get access.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#0a0a1a] text-white overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-radial from-purple-600/8 via-transparent to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[200px] bg-gradient-radial from-indigo-600/5 via-transparent to-transparent rounded-full blur-3xl" />
-      </div>
-
-      <main className="flex-1 overflow-hidden relative z-10">
+    <div className="h-full flex flex-col bg-[#F5F5F7] overflow-hidden">
+      <main className="flex-1 overflow-hidden relative">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             className="h-full overflow-y-auto no-scrollbar"
           >
             {activeTab === "dashboard" && (
-              <DashboardScreen
-                profile={profile}
-                telegramId={telegramId}
-                onNavigate={setActiveTab}
-              />
+              <DashboardScreen profile={profile} telegramId={telegramId} onNavigate={setActiveTab} />
             )}
             {activeTab === "webinars" && (
               <WebinarsScreen telegramId={telegramId} />
@@ -111,29 +96,23 @@ export default function PartnerApp() {
         </AnimatePresence>
       </main>
 
-      <div className="relative z-20 flex-shrink-0 border-t border-white/5 bg-[#0a0a1a]/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
-        <div className="flex items-center justify-around px-2 pt-2 pb-1.5">
+      <div className="flex-shrink-0 bg-white border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-around px-4 pt-2 pb-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className="flex flex-col items-center justify-center py-1 gap-0.5 min-w-[60px] transition-all active:scale-95"
+                className="flex flex-col items-center justify-center py-1.5 gap-1 min-w-[56px] transition-all active:scale-95"
                 data-testid={`partner-tab-${tab.id}`}
               >
-                <div className={`p-1.5 rounded-xl transition-all ${isActive ? "bg-purple-500/20" : ""}`}>
-                  <tab.icon
-                    size={20}
-                    strokeWidth={isActive ? 2.5 : 1.5}
-                    className={`transition-colors ${isActive ? "text-purple-400" : "text-gray-500"}`}
-                  />
-                </div>
-                <span
-                  className={`text-[9px] leading-none transition-colors ${
-                    isActive ? "font-bold text-purple-400" : "font-medium text-gray-500"
-                  }`}
-                >
+                <tab.icon
+                  size={20}
+                  strokeWidth={isActive ? 2 : 1.5}
+                  className={isActive ? "text-blue-600" : "text-gray-400"}
+                />
+                <span className={`text-[10px] leading-none ${isActive ? "font-semibold text-blue-600" : "font-medium text-gray-400"}`}>
                   {tab.label}
                 </span>
               </button>

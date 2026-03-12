@@ -3,30 +3,17 @@ import { motion } from "framer-motion";
 import { BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck, MousePointerClick, Calendar, Clock } from "lucide-react";
 
 interface PartnerEvent {
-  id: number;
-  title: string;
-  eventDate: string;
-  eventTime: string;
-  inviteCode: string;
-  registeredCount: number;
-  attendedCount: number;
-  conversionRate: number;
-  guestCount: number;
-  clickedCount: number;
+  id: number; title: string; eventDate: string; eventTime: string; inviteCode: string;
+  registeredCount: number; attendedCount: number; conversionRate: number;
+  guestCount: number; clickedCount: number;
 }
 
 interface EventReport {
   event: { id: number; title: string; eventDate: string; eventTime: string; inviteCode: string };
   guests: Array<{
-    id: number;
-    name: string;
-    email: string;
-    phone: string | null;
-    registeredAt: string;
-    clickedZoom: boolean;
-    attended: boolean;
-    durationMinutes: number;
-    questionsAsked: number;
+    id: number; name: string; email: string; phone: string | null;
+    registeredAt: string; clickedZoom: boolean; attended: boolean;
+    durationMinutes: number; questionsAsked: number;
   }>;
   funnel: { invited: number; registered: number; clickedZoom: number; attended: number };
 }
@@ -34,12 +21,12 @@ interface EventReport {
 function FunnelBar({ label, value, maxValue, color }: { label: string; value: number; maxValue: number; color: string }) {
   const pct = maxValue > 0 ? (value / maxValue) * 100 : 0;
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-gray-400">{label}</span>
-        <span className="font-bold text-white">{value}</span>
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-gray-500">{label}</span>
+        <span className="text-xs font-semibold text-gray-900">{value}</span>
       </div>
-      <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+      <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
@@ -58,175 +45,139 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
   const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
-    fetch("/api/partner-app/events", {
-      headers: { "x-telegram-id": telegramId },
-    })
+    fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } })
       .then((r) => r.json())
-      .then((data) => {
-        setEvents(data);
-        setLoading(false);
-      })
+      .then((data) => { setEvents(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, [telegramId]);
 
   const loadReport = async (eventId: number) => {
     setReportLoading(true);
     try {
-      const res = await fetch(`/api/partner-app/events/${eventId}/report`, {
-        headers: { "x-telegram-id": telegramId },
-      });
-      const data = await res.json();
-      setSelectedReport(data);
-    } catch (err) {
-      console.error("Failed to load report:", err);
-    }
+      const res = await fetch(`/api/partner-app/events/${eventId}/report`, { headers: { "x-telegram-id": telegramId } });
+      setSelectedReport(await res.json());
+    } catch (err) { console.error(err); }
     setReportLoading(false);
   };
 
-  if (loading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
-      </div>
-    );
-  }
+  if (loading) return <div className="h-full flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>;
 
   if (selectedReport) {
     const f = selectedReport.funnel;
-    const maxFunnel = Math.max(f.invited, f.registered, f.clickedZoom, f.attended, 1);
+    const maxFunnel = Math.max(f.registered, f.clickedZoom, f.attended, 1);
 
     return (
-      <div className="px-4 pt-5 pb-24 space-y-5">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setSelectedReport(null)}
-            className="p-2 rounded-xl bg-white/5 active:bg-white/10"
-            data-testid="button-back-reports"
-          >
-            <ChevronLeft className="w-5 h-5 text-gray-400" />
-          </button>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-base font-bold text-white truncate">{selectedReport.event.title}</h2>
-            <p className="text-xs text-gray-400">{selectedReport.event.eventDate} · {selectedReport.event.eventTime}</p>
-          </div>
+      <div className="px-5 pt-5 pb-28">
+        <button onClick={() => setSelectedReport(null)} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back-reports">
+          <ChevronLeft className="w-4 h-4" /> Back
+        </button>
+
+        <div className="mb-5">
+          <h2 className="text-base font-bold text-gray-900">{selectedReport.event.title}</h2>
+          <p className="text-xs text-gray-400 mt-1">{selectedReport.event.eventDate} · {selectedReport.event.eventTime}</p>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08] space-y-4"
-        >
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-purple-400" /> Konversions-Trichter
+        <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-blue-500" /> Conversion Funnel
           </h3>
-          <div className="space-y-3">
-            <FunnelBar label="Registriert" value={f.registered} maxValue={maxFunnel} color="bg-gradient-to-r from-purple-500 to-purple-600" />
-            <FunnelBar label="Zoom geklickt" value={f.clickedZoom} maxValue={maxFunnel} color="bg-gradient-to-r from-blue-500 to-blue-600" />
-            <FunnelBar label="Teilgenommen" value={f.attended} maxValue={maxFunnel} color="bg-gradient-to-r from-emerald-500 to-emerald-600" />
+          <div className="space-y-4">
+            <FunnelBar label="Registered" value={f.registered} maxValue={maxFunnel} color="bg-blue-500" />
+            <FunnelBar label="Clicked Zoom" value={f.clickedZoom} maxValue={maxFunnel} color="bg-purple-500" />
+            <FunnelBar label="Attended" value={f.attended} maxValue={maxFunnel} color="bg-emerald-500" />
           </div>
           {f.registered > 0 && (
-            <div className="pt-2 border-t border-white/5">
+            <div className="pt-3 mt-4 border-t border-gray-100">
               <p className="text-xs text-gray-400">
-                Konversion: <span className="font-bold text-white">{Math.round((f.attended / f.registered) * 100)}%</span>
+                Conversion rate: <span className="font-semibold text-gray-900">{Math.round((f.attended / f.registered) * 100)}%</span>
               </p>
             </div>
           )}
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="space-y-3"
-        >
-          <h3 className="text-sm font-bold text-white">Gäste ({selectedReport.guests.length})</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Guests ({selectedReport.guests.length})</h3>
+        <div className="space-y-2">
           {selectedReport.guests.map((g, i) => (
             <motion.div
               key={g.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15 + i * 0.04 }}
-              className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-between"
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.03 }}
+              className="bg-white rounded-xl p-4 flex items-center justify-between"
+              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
               data-testid={`guest-row-${g.id}`}
             >
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-white truncate">{g.name}</p>
-                <p className="text-[11px] text-gray-500 truncate">{g.email}</p>
+                <p className="text-sm font-medium text-gray-900 truncate">{g.name}</p>
+                <p className="text-[11px] text-gray-400 truncate">{g.email}</p>
               </div>
-              <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+              <div className="ml-3 flex-shrink-0">
                 {g.attended ? (
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-semibold">
-                      ✓ {g.durationMinutes} min
-                    </span>
-                    {g.questionsAsked > 0 && (
-                      <span className="px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[10px] font-semibold">
-                        {g.questionsAsked}Q
-                      </span>
-                    )}
-                  </div>
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold">
+                    ✓ {g.durationMinutes}m
+                    {g.questionsAsked > 0 && ` · ${g.questionsAsked}Q`}
+                  </span>
                 ) : g.clickedZoom ? (
-                  <span className="px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-semibold">
-                    Zoom geklickt
-                  </span>
+                  <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold">Clicked</span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-[10px] font-semibold">
-                    Nicht erschienen
-                  </span>
+                  <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold">No show</span>
                 )}
               </div>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="px-4 pt-5 pb-24 space-y-4">
-      <h2 className="text-lg font-bold text-white">Meine Berichte</h2>
+    <div className="px-5 pt-5 pb-28">
+      <h2 className="text-lg font-bold text-gray-900 mb-5">Statistics</h2>
 
       {events.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <BarChart3 className="w-12 h-12 text-gray-600 mb-3" />
-          <p className="text-sm text-gray-400">Noch keine Events erstellt</p>
-          <p className="text-xs text-gray-500 mt-1">Erstelle dein erstes Webinar-Invite</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+            <BarChart3 className="w-6 h-6 text-gray-400" />
+          </div>
+          <p className="text-sm text-gray-500">No events yet</p>
+          <p className="text-xs text-gray-400 mt-1">Create your first invite</p>
         </div>
       ) : (
         <div className="space-y-3">
           {events.map((event, i) => (
             <motion.button
               key={event.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
+              transition={{ delay: i * 0.04 }}
               onClick={() => loadReport(event.id)}
-              className="w-full p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-left active:scale-[0.99] transition-transform"
+              className="w-full bg-white rounded-2xl p-5 text-left active:bg-gray-50 transition-colors"
+              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
               data-testid={`report-event-${event.id}`}
             >
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-bold text-white flex-1 truncate">{event.title}</h3>
-                <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0 ml-2" />
+                <h3 className="text-sm font-semibold text-gray-900 truncate flex-1">{event.title}</h3>
+                <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0 ml-2" />
               </div>
               <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
                 <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {event.eventDate}</span>
                 <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {event.eventTime}</span>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-5">
                 <div className="flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-purple-400" />
-                  <span className="text-xs font-semibold text-white">{event.registeredCount || event.guestCount}</span>
-                  <span className="text-[10px] text-gray-500">Reg.</span>
+                  <Users className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="text-xs font-semibold text-gray-700">{event.registeredCount || event.guestCount}</span>
+                  <span className="text-[10px] text-gray-400">reg</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-xs font-semibold text-white">{event.attendedCount}</span>
-                  <span className="text-[10px] text-gray-500">Dabei</span>
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-xs font-semibold text-gray-700">{event.attendedCount}</span>
+                  <span className="text-[10px] text-gray-400">att</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <MousePointerClick className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-xs font-semibold text-white">{event.clickedCount}</span>
-                  <span className="text-[10px] text-gray-500">Klicks</span>
+                  <MousePointerClick className="w-3.5 h-3.5 text-purple-500" />
+                  <span className="text-xs font-semibold text-gray-700">{event.clickedCount}</span>
+                  <span className="text-[10px] text-gray-400">clicks</span>
                 </div>
               </div>
             </motion.button>
@@ -235,11 +186,8 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
       )}
 
       {reportLoading && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="p-6 rounded-2xl bg-[#1a1a2e] border border-white/10 flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
-            <p className="text-sm text-gray-400">Lade Bericht...</p>
-          </div>
+        <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
         </div>
       )}
     </div>

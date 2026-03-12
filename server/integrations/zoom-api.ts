@@ -121,19 +121,21 @@ export async function fetchZoomMeetingParticipants(meetingId: string): Promise<Z
       const errorText = await res.text();
       if (res.status === 404) {
         console.log("Zoom meeting not found or not yet ended:", cleanId);
+        throw new Error("Meeting not found or has not ended yet. Zoom data is available after the meeting ends.");
       } else if (res.status === 429) {
         console.error("Zoom API rate limit hit");
+        throw new Error("Zoom API rate limit reached. Please try again in a few minutes.");
       } else {
         console.error("Zoom participants API error:", res.status, errorText);
+        throw new Error(`Zoom API error (${res.status}): ${errorText}`);
       }
-      return [];
     }
 
     const data = await res.json();
     return data.participants || [];
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to fetch Zoom participants:", error);
-    return [];
+    throw error;
   }
 }
 
@@ -186,7 +188,12 @@ export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl
     return { participants: [], synced: 0, skipped: 0, error: "Invalid Zoom URL — could not extract meeting ID" };
   }
 
-  const participants = await fetchZoomMeetingParticipants(meetingId);
+  let participants: ZoomParticipant[];
+  try {
+    participants = await fetchZoomMeetingParticipants(meetingId);
+  } catch (error: any) {
+    return { participants: [], synced: 0, skipped: 0, error: error.message };
+  }
   if (participants.length === 0) {
     return { participants: [], synced: 0, skipped: 0, error: "No participants found. The meeting may not have ended yet or the ID is incorrect." };
   }

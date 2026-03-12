@@ -1,0 +1,485 @@
+Да. Ниже даю готовый цельный prompt / ТЗ для Replit, уже с учётом:
+	•	personal invite
+	•	social share
+	•	Zoom registration flow
+	•	reminders
+	•	analytics
+	•	AI follow-up
+	•	JetUP branding
+	•	source of webinars from main JetUP site
+	•	future-ready logic
+
+Ты можешь прямо целиком вставить в новый рабочий чат / Replit prompt.
+
+⸻
+
+REPLIT PROJECT PROMPT
+
+Project Title
+
+JetUP Partner Webinar Recruiting System
+
+Core Idea
+
+Build a mobile-first web app / mini app style partner system for JetUP that helps partners not just send Zoom links, but manage the full recruiting flow:
+
+invite → register → reminder → attend webinar → analytics → AI follow-up
+
+This is not just a Telegram bot.
+This is a Partner Webinar Conversion System.
+
+The goal is to make JetUP partners feel like they have a professional recruiting dashboard with premium fintech branding.
+
+⸻
+
+Main Objective
+
+Create a branded JetUP partner tool where each partner can:
+	•	log in
+	•	see upcoming webinars from the main JetUP system
+	•	choose a webinar
+	•	generate a personal invite link
+	•	invite people personally or through social media
+	•	track who registered
+	•	track who attended
+	•	see attendance analytics
+	•	get AI-generated follow-up suggestions after the webinar
+
+This system should feel like:
+	•	premium
+	•	simple
+	•	modern
+	•	scalable
+	•	built for real partner duplication
+
+⸻
+
+Brand Style
+
+Use a JetUP premium fintech style.
+
+Visual direction:
+	•	modern
+	•	clean
+	•	elegant
+	•	mobile first
+	•	high-end fintech / partner growth system
+	•	dark or premium contrast mode is acceptable
+	•	NOT generic bot UI
+	•	NOT simple Telegram utility design
+	•	it should feel like a branded professional recruiting product
+
+Tone:
+	•	clear
+	•	confident
+	•	high-value
+	•	growth-oriented
+
+⸻
+
+Webinar Source Logic
+
+All webinars should be pulled from the main JetUP site / main event system.
+
+This partner app should not be the main place where webinars are manually created by default.
+
+It should consume a central webinar source and then allow partners to distribute those events through personal links.
+
+Later admin-level creation can be added if needed.
+
+⸻
+
+MAIN USER FLOWS
+
+1. Partner Login / Access
+
+Partner enters the system through their account / Telegram ID / internal access method.
+
+After login, partner sees a personal dashboard.
+
+⸻
+
+2. Partner Dashboard
+
+Dashboard should show:
+	•	Welcome, Partner Name
+	•	Upcoming Webinars
+	•	Total Invited
+	•	Total Registered
+	•	Total Attended
+	•	Follow-up Needed
+
+Main buttons:
+	•	View Webinars
+	•	Invite Prospect
+	•	Open Follow-up Assistant
+	•	View Statistics
+
+This should immediately communicate:
+“This is your webinar recruiting system.”
+
+⸻
+
+3. Webinar List
+
+Show a list of upcoming webinars in card format.
+
+Each webinar card should contain:
+	•	webinar title
+	•	date
+	•	time
+	•	language
+	•	speaker
+	•	short description
+	•	button: Invite
+	•	button: View details
+
+Example webinar types:
+	•	product webinar
+	•	partner webinar
+	•	AI tools webinar
+	•	onboarding webinar
+
+⸻
+
+4. Invite Type Selection
+
+After pressing Invite, user should choose between two invite modes:
+
+Option A — Personal Invite
+
+Used for direct person-to-person invitation.
+
+Option B — Social Share
+
+Used to share webinar through social channels.
+
+Screen title:
+How do you want to invite?
+
+Buttons:
+	•	Personal Invite
+	•	Share on Social Media
+
+⸻
+
+5. Personal Invite Flow
+
+When user chooses Personal Invite:
+
+System generates a personal tracking webinar link for that partner.
+
+Partner can:
+	•	copy invite link
+	•	send via Telegram
+	•	send via WhatsApp
+	•	send via email
+
+Optional:
+allow partner to enter prospect name before sending.
+
+Personal invite tracking should later show:
+	•	invited
+	•	opened
+	•	registered
+	•	attended
+	•	follow-up status
+
+⸻
+
+6. Social Share Flow
+
+When user chooses Social Share:
+
+System generates:
+	•	personal webinar tracking link
+	•	ready-made share copy
+	•	social share buttons
+
+Buttons:
+	•	Share to Facebook
+	•	Share to Telegram
+	•	Share to WhatsApp
+	•	Copy for Instagram
+	•	Copy universal share text
+	•	Copy link
+
+Important:
+Even social traffic must still be tracked under the partner.
+
+The system must preserve:
+	•	which partner shared
+	•	which webinar was shared
+	•	who registered through that partner’s share link
+
+⸻
+
+7. Registration Page for Prospect
+
+When invited person opens the link, they should land on a branded JetUP webinar registration page.
+
+This page should include:
+	•	webinar title
+	•	date and time
+	•	short value bullets
+	•	speaker name
+	•	registration form
+	•	countdown timer if useful
+
+Registration form fields
+	•	Full Name
+	•	Email
+	•	Phone or Telegram (optional)
+	•	Interest selection (optional):
+	•	product
+	•	partnership
+	•	AI tools
+	•	passive income
+
+CTA button:
+Register for Webinar
+
+After successful registration:
+	•	confirmation message
+	•	add to calendar button
+	•	reminder info
+	•	webinar join info placeholder
+
+⸻
+
+8. Registration Conversion Enhancers
+
+To improve registrations, include:
+	•	clear title
+	•	clear date/time
+	•	2–3 short value-driven bullets
+	•	simple form
+	•	urgency without spam
+	•	reminder promise
+
+Suggested messaging style:
+	•	“In this webinar you will see…”
+	•	“You will receive reminder notifications before the session”
+	•	“After registration you will get direct access to the webinar room”
+
+⸻
+
+9. Reminder Logic
+
+After registration, the prospect should receive reminder events.
+
+Planned reminder sequence:
+	•	immediate confirmation
+	•	24 hours before webinar
+	•	1 hour before webinar
+	•	10–15 minutes before webinar
+
+Output channel can be:
+	•	email
+	•	Telegram
+	•	in-app logic
+	•	whatever is already technically possible
+
+Each reminder should include:
+	•	webinar title
+	•	start time
+	•	join webinar button
+
+⸻
+
+10. Attendance Tracking
+
+After webinar, system should record attendance analytics if integrated with Zoom data.
+
+For each invited prospect, partner should see:
+	•	registered or not
+	•	attended or not
+	•	attendance duration
+	•	stayed until end or dropped early
+	•	asked questions or not (if possible)
+
+This is a key wow element:
+the partner sees what happened after the invite.
+
+⸻
+
+11. AI Follow-Up Assistant
+
+After the webinar, partner should be able to click into an AI-powered follow-up helper.
+
+This feature should help the partner know:
+	•	what to write next
+	•	how to follow up with attendees
+	•	how to follow up with no-shows
+	•	how to move the person to the next step
+
+Buttons can include:
+	•	Write follow-up for attendee
+	•	Write follow-up for no-show
+	•	Invite to next webinar
+	•	Book a call
+	•	Send presentation
+	•	Qualify interest
+
+The AI should generate different suggestions depending on the person’s status:
+	•	attended and stayed long
+	•	attended and left early
+	•	registered but did not come
+	•	asked questions
+	•	engaged strongly
+
+This should feel like:
+AI Recruiting Assistant
+
+⸻
+
+12. Admin View / Leader View
+
+There should also be an admin or leader-level dashboard.
+
+Admin should see:
+	•	all partners
+	•	all webinar campaigns
+	•	invites per partner
+	•	registrations per partner
+	•	attendance per partner
+	•	who is active
+	•	which webinars convert best
+
+This turns the system into a real partner duplication and recruiting management tool.
+
+⸻
+
+13. Core Value Proposition
+
+This should be visible in the UX and concept:
+
+Before
+	•	partner sends random Zoom link
+	•	no tracking
+	•	no registration control
+	•	no analytics
+	•	no structured follow-up
+
+After
+	•	partner sends tracked personal webinar invite
+	•	sees registrations
+	•	sees attendance
+	•	receives analytics
+	•	gets AI-powered follow-up suggestions
+
+Main message:
+You no longer just send a Zoom link.
+You manage the full path from invite to follow-up.
+
+⸻
+
+14. Product Naming Direction
+
+Do not position this as “just a bot”.
+
+Possible product names:
+	•	JetUP Partner Webinar Recruiting System
+	•	JetUP Webinar Conversion Flow
+	•	Partner Webinar Duplication Engine
+	•	JetUP Webinar Distribution & Follow-Up System
+
+Internal wording should feel professional and scalable.
+
+⸻
+
+15. Design / UX Notes
+
+The app should feel like:
+	•	a premium partner dashboard
+	•	simple and mobile friendly
+	•	clear cards and action buttons
+	•	no clutter
+	•	action-first UX
+
+Preferred screens:
+	•	dashboard
+	•	webinar cards
+	•	invite mode selector
+	•	registration page
+	•	analytics view
+	•	AI follow-up panel
+
+Use visual hierarchy:
+	•	big headings
+	•	short descriptive copy
+	•	strong CTA buttons
+	•	clean spacing
+
+⸻
+
+16. MVP Scope
+
+For the first version, focus only on the essentials:
+
+Must have
+	•	partner dashboard
+	•	webinar list from main source
+	•	personal tracking invite links
+	•	social share links
+	•	registration page
+	•	reminder logic placeholder or basic implementation
+	•	attendance / status tracking
+	•	AI follow-up suggestion screen
+	•	admin statistics view
+
+Do NOT overbuild now
+	•	no huge CRM
+	•	no complex automation layer
+	•	no overloaded backoffice
+	•	no too many settings
+	•	no unnecessary engineering
+
+The first goal is:
+clean, beautiful, working webinar recruiting flow
+
+⸻
+
+17. Future Roadmap (do not fully build now, but keep structure open)
+
+Later this system can expand into:
+	•	auto-generated webinar promo visuals
+	•	reel / short video generator
+	•	AI invite videos
+	•	partner-specific promo assets
+	•	content factory integration
+	•	personal avatar-driven webinar invites
+
+But these are future modules.
+Do not overcomplicate MVP.
+
+⸻
+
+18. Final Product Feeling
+
+When partner opens this app, they should feel:
+
+“I have a professional recruiting system.
+I can invite people, track results, and follow up intelligently.”
+
+When company/admin opens it, they should feel:
+
+“We finally have visibility and structure across partner webinar activity.”
+
+⸻
+
+19. Main CTA Logic
+
+The system should continuously guide user toward:
+	•	invite more people
+	•	track current webinar
+	•	follow up properly
+	•	move prospects toward next step
+
+This is not just information.
+This is conversion infrastructure.
+
+⸻
+
+Если хочешь, следующим сообщением я сделаю тебе ещё короткую ultra-practical версию этого же prompt для Replit, уже в более жёстком формате:
+“build this app with these 6 screens, these buttons, these states”.

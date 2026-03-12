@@ -952,7 +952,16 @@ Return ONLY valid JSON in this format:
       if (guestId) {
         await storage.markGuestClickedZoom(guestId);
       }
-      res.json({ zoomLink: event.zoomLink });
+
+      let zoomLink = event.zoomLink || "";
+      if (zoomLink && !zoomLink.startsWith("http")) {
+        const urlMatch = zoomLink.match(/https?:\/\/[^\s]+zoom\.us\/j\/\d+[^\s]*/i);
+        if (urlMatch) {
+          zoomLink = urlMatch[0];
+        }
+      }
+
+      res.json({ zoomLink });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

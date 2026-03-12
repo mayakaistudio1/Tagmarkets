@@ -6,6 +6,10 @@ import { isZoomConfigured, syncZoomDataForEvent, testZoomConnection, saveZoomCre
 
 const TELEGRAM_API = "https://api.telegram.org";
 
+function getPartnerBotToken(): string | undefined {
+  return process.env.TELEGRAM_PARTNER_BOT_TOKEN_DEV || process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+}
+
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
@@ -48,7 +52,7 @@ const registrationState: Map<string, { step: string; data: any }> = new Map();
 const aiConversations: Map<string, { messages: Array<{ role: "user" | "assistant" | "system"; content: string }>; eventId?: number }> = new Map();
 
 async function sendMessage(chatId: number | string, text: string, options?: any): Promise<any> {
-  const token = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+  const token = getPartnerBotToken();
   if (!token) return null;
 
   const body: any = {
@@ -77,7 +81,7 @@ async function sendMessage(chatId: number | string, text: string, options?: any)
 }
 
 async function answerCallbackQuery(callbackQueryId: string, text?: string): Promise<void> {
-  const token = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+  const token = getPartnerBotToken();
   if (!token) return;
 
   await fetch(`${TELEGRAM_API}/bot${token}/answerCallbackQuery`, {
@@ -88,7 +92,7 @@ async function answerCallbackQuery(callbackQueryId: string, text?: string): Prom
 }
 
 async function editMessage(chatId: number, messageId: number, text: string, options?: any): Promise<void> {
-  const token = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+  const token = getPartnerBotToken();
   if (!token) return;
 
   await fetch(`${TELEGRAM_API}/bot${token}/editMessageText`, {
@@ -673,7 +677,7 @@ function getBaseUrl(): string {
 }
 
 async function setBotCommands(): Promise<void> {
-  const token = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+  const token = getPartnerBotToken();
   if (!token) return;
 
   const commands = [
@@ -698,7 +702,7 @@ async function setBotCommands(): Promise<void> {
 }
 
 async function autoSetWebhook(): Promise<void> {
-  const token = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+  const token = getPartnerBotToken();
   if (!token) return;
 
   const baseUrl = getBaseUrl();
@@ -739,7 +743,7 @@ export function registerPartnerBotRoutes(app: Express): void {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const token = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+    const token = getPartnerBotToken();
     if (!token) {
       return res.status(400).json({ error: "TELEGRAM_PARTNER_BOT_TOKEN not set" });
     }

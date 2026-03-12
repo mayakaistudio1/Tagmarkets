@@ -59,6 +59,9 @@ DENNIS_VOICE_ID = "120513e3-901f-43a4-a120-b56ef124e568"
 DENNIS_CONTEXT_ID = "dabeb13d-4e2b-4347-be97-a47084cf4a14"
 TELEGRAM_NOTIFY_CHAT_ID = "-5142513382"
 
+[userenv.development]
+TELEGRAM_PARTNER_BOT_TOKEN_DEV = "8725562582:AAEJR-3SiEHTSaD-cYt7P0AfrJS1yzhHHM0"
+
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 120000

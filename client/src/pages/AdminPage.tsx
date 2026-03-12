@@ -81,7 +81,8 @@ interface InviteEvent {
   inviteCode: string;
   isActive: boolean;
   createdAt: string;
-  guestCount?: { registered: number; clicked: number };
+  guestCount: number;
+  clickedCount: number;
   zoomSyncedCount?: number;
 }
 
@@ -2551,12 +2552,12 @@ function InvitesTab({
                   <div className="flex items-center gap-4 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
                     <div className="text-center">
                       <p className="text-[10px] uppercase text-gray-400 font-bold">Registered</p>
-                      <p className="text-lg font-bold text-purple-600">{event.guestCount?.registered || 0}</p>
+                      <p className="text-lg font-bold text-purple-600">{event.guestCount || 0}</p>
                     </div>
                     <div className="w-px h-8 bg-gray-200" />
                     <div className="text-center">
                       <p className="text-[10px] uppercase text-gray-400 font-bold">Clicked Zoom</p>
-                      <p className="text-lg font-bold text-blue-600">{event.guestCount?.clicked || 0}</p>
+                      <p className="text-lg font-bold text-blue-600">{event.clickedCount || 0}</p>
                     </div>
                   </div>
                 </div>

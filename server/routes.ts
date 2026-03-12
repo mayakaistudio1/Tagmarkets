@@ -224,6 +224,97 @@ export async function registerRoutes(
     }
   });
 
+  function requirePromoAdmin(req: any, res: any): boolean {
+    const password = req.headers['x-promo-password'] || req.body?.password;
+    if (!password || password !== (process.env.PROMO_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD)) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return false;
+    }
+    return true;
+  }
+
+  app.post("/api/promo-admin/login", async (req, res) => {
+    const ip = req.ip || "unknown";
+    if (!checkLoginRate(ip)) {
+      return res.status(429).json({ error: "Too many login attempts" });
+    }
+    const { password } = req.body;
+    const validPassword = process.env.PROMO_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD;
+    if (password === validPassword) {
+      return res.json({ success: true });
+    }
+    return res.status(401).json({ error: "Invalid password" });
+  });
+
+  app.get("/api/promo-admin/applications", async (req, res) => {
+    if (!requirePromoAdmin(req, res)) return;
+    try {
+      const applications = await storage.getPromoApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching promo applications:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/promo-admin/applications/:id/verify", async (req, res) => {
+    if (!requirePromoAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      const app = await storage.getPromoApplications();
+      const application = app.find(a => a.id === id);
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+      if (application.status === "verified") {
+        return res.status(400).json({ error: "Already verified" });
+      }
+
+      const updated = await storage.markPromoApplicationVerified(id);
+
+      const { sendPromoVerificationEmail } = await import("./integrations/resend-email");
+      const emailSent = await sendPromoVerificationEmail(application.email, application.name);
+
+      if (emailSent) {
+        await storage.markPromoApplicationEmailSent(id);
+      }
+
+      const { sendTelegramNotification } = await import("./integrations/telegram-notify");
+      sendTelegramNotification(
+        `✅ <b>Promo Verified (Admin Panel)</b>\n\n` +
+        `👤 ${application.name}\n` +
+        `📧 ${application.email}\n` +
+        `🔢 ${application.cuNumber}\n` +
+        `📨 Email: ${emailSent ? "Sent" : "Failed"}\n` +
+        `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
+      ).catch(err => console.error("TG notify error:", err));
+
+      try {
+        const { syncAllPromoApplications } = await import("./googleSheets");
+        await syncAllPromoApplications();
+      } catch (err) {
+        console.error("Google Sheet sync error:", err);
+      }
+
+      res.json({ ...updated, emailSent });
+    } catch (error) {
+      console.error("Error verifying promo application:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/promo-admin/applications/:id/reject", async (req, res) => {
+    if (!requirePromoAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updatePromoApplicationStatus(id, "rejected");
+      res.json(updated);
+    } catch (error) {
+      console.error("Error rejecting promo application:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.get("/api/dennis-promos", async (req, res) => {
     try {
       const language = req.query.language as string | undefined;

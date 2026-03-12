@@ -82,6 +82,7 @@ interface InviteEvent {
   isActive: boolean;
   createdAt: string;
   guestCount?: { registered: number; clicked: number };
+  zoomSyncedCount?: number;
 }
 
 interface AdminPartner {
@@ -2466,6 +2467,15 @@ function InvitesTab({
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${event.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                       {event.isActive ? "Active" : "Inactive"}
                     </span>
+                    {(event.zoomSyncedCount ?? 0) > 0 ? (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 flex items-center gap-1">
+                        <Video size={10} /> {event.zoomSyncedCount} synced
+                      </span>
+                    ) : event.zoomLink ? (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-400">
+                        Zoom: not synced
+                      </span>
+                    ) : null}
                   </div>
                   <p className="text-sm text-gray-600">Partner: <span className="font-medium">{event.partnerName}</span> ({event.partnerCu})</p>
                   <p className="text-sm text-gray-500">{event.eventDate} at {event.eventTime}</p>

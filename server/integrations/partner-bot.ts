@@ -367,7 +367,10 @@ async function handleReport(chatId: number, eventId?: number): Promise<void> {
     for (const z of zoomData.slice(0, 15)) {
       const guestName = z.participantName || z.participantEmail;
       const matched = z.inviteGuestId ? "✅" : "❓";
-      msg += `  ${matched} ${guestName} — ${z.durationMinutes} Min.`;
+      const joinStr = z.joinTime ? new Date(z.joinTime).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }) : "–";
+      const leaveStr = z.leaveTime ? new Date(z.leaveTime).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }) : "–";
+      msg += `  ${matched} ${guestName}\n`;
+      msg += `     📧 ${z.participantEmail} | ⏱ ${joinStr}–${leaveStr} (${z.durationMinutes} Min.)`;
       if (z.questionsAsked > 0) msg += ` | 💬 ${z.questionsAsked}`;
       msg += `\n`;
     }

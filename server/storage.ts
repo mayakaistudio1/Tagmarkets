@@ -458,6 +458,18 @@ export class DatabaseStorage implements IStorage {
   async getZoomAttendanceByEventId(eventId: number): Promise<ZoomAttendance[]> {
     return db.select().from(zoomAttendance).where(eq(zoomAttendance.inviteEventId, eventId));
   }
+
+  async getZoomAttendanceCounts(): Promise<Record<number, number>> {
+    const rows = await db.select({
+      eventId: zoomAttendance.inviteEventId,
+      cnt: count(),
+    }).from(zoomAttendance).groupBy(zoomAttendance.inviteEventId);
+    const result: Record<number, number> = {};
+    for (const r of rows) {
+      result[r.eventId] = r.cnt;
+    }
+    return result;
+  }
 }
 
 export const storage = new DatabaseStorage();

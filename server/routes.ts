@@ -858,7 +858,12 @@ Return ONLY valid JSON in this format:
     if (!requireAdmin(req, res)) return;
     try {
       const events = await storage.getAllInviteEvents();
-      res.json(events);
+      const zoomCounts = await storage.getZoomAttendanceCounts();
+      const enriched = events.map(e => ({
+        ...e,
+        zoomSyncedCount: zoomCounts[e.id] || 0,
+      }));
+      res.json(enriched);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

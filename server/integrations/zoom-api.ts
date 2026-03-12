@@ -221,7 +221,7 @@ export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl
       participantName: participant.name,
       joinTime: new Date(participant.join_time),
       leaveTime: new Date(participant.leave_time),
-      durationMinutes: Math.round(participant.duration / 60),
+      durationMinutes: participant.duration,
       questionsAsked: questionsCount,
     };
 

@@ -18,6 +18,7 @@ export async function saveZoomCredentialsToDb(accountId: string, clientId: strin
   await storage.setSetting("zoom_account_id", accountId);
   await storage.setSetting("zoom_client_id", clientId);
   await storage.setSetting("zoom_client_secret", clientSecret);
+  cachedToken = null;
 }
 
 interface ZoomTokenResponse {

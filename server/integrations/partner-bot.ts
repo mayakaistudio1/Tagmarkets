@@ -672,12 +672,36 @@ function getBaseUrl(): string {
   return "https://jet-up.ai";
 }
 
+async function setBotCommands(): Promise<void> {
+  const token = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+  if (!token) return;
+
+  const commands = [
+    { command: "start", description: "Registrierung / Willkommen" },
+    { command: "invite", description: "Einladungslink erstellen" },
+    { command: "events", description: "Meine Events anzeigen" },
+    { command: "report", description: "Event-Bericht abrufen" },
+    { command: "followup", description: "KI-Assistent für Follow-up" },
+    { command: "help", description: "Hilfe anzeigen" },
+  ];
+
+  try {
+    await fetch(`${TELEGRAM_API}/bot${token}/setMyCommands`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ commands }),
+    });
+    console.log("Partner bot commands menu set");
+  } catch (error) {
+    console.error("Failed to set bot commands:", error);
+  }
+}
+
 async function autoSetWebhook(): Promise<void> {
   const token = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
   if (!token) return;
 
   const baseUrl = getBaseUrl();
-  if (!baseUrl) return;
 
   const webhookUrl = `${baseUrl}/api/telegram-bot/webhook`;
   try {
@@ -691,6 +715,8 @@ async function autoSetWebhook(): Promise<void> {
   } catch (error) {
     console.error("Failed to auto-set partner bot webhook:", error);
   }
+
+  await setBotCommands();
 }
 
 export function registerPartnerBotRoutes(app: Express): void {

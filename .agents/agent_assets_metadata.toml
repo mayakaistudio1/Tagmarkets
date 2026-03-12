@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "bwzJAgj-AIxDcx8Er5c2k"
+uri = "file://docs/JetUP_Partner_System_DE.md"
+type = "text"
+title = "JetUP Partner System — Funktionsübersicht (DE)"

@@ -740,6 +740,25 @@ export function registerPartnerBotRoutes(app: Express): void {
     res.json({ configured: isZoomConfigured(), ...result });
   });
 
+  app.post("/api/admin/zoom-credentials", async (req: Request, res: Response) => {
+    const password = req.headers['x-admin-password'];
+    if (password !== process.env.ADMIN_PASSWORD) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { accountId, clientId, clientSecret } = req.body;
+    if (!accountId || !clientId || !clientSecret) {
+      return res.status(400).json({ error: "All three fields are required" });
+    }
+
+    process.env.ZOOM_ACCOUNT_ID = accountId;
+    process.env.ZOOM_CLIENT_ID = clientId;
+    process.env.ZOOM_CLIENT_SECRET = clientSecret;
+
+    const result = await testZoomConnection();
+    res.json({ configured: true, ...result });
+  });
+
   app.get("/api/admin/zoom-attendance/:eventId", async (req: Request, res: Response) => {
     const password = req.headers['x-admin-password'];
     if (password !== process.env.ADMIN_PASSWORD) {

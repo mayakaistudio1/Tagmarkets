@@ -2408,6 +2408,9 @@ function InvitesTab({
 }) {
   const [zoomStatus, setZoomStatus] = useState<{ configured: boolean; ok: boolean; error?: string } | null>(null);
   const [zoomChecking, setZoomChecking] = useState(false);
+  const [showZoomConfig, setShowZoomConfig] = useState(false);
+  const [zoomCreds, setZoomCreds] = useState({ accountId: "", clientId: "", clientSecret: "" });
+  const [zoomSaving, setZoomSaving] = useState(false);
 
   const checkZoomStatus = async () => {
     setZoomChecking(true);
@@ -2416,6 +2419,26 @@ function InvitesTab({
       if (res.ok) setZoomStatus(await res.json());
     } catch {}
     setZoomChecking(false);
+  };
+
+  const saveZoomCredentials = async () => {
+    setZoomSaving(true);
+    try {
+      const res = await fetch("/api/admin/zoom-credentials", {
+        method: "POST",
+        headers: headers(),
+        body: JSON.stringify(zoomCreds),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setZoomStatus(data);
+        if (data.ok) {
+          setShowZoomConfig(false);
+          setZoomCreds({ accountId: "", clientId: "", clientSecret: "" });
+        }
+      }
+    } catch {}
+    setZoomSaving(false);
   };
 
   useEffect(() => { checkZoomStatus(); }, []);
@@ -2436,9 +2459,13 @@ function InvitesTab({
             <div className="flex items-center gap-2 mt-1">
               <span className={`inline-block w-2 h-2 rounded-full ${zoomStatus.ok ? 'bg-green-500' : zoomStatus.configured ? 'bg-yellow-500' : 'bg-gray-400'}`} />
               <span className="text-xs text-gray-500">
-                Zoom: {zoomStatus.ok ? 'Verbunden' : zoomStatus.configured ? 'Konfiguriert (Fehler)' : 'Nicht konfiguriert'}
+                Zoom: {zoomStatus.ok ? 'Verbunden' : zoomStatus.configured ? `Fehler: ${zoomStatus.error}` : 'Nicht konfiguriert'}
               </span>
               {zoomChecking && <Loader2 size={12} className="animate-spin text-gray-400" />}
+              <button onClick={() => setShowZoomConfig(!showZoomConfig)}
+                className="text-xs text-purple-600 hover:text-purple-700 underline ml-1">
+                {zoomStatus.ok ? 'Ändern' : 'Konfigurieren'}
+              </button>
             </div>
           )}
         </div>
@@ -2447,6 +2474,45 @@ function InvitesTab({
           <Plus size={16} /> Create Invite
         </button>
       </div>
+
+      {showZoomConfig && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-gray-900">Zoom API Credentials</h3>
+            <button onClick={() => setShowZoomConfig(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+          </div>
+          <p className="text-xs text-gray-500">Server-to-Server OAuth credentials from <a href="https://marketplace.zoom.us/" target="_blank" rel="noopener noreferrer" className="text-purple-600 underline">Zoom Marketplace</a></p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Account ID</label>
+              <input data-testid="input-zoom-account-id" type="text" value={zoomCreds.accountId}
+                onChange={(e) => setZoomCreds({ ...zoomCreds, accountId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Account ID" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Client ID</label>
+              <input data-testid="input-zoom-client-id" type="text" value={zoomCreds.clientId}
+                onChange={(e) => setZoomCreds({ ...zoomCreds, clientId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Client ID" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Client Secret</label>
+              <input data-testid="input-zoom-client-secret" type="password" value={zoomCreds.clientSecret}
+                onChange={(e) => setZoomCreds({ ...zoomCreds, clientSecret: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Client Secret" />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button data-testid="button-save-zoom-creds" onClick={saveZoomCredentials} disabled={zoomSaving || !zoomCreds.accountId || !zoomCreds.clientId || !zoomCreds.clientSecret}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center gap-2">
+              {zoomSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Speichern & Testen
+            </button>
+            {zoomStatus?.configured && !zoomStatus.ok && zoomStatus.error && (
+              <span className="text-xs text-red-500">{zoomStatus.error}</span>
+            )}
+          </div>
+        </div>
+      )}
 
       {formOpen && editing && (
         <InviteForm event={editing} setEvent={setEditing} onSave={() => onSave(editing)} onClose={closeForm} />

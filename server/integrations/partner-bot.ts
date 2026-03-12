@@ -432,10 +432,15 @@ async function handleZoomSync(callbackQueryId: string, chatId: number, eventId: 
 
   try {
     const result = await syncZoomDataForEvent(event.id, event.zoomLink);
-    if (result.synced > 0) {
-      await sendMessage(chatId, `✅ ${result.synced} Teilnehmer synchronisiert!\n\nSende /report für den aktualisierten Bericht.`);
+    if (result.error) {
+      await sendMessage(chatId, `⚠️ ${result.error}`);
+    } else if (result.synced > 0) {
+      let msg = `✅ ${result.synced} Teilnehmer synchronisiert!`;
+      if (result.skipped > 0) msg += ` (${result.skipped} bereits vorhanden)`;
+      msg += `\n\nSende /report für den aktualisierten Bericht.`;
+      await sendMessage(chatId, msg);
     } else {
-      await sendMessage(chatId, `ℹ️ Keine Teilnehmerdaten gefunden. Möglicherweise hat das Meeting noch nicht stattgefunden oder die Daten sind noch nicht verfügbar.`);
+      await sendMessage(chatId, `ℹ️ Keine neuen Teilnehmerdaten gefunden.${result.skipped > 0 ? ` ${result.skipped} bereits synchronisiert.` : ''}`);
     }
   } catch (error) {
     await sendMessage(chatId, `❌ Fehler beim Laden der Zoom-Daten. Bitte versuche es später erneut.`);

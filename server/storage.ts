@@ -8,7 +8,7 @@ import {
   type Partner, type InsertPartner,
   type ZoomAttendance, type InsertZoomAttendance,
   users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers, promoApplications, dennisPromos,
-  inviteEvents, inviteGuests, partners, zoomAttendance,
+  inviteEvents, inviteGuests, partners, zoomAttendance, appSettings,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql, count, or } from "drizzle-orm";
 import { db } from "./db";
@@ -457,6 +457,18 @@ export class DatabaseStorage implements IStorage {
 
   async getZoomAttendanceByEventId(eventId: number): Promise<ZoomAttendance[]> {
     return db.select().from(zoomAttendance).where(eq(zoomAttendance.inviteEventId, eventId));
+  }
+
+  async getSetting(key: string): Promise<string | null> {
+    const [row] = await db.select().from(appSettings).where(eq(appSettings.key, key));
+    return row?.value ?? null;
+  }
+
+  async setSetting(key: string, value: string): Promise<void> {
+    await db.insert(appSettings).values({ key, value }).onConflictDoUpdate({
+      target: appSettings.key,
+      set: { value },
+    });
   }
 
   async getZoomAttendanceCounts(): Promise<Record<number, number>> {

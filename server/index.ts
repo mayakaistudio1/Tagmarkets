@@ -74,6 +74,9 @@ app.use((req, res, next) => {
     console.error("Seed error:", e);
   }
 
+  const { loadZoomCredentialsFromDb } = await import("./integrations/zoom-api");
+  await loadZoomCredentialsFromDb();
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {

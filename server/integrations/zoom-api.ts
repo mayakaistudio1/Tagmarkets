@@ -1,6 +1,25 @@
 import { storage } from "../storage";
 import type { InsertZoomAttendance } from "@shared/schema";
 
+export async function loadZoomCredentialsFromDb(): Promise<void> {
+  try {
+    const accountId = await storage.getSetting("zoom_account_id");
+    const clientId = await storage.getSetting("zoom_client_id");
+    const clientSecret = await storage.getSetting("zoom_client_secret");
+    if (accountId && !process.env.ZOOM_ACCOUNT_ID) process.env.ZOOM_ACCOUNT_ID = accountId;
+    if (clientId && !process.env.ZOOM_CLIENT_ID) process.env.ZOOM_CLIENT_ID = clientId;
+    if (clientSecret && !process.env.ZOOM_CLIENT_SECRET) process.env.ZOOM_CLIENT_SECRET = clientSecret;
+  } catch (e) {
+    console.error("Failed to load Zoom credentials from DB:", e);
+  }
+}
+
+export async function saveZoomCredentialsToDb(accountId: string, clientId: string, clientSecret: string): Promise<void> {
+  await storage.setSetting("zoom_account_id", accountId);
+  await storage.setSetting("zoom_client_id", clientId);
+  await storage.setSetting("zoom_client_secret", clientSecret);
+}
+
 interface ZoomTokenResponse {
   access_token: string;
   token_type: string;

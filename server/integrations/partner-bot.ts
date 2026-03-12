@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import OpenAI from "openai";
 import { storage } from "../storage";
 import { sendTelegramNotification, sendTelegramMessageToChat } from "./telegram-notify";
-import { isZoomConfigured, syncZoomDataForEvent, testZoomConnection } from "./zoom-api";
+import { isZoomConfigured, syncZoomDataForEvent, testZoomConnection, saveZoomCredentialsToDb } from "./zoom-api";
 
 const TELEGRAM_API = "https://api.telegram.org";
 
@@ -754,6 +754,8 @@ export function registerPartnerBotRoutes(app: Express): void {
     process.env.ZOOM_ACCOUNT_ID = accountId;
     process.env.ZOOM_CLIENT_ID = clientId;
     process.env.ZOOM_CLIENT_SECRET = clientSecret;
+
+    await saveZoomCredentialsToDb(accountId, clientId, clientSecret);
 
     const result = await testZoomConnection();
     res.json({ configured: true, ...result });

@@ -269,3 +269,10 @@ export const insertZoomAttendanceSchema = createInsertSchema(zoomAttendance).omi
 
 export type InsertZoomAttendance = z.infer<typeof insertZoomAttendanceSchema>;
 export type ZoomAttendance = typeof zoomAttendance.$inferSelect;
+
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
+export type AppSetting = typeof appSettings.$inferSelect;

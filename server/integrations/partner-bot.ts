@@ -660,7 +660,35 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
   }
 }
 
+async function autoSetWebhook(): Promise<void> {
+  const token = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+  if (!token) return;
+
+  const baseUrl = process.env.REPLIT_DEPLOYMENT_URL
+    ? `https://${process.env.REPLIT_DEPLOYMENT_URL}`
+    : process.env.REPLIT_DEV_DOMAIN
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+      : null;
+
+  if (!baseUrl) return;
+
+  const webhookUrl = `${baseUrl}/api/telegram-bot/webhook`;
+  try {
+    const res = await fetch(`${TELEGRAM_API}/bot${token}/setWebhook`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: webhookUrl }),
+    });
+    const result = await res.json();
+    console.log(`Partner bot webhook set to: ${webhookUrl}`, result);
+  } catch (error) {
+    console.error("Failed to auto-set partner bot webhook:", error);
+  }
+}
+
 export function registerPartnerBotRoutes(app: Express): void {
+  autoSetWebhook();
+
   app.post("/api/telegram-bot/webhook", async (req: Request, res: Response) => {
     try {
       const update: TelegramUpdate = req.body;

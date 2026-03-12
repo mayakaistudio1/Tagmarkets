@@ -2470,10 +2470,7 @@ function InvitesTab({
             </div>
           )}
         </div>
-        <button data-testid="button-new-invite" onClick={openNew}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
-          <Plus size={16} /> Create Invite
-        </button>
+        
       </div>
 
       {showZoomConfig && (
@@ -2515,9 +2512,7 @@ function InvitesTab({
         </div>
       )}
 
-      {formOpen && editing && (
-        <InviteForm event={editing} setEvent={setEditing} onSave={() => onSave(editing)} onClose={closeForm} />
-      )}
+      
 
       {loading ? (
         <div className="p-8 text-center text-gray-500">Laden...</div>

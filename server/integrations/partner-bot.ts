@@ -662,11 +662,9 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
   }
 }
 
-function getBaseUrl(): string | null {
-  if (process.env.PRODUCTION_URL) {
-    return process.env.PRODUCTION_URL.startsWith("http")
-      ? process.env.PRODUCTION_URL
-      : `https://${process.env.PRODUCTION_URL}`;
+function getBaseUrl(): string {
+  if (process.env.NODE_ENV === "production") {
+    return process.env.PRODUCTION_URL || "https://jet-up.ai";
   }
   if (process.env.REPLIT_DEV_DOMAIN) {
     return `https://${process.env.REPLIT_DEV_DOMAIN}`;

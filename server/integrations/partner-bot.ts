@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import OpenAI from "openai";
 import { storage } from "../storage";
 import { sendTelegramNotification, sendTelegramMessageToChat } from "./telegram-notify";
-import { isZoomConfigured, syncZoomDataForEvent } from "./zoom-api";
+import { isZoomConfigured, syncZoomDataForEvent, testZoomConnection } from "./zoom-api";
 
 const TELEGRAM_API = "https://api.telegram.org";
 
@@ -355,22 +355,48 @@ async function handleReport(chatId: number, eventId?: number): Promise<void> {
 
   const zoomData = await storage.getZoomAttendanceByEventId(event.id);
   if (zoomData.length > 0) {
-    msg += `\n📹 <b>Zoom-Daten (API):</b>\n`;
-    for (const z of zoomData) {
+    const totalDuration = zoomData.reduce((sum, z) => sum + z.durationMinutes, 0);
+    const avgDuration = Math.round(totalDuration / zoomData.length);
+    const totalQuestions = zoomData.reduce((sum, z) => sum + z.questionsAsked, 0);
+
+    msg += `\n📹 <b>Zoom-Teilnehmer (API): ${zoomData.length}</b>\n`;
+    msg += `⏱ Ø ${avgDuration} Min.`;
+    if (totalQuestions > 0) msg += ` | 💬 ${totalQuestions} Fragen`;
+    msg += `\n\n`;
+
+    for (const z of zoomData.slice(0, 15)) {
       const guestName = z.participantName || z.participantEmail;
-      msg += `  • ${guestName} — ${z.durationMinutes} Min.`;
-      if (z.questionsAsked > 0) msg += ` | 💬 ${z.questionsAsked} Fragen`;
+      const matched = z.inviteGuestId ? "✅" : "❓";
+      msg += `  ${matched} ${guestName} — ${z.durationMinutes} Min.`;
+      if (z.questionsAsked > 0) msg += ` | 💬 ${z.questionsAsked}`;
       msg += `\n`;
     }
-  }
+    if (zoomData.length > 15) {
+      msg += `  ... und ${zoomData.length - 15} weitere\n`;
+    }
 
-  if (clicked.length > 0) {
-    msg += `\n<b>✅ Beigetreten:</b>\n`;
-    clicked.forEach(g => { msg += `  • ${g.name} (${g.email})\n`; });
-  }
-  if (notClicked.length > 0) {
-    msg += `\n<b>❌ Nicht beigetreten:</b>\n`;
-    notClicked.forEach(g => { msg += `  • ${g.name} (${g.email})\n`; });
+    const zoomEmails = new Set(zoomData.map(z => z.participantEmail.toLowerCase()));
+    const registeredNotAttended = guests.filter(g => !zoomEmails.has(g.email.toLowerCase()));
+    if (registeredNotAttended.length > 0) {
+      msg += `\n⚠️ <b>Registriert, aber nicht auf Zoom (${registeredNotAttended.length}):</b>\n`;
+      registeredNotAttended.slice(0, 10).forEach(g => { msg += `  • ${g.name} (${g.email})\n`; });
+    }
+
+    const guestEmails = new Set(guests.map(g => g.email.toLowerCase()));
+    const attendedNotRegistered = zoomData.filter(z => !guestEmails.has(z.participantEmail.toLowerCase()) && !z.inviteGuestId);
+    if (attendedNotRegistered.length > 0) {
+      msg += `\n🔍 <b>Auf Zoom, aber nicht registriert (${attendedNotRegistered.length}):</b>\n`;
+      attendedNotRegistered.slice(0, 10).forEach(z => { msg += `  • ${z.participantName || z.participantEmail}\n`; });
+    }
+  } else {
+    if (clicked.length > 0) {
+      msg += `\n<b>✅ Zoom-Link geklickt:</b>\n`;
+      clicked.forEach(g => { msg += `  • ${g.name} (${g.email})\n`; });
+    }
+    if (notClicked.length > 0) {
+      msg += `\n<b>❌ Nicht geklickt:</b>\n`;
+      notClicked.forEach(g => { msg += `  • ${g.name} (${g.email})\n`; });
+    }
   }
 
   const keyboard = [[{
@@ -378,9 +404,9 @@ async function handleReport(chatId: number, eventId?: number): Promise<void> {
     callback_data: `followup_${event.id}`,
   }]];
 
-  if (isZoomConfigured() && zoomData.length === 0) {
+  if (isZoomConfigured()) {
     keyboard.push([{
-      text: "📹 Zoom-Daten laden",
+      text: zoomData.length > 0 ? "🔄 Zoom-Daten aktualisieren" : "📹 Zoom-Daten laden",
       callback_data: `zoom_sync_${event.id}`,
     }]);
   }
@@ -692,7 +718,34 @@ export function registerPartnerBotRoutes(app: Express): void {
       if (!event) return res.status(404).json({ error: "Event not found" });
 
       const result = await syncZoomDataForEvent(event.id, event.zoomLink);
-      res.json({ synced: result.synced });
+      if (result.error && result.synced === 0) {
+        return res.json({ synced: 0, skipped: result.skipped || 0, error: result.error });
+      }
+      res.json({ synced: result.synced, skipped: result.skipped || 0 });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/admin/zoom-test", async (req: Request, res: Response) => {
+    const password = req.headers['x-admin-password'];
+    if (password !== process.env.ADMIN_PASSWORD) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const result = await testZoomConnection();
+    res.json({ configured: isZoomConfigured(), ...result });
+  });
+
+  app.get("/api/admin/zoom-attendance/:eventId", async (req: Request, res: Response) => {
+    const password = req.headers['x-admin-password'];
+    if (password !== process.env.ADMIN_PASSWORD) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+      const attendance = await storage.getZoomAttendanceByEventId(Number(req.params.eventId));
+      res.json(attendance);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

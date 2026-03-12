@@ -64,6 +64,26 @@ async function getZoomAccessToken(): Promise<string> {
   return data.access_token;
 }
 
+export async function testZoomConnection(): Promise<{ ok: boolean; error?: string }> {
+  if (!isZoomConfigured()) {
+    return { ok: false, error: "Zoom credentials not configured (ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET)" };
+  }
+  try {
+    const token = await getZoomAccessToken();
+    const res = await fetch("https://api.zoom.us/v2/users/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      return { ok: false, error: `Zoom API returned ${res.status}: ${body}` };
+    }
+    const data = await res.json();
+    return { ok: true, error: undefined };
+  } catch (error: any) {
+    return { ok: false, error: error.message };
+  }
+}
+
 export async function fetchZoomMeetingParticipants(meetingId: string): Promise<ZoomParticipant[]> {
   if (!isZoomConfigured()) return [];
 
@@ -79,7 +99,14 @@ export async function fetchZoomMeetingParticipants(meetingId: string): Promise<Z
     );
 
     if (!res.ok) {
-      console.error("Zoom participants API error:", await res.text());
+      const errorText = await res.text();
+      if (res.status === 404) {
+        console.log("Zoom meeting not found or not yet ended:", cleanId);
+      } else if (res.status === 429) {
+        console.error("Zoom API rate limit hit");
+      } else {
+        console.error("Zoom participants API error:", res.status, errorText);
+      }
       return [];
     }
 
@@ -120,35 +147,58 @@ export async function fetchZoomMeetingQA(meetingId: string): Promise<ZoomQAEntry
   }
 }
 
+export function extractMeetingId(zoomUrl: string): string | null {
+  const match = zoomUrl.match(/\/j\/(\d+)/);
+  return match ? match[1] : null;
+}
+
 export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl: string): Promise<{
   participants: ZoomParticipant[];
   synced: number;
+  skipped: number;
+  error?: string;
 }> {
-  const meetingIdMatch = zoomMeetingUrl.match(/\/j\/(\d+)/);
-  if (!meetingIdMatch) {
-    return { participants: [], synced: 0 };
+  if (!isZoomConfigured()) {
+    return { participants: [], synced: 0, skipped: 0, error: "Zoom not configured" };
   }
 
-  const meetingId = meetingIdMatch[1];
-  const participants = await fetchZoomMeetingParticipants(meetingId);
-  const qaData = await fetchZoomMeetingQA(meetingId);
+  const meetingId = extractMeetingId(zoomMeetingUrl);
+  if (!meetingId) {
+    return { participants: [], synced: 0, skipped: 0, error: "Invalid Zoom URL — could not extract meeting ID" };
+  }
 
+  const participants = await fetchZoomMeetingParticipants(meetingId);
+  if (participants.length === 0) {
+    return { participants: [], synced: 0, skipped: 0, error: "No participants found. The meeting may not have ended yet or the ID is incorrect." };
+  }
+
+  const qaData = await fetchZoomMeetingQA(meetingId);
   const guests = await storage.getGuestsByEventId(inviteEventId);
+  const existingAttendance = await storage.getZoomAttendanceByEventId(inviteEventId);
+  const existingEmails = new Set(existingAttendance.map(a => a.participantEmail.toLowerCase()));
+
   let synced = 0;
+  let skipped = 0;
 
   for (const participant of participants) {
+    const email = participant.user_email?.toLowerCase() || "";
+    if (existingEmails.has(email)) {
+      skipped++;
+      continue;
+    }
+
     const matchedGuest = guests.find(
-      (g) => g.email.toLowerCase() === participant.user_email.toLowerCase()
+      (g) => g.email.toLowerCase() === email
     );
 
     const questionsCount = qaData.filter(
-      (q) => q.email.toLowerCase() === participant.user_email.toLowerCase()
+      (q) => q.email.toLowerCase() === email
     ).length;
 
     const attendanceData: InsertZoomAttendance = {
       inviteGuestId: matchedGuest?.id || null,
       inviteEventId,
-      participantEmail: participant.user_email,
+      participantEmail: participant.user_email || "unknown",
       participantName: participant.name,
       joinTime: new Date(participant.join_time),
       leaveTime: new Date(participant.leave_time),
@@ -157,8 +207,9 @@ export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl
     };
 
     await storage.createZoomAttendance(attendanceData);
+    existingEmails.add(email);
     synced++;
   }
 
-  return { participants, synced };
+  return { participants, synced, skipped };
 }

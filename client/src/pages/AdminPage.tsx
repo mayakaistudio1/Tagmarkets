@@ -29,6 +29,7 @@ import {
   Gift,
   Link as LinkIcon,
   UserCheck,
+  Video,
 } from "lucide-react";
 
 type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo" | "invites" | "partners";
@@ -619,6 +620,25 @@ function AdminPage() {
     }
   };
 
+  const syncZoomData = async (eventId: number) => {
+    try {
+      const res = await fetch(`/api/admin/zoom-sync/${eventId}`, {
+        method: "POST",
+        headers: headers(),
+      });
+      if (handleAuthError(res)) return;
+      const data = await res.json();
+      if (data.error) {
+        alert(`Zoom Sync: ${data.error}`);
+      } else {
+        alert(`Zoom Sync: ${data.synced} synchronisiert, ${data.skipped} übersprungen`);
+        fetchInviteEvents();
+      }
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    }
+  };
+
   useEffect(() => {
     if (!isLoggedIn) return;
     if (activeTab === "chat") fetchChatSessions();
@@ -819,10 +839,12 @@ function AdminPage() {
             onSave={saveInviteEvent}
             onReport={fetchInviteReport}
             onSendTelegramReport={sendInviteTelegramReport}
+            onZoomSync={syncZoomData}
             selectedReport={selectedInviteReport}
             setSelectedReport={setSelectedInviteReport}
             guests={inviteGuests}
             guestsLoading={guestsLoading}
+            headers={headers}
           />
         )}
         {activeTab === "partners" && (
@@ -2369,18 +2391,33 @@ function PromoApplicationsSubTab({
 export default AdminPage;
 
 function InvitesTab({
-  events, loading, formOpen, setFormOpen, editing, setEditing, onSave, onReport, onSendTelegramReport, selectedReport, setSelectedReport, guests, guestsLoading
+  events, loading, formOpen, setFormOpen, editing, setEditing, onSave, onReport, onSendTelegramReport, onZoomSync, selectedReport, setSelectedReport, guests, guestsLoading, headers
 }: {
   events: InviteEvent[]; loading: boolean; formOpen: boolean; setFormOpen: (v: boolean) => void;
   editing: Partial<InviteEvent> | null; setEditing: (v: Partial<InviteEvent> | null) => void;
   onSave: (e: Partial<InviteEvent>) => void;
   onReport: (id: number) => void;
   onSendTelegramReport: (id: number) => void;
+  onZoomSync: (eventId: number) => void;
   selectedReport: InviteEvent | null;
   setSelectedReport: (v: InviteEvent | null) => void;
   guests: InviteGuest[];
   guestsLoading: boolean;
+  headers: () => Record<string, string>;
 }) {
+  const [zoomStatus, setZoomStatus] = useState<{ configured: boolean; ok: boolean; error?: string } | null>(null);
+  const [zoomChecking, setZoomChecking] = useState(false);
+
+  const checkZoomStatus = async () => {
+    setZoomChecking(true);
+    try {
+      const res = await fetch("/api/admin/zoom-test", { headers: headers() });
+      if (res.ok) setZoomStatus(await res.json());
+    } catch {}
+    setZoomChecking(false);
+  };
+
+  useEffect(() => { checkZoomStatus(); }, []);
   const openNew = () => { setEditing({ partnerName: "", partnerCu: "", zoomLink: "", title: "", eventDate: "", eventTime: "", isActive: true }); setFormOpen(true); };
   const closeForm = () => { setFormOpen(false); setEditing(null); };
 
@@ -2392,7 +2429,18 @@ function InvitesTab({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Partner Invites Management</h2>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Partner Invites Management</h2>
+          {zoomStatus && (
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`inline-block w-2 h-2 rounded-full ${zoomStatus.ok ? 'bg-green-500' : zoomStatus.configured ? 'bg-yellow-500' : 'bg-gray-400'}`} />
+              <span className="text-xs text-gray-500">
+                Zoom: {zoomStatus.ok ? 'Verbunden' : zoomStatus.configured ? 'Konfiguriert (Fehler)' : 'Nicht konfiguriert'}
+              </span>
+              {zoomChecking && <Loader2 size={12} className="animate-spin text-gray-400" />}
+            </div>
+          )}
+        </div>
         <button data-testid="button-new-invite" onClick={openNew}
           className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
           <Plus size={16} /> Create Invite
@@ -2455,6 +2503,13 @@ function InvitesTab({
                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-100">
                   <MessageSquare size={14} /> Send TG Report
                 </button>
+
+                {zoomStatus?.ok && event.zoomLink && (
+                  <button data-testid={`button-zoom-sync-${event.id}`} onClick={() => onZoomSync(event.id)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-100">
+                    <Video size={14} /> Zoom Sync
+                  </button>
+                )}
               </div>
             </div>
           ))}

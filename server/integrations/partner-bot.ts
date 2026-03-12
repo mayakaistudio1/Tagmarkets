@@ -266,12 +266,7 @@ async function handleInviteCallback(callbackQueryId: string, chatId: number, sch
     isActive: true,
   });
 
-  const baseUrl = process.env.REPLIT_DEPLOYMENT_URL
-    ? `https://${process.env.REPLIT_DEPLOYMENT_URL}`
-    : process.env.REPLIT_DEV_DOMAIN
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-      : "https://jetup.app";
-
+  const baseUrl = getBaseUrl() || "https://jet-up.ai";
   const inviteUrl = `${baseUrl}/invite/${inviteEvent.inviteCode}`;
 
   await editMessage(chatId, messageId,
@@ -667,16 +662,23 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
   }
 }
 
+function getBaseUrl(): string | null {
+  if (process.env.PRODUCTION_URL) {
+    return process.env.PRODUCTION_URL.startsWith("http")
+      ? process.env.PRODUCTION_URL
+      : `https://${process.env.PRODUCTION_URL}`;
+  }
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  }
+  return "https://jet-up.ai";
+}
+
 async function autoSetWebhook(): Promise<void> {
   const token = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
   if (!token) return;
 
-  const baseUrl = process.env.REPLIT_DEPLOYMENT_URL
-    ? `https://${process.env.REPLIT_DEPLOYMENT_URL}`
-    : process.env.REPLIT_DEV_DOMAIN
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-      : null;
-
+  const baseUrl = getBaseUrl();
   if (!baseUrl) return;
 
   const webhookUrl = `${baseUrl}/api/telegram-bot/webhook`;

@@ -90,14 +90,14 @@ export async function testZoomConnection(): Promise<{ ok: boolean; error?: strin
   }
   try {
     const token = await getZoomAccessToken();
-    const res = await fetch("https://api.zoom.us/v2/users/me", {
+    const res = await fetch("https://api.zoom.us/v2/users?page_size=1", {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
       const body = await res.text();
       return { ok: false, error: `Zoom API returned ${res.status}: ${body}` };
     }
-    const data = await res.json();
+    await res.json();
     return { ok: true, error: undefined };
   } catch (error: any) {
     return { ok: false, error: error.message };

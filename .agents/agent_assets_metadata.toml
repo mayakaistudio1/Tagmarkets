@@ -6,3 +6,9 @@ id = "bwzJAgj-AIxDcx8Er5c2k"
 uri = "file://docs/JetUP_Partner_System_DE.md"
 type = "text"
 title = "JetUP Partner System — Funktionsübersicht (DE)"
+
+[[outputs]]
+id = "hotyUuPIKgA9hVCIjB2Bp"
+uri = "file://docs/Partner_Bot_Slides_Brief.md"
+type = "text"
+title = "JetUP Partner Bot — Бриф для слайдов"

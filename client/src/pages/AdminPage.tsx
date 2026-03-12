@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import html2canvas from "html2canvas";
+import WorkflowTab from "./CanvasWorkflowPage";
 import {
   Shield,
   LogOut,
@@ -30,9 +31,10 @@ import {
   Link as LinkIcon,
   UserCheck,
   Video,
+  Zap,
 } from "lucide-react";
 
-type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo" | "invites" | "partners";
+type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo" | "invites" | "partners" | "workflow";
 
 interface AnalysisSection {
   title: string;
@@ -709,6 +711,7 @@ function AdminPage() {
     { key: "promo", label: "Promo", icon: <Gift size={18} /> },
     { key: "invites", label: "Invites", icon: <LinkIcon size={18} /> },
     { key: "partners", label: "Partners", icon: <UserCheck size={18} /> },
+    { key: "workflow", label: "Workflow", icon: <Zap size={18} /> },
   ];
 
   return (
@@ -851,6 +854,9 @@ function AdminPage() {
         )}
         {activeTab === "partners" && (
           <PartnersTab partners={adminPartners} />
+        )}
+        {activeTab === "workflow" && (
+          <WorkflowTab />
         )}
       </main>
     </div>

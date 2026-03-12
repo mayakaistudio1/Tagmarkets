@@ -210,14 +210,21 @@ async function handleInvite(chatId: number): Promise<void> {
     return;
   }
 
-  const events = await storage.getScheduleEvents(true);
+  const allEvents = await storage.getScheduleEvents(true);
+  const today = new Date().toISOString().split("T")[0];
+  const events = allEvents.filter((e: any) =>
+    e.title && e.title.trim() !== "" &&
+    e.date && e.date.trim() !== "" &&
+    e.date >= today
+  );
+
   if (events.length === 0) {
     await sendMessage(chatId, `📅 Aktuell sind keine Webinare geplant. Versuch es später noch mal.`);
     return;
   }
 
   const keyboard = events.map((event: any) => [{
-    text: `${event.title} — ${event.date} ${event.time}`,
+    text: `${event.title.substring(0, 40)} — ${event.date}`,
     callback_data: `invite_event_${event.id}`,
   }]);
 
@@ -254,10 +261,10 @@ async function handleInviteCallback(callbackQueryId: string, chatId: number, sch
     isActive: true,
   });
 
-  const baseUrl = process.env.REPLIT_DEV_DOMAIN
-    ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-    : process.env.REPL_SLUG
-      ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
+  const baseUrl = process.env.REPLIT_DEPLOYMENT_URL
+    ? `https://${process.env.REPLIT_DEPLOYMENT_URL}`
+    : process.env.REPLIT_DEV_DOMAIN
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
       : "https://jetup.app";
 
   const inviteUrl = `${baseUrl}/invite/${inviteEvent.inviteCode}`;

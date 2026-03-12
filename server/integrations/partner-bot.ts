@@ -132,6 +132,11 @@ async function handleRegistration(chatId: number, text: string): Promise<boolean
   const state = registrationState.get(String(chatId));
   if (!state) return false;
 
+  if (text.startsWith("/")) {
+    registrationState.delete(String(chatId));
+    return false;
+  }
+
   if (state.step === "name") {
     state.data.name = text.trim();
     state.step = "cu";
@@ -619,6 +624,8 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
   const chatId = update.message.chat.id;
   const text = update.message.text.trim();
   const from = update.message.from;
+
+  console.log(`Bot received from ${chatId} (@${from?.username}): ${text}`);
 
   if (await handleRegistration(chatId, text)) return;
 

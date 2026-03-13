@@ -134,10 +134,15 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           prospectNote: prospectForm.note || undefined,
         }),
       });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || "Failed to create invite. Please try again.");
+        return;
+      }
       const data = await res.json();
       setPersonalInviteResult(data);
       setScreen("personal-share");
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); alert("Failed to create invite. Please try again."); }
     setPersonalCreating(false);
   };
 

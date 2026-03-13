@@ -119,19 +119,47 @@ export function registerPartnerAppRoutes(app: Express) {
       }
 
       const events = await storage.getInviteEventsByPartnerId(partner.id);
-      const enriched = [];
+
+      const grouped = new Map<string, {
+        title: string; eventDate: string; eventTime: string; scheduleEventId: number | null;
+        inviteEvents: typeof events;
+        totalGuests: number; totalAttended: number; totalClicked: number; invitesSent: number;
+      }>();
 
       for (const event of events) {
+        const key = event.scheduleEventId?.toString() || event.title;
+        if (!grouped.has(key)) {
+          grouped.set(key, {
+            title: event.title, eventDate: event.eventDate, eventTime: event.eventTime,
+            scheduleEventId: event.scheduleEventId,
+            inviteEvents: [], totalGuests: 0, totalAttended: 0, totalClicked: 0, invitesSent: 0,
+          });
+        }
+        const group = grouped.get(key)!;
+        group.inviteEvents.push(event);
+        group.invitesSent++;
+
         const guests = await storage.getGuestsByEventId(event.id);
         const attendance = await storage.getZoomAttendanceByEventId(event.id);
-
-        enriched.push({
-          ...event,
-          registeredCount: guests.length,
-          attendedCount: attendance.length,
-          conversionRate: guests.length > 0 ? Math.round((attendance.length / guests.length) * 100) : 0,
-        });
+        group.totalGuests += guests.length;
+        group.totalAttended += attendance.length;
+        group.totalClicked += guests.filter((g: any) => g.clickedZoom).length;
       }
+
+      const enriched = Array.from(grouped.values()).map((g) => ({
+        id: g.inviteEvents[0].id,
+        title: g.title,
+        eventDate: g.eventDate,
+        eventTime: g.eventTime,
+        scheduleEventId: g.scheduleEventId,
+        invitesSent: g.invitesSent,
+        registeredCount: g.totalGuests,
+        attendedCount: g.totalAttended,
+        clickedCount: g.totalClicked,
+        guestCount: g.totalGuests,
+        conversionRate: g.totalGuests > 0 ? Math.round((g.totalAttended / g.totalGuests) * 100) : 0,
+        inviteEventIds: g.inviteEvents.map((e: any) => e.id),
+      }));
 
       res.json(enriched);
     } catch (error: any) {

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck, MousePointerClick, Calendar, Clock } from "lucide-react";
+import { BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck, Send, Calendar, Clock } from "lucide-react";
 
 interface PartnerEvent {
-  id: number; title: string; eventDate: string; eventTime: string; inviteCode: string;
+  id: number; title: string; eventDate: string; eventTime: string;
   registeredCount: number; attendedCount: number; conversionRate: number;
-  guestCount: number; clickedCount: number;
+  guestCount: number; clickedCount: number; invitesSent: number;
+  inviteEventIds?: number[];
 }
 
 interface EventReport {
@@ -51,11 +52,24 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
       .catch(() => setLoading(false));
   }, [telegramId]);
 
-  const loadReport = async (eventId: number) => {
+  const loadReport = async (event: PartnerEvent) => {
     setReportLoading(true);
     try {
-      const res = await fetch(`/api/partner-app/events/${eventId}/report`, { headers: { "x-telegram-id": telegramId } });
-      setSelectedReport(await res.json());
+      const ids = event.inviteEventIds || [event.id];
+      const reports = await Promise.all(
+        ids.map((id) => fetch(`/api/partner-app/events/${id}/report`, { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()))
+      );
+      const combined: EventReport = {
+        event: reports[0].event,
+        guests: reports.flatMap((r: any) => r.guests),
+        funnel: {
+          invited: reports.reduce((s: number, r: any) => s + r.funnel.invited, 0),
+          registered: reports.reduce((s: number, r: any) => s + r.funnel.registered, 0),
+          clickedZoom: reports.reduce((s: number, r: any) => s + r.funnel.clickedZoom, 0),
+          attended: reports.reduce((s: number, r: any) => s + r.funnel.attended, 0),
+        },
+      };
+      setSelectedReport(combined);
     } catch (err) { console.error(err); }
     setReportLoading(false);
   };
@@ -150,7 +164,7 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
-              onClick={() => loadReport(event.id)}
+              onClick={() => loadReport(event)}
               className="w-full bg-white rounded-2xl p-5 text-left active:bg-gray-50 transition-colors"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
               data-testid={`report-event-${event.id}`}
@@ -163,7 +177,12 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                 <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {event.eventDate}</span>
                 <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {event.eventTime}</span>
               </div>
-              <div className="flex items-center gap-5">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <Send className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-xs font-semibold text-gray-700">{event.invitesSent}</span>
+                  <span className="text-[10px] text-gray-400">sent</span>
+                </div>
                 <div className="flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-blue-500" />
                   <span className="text-xs font-semibold text-gray-700">{event.registeredCount || event.guestCount}</span>
@@ -173,11 +192,6 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                   <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
                   <span className="text-xs font-semibold text-gray-700">{event.attendedCount}</span>
                   <span className="text-[10px] text-gray-400">att</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <MousePointerClick className="w-3.5 h-3.5 text-purple-500" />
-                  <span className="text-xs font-semibold text-gray-700">{event.clickedCount}</span>
-                  <span className="text-[10px] text-gray-400">clicks</span>
                 </div>
               </div>
             </motion.button>

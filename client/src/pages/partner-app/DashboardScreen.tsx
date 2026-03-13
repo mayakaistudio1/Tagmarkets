@@ -39,6 +39,7 @@ interface Webinar {
 interface PartnerEvent {
   id: number; title: string; eventDate: string; eventTime: string;
   registeredCount: number; attendedCount: number; conversionRate: number;
+  invitesSent: number;
 }
 
 export default function DashboardScreen({ profile, telegramId, onNavigate }: Props) {
@@ -206,7 +207,11 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
                   <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{event.eventDate} · {event.eventTime}</p>
                 </div>
-                <div className="flex items-center gap-4 ml-3 flex-shrink-0">
+                <div className="flex items-center gap-3 ml-3 flex-shrink-0">
+                  <div className="text-center">
+                    <p className="text-sm font-semibold text-blue-600">{event.invitesSent}</p>
+                    <p className="text-[9px] text-gray-400 uppercase">Sent</p>
+                  </div>
                   <div className="text-center">
                     <p className="text-sm font-semibold text-gray-900">{event.registeredCount}</p>
                     <p className="text-[9px] text-gray-400 uppercase">Reg</p>

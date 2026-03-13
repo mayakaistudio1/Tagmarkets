@@ -606,18 +606,19 @@ End with asking if they'd like to register or learn more. Be conversational and 
         return res.status(404).json({ error: "Invite not found" });
       }
 
-      const REMINDER_OPTIONS = ["1h", "1d", "none"] as const;
+      const REMINDER_OPTIONS = ["1_hour", "15_min", "none"] as const;
       const { preference } = req.body;
       if (!preference || !REMINDER_OPTIONS.includes(preference)) {
-        return res.status(400).json({ error: "preference must be one of: 1h, 1d, none" });
+        return res.status(400).json({ error: "preference must be one of: 1_hour, 15_min, none" });
       }
 
       await storage.updatePersonalInviteReminder(invite.id, preference);
 
       const chatHistory: Array<{ role: string; content: string }> = JSON.parse(invite.chatHistory || "[]");
-      const reminderMsg = preference === "none"
-        ? "No problem! See you at the webinar! 🙌"
-        : `Perfect! I'll remind you ${preference}. See you at the webinar! 🙌`;
+      const reminderLabel = preference === "1_hour" ? "1 hour before" : preference === "15_min" ? "15 minutes before" : null;
+      const reminderMsg = reminderLabel
+        ? `Perfect! I'll remind you ${reminderLabel}. See you at the webinar! 🙌`
+        : "No problem! See you at the webinar! 🙌";
       chatHistory.push({ role: "assistant", content: reminderMsg });
       await storage.updatePersonalInviteChatHistory(invite.id, JSON.stringify(chatHistory));
 

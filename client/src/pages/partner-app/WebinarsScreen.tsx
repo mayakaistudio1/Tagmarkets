@@ -549,7 +549,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
 
   if (screen === "detail" && selectedWebinar) {
     const relatedEvents = eventDetails.filter((e) => {
-      return e.title === selectedWebinar.title || (selectedWebinar as any).scheduleEventId === e.id;
+      return e.title === selectedWebinar.title || selectedWebinar.id === e.id;
     });
 
     return (

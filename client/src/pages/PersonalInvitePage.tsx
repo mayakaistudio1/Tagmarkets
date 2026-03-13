@@ -438,7 +438,7 @@ export default function PersonalInvitePage() {
                 animate={{ opacity: 1, scale: 1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  if (qr.includes("Remind")) {
+                  if (qr.includes("Remind") || qr.includes("No reminder")) {
                     handleReminderChoice(qr);
                   } else {
                     sendMessage(qr);

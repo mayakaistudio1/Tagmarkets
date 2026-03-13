@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, TrendingUp, CalendarDays, ArrowUpRight, ChevronRight } from "lucide-react";
+import { Users, TrendingUp, CalendarDays, ArrowUpRight, ChevronRight, Calendar, Clock, Video } from "lucide-react";
 
 interface Props {
   profile: {
@@ -29,29 +29,36 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
   return <span className="tabular-nums">{count}{suffix}</span>;
 }
 
+interface Webinar {
+  id: number; title: string; date: string; time: string; timezone: string;
+  speaker: string; speakerPhoto: string | null; type: string; typeBadge: string;
+  highlights: string[]; language: string;
+}
+
 interface RecentEvent {
-  id: number;
-  title: string;
-  eventDate: string;
-  eventTime: string;
-  registeredCount: number;
-  attendedCount: number;
-  conversionRate: number;
+  id: number; title: string; eventDate: string; eventTime: string;
+  registeredCount: number; attendedCount: number; conversionRate: number;
 }
 
 export default function DashboardScreen({ profile, telegramId, onNavigate }: Props) {
+  const [webinars, setWebinars] = useState<Webinar[]>([]);
   const [recentEvents, setRecentEvents] = useState<RecentEvent[]>([]);
 
   useEffect(() => {
+    fetch("/api/partner-app/webinars", { headers: { "x-telegram-id": telegramId } })
+      .then((r) => r.json())
+      .then((data) => setWebinars(data.slice(0, 3)))
+      .catch(() => {});
+
     fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } })
       .then((r) => r.json())
-      .then((data) => setRecentEvents(data.slice(0, 4)))
+      .then((data) => setRecentEvents(data.slice(0, 3)))
       .catch(() => {});
   }, [telegramId]);
 
   const firstName = profile.partner.name.split(" ")[0];
 
-  const cards = [
+  const stats = [
     {
       label: "Total Attendees",
       value: profile.stats.totalAttended,
@@ -91,13 +98,58 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
         <h1 className="text-xl font-bold text-gray-900" data-testid="text-partner-welcome">{firstName}</h1>
       </motion.div>
 
+      {webinars.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-900">Upcoming Meetings</h3>
+            <button onClick={() => onNavigate("webinars")} className="text-xs text-blue-600 font-medium flex items-center gap-0.5" data-testid="link-all-webinars">
+              See all <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="space-y-3">
+            {webinars.map((w, i) => (
+              <motion.div
+                key={w.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + i * 0.05 }}
+                onClick={() => onNavigate("webinars")}
+                className="bg-white rounded-2xl p-4 active:bg-gray-50 transition-colors cursor-pointer"
+                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+                data-testid={`upcoming-webinar-${w.id}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Video className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{w.title}</p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="flex items-center gap-1 text-xs text-gray-400">
+                        <Calendar className="w-3 h-3" /> {w.date}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs text-gray-400">
+                        <Clock className="w-3 h-3" /> {w.time}
+                      </span>
+                    </div>
+                    {w.speaker && (
+                      <p className="text-xs text-gray-400 mt-1">{w.speaker}</p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       <div className="space-y-4 mb-6">
-        {cards.map((card, i) => (
+        {stats.map((card, i) => (
           <motion.div
             key={card.label}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 + i * 0.08 }}
+            transition={{ delay: 0.2 + i * 0.08 }}
             className="bg-white rounded-2xl p-5 relative overflow-hidden"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
           >
@@ -120,9 +172,9 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
       </div>
 
       {recentEvents.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900">Recent Events</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Recent Results</h3>
             <button onClick={() => onNavigate("reports")} className="text-xs text-blue-600 font-medium flex items-center gap-0.5" data-testid="link-all-reports">
               See all <ChevronRight className="w-3 h-3" />
             </button>
@@ -133,7 +185,7 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
                 key={event.id}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35 + i * 0.05 }}
+                transition={{ delay: 0.55 + i * 0.05 }}
                 className="bg-white rounded-xl p-4 flex items-center justify-between"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
                 data-testid={`recent-event-${event.id}`}

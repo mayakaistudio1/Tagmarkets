@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   Calendar, Clock, User, Globe, Loader2, ChevronLeft, ChevronRight,
   Send, Copy, Check, Share2, MessageCircle, Phone,
-  Mail, Facebook, Instagram, Link2, Users, UserCheck, FileText
+  Mail, Facebook, Instagram, Link2, Users, UserCheck, FileText, Sparkles
 } from "lucide-react";
 
 interface Webinar {
@@ -58,7 +58,13 @@ const MESSAGE_TEMPLATES = [
   },
 ];
 
-type Screen = "list" | "detail" | "invite-type" | "template-select" | "share";
+interface PersonalInviteResult {
+  inviteCode: string;
+  inviteUrl: string;
+  event: { title: string; date: string; time: string; speaker: string };
+}
+
+type Screen = "list" | "detail" | "invite-type" | "template-select" | "share" | "personal-form" | "personal-share";
 
 export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [webinars, setWebinars] = useState<Webinar[]>([]);
@@ -73,6 +79,9 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [eventDetails, setEventDetails] = useState<EventDetail[]>([]);
   const [eventReport, setEventReport] = useState<EventReport | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
+  const [personalInviteResult, setPersonalInviteResult] = useState<PersonalInviteResult | null>(null);
+  const [personalCreating, setPersonalCreating] = useState(false);
+  const [prospectForm, setProspectForm] = useState({ name: "", type: "Neutral", note: "" });
 
   useEffect(() => {
     Promise.all([
@@ -110,6 +119,29 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     } catch (err) { console.error(err); }
     setReportLoading(false);
   };
+
+  const createPersonalInvite = async () => {
+    if (!selectedWebinar || personalCreating) return;
+    setPersonalCreating(true);
+    try {
+      const res = await fetch("/api/partner-app/create-personal-invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        body: JSON.stringify({
+          scheduleEventId: selectedWebinar.id,
+          prospectName: prospectForm.name,
+          prospectType: prospectForm.type,
+          prospectNote: prospectForm.note || undefined,
+        }),
+      });
+      const data = await res.json();
+      setPersonalInviteResult(data);
+      setScreen("personal-share");
+    } catch (err) { console.error(err); }
+    setPersonalCreating(false);
+  };
+
+  const getPersonalInviteFullUrl = () => `${window.location.origin}${personalInviteResult?.inviteUrl || ""}`;
 
   const getFullUrl = () => `${window.location.origin}${inviteResult?.inviteUrl || ""}`;
 
@@ -167,6 +199,8 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
       case "share": setScreen("template-select"); break;
       case "template-select": setScreen("invite-type"); break;
       case "invite-type": setScreen("detail"); break;
+      case "personal-share": setScreen("personal-form"); break;
+      case "personal-form": setScreen("detail"); break;
       case "detail": setScreen("list"); setEventReport(null); break;
       default: setScreen("list"); break;
     }
@@ -304,6 +338,162 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     );
   }
 
+  if (screen === "personal-share" && personalInviteResult) {
+    const personalShareChannels = [
+      { id: "telegram", label: "Telegram", icon: Send, bg: "bg-blue-500" },
+      { id: "whatsapp", label: "WhatsApp", icon: Phone, bg: "bg-green-500" },
+      { id: "email", label: "E-Mail", icon: Mail, bg: "bg-gray-600" },
+    ];
+
+    const personalShareText = `Hey ${prospectForm.name}! I have a special invitation for you — check it out:\n${getPersonalInviteFullUrl()}`;
+
+    return (
+      <div className="px-5 pt-5 pb-28">
+        <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
+          <ChevronLeft className="w-4 h-4" /> Back
+        </button>
+
+        <h2 className="text-lg font-bold text-gray-900 mb-1">Personal Invite Created</h2>
+        <p className="text-xs text-gray-400 mb-5">AI will personally invite {prospectForm.name}</p>
+
+        <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <p className="text-xs text-gray-400 font-medium mb-2 uppercase tracking-wide">Your personal invite link</p>
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
+            <Link2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <p className="text-xs text-gray-600 truncate flex-1 font-mono" data-testid="text-personal-invite-url">{getPersonalInviteFullUrl()}</p>
+            <button onClick={() => { navigator.clipboard.writeText(getPersonalInviteFullUrl()); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="p-1.5 rounded-lg bg-white active:bg-gray-100" data-testid="button-copy-personal-link">
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-blue-50 rounded-2xl p-4 mb-5">
+          <div className="flex items-start gap-2">
+            <Sparkles className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-blue-700 leading-relaxed">
+              When {prospectForm.name} opens this link, an AI assistant will personally invite them to the webinar and help them register — all in a conversational chat.
+            </p>
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-400 font-medium mb-3 uppercase tracking-wide">Send via</p>
+        <div className="space-y-2 mb-5">
+          {personalShareChannels.map((ch) => (
+            <button
+              key={ch.id}
+              onClick={() => {
+                const text = encodeURIComponent(personalShareText);
+                const url = encodeURIComponent(getPersonalInviteFullUrl());
+                switch (ch.id) {
+                  case "telegram": window.open(`https://t.me/share/url?url=${url}&text=${text}`, "_blank"); break;
+                  case "whatsapp": window.open(`https://wa.me/?text=${text}`, "_blank"); break;
+                  case "email": window.open(`mailto:?subject=Personal Invitation&body=${text}`, "_blank"); break;
+                }
+              }}
+              className={`w-full flex items-center gap-2.5 p-3.5 rounded-xl ${ch.bg} text-white active:opacity-90 transition-opacity`}
+              data-testid={`personal-share-${ch.id}`}
+            >
+              <ch.icon className="w-4 h-4" />
+              <span className="text-sm font-medium">{ch.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => { navigator.clipboard.writeText(personalShareText); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+          className="w-full flex items-center justify-center gap-2 p-3.5 rounded-xl bg-white border border-gray-200 active:bg-gray-50"
+          data-testid="button-copy-personal-all"
+        >
+          {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
+          <span className="text-sm font-medium text-gray-700">{copied ? "Copied!" : "Copy message + link"}</span>
+        </button>
+      </div>
+    );
+  }
+
+  if (screen === "personal-form" && selectedWebinar) {
+    return (
+      <div className="px-5 pt-5 pb-28">
+        <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
+          <ChevronLeft className="w-4 h-4" /> Back
+        </button>
+
+        <div className="flex items-center gap-2 mb-5">
+          <Sparkles className="w-5 h-5 text-blue-600" />
+          <h2 className="text-base font-semibold text-gray-900">Personal AI Invite</h2>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <p className="text-xs text-gray-400 mb-1">For webinar</p>
+          <p className="text-sm font-semibold text-gray-900">{selectedWebinar.title}</p>
+          <p className="text-xs text-gray-400 mt-1">{selectedWebinar.date} at {selectedWebinar.time}</p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 space-y-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-500">Prospect Name *</label>
+            <input
+              required
+              placeholder="e.g. Max Müller"
+              value={prospectForm.name}
+              onChange={(e) => setProspectForm({ ...prospectForm, name: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+              data-testid="input-prospect-name"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-500">Prospect Type</label>
+            <select
+              value={prospectForm.type}
+              onChange={(e) => setProspectForm({ ...prospectForm, type: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all appearance-none"
+              data-testid="select-prospect-type"
+            >
+              <option value="Investor">Investor</option>
+              <option value="MLM Leader">MLM Leader</option>
+              <option value="Entrepreneur">Entrepreneur</option>
+              <option value="Beginner">Beginner</option>
+              <option value="Neutral">Neutral</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-500">Note for AI (optional)</label>
+            <textarea
+              placeholder="e.g. Interested in crypto, met at conference..."
+              value={prospectForm.note}
+              onChange={(e) => setProspectForm({ ...prospectForm, note: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all resize-none"
+              data-testid="textarea-prospect-note"
+            />
+          </div>
+
+          <button
+            onClick={createPersonalInvite}
+            disabled={!prospectForm.name.trim() || personalCreating}
+            className="w-full py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            data-testid="button-create-personal-invite"
+          >
+            {personalCreating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                Create AI Invite
+              </>
+            )}
+          </button>
+        </div>
+
+        <p className="text-[11px] text-gray-400 text-center mt-4 leading-relaxed">
+          The AI will use the prospect's name, type, and your note to create a personalized conversation when they open the link.
+        </p>
+      </div>
+    );
+  }
+
   if (screen === "invite-type") {
     return (
       <div className="px-5 pt-5 pb-28">
@@ -411,13 +601,23 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           </div>
         </div>
 
-        <button
-          onClick={handleStartInvite}
-          className="w-full py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors mb-5"
-          data-testid="button-send-invite"
-        >
-          Send Invite
-        </button>
+        <div className="flex gap-3 mb-5">
+          <button
+            onClick={handleStartInvite}
+            className="flex-1 py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors"
+            data-testid="button-send-invite"
+          >
+            Send Invite
+          </button>
+          <button
+            onClick={() => { setProspectForm({ name: "", type: "Neutral", note: "" }); setPersonalInviteResult(null); setScreen("personal-form"); }}
+            className="flex-1 py-3 rounded-xl bg-white border border-blue-200 text-sm font-semibold text-blue-600 active:bg-blue-50 transition-colors flex items-center justify-center gap-1.5"
+            data-testid="button-personal-ai-invite"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            AI Invite
+          </button>
+        </div>
 
         {relatedEvents.length > 0 && (
           <div>

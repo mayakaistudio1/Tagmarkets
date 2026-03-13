@@ -271,6 +271,34 @@ export const insertZoomAttendanceSchema = createInsertSchema(zoomAttendance).omi
 export type InsertZoomAttendance = z.infer<typeof insertZoomAttendanceSchema>;
 export type ZoomAttendance = typeof zoomAttendance.$inferSelect;
 
+export const personalInvites = pgTable("personal_invites", {
+  id: serial("id").primaryKey(),
+  partnerId: integer("partner_id").notNull(),
+  scheduleEventId: integer("schedule_event_id").notNull(),
+  inviteCode: text("invite_code").notNull().unique(),
+  prospectName: text("prospect_name").notNull(),
+  prospectType: text("prospect_type").notNull().default("Neutral"),
+  prospectNote: text("prospect_note"),
+  guestName: text("guest_name"),
+  guestEmail: text("guest_email"),
+  guestTelegram: text("guest_telegram"),
+  registeredAt: timestamp("registered_at"),
+  reminderPreference: text("reminder_preference"),
+  chatHistory: text("chat_history").default("[]"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPersonalInviteSchema = createInsertSchema(personalInvites).omit({
+  id: true,
+  createdAt: true,
+  inviteCode: true,
+  registeredAt: true,
+});
+
+export type InsertPersonalInvite = z.infer<typeof insertPersonalInviteSchema>;
+export type PersonalInvite = typeof personalInvites.$inferSelect;
+
 export const appSettings = pgTable("app_settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),

@@ -7,8 +7,9 @@ import {
   type InviteGuest, type InsertInviteGuest,
   type Partner, type InsertPartner,
   type ZoomAttendance, type InsertZoomAttendance,
+  type PersonalInvite, type InsertPersonalInvite,
   users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers, promoApplications, dennisPromos,
-  inviteEvents, inviteGuests, partners, zoomAttendance, appSettings,
+  inviteEvents, inviteGuests, partners, zoomAttendance, appSettings, personalInvites,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql, count, or } from "drizzle-orm";
 import { db } from "./db";
@@ -74,6 +75,13 @@ export interface IStorage {
 
   createZoomAttendance(data: InsertZoomAttendance): Promise<ZoomAttendance>;
   getZoomAttendanceByEventId(eventId: number): Promise<ZoomAttendance[]>;
+
+  createPersonalInvite(data: InsertPersonalInvite): Promise<PersonalInvite>;
+  getPersonalInviteByCode(code: string): Promise<PersonalInvite | undefined>;
+  updatePersonalInviteRegistration(id: number, data: { guestName: string; guestEmail: string; guestTelegram?: string }): Promise<PersonalInvite>;
+  updatePersonalInviteChatHistory(id: number, chatHistory: string): Promise<PersonalInvite>;
+  updatePersonalInviteReminder(id: number, preference: string): Promise<PersonalInvite>;
+  getPersonalInvitesByPartnerId(partnerId: number): Promise<PersonalInvite[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -481,6 +489,41 @@ export class DatabaseStorage implements IStorage {
       result[r.eventId] = r.cnt;
     }
     return result;
+  }
+
+  async createPersonalInvite(data: InsertPersonalInvite): Promise<PersonalInvite> {
+    const inviteCode = "pi-" + Math.random().toString(36).substring(2, 10);
+    const [created] = await db.insert(personalInvites).values({ ...data, inviteCode }).returning();
+    return created;
+  }
+
+  async getPersonalInviteByCode(code: string): Promise<PersonalInvite | undefined> {
+    const [invite] = await db.select().from(personalInvites).where(eq(personalInvites.inviteCode, code));
+    return invite;
+  }
+
+  async updatePersonalInviteRegistration(id: number, data: { guestName: string; guestEmail: string; guestTelegram?: string }): Promise<PersonalInvite> {
+    const [updated] = await db.update(personalInvites).set({
+      guestName: data.guestName,
+      guestEmail: data.guestEmail,
+      guestTelegram: data.guestTelegram || null,
+      registeredAt: new Date(),
+    }).where(eq(personalInvites.id, id)).returning();
+    return updated;
+  }
+
+  async updatePersonalInviteChatHistory(id: number, chatHistory: string): Promise<PersonalInvite> {
+    const [updated] = await db.update(personalInvites).set({ chatHistory }).where(eq(personalInvites.id, id)).returning();
+    return updated;
+  }
+
+  async updatePersonalInviteReminder(id: number, preference: string): Promise<PersonalInvite> {
+    const [updated] = await db.update(personalInvites).set({ reminderPreference: preference }).where(eq(personalInvites.id, id)).returning();
+    return updated;
+  }
+
+  async getPersonalInvitesByPartnerId(partnerId: number): Promise<PersonalInvite[]> {
+    return db.select().from(personalInvites).where(eq(personalInvites.partnerId, partnerId)).orderBy(desc(personalInvites.createdAt));
   }
 }
 

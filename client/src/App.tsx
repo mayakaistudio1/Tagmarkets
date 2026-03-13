@@ -20,6 +20,7 @@ import PartnerDigitalHub from "@/pages/PartnerDigitalHub";
 import LiveCallScreen from "@/pages/partner/LiveCallScreen";
 import PromoBanner from "@/components/PromoBanner";
 import InvitePage from "@/pages/InvitePage";
+import PersonalInvitePage from "@/pages/PersonalInvitePage";
 import PromoAdminPage from "@/pages/PromoAdminPage";
 import PartnerApp from "@/pages/partner-app/PartnerApp";
 
@@ -66,12 +67,14 @@ function AppContent() {
   const promoSingleMatch = basePath.match(/^\/promo\/(\d+)$/);
   const partnerMatch = basePath.match(/^\/p\/[\w-]+$/);
   const inviteMatch = basePath.match(/^\/invite\/([\w-]+)$/);
+  const personalInviteMatch = basePath.match(/^\/personal-invite\/([\w-]+)$/);
   const directPartnerMatch = basePath === "/dennis";
 
   const renderPage = () => {
     if (basePath === "/dennis/live") return <LiveCallScreen />;
     if (eventMatch) return <EventDetailPage />;
     if (promoSingleMatch) return <PromoSinglePage />;
+    if (personalInviteMatch) return <PersonalInvitePage />;
     if (inviteMatch) return <InvitePage />;
     if (partnerMatch || directPartnerMatch) return <PartnerDigitalHub />;
 

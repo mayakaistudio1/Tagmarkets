@@ -8,12 +8,22 @@ import crypto from "crypto";
 import { z } from "zod";
 
 const PROSPECT_TYPES = ["Investor", "MLM Leader", "Entrepreneur", "Beginner", "Neutral"] as const;
+const DISC_TYPES = ["D", "I", "S", "C"] as const;
+const MOTIVATION_TYPES = ["money_results", "business_growth", "technology_innovation", "community_people", "learning_curiosity"] as const;
+const REACTION_TYPES = ["fast_decision", "analytical", "skeptical", "needs_trust"] as const;
+const INVITE_STRATEGIES = ["Authority", "Opportunity", "Curiosity", "Support"] as const;
+const RELATIONSHIP_TYPES = ["friend", "business_contact", "mlm_leader", "investor", "entrepreneur", "cold_contact"] as const;
 
 const createPersonalInviteSchema = z.object({
   scheduleEventId: z.number({ required_error: "scheduleEventId is required" }),
   prospectName: z.string().min(1, "prospectName is required").max(200),
   prospectType: z.enum(PROSPECT_TYPES).default("Neutral"),
+  discType: z.enum(DISC_TYPES).optional(),
+  motivationType: z.enum(MOTIVATION_TYPES).optional(),
+  reactionType: z.enum(REACTION_TYPES).optional(),
+  inviteStrategy: z.enum(INVITE_STRATEGIES).optional(),
   prospectNote: z.string().max(1000).optional(),
+  generatedMessages: z.string().optional(),
 });
 
 const registerPersonalInviteSchema = z.object({
@@ -21,6 +31,208 @@ const registerPersonalInviteSchema = z.object({
   email: z.string().email("valid email is required"),
   telegram: z.string().max(100).optional(),
 });
+
+function selectInviteStrategy(relationship: string, motivation: string, reaction: string): string {
+  if (["mlm_leader", "entrepreneur"].includes(relationship) && ["fast_decision", "analytical"].includes(reaction)) return "Authority";
+  if (["investor"].includes(relationship) || motivation === "money_results") return "Opportunity";
+  if (["cold_contact"].includes(relationship) || ["learning_curiosity", "technology_innovation"].includes(motivation)) return "Curiosity";
+  if (reaction === "needs_trust" || motivation === "community_people") return "Support";
+  if (relationship === "business_contact") return "Opportunity";
+  if (relationship === "friend") return "Curiosity";
+  return "Curiosity";
+}
+
+function inferDiscFromAnswers(motivation: string, reaction: string): string {
+  if (reaction === "fast_decision" && ["money_results", "business_growth"].includes(motivation)) return "D";
+  if (["community_people"].includes(motivation) || (reaction === "fast_decision" && motivation === "technology_innovation")) return "I";
+  if (reaction === "needs_trust" || motivation === "community_people") return "S";
+  if (reaction === "analytical" || reaction === "skeptical") return "C";
+  return "I";
+}
+
+function getDiscQuickReplies(discType: string, isRegistered: boolean): string[] {
+  if (isRegistered) return ["Remind me 1 hour before", "Remind me 15 min before", "No reminder needed"];
+  switch (discType) {
+    case "D": return ["Ja, interessiert", "Zur Sache", "Registriere mich"];
+    case "I": return ["Klingt spannend!", "Erzähl mir mehr", "Ja, ich will!"];
+    case "S": return ["Kannst du mehr erzählen?", "Vielleicht", "Ja, registriere mich"];
+    case "C": return ["Was genau wird gezeigt?", "Zeig mir Details", "Ja, registriere mich"];
+    default: return ["Yes, register me", "Tell me more", "Not sure yet"];
+  }
+}
+
+function buildMasterSystemPrompt(partnerName: string, invite: any, scheduleEvent: any): string {
+  const discType = invite.discType || "I";
+  const strategy = invite.inviteStrategy || "Curiosity";
+  const prospectType = invite.prospectType || "Neutral";
+
+  const highlightsText = scheduleEvent?.highlights?.length
+    ? scheduleEvent.highlights.map((h: string) => `• ${h}`).join("\n")
+    : "";
+
+  let discToneGuide = "";
+  switch (discType) {
+    case "D":
+      discToneGuide = `DISC Type D — Dominance:
+- Tone: direct, confident, no fluff
+- Keywords: growth, scale, control, speed, strong system, leverage
+- Keep it short and powerful
+- Focus on results and impact`;
+      break;
+    case "I":
+      discToneGuide = `DISC Type I — Influence:
+- Tone: energetic, warm, light, inspiring
+- Keywords: interesting format, live meeting, new, people, community, wow
+- Be enthusiastic and engaging
+- Focus on excitement and novelty`;
+      break;
+    case "S":
+      discToneGuide = `DISC Type S — Steadiness:
+- Tone: soft, respectful, calm
+- Keywords: calmly, no rush, if it resonates, clear format, just take a look
+- No pressure at all
+- Focus on trust and safety`;
+      break;
+    case "C":
+      discToneGuide = `DISC Type C — Conscientiousness:
+- Tone: clear, rational, no hype
+- Keywords: structure, logic, model, tools, specifics
+- Be factual and precise
+- Focus on data and concrete details`;
+      break;
+  }
+
+  let strategyGuide = "";
+  switch (strategy) {
+    case "Authority":
+      strategyGuide = `Strategy: AUTHORITY (for leaders)
+- Frame: respect, strong positioning, no persuasion, equal-level conversation
+- Use "closed/private meeting" and "limited group" framing
+- Focus: duplication, recruitment, team, scaling, leverage`;
+      break;
+    case "Opportunity":
+      strategyGuide = `Strategy: OPPORTUNITY (for investors)
+- Frame: opportunity, new model, early access
+- Use "exclusive" and "limited seats" framing
+- Focus: opportunities, numbers, control, logic, risk/reward, financial model`;
+      break;
+    case "Curiosity":
+      strategyGuide = `Strategy: CURIOSITY (for neutral/cold contacts)
+- Frame: intrigue, lightness, interest
+- Do NOT use "exclusive" or "limited" framing
+- Focus: unusual perspective, interesting idea, curiosity`;
+      break;
+    case "Support":
+      strategyGuide = `Strategy: SUPPORT (for beginners)
+- Frame: safety, no pressure, try it out
+- Do NOT use "exclusive" or "limited" framing
+- Focus: simple entry, clarity, support, extra income, no overwhelm`;
+      break;
+  }
+
+  let roleGuide = "";
+  switch (prospectType) {
+    case "MLM Leader":
+      roleGuide = "Role focus: duplication, recruiting, team growth, retention, follow-up, leverage, structure";
+      break;
+    case "Investor":
+      roleGuide = "Role focus: opportunities, capital logic, control, financial model, risk/reward";
+      break;
+    case "Entrepreneur":
+      roleGuide = "Role focus: system, growth, tools, efficiency, competitive advantage";
+      break;
+    case "Beginner":
+      roleGuide = "Role focus: simple entry, clarity, support, extra income, step-by-step, no overwhelm";
+      break;
+    default:
+      roleGuide = "Role focus: general interest, curiosity, exploring options";
+  }
+
+  return `You are a personal AI invitation assistant for ${partnerName}.
+
+Your job is to have a short, personal conversation with ${invite.prospectName} who was invited to a private webinar.
+
+WEBINAR DETAILS:
+- Title: ${scheduleEvent?.title || "Webinar"}
+- Date: ${scheduleEvent?.date || "TBD"}
+- Time: ${scheduleEvent?.time || "TBD"}
+- Speaker: ${scheduleEvent?.speaker || "Expert"}
+${highlightsText ? `- Key topics:\n${highlightsText}` : ""}
+
+PROSPECT INFO:
+- Name: ${invite.prospectName}
+- Type: ${invite.prospectType}
+${invite.prospectNote ? `- Context from ${partnerName}: ${invite.prospectNote}` : ""}
+
+${discToneGuide}
+
+${strategyGuide}
+
+${roleGuide}
+
+REGISTRATION STATUS: ${invite.registeredAt ? "Already registered" : "Not yet registered"}
+
+CRITICAL RULES:
+- You speak as the personal assistant of ${partnerName}, NOT as JetUP
+- Keep EVERY message SHORT: 2-4 sentences max
+- Use natural chat style, no long paragraphs
+- NEVER say "I hope this message finds you well"
+- NEVER use generic corporate language
+- NEVER overexplain the whole webinar
+- NEVER sound like an email or sales page
+- The goal is: curiosity + relevance → registration
+- If they want to register, tell them to click the "Register" button
+- If they ask for more info, share 1-2 relevant highlights
+- If unsure, gently encourage with the right tone for their type
+- After registration, congratulate and offer reminder
+- Respond in German (the prospect speaks German)
+- Never make up information not provided above`;
+}
+
+const QUALIFICATION_QUESTIONS = [
+  {
+    step: 1,
+    question: "Wer ist diese Person für dich?",
+    aiText: "Um eine starke persönliche Einladung zu erstellen, muss ich die Person ein wenig verstehen.\n\nWer ist diese Person für dich?",
+    options: [
+      { label: "Freund / warmer Kontakt", value: "friend" },
+      { label: "Geschäftskontakt", value: "business_contact" },
+      { label: "MLM Leader", value: "mlm_leader" },
+      { label: "Investor-Typ", value: "investor" },
+      { label: "Unternehmer", value: "entrepreneur" },
+      { label: "Kalter Kontakt", value: "cold_contact" },
+    ],
+  },
+  {
+    step: 2,
+    question: "Was motiviert diese Person am meisten?",
+    aiText: "Gut! Und was motiviert diese Person normalerweise am meisten?",
+    options: [
+      { label: "Geld / Ergebnisse", value: "money_results" },
+      { label: "Business-Wachstum", value: "business_growth" },
+      { label: "Technologie / Innovation", value: "technology_innovation" },
+      { label: "Community / Menschen", value: "community_people" },
+      { label: "Lernen / Neugier", value: "learning_curiosity" },
+    ],
+  },
+  {
+    step: 3,
+    question: "Wie reagiert die Person normalerweise auf neue Möglichkeiten?",
+    aiText: "Verstanden! Wie reagiert die Person normalerweise auf neue Möglichkeiten?",
+    options: [
+      { label: "Schnelle Entscheidung", value: "fast_decision" },
+      { label: "Analytisch / viele Fragen", value: "analytical" },
+      { label: "Skeptisch", value: "skeptical" },
+      { label: "Braucht erst Vertrauen", value: "needs_trust" },
+    ],
+  },
+  {
+    step: 4,
+    question: "Gibt es etwas Wichtiges, das ich wissen sollte? (optional)",
+    aiText: "Fast fertig! Gibt es noch etwas Wichtiges über die Person, das ich wissen sollte?",
+    options: null,
+  },
+];
 
 function getOpenAIClient() {
   return new OpenAI({
@@ -340,6 +552,132 @@ ${contextInfo}`;
     }
   });
 
+  app.get("/api/partner-app/ai-qualify/questions", async (req, res) => {
+    if (!partnerAppGuard(req, res)) return;
+    res.json({ questions: QUALIFICATION_QUESTIONS });
+  });
+
+  app.post("/api/partner-app/generate-invite-messages", async (req, res) => {
+    if (!partnerAppGuard(req, res)) return;
+    try {
+      const partner = await getPartnerFromRequest(req);
+      if (!partner) {
+        return res.status(401).json({ error: "Partner not found" });
+      }
+
+      const { scheduleEventId, prospectName, relationship, motivation, reaction, contextNote } = req.body;
+      if (!scheduleEventId || !prospectName || !relationship || !motivation || !reaction) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const scheduleEvent = await storage.getScheduleEvent(scheduleEventId);
+      if (!scheduleEvent) {
+        return res.status(404).json({ error: "Webinar not found" });
+      }
+
+      const strategy = selectInviteStrategy(relationship, motivation, reaction);
+      const discType = inferDiscFromAnswers(motivation, reaction);
+
+      const relationshipMap: Record<string, string> = {
+        friend: "Neutral", business_contact: "Entrepreneur", mlm_leader: "MLM Leader",
+        investor: "Investor", entrepreneur: "Entrepreneur", cold_contact: "Neutral",
+      };
+      const prospectType = relationshipMap[relationship] || "Neutral";
+
+      const openai = getOpenAIClient();
+
+      let strategyPromptPart = "";
+      switch (strategy) {
+        case "Authority":
+          strategyPromptPart = "Use Authority framing: respect, strong positioning, closed/private meeting, limited group. Talk as equals.";
+          break;
+        case "Opportunity":
+          strategyPromptPart = "Use Opportunity framing: new model, early access, exclusive event. Focus on potential and numbers.";
+          break;
+        case "Curiosity":
+          strategyPromptPart = "Use Curiosity framing: intrigue, lightness, unusual perspective. Do NOT say exclusive or limited.";
+          break;
+        case "Support":
+          strategyPromptPart = "Use Support framing: safety, no pressure, simple entry, step by step. Do NOT say exclusive or limited.";
+          break;
+      }
+
+      let discTonePart = "";
+      switch (discType) {
+        case "D": discTonePart = "Tone for D-type: direct, confident, no fluff. Focus on results, scale, speed."; break;
+        case "I": discTonePart = "Tone for I-type: energetic, warm, inspiring. Focus on novelty, people, excitement."; break;
+        case "S": discTonePart = "Tone for S-type: soft, respectful, calm. Focus on trust, safety, clarity."; break;
+        case "C": discTonePart = "Tone for C-type: clear, rational, factual. Focus on structure, logic, specifics."; break;
+      }
+
+      const generatePrompt = `Generate exactly 2 short invitation messages in German for a webinar invitation.
+
+CONTEXT:
+- You are the personal assistant of ${partner.name}
+- Prospect name: ${prospectName}
+- Prospect type: ${prospectType}
+${contextNote ? `- Partner's note about prospect: "${contextNote}"` : ""}
+- Webinar: "${scheduleEvent.title}" on ${scheduleEvent.date} at ${scheduleEvent.time} with ${scheduleEvent.speaker}
+
+STRATEGY: ${strategy}
+${strategyPromptPart}
+
+DISC TONE:
+${discTonePart}
+
+RULES:
+- Message 1: Greet by first name, introduce as assistant of ${partner.name}, mention personal invitation, reference one relevant detail. 2-3 sentences max.
+- Message 2: Mention webinar date/time shortly, frame relevance, ask one engagement question. 2-3 sentences max.
+- Use natural chat style, NOT email format
+- No "I hope this message finds you well"
+- No corporate language
+- No overexplaining
+- Write in German
+
+Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Message 2 text"]`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: generatePrompt }],
+        temperature: 0.8,
+        max_tokens: 500,
+      });
+
+      const rawResponse = completion.choices[0]?.message?.content || "[]";
+      let messages: string[] = [];
+      try {
+        const jsonMatch = rawResponse.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          messages = JSON.parse(jsonMatch[0]);
+        }
+      } catch {
+        messages = [rawResponse];
+      }
+
+      if (messages.length === 0) {
+        messages = [
+          `${prospectName}, hi!\nIch bin der Assistent von ${partner.name}.\nEr wollte dich persönlich zu einem Webinar einladen.`,
+          `Am ${scheduleEvent.date} um ${scheduleEvent.time} findet ein spannendes Webinar statt.\nHast du Interesse?`,
+        ];
+      }
+
+      const quickReplies = getDiscQuickReplies(discType, false);
+
+      res.json({
+        messages,
+        strategy,
+        discType,
+        prospectType,
+        quickReplies,
+        motivation,
+        reaction,
+      });
+    } catch (error: any) {
+      console.error("Generate invite messages error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/partner-app/create-personal-invite", async (req, res) => {
     if (!partnerAppGuard(req, res)) return;
     try {
@@ -352,7 +690,7 @@ ${contextInfo}`;
       if (!parsed.success) {
         return res.status(400).json({ error: parsed.error.errors[0]?.message || "Invalid input" });
       }
-      const { scheduleEventId, prospectName, prospectType, prospectNote } = parsed.data;
+      const { scheduleEventId, prospectName, prospectType, discType, motivationType, reactionType, inviteStrategy, prospectNote, generatedMessages } = parsed.data;
 
       const scheduleEvent = await storage.getScheduleEvent(scheduleEventId);
       if (!scheduleEvent) {
@@ -364,6 +702,11 @@ ${contextInfo}`;
         scheduleEventId: scheduleEvent.id,
         prospectName,
         prospectType,
+        discType: discType || null,
+        motivationType: motivationType || null,
+        reactionType: reactionType || null,
+        inviteStrategy: inviteStrategy || null,
+        generatedMessages: generatedMessages || "[]",
         prospectNote: prospectNote || null,
         chatHistory: "[]",
         isActive: true,
@@ -400,6 +743,8 @@ ${contextInfo}`;
         prospectName: invite.prospectName,
         partnerName: partner?.name || "Partner",
         isRegistered: !!invite.registeredAt,
+        discType: invite.discType || null,
+        inviteStrategy: invite.inviteStrategy || null,
         event: scheduleEvent ? {
           title: scheduleEvent.title,
           date: scheduleEvent.date,
@@ -437,35 +782,7 @@ ${contextInfo}`;
       const chatHistory: Array<{ role: string; content: string }> = JSON.parse(invite.chatHistory || "[]");
       chatHistory.push({ role: "user", content: message });
 
-      const highlightsText = scheduleEvent?.highlights?.length
-        ? scheduleEvent.highlights.map((h: string) => `• ${h}`).join("\n")
-        : "";
-
-      const systemPrompt = `You are a friendly AI assistant representing ${partnerName}, who personally invited ${invite.prospectName} to a webinar.
-
-WEBINAR DETAILS:
-- Title: ${scheduleEvent?.title || "Webinar"}
-- Date: ${scheduleEvent?.date || "TBD"}
-- Time: ${scheduleEvent?.time || "TBD"}
-- Speaker: ${scheduleEvent?.speaker || "Expert"}
-${highlightsText ? `- Key topics:\n${highlightsText}` : ""}
-
-PROSPECT INFO:
-- Name: ${invite.prospectName}
-- Type: ${invite.prospectType}
-${invite.prospectNote ? `- Note from ${partnerName}: ${invite.prospectNote}` : ""}
-
-REGISTRATION STATUS: ${invite.registeredAt ? "Already registered" : "Not yet registered"}
-
-YOUR BEHAVIOR:
-- You speak warmly and personally, as if you are ${partnerName}'s digital assistant
-- Keep messages SHORT (2-4 sentences max)
-- If they want to register, tell them to click the "Register" button below
-- If they ask for more info, share webinar highlights and speaker details
-- If they're unsure, gently encourage — mention it's free and valuable
-- After they register, congratulate them and mention they can set a reminder
-- Never make up information not provided above
-- Respond in English`;
+      const systemPrompt = buildMasterSystemPrompt(partnerName, invite, scheduleEvent);
 
       const openai = getOpenAIClient();
       const completion = await openai.chat.completions.create({
@@ -481,21 +798,22 @@ YOUR BEHAVIOR:
         max_tokens: 300,
       });
 
-      const reply = completion.choices[0]?.message?.content || "I'd be happy to help! Would you like to register for the webinar?";
+      const reply = completion.choices[0]?.message?.content || "Ich helfe dir gerne! Möchtest du dich für das Webinar registrieren?";
 
       chatHistory.push({ role: "assistant", content: reply });
       await storage.updatePersonalInviteChatHistory(invite.id, JSON.stringify(chatHistory));
 
+      const discType = invite.discType || "I";
       let quickReplies: string[] = [];
       if (!invite.registeredAt) {
         const lowerMsg = message.toLowerCase();
-        if (lowerMsg.includes("register") || lowerMsg.includes("sign up") || lowerMsg.includes("yes")) {
+        if (lowerMsg.includes("registrier") || lowerMsg.includes("register") || lowerMsg.includes("sign up") || lowerMsg.includes("ja")) {
           quickReplies = [];
         } else {
-          quickReplies = ["Yes, register me", "Tell me more", "Not sure yet"];
+          quickReplies = getDiscQuickReplies(discType, false);
         }
       } else if (!invite.reminderPreference) {
-        quickReplies = ["Remind me 1 hour before", "Remind me 15 min before", "No reminder needed"];
+        quickReplies = getDiscQuickReplies(discType, true);
       }
 
       res.json({ reply, quickReplies, isRegistered: !!invite.registeredAt });
@@ -512,38 +830,50 @@ YOUR BEHAVIOR:
         return res.status(404).json({ error: "Invite not found" });
       }
 
+      const discType = invite.discType || "I";
+
       const existingHistory: Array<{ role: string; content: string }> = JSON.parse(invite.chatHistory || "[]");
       if (existingHistory.length > 0) {
         const quickReplies = !invite.registeredAt
-          ? ["Yes, register me", "Tell me more", "Not sure yet"]
+          ? getDiscQuickReplies(discType, false)
           : !invite.reminderPreference
-            ? ["Remind me 1 hour before", "Remind me 15 min before", "No reminder needed"]
+            ? getDiscQuickReplies(discType, true)
             : [];
         return res.json({ reply: existingHistory[0].content, chatHistory: existingHistory, quickReplies, isRegistered: !!invite.registeredAt });
+      }
+
+      const generatedMessages: string[] = JSON.parse(invite.generatedMessages || "[]");
+      if (generatedMessages.length > 0) {
+        const chatHistory = generatedMessages.map((msg) => ({ role: "assistant" as const, content: msg }));
+        await storage.updatePersonalInviteChatHistory(invite.id, JSON.stringify(chatHistory));
+
+        return res.json({
+          reply: generatedMessages[0],
+          chatHistory,
+          quickReplies: getDiscQuickReplies(discType, false),
+          isRegistered: false,
+        });
       }
 
       const scheduleEvent = await storage.getScheduleEvent(invite.scheduleEventId);
       const partner = await storage.getPartnerById(invite.partnerId);
       const partnerName = partner?.name || "Partner";
 
+      const systemPrompt = buildMasterSystemPrompt(partnerName, invite, scheduleEvent);
+
       const openai = getOpenAIClient();
-
-      const noteContext = invite.prospectNote ? ` (${partnerName} mentioned: "${invite.prospectNote}")` : "";
-
-      const initPrompt = `Generate a short, warm opening message (3-4 sentences) for ${invite.prospectName} from ${partnerName}.
-You're personally inviting them to: "${scheduleEvent?.title || "Webinar"}" on ${scheduleEvent?.date || "TBD"} at ${scheduleEvent?.time || "TBD"} with ${scheduleEvent?.speaker || "an expert"}.
-Prospect type: ${invite.prospectType}${noteContext}
-End with asking if they'd like to register or learn more. Be conversational and friendly.`;
-
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
-        messages: [{ role: "user", content: initPrompt }],
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Generate your first greeting message for ${invite.prospectName}. Remember: short, personal, conversational. In German.` },
+        ],
         temperature: 0.8,
         max_tokens: 200,
       });
 
       const firstMessage = completion.choices[0]?.message?.content ||
-        `Hi ${invite.prospectName}! ${partnerName} wanted me to personally invite you to "${scheduleEvent?.title}" on ${scheduleEvent?.date} at ${scheduleEvent?.time}. Would you like to register or hear more about it?`;
+        `${invite.prospectName}, hi!\nIch bin der Assistent von ${partnerName}.\nEr möchte dich persönlich zu einem Webinar einladen.`;
 
       const chatHistory = [{ role: "assistant", content: firstMessage }];
       await storage.updatePersonalInviteChatHistory(invite.id, JSON.stringify(chatHistory));
@@ -551,7 +881,7 @@ End with asking if they'd like to register or learn more. Be conversational and 
       res.json({
         reply: firstMessage,
         chatHistory,
-        quickReplies: ["Yes, register me", "Tell me more", "Not sure yet"],
+        quickReplies: getDiscQuickReplies(discType, false),
         isRegistered: false,
       });
     } catch (error: any) {

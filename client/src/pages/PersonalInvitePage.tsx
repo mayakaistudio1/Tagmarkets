@@ -112,7 +112,7 @@ export default function PersonalInvitePage() {
     if (!text.trim() || sending) return;
 
     const lowerText = text.toLowerCase();
-    if (!isRegistered && (lowerText.includes("register") || lowerText.includes("sign up") || lowerText === "yes, register me")) {
+    if (!isRegistered && (lowerText.includes("register") || lowerText.includes("registrier") || lowerText.includes("sign up") || lowerText === "yes, register me")) {
       setMessages((prev) => [...prev, { role: "user", content: text, type: "text" }]);
       setQuickReplies([]);
       setShowRegForm(true);

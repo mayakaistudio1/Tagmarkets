@@ -64,7 +64,7 @@ interface PersonalInviteResult {
   event: { title: string; date: string; time: string; speaker: string };
 }
 
-type Screen = "list" | "detail" | "invite-type" | "template-select" | "share" | "personal-form" | "personal-share";
+type Screen = "list" | "detail" | "invite-type" | "template-select" | "share" | "personal-form" | "personal-share" | "personal-preview";
 
 export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [webinars, setWebinars] = useState<Webinar[]>([]);
@@ -82,6 +82,15 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [personalInviteResult, setPersonalInviteResult] = useState<PersonalInviteResult | null>(null);
   const [personalCreating, setPersonalCreating] = useState(false);
   const [prospectForm, setProspectForm] = useState({ name: "", type: "Neutral", note: "" });
+
+  const [qualifyStep, setQualifyStep] = useState(0);
+  const [qualifyChatMessages, setQualifyChatMessages] = useState<Array<{ role: string; content: string; options?: Array<{ label: string; value: string }> | null }>>([]);
+  const [qualifyAnswers, setQualifyAnswers] = useState<{ relationship: string; motivation: string; reaction: string; contextNote: string }>({ relationship: "", motivation: "", reaction: "", contextNote: "" });
+  const [qualifyContextInput, setQualifyContextInput] = useState("");
+  const [generatedPreview, setGeneratedPreview] = useState<{ messages: string[]; strategy: string; discType: string; prospectType: string; quickReplies: string[]; motivation: string; reaction: string } | null>(null);
+  const [previewEditing, setPreviewEditing] = useState<number | null>(null);
+  const [previewEditText, setPreviewEditText] = useState("");
+  const [generatingMessages, setGeneratingMessages] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -120,8 +129,114 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     setReportLoading(false);
   };
 
-  const createPersonalInvite = async () => {
-    if (!selectedWebinar || personalCreating) return;
+  const QUALIFY_QUESTIONS = [
+    {
+      step: 1,
+      aiText: "Um eine starke persönliche Einladung zu erstellen, muss ich die Person ein wenig verstehen.\n\nWer ist diese Person für dich?",
+      options: [
+        { label: "Freund / warmer Kontakt", value: "friend" },
+        { label: "Geschäftskontakt", value: "business_contact" },
+        { label: "MLM Leader", value: "mlm_leader" },
+        { label: "Investor-Typ", value: "investor" },
+        { label: "Unternehmer", value: "entrepreneur" },
+        { label: "Kalter Kontakt", value: "cold_contact" },
+      ],
+    },
+    {
+      step: 2,
+      aiText: "Gut! Und was motiviert diese Person normalerweise am meisten?",
+      options: [
+        { label: "Geld / Ergebnisse", value: "money_results" },
+        { label: "Business-Wachstum", value: "business_growth" },
+        { label: "Technologie / Innovation", value: "technology_innovation" },
+        { label: "Community / Menschen", value: "community_people" },
+        { label: "Lernen / Neugier", value: "learning_curiosity" },
+      ],
+    },
+    {
+      step: 3,
+      aiText: "Verstanden! Wie reagiert die Person normalerweise auf neue Möglichkeiten?",
+      options: [
+        { label: "Schnelle Entscheidung", value: "fast_decision" },
+        { label: "Analytisch / viele Fragen", value: "analytical" },
+        { label: "Skeptisch", value: "skeptical" },
+        { label: "Braucht erst Vertrauen", value: "needs_trust" },
+      ],
+    },
+    {
+      step: 4,
+      aiText: "Fast fertig! Gibt es noch etwas Wichtiges über die Person, das ich wissen sollte? (optional)",
+      options: null,
+    },
+  ];
+
+  const startAiQualification = () => {
+    setQualifyStep(0);
+    setQualifyAnswers({ relationship: "", motivation: "", reaction: "", contextNote: "" });
+    setQualifyContextInput("");
+    setGeneratedPreview(null);
+    const firstQ = QUALIFY_QUESTIONS[0];
+    setQualifyChatMessages([{ role: "assistant", content: firstQ.aiText, options: firstQ.options }]);
+    setScreen("personal-form");
+  };
+
+  const handleQualifyAnswer = async (value: string, label: string) => {
+    const step = qualifyStep;
+    const newMessages = [...qualifyChatMessages, { role: "user", content: label }];
+
+    const newAnswers = { ...qualifyAnswers };
+    if (step === 0) newAnswers.relationship = value;
+    else if (step === 1) newAnswers.motivation = value;
+    else if (step === 2) newAnswers.reaction = value;
+    else if (step === 3) newAnswers.contextNote = value;
+    setQualifyAnswers(newAnswers);
+
+    const nextStep = step + 1;
+    if (nextStep < QUALIFY_QUESTIONS.length) {
+      const nextQ = QUALIFY_QUESTIONS[nextStep];
+      newMessages.push({ role: "assistant", content: nextQ.aiText, options: nextQ.options });
+      setQualifyChatMessages(newMessages);
+      setQualifyStep(nextStep);
+    } else {
+      newMessages.push({ role: "assistant", content: "Perfekt! Ich generiere jetzt deine personalisierte Einladung..." });
+      setQualifyChatMessages(newMessages);
+      setQualifyStep(nextStep);
+      await generatePreviewMessages(newAnswers);
+    }
+  };
+
+  const handleContextSubmit = async () => {
+    const value = qualifyContextInput.trim() || "keine zusätzlichen Infos";
+    await handleQualifyAnswer(value, qualifyContextInput.trim() || "Übersprungen");
+  };
+
+  const generatePreviewMessages = async (answers?: typeof qualifyAnswers) => {
+    if (!selectedWebinar) return;
+    const ans = answers || qualifyAnswers;
+    setGeneratingMessages(true);
+    try {
+      const res = await fetch("/api/partner-app/generate-invite-messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        body: JSON.stringify({
+          scheduleEventId: selectedWebinar.id,
+          prospectName: prospectForm.name,
+          relationship: ans.relationship,
+          motivation: ans.motivation,
+          reaction: ans.reaction,
+          contextNote: ans.contextNote,
+        }),
+      });
+      if (!res.ok) throw new Error("Generation failed");
+      const data = await res.json();
+      setGeneratedPreview(data);
+      setScreen("personal-preview");
+    } catch { alert("Fehler bei der Generierung. Bitte erneut versuchen."); }
+    setGeneratingMessages(false);
+  };
+
+  const confirmAndCreateInvite = async () => {
+    if (!selectedWebinar || !generatedPreview || personalCreating) return;
     setPersonalCreating(true);
     try {
       const res = await fetch("/api/partner-app/create-personal-invite", {
@@ -130,19 +245,24 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
         body: JSON.stringify({
           scheduleEventId: selectedWebinar.id,
           prospectName: prospectForm.name,
-          prospectType: prospectForm.type,
-          prospectNote: prospectForm.note || undefined,
+          prospectType: generatedPreview.prospectType,
+          discType: generatedPreview.discType,
+          motivationType: generatedPreview.motivation,
+          reactionType: generatedPreview.reaction,
+          inviteStrategy: generatedPreview.strategy,
+          generatedMessages: JSON.stringify(generatedPreview.messages),
+          prospectNote: qualifyAnswers.contextNote || undefined,
         }),
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        alert(errData.error || "Failed to create invite. Please try again.");
+        alert(errData.error || "Fehler beim Erstellen. Bitte erneut versuchen.");
         return;
       }
       const data = await res.json();
       setPersonalInviteResult(data);
       setScreen("personal-share");
-    } catch (err) { console.error(err); alert("Failed to create invite. Please try again."); }
+    } catch (err) { console.error(err); alert("Fehler beim Erstellen. Bitte erneut versuchen."); }
     setPersonalCreating(false);
   };
 
@@ -204,7 +324,8 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
       case "share": setScreen("template-select"); break;
       case "template-select": setScreen("invite-type"); break;
       case "invite-type": setScreen("detail"); break;
-      case "personal-share": setScreen("personal-form"); break;
+      case "personal-share": setScreen("detail"); break;
+      case "personal-preview": setScreen("personal-form"); break;
       case "personal-form": setScreen("detail"); break;
       case "detail": setScreen("list"); setEventReport(null); break;
       default: setScreen("list"); break;
@@ -417,83 +538,233 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   }
 
   if (screen === "personal-form" && selectedWebinar) {
+    if (!prospectForm.name.trim()) {
+      return (
+        <div className="px-5 pt-5 pb-28">
+          <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
+            <ChevronLeft className="w-4 h-4" /> Zurück
+          </button>
+          <div className="flex items-center gap-2 mb-5">
+            <Sparkles className="w-5 h-5 text-blue-600" />
+            <h2 className="text-base font-semibold text-gray-900">AI Invite erstellen</h2>
+          </div>
+          <div className="bg-white rounded-2xl p-5 mb-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <p className="text-xs text-gray-400 mb-1">Für Webinar</p>
+            <p className="text-sm font-semibold text-gray-900">{selectedWebinar.title}</p>
+            <p className="text-xs text-gray-400 mt-1">{selectedWebinar.date} um {selectedWebinar.time}</p>
+          </div>
+          <div className="bg-white rounded-2xl p-5 space-y-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-500">Name der Person *</label>
+              <input
+                autoFocus
+                placeholder="z.B. Max Müller"
+                value={prospectForm.name}
+                onChange={(e) => setProspectForm({ ...prospectForm, name: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+                data-testid="input-prospect-name"
+                onKeyDown={(e) => { if (e.key === "Enter" && prospectForm.name.trim()) startAiQualification(); }}
+              />
+            </div>
+            <button
+              onClick={startAiQualification}
+              disabled={!prospectForm.name.trim()}
+              className="w-full py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              data-testid="button-start-qualification"
+            >
+              <Sparkles className="w-4 h-4" />
+              Weiter
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col h-full bg-[#F5F5F7]">
+        <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-100">
+          <button onClick={() => { setProspectForm({ name: "", type: "Neutral", note: "" }); goBack(); }} className="text-gray-400 active:opacity-60" data-testid="button-back">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">AI Invite Builder</p>
+              <p className="text-[10px] text-gray-400">für {prospectForm.name}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+          {qualifyChatMessages.map((msg, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={msg.role === "assistant" ? "flex justify-start" : "flex justify-end"}
+            >
+              {msg.role === "assistant" ? (
+                <div className="max-w-[85%]">
+                  <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 text-sm text-gray-800 whitespace-pre-line" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+                    {msg.content}
+                  </div>
+                  {msg.options && i === qualifyChatMessages.length - 1 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {msg.options.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => handleQualifyAnswer(opt.value, opt.label)}
+                          className="px-3.5 py-2 rounded-full bg-white border border-blue-200 text-xs font-medium text-blue-600 active:bg-blue-50 transition-colors"
+                          data-testid={`qualify-option-${opt.value}`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {!msg.options && msg.options === null && i === qualifyChatMessages.length - 1 && qualifyStep === 3 && (
+                    <div className="flex gap-2 mt-2">
+                      <input
+                        value={qualifyContextInput}
+                        onChange={(e) => setQualifyContextInput(e.target.value)}
+                        placeholder="z.B. baut Teams, liebt Crypto..."
+                        className="flex-1 px-3.5 py-2 rounded-full bg-white border border-gray-200 text-xs text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400"
+                        data-testid="input-qualify-context"
+                        onKeyDown={(e) => { if (e.key === "Enter") handleContextSubmit(); }}
+                      />
+                      <button
+                        onClick={handleContextSubmit}
+                        className="px-4 py-2 rounded-full bg-blue-600 text-xs font-medium text-white active:bg-blue-700"
+                        data-testid="button-submit-context"
+                      >
+                        {qualifyContextInput.trim() ? "Senden" : "Überspringen"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="max-w-[75%] bg-blue-600 rounded-2xl rounded-tr-md px-4 py-3 text-sm text-white">
+                  {msg.content}
+                </div>
+              )}
+            </motion.div>
+          ))}
+          {generatingMessages && (
+            <div className="flex justify-start">
+              <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 flex items-center gap-2" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+                <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                <span className="text-sm text-gray-500">Generiere Einladung...</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (screen === "personal-preview" && selectedWebinar && generatedPreview) {
+    const strategyLabels: Record<string, string> = {
+      Authority: "Authority — für Leader",
+      Opportunity: "Opportunity — für Investoren",
+      Curiosity: "Curiosity — für Neugierige",
+      Support: "Support — für Einsteiger",
+    };
+    const discLabels: Record<string, string> = {
+      D: "D — Dominanz",
+      I: "I — Einfluss",
+      S: "S — Stabilität",
+      C: "C — Gewissenhaftigkeit",
+    };
     return (
       <div className="px-5 pt-5 pb-28">
         <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
-          <ChevronLeft className="w-4 h-4" /> Back
+          <ChevronLeft className="w-4 h-4" /> Zurück
         </button>
 
-        <div className="flex items-center gap-2 mb-5">
+        <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-5 h-5 text-blue-600" />
-          <h2 className="text-base font-semibold text-gray-900">Personal AI Invite</h2>
+          <h2 className="text-base font-semibold text-gray-900">Vorschau der Einladung</h2>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-          <p className="text-xs text-gray-400 mb-1">For webinar</p>
-          <p className="text-sm font-semibold text-gray-900">{selectedWebinar.title}</p>
-          <p className="text-xs text-gray-400 mt-1">{selectedWebinar.date} at {selectedWebinar.time}</p>
+        <div className="flex gap-2 mb-4">
+          <span className="px-2.5 py-1 rounded-full bg-blue-50 text-[10px] font-semibold text-blue-700" data-testid="badge-strategy">
+            {strategyLabels[generatedPreview.strategy] || generatedPreview.strategy}
+          </span>
+          <span className="px-2.5 py-1 rounded-full bg-purple-50 text-[10px] font-semibold text-purple-700" data-testid="badge-disc">
+            DISC: {discLabels[generatedPreview.discType] || generatedPreview.discType}
+          </span>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 space-y-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-500">Prospect Name *</label>
-            <input
-              required
-              placeholder="e.g. Max Müller"
-              value={prospectForm.name}
-              onChange={(e) => setProspectForm({ ...prospectForm, name: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
-              data-testid="input-prospect-name"
-            />
-          </div>
+        <div className="space-y-3 mb-5">
+          {generatedPreview.messages.map((msg, i) => (
+            <div key={i} className="bg-white rounded-2xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-medium text-gray-400">Nachricht {i + 1}</span>
+                <button
+                  onClick={() => {
+                    if (previewEditing === i) {
+                      const newMsgs = [...generatedPreview.messages];
+                      newMsgs[i] = previewEditText;
+                      setGeneratedPreview({ ...generatedPreview, messages: newMsgs });
+                      setPreviewEditing(null);
+                    } else {
+                      setPreviewEditing(i);
+                      setPreviewEditText(msg);
+                    }
+                  }}
+                  className="text-[10px] font-medium text-blue-600 active:opacity-60"
+                  data-testid={`button-edit-message-${i}`}
+                >
+                  {previewEditing === i ? "Speichern" : "Bearbeiten"}
+                </button>
+              </div>
+              {previewEditing === i ? (
+                <textarea
+                  value={previewEditText}
+                  onChange={(e) => setPreviewEditText(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 outline-none focus:border-blue-400 resize-none"
+                  data-testid={`textarea-edit-message-${i}`}
+                />
+              ) : (
+                <p className="text-sm text-gray-800 whitespace-pre-line">{msg}</p>
+              )}
+            </div>
+          ))}
+        </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-500">Prospect Type</label>
-            <select
-              value={prospectForm.type}
-              onChange={(e) => setProspectForm({ ...prospectForm, type: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all appearance-none"
-              data-testid="select-prospect-type"
-            >
-              <option value="Investor">Investor</option>
-              <option value="MLM Leader">MLM Leader</option>
-              <option value="Entrepreneur">Entrepreneur</option>
-              <option value="Beginner">Beginner</option>
-              <option value="Neutral">Neutral</option>
-            </select>
+        <div className="bg-white rounded-2xl p-4 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <p className="text-[10px] font-medium text-gray-400 mb-2">Quick Replies für {prospectForm.name}</p>
+          <div className="flex flex-wrap gap-2">
+            {generatedPreview.quickReplies.map((qr) => (
+              <span key={qr} className="px-3 py-1.5 rounded-full bg-blue-50 text-xs font-medium text-blue-600">{qr}</span>
+            ))}
           </div>
+        </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-500">Note for AI (optional)</label>
-            <textarea
-              placeholder="e.g. Interested in crypto, met at conference..."
-              value={prospectForm.note}
-              onChange={(e) => setProspectForm({ ...prospectForm, note: e.target.value })}
-              rows={3}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all resize-none"
-              data-testid="textarea-prospect-note"
-            />
-          </div>
-
+        <div className="flex gap-3">
           <button
-            onClick={createPersonalInvite}
-            disabled={!prospectForm.name.trim() || personalCreating}
-            className="w-full py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-            data-testid="button-create-personal-invite"
+            onClick={() => generatePreviewMessages()}
+            disabled={generatingMessages}
+            className="flex-1 py-3 rounded-xl bg-gray-100 text-sm font-semibold text-gray-700 active:bg-gray-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            data-testid="button-regenerate"
           >
-            {personalCreating ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                Create AI Invite
-              </>
-            )}
+            {generatingMessages ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Sparkles className="w-4 h-4" /> Neu generieren</>}
+          </button>
+          <button
+            onClick={confirmAndCreateInvite}
+            disabled={personalCreating}
+            className="flex-1 py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            data-testid="button-confirm-invite"
+          >
+            {personalCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4" /> Bestätigen</>}
           </button>
         </div>
 
         <p className="text-[11px] text-gray-400 text-center mt-4 leading-relaxed">
-          The AI will use the prospect's name, type, and your note to create a personalized conversation when they open the link.
+          Die KI wird diese Nachrichten verwenden, wenn {prospectForm.name} den Link öffnet.
         </p>
       </div>
     );

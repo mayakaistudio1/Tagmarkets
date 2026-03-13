@@ -91,6 +91,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [previewEditing, setPreviewEditing] = useState<number | null>(null);
   const [previewEditText, setPreviewEditText] = useState("");
   const [generatingMessages, setGeneratingMessages] = useState(false);
+  const [qualifyStarted, setQualifyStarted] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -175,9 +176,9 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     setQualifyAnswers({ relationship: "", motivation: "", reaction: "", contextNote: "" });
     setQualifyContextInput("");
     setGeneratedPreview(null);
+    setQualifyStarted(true);
     const firstQ = QUALIFY_QUESTIONS[0];
     setQualifyChatMessages([{ role: "assistant", content: firstQ.aiText, options: firstQ.options }]);
-    setScreen("personal-form");
   };
 
   const handleQualifyAnswer = async (value: string, label: string) => {
@@ -326,7 +327,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
       case "invite-type": setScreen("detail"); break;
       case "personal-share": setScreen("detail"); break;
       case "personal-preview": setScreen("personal-form"); break;
-      case "personal-form": setScreen("detail"); break;
+      case "personal-form": setQualifyStarted(false); setScreen("detail"); break;
       case "detail": setScreen("list"); setEventReport(null); break;
       default: setScreen("list"); break;
     }
@@ -538,7 +539,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   }
 
   if (screen === "personal-form" && selectedWebinar) {
-    if (!prospectForm.name.trim()) {
+    if (!qualifyStarted) {
       return (
         <div className="px-5 pt-5 pb-28">
           <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
@@ -583,7 +584,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     return (
       <div className="flex flex-col h-full bg-[#F5F5F7]">
         <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-100">
-          <button onClick={() => { setProspectForm({ name: "", type: "Neutral", note: "" }); goBack(); }} className="text-gray-400 active:opacity-60" data-testid="button-back">
+          <button onClick={() => { setQualifyStarted(false); setProspectForm({ name: "", type: "Neutral", note: "" }); goBack(); }} className="text-gray-400 active:opacity-60" data-testid="button-back">
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
@@ -886,7 +887,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
             Send Invite
           </button>
           <button
-            onClick={() => { setProspectForm({ name: "", type: "Neutral", note: "" }); setPersonalInviteResult(null); setScreen("personal-form"); }}
+            onClick={() => { setQualifyStarted(false); setProspectForm({ name: "", type: "Neutral", note: "" }); setPersonalInviteResult(null); setScreen("personal-form"); }}
             className="flex-1 py-3 rounded-xl bg-white border border-blue-200 text-sm font-semibold text-blue-600 active:bg-blue-50 transition-colors flex items-center justify-center gap-1.5"
             data-testid="button-personal-ai-invite"
           >

@@ -12,3 +12,9 @@ id = "hotyUuPIKgA9hVCIjB2Bp"
 uri = "file://docs/Partner_Bot_Slides_Brief.md"
 type = "text"
 title = "JetUP Partner Bot — Бриф для слайдов"
+
+[[outputs]]
+id = "R4nMXO83Jm5z2zl1mb1oN"
+uri = "file://docs/partner-app-description.md"
+type = "text"
+title = "Partner App — Описание функционала"

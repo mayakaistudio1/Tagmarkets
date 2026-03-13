@@ -606,9 +606,10 @@ End with asking if they'd like to register or learn more. Be conversational and 
         return res.status(404).json({ error: "Invite not found" });
       }
 
+      const REMINDER_OPTIONS = ["1h", "1d", "none"] as const;
       const { preference } = req.body;
-      if (!preference) {
-        return res.status(400).json({ error: "preference is required" });
+      if (!preference || !REMINDER_OPTIONS.includes(preference)) {
+        return res.status(400).json({ error: "preference must be one of: 1h, 1d, none" });
       }
 
       await storage.updatePersonalInviteReminder(invite.id, preference);

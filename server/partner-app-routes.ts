@@ -5,6 +5,22 @@ import { inviteEvents, inviteGuests, zoomAttendance, scheduleEvents, speakers, p
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import OpenAI from "openai";
 import crypto from "crypto";
+import { z } from "zod";
+
+const PROSPECT_TYPES = ["Investor", "MLM Leader", "Entrepreneur", "Beginner", "Neutral"] as const;
+
+const createPersonalInviteSchema = z.object({
+  scheduleEventId: z.number({ required_error: "scheduleEventId is required" }),
+  prospectName: z.string().min(1, "prospectName is required").max(200),
+  prospectType: z.enum(PROSPECT_TYPES).default("Neutral"),
+  prospectNote: z.string().max(1000).optional(),
+});
+
+const registerPersonalInviteSchema = z.object({
+  name: z.string().min(1, "name is required").max(200),
+  email: z.string().email("valid email is required"),
+  telegram: z.string().max(100).optional(),
+});
 
 function getOpenAIClient() {
   return new OpenAI({
@@ -332,10 +348,11 @@ ${contextInfo}`;
         return res.status(401).json({ error: "Partner not found" });
       }
 
-      const { scheduleEventId, prospectName, prospectType, prospectNote } = req.body;
-      if (!scheduleEventId || !prospectName) {
-        return res.status(400).json({ error: "scheduleEventId and prospectName are required" });
+      const parsed = createPersonalInviteSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.errors[0]?.message || "Invalid input" });
       }
+      const { scheduleEventId, prospectName, prospectType, prospectNote } = parsed.data;
 
       const scheduleEvent = await storage.getScheduleEvent(scheduleEventId);
       if (!scheduleEvent) {
@@ -346,7 +363,7 @@ ${contextInfo}`;
         partnerId: partner.id,
         scheduleEventId: scheduleEvent.id,
         prospectName,
-        prospectType: prospectType || "Neutral",
+        prospectType,
         prospectNote: prospectNote || null,
         chatHistory: "[]",
         isActive: true,
@@ -554,10 +571,11 @@ End with asking if they'd like to register or learn more. Be conversational and 
         return res.status(400).json({ error: "Already registered" });
       }
 
-      const { name, email, telegram } = req.body;
-      if (!name || !email) {
-        return res.status(400).json({ error: "name and email are required" });
+      const parsed = registerPersonalInviteSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.errors[0]?.message || "Invalid input" });
       }
+      const { name, email, telegram } = parsed.data;
 
       const updated = await storage.updatePersonalInviteRegistration(invite.id, {
         guestName: name,

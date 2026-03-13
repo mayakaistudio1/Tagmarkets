@@ -201,6 +201,7 @@ export function registerPartnerAppRoutes(app: Express) {
           attended: !!att,
           durationMinutes: att?.durationMinutes || 0,
           questionsAsked: att?.questionsAsked || 0,
+          questionTexts: att?.questionTexts || [],
         };
       });
 

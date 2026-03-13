@@ -29,7 +29,7 @@ interface EventReport {
   guests: Array<{
     id: number; name: string; email: string; phone: string | null;
     registeredAt: string; clickedZoom: boolean; attended: boolean;
-    durationMinutes: number; questionsAsked: number;
+    durationMinutes: number; questionsAsked: number; questionTexts: string[];
   }>;
   funnel: { invited: number; registered: number; clickedZoom: number; attended: number };
 }
@@ -473,9 +473,20 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                   </div>
                   <p className="text-[11px] text-gray-400">{g.email}</p>
                   {g.attended && (
-                    <div className="flex items-center gap-3 mt-2 pt-2 border-t border-gray-100">
-                      <span className="text-[11px] text-gray-500">⏱ {g.durationMinutes} min</span>
-                      {g.questionsAsked > 0 && <span className="text-[11px] text-gray-500">❓ {g.questionsAsked} questions</span>}
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] text-gray-500">⏱ {g.durationMinutes} min</span>
+                        {g.questionsAsked > 0 && <span className="text-[11px] text-gray-500">💬 {g.questionsAsked} questions</span>}
+                      </div>
+                      {g.questionTexts && g.questionTexts.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {g.questionTexts.map((q, qi) => (
+                            <div key={qi} className="bg-gray-50 rounded-lg px-2.5 py-1.5">
+                              <p className="text-[11px] text-gray-600">"{q}"</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </motion.div>

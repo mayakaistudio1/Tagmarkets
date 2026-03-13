@@ -259,6 +259,7 @@ export const zoomAttendance = pgTable("zoom_attendance", {
   leaveTime: timestamp("leave_time"),
   durationMinutes: integer("duration_minutes").notNull().default(0),
   questionsAsked: integer("questions_asked").notNull().default(0),
+  questionTexts: text("question_texts").array(),
   fetchedAt: timestamp("fetched_at").defaultNow().notNull(),
 });
 

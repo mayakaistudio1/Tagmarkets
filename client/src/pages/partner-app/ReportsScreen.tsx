@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck, Send, Calendar, Clock } from "lucide-react";
+import { BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck, Calendar, Clock, MessageCircle } from "lucide-react";
 
 interface PartnerEvent {
   id: number; title: string; eventDate: string; eventTime: string;
@@ -14,7 +14,7 @@ interface EventReport {
   guests: Array<{
     id: number; name: string; email: string; phone: string | null;
     registeredAt: string; clickedZoom: boolean; attended: boolean;
-    durationMinutes: number; questionsAsked: number;
+    durationMinutes: number; questionsAsked: number; questionTexts: string[];
   }>;
   funnel: { invited: number; registered: number; clickedZoom: number; attended: number };
 }
@@ -42,6 +42,7 @@ function FunnelBar({ label, value, maxValue, color }: { label: string; value: nu
 export default function ReportsScreen({ telegramId }: { telegramId: string }) {
   const [events, setEvents] = useState<PartnerEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedGuest, setExpandedGuest] = useState<number | null>(null);
   const [selectedReport, setSelectedReport] = useState<EventReport | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
 
@@ -117,26 +118,63 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
-              className="bg-white rounded-xl p-4 flex items-center justify-between"
+              className="bg-white rounded-xl overflow-hidden"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
               data-testid={`guest-row-${g.id}`}
             >
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-900 truncate">{g.name}</p>
-                <p className="text-[11px] text-gray-400 truncate">{g.email}</p>
-              </div>
-              <div className="ml-3 flex-shrink-0">
-                {g.attended ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold">
-                    ✓ {g.durationMinutes}m
-                    {g.questionsAsked > 0 && ` · ${g.questionsAsked}Q`}
-                  </span>
-                ) : g.clickedZoom ? (
-                  <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold">Clicked</span>
-                ) : (
-                  <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold">No show</span>
-                )}
-              </div>
+              <button
+                className="w-full p-4 flex items-center justify-between text-left active:bg-gray-50 transition-colors"
+                onClick={() => setExpandedGuest(expandedGuest === g.id ? null : g.id)}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-900 truncate">{g.name}</p>
+                  <p className="text-[11px] text-gray-400 truncate">{g.email}</p>
+                </div>
+                <div className="ml-3 flex-shrink-0">
+                  {g.attended ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold">
+                      ✓ {g.durationMinutes}m
+                      {g.questionsAsked > 0 && ` · ${g.questionsAsked}Q`}
+                    </span>
+                  ) : g.clickedZoom ? (
+                    <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold">Clicked</span>
+                  ) : (
+                    <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold">No show</span>
+                  )}
+                </div>
+              </button>
+              {expandedGuest === g.id && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  className="px-4 pb-4 border-t border-gray-50"
+                >
+                  <div className="pt-3 space-y-2">
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      {g.attended && <span>⏱ {g.durationMinutes} min</span>}
+                      {g.phone && <span>📞 {g.phone}</span>}
+                      {g.clickedZoom && <span className="text-blue-500">🔗 Clicked Zoom</span>}
+                    </div>
+                    {g.questionTexts && g.questionTexts.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-[11px] font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
+                          <MessageCircle className="w-3 h-3" /> Questions asked:
+                        </p>
+                        <div className="space-y-1.5">
+                          {g.questionTexts.map((q, qi) => (
+                            <div key={qi} className="bg-gray-50 rounded-lg px-3 py-2">
+                              <p className="text-xs text-gray-700">{q}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {(!g.questionTexts || g.questionTexts.length === 0) && g.attended && (
+                      <p className="text-[11px] text-gray-400 italic">No questions asked</p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           ))}
         </div>
@@ -177,12 +215,7 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                 <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {event.eventDate}</span>
                 <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {event.eventTime}</span>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <Send className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-xs font-semibold text-gray-700">{event.invitesSent}</span>
-                  <span className="text-[10px] text-gray-400">sent</span>
-                </div>
+              <div className="flex items-center gap-5">
                 <div className="flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-blue-500" />
                   <span className="text-xs font-semibold text-gray-700">{event.registeredCount || event.guestCount}</span>

@@ -84,8 +84,26 @@ export function registerPartnerAppRoutes(app: Express) {
   app.get("/api/partner-app/webinars", async (req, res) => {
     if (!partnerAppGuard(req, res)) return;
     try {
+      const partner = await getPartnerFromRequest(req);
       const events = await storage.getScheduleEvents(true);
-      res.json(events);
+
+      if (partner) {
+        const partnerEvents = await storage.getInviteEventsByPartnerId(partner.id);
+        const enriched = await Promise.all(events.map(async (se: any) => {
+          const related = partnerEvents.filter((ie: any) => ie.scheduleEventId === se.id);
+          let invitesSent = 0;
+          let registeredCount = 0;
+          for (const ie of related) {
+            invitesSent++;
+            const guests = await storage.getGuestsByEventId(ie.id);
+            registeredCount += guests.length;
+          }
+          return { ...se, invitesSent, registeredCount };
+        }));
+        return res.json(enriched);
+      }
+
+      res.json(events.map((e: any) => ({ ...e, invitesSent: 0, registeredCount: 0 })));
     } catch (error: any) {
       console.error("Partner app webinars error:", error);
       res.status(500).json({ error: "Internal server error" });

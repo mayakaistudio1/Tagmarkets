@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, TrendingUp, CalendarDays, ArrowUpRight, ChevronRight, Calendar, Clock, Video } from "lucide-react";
+import { Users, TrendingUp, CalendarDays, ArrowUpRight, ChevronRight, Calendar, Clock, Video, Send, UserCheck } from "lucide-react";
 
 interface Props {
   profile: {
@@ -33,16 +33,17 @@ interface Webinar {
   id: number; title: string; date: string; time: string; timezone: string;
   speaker: string; speakerPhoto: string | null; type: string; typeBadge: string;
   highlights: string[]; language: string;
+  invitesSent: number; registeredCount: number;
 }
 
-interface RecentEvent {
+interface PartnerEvent {
   id: number; title: string; eventDate: string; eventTime: string;
   registeredCount: number; attendedCount: number; conversionRate: number;
 }
 
 export default function DashboardScreen({ profile, telegramId, onNavigate }: Props) {
   const [webinars, setWebinars] = useState<Webinar[]>([]);
-  const [recentEvents, setRecentEvents] = useState<RecentEvent[]>([]);
+  const [pastEvents, setPastEvents] = useState<PartnerEvent[]>([]);
 
   useEffect(() => {
     fetch("/api/partner-app/webinars", { headers: { "x-telegram-id": telegramId } })
@@ -52,7 +53,7 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
 
     fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } })
       .then((r) => r.json())
-      .then((data) => setRecentEvents(data.slice(0, 3)))
+      .then((data) => setPastEvents(data.slice(0, 3)))
       .catch(() => {});
   }, [telegramId]);
 
@@ -135,6 +136,16 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
                     {w.speaker && (
                       <p className="text-xs text-gray-400 mt-1">{w.speaker}</p>
                     )}
+                    <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-100">
+                      <span className="flex items-center gap-1 text-xs text-gray-500">
+                        <Send className="w-3 h-3 text-blue-400" />
+                        <span className="font-semibold text-gray-700">{w.invitesSent}</span> sent
+                      </span>
+                      <span className="flex items-center gap-1 text-xs text-gray-500">
+                        <UserCheck className="w-3 h-3 text-emerald-400" />
+                        <span className="font-semibold text-gray-700">{w.registeredCount}</span> registered
+                      </span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -171,24 +182,25 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
         ))}
       </div>
 
-      {recentEvents.length > 0 && (
+      {pastEvents.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900">Recent Results</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Past Events</h3>
             <button onClick={() => onNavigate("reports")} className="text-xs text-blue-600 font-medium flex items-center gap-0.5" data-testid="link-all-reports">
               See all <ChevronRight className="w-3 h-3" />
             </button>
           </div>
           <div className="space-y-2">
-            {recentEvents.map((event, i) => (
+            {pastEvents.map((event, i) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.55 + i * 0.05 }}
-                className="bg-white rounded-xl p-4 flex items-center justify-between"
+                onClick={() => onNavigate("reports")}
+                className="bg-white rounded-xl p-4 flex items-center justify-between cursor-pointer active:bg-gray-50 transition-colors"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
-                data-testid={`recent-event-${event.id}`}
+                data-testid={`past-event-${event.id}`}
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
@@ -203,6 +215,7 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
                     <p className="text-sm font-semibold text-emerald-600">{event.attendedCount}</p>
                     <p className="text-[9px] text-gray-400 uppercase">Att</p>
                   </div>
+                  <ChevronRight className="w-4 h-4 text-gray-300" />
                 </div>
               </motion.div>
             ))}

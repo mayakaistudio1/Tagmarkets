@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Calendar, Clock, User, Globe, Loader2, ChevronLeft,
+  Calendar, Clock, User, Globe, Loader2, ChevronLeft, ChevronRight,
   Send, Copy, Check, Share2, MessageCircle, Phone,
-  Mail, Facebook, Instagram, Link2
+  Mail, Facebook, Instagram, Link2, Users, UserCheck, FileText
 } from "lucide-react";
 
 interface Webinar {
   id: number; title: string; date: string; time: string; timezone: string;
   speaker: string; speakerPhoto: string | null; type: string; typeBadge: string;
   highlights: string[]; language: string;
+  invitesSent: number; registeredCount: number;
 }
 
 interface InviteResult {
@@ -17,7 +18,47 @@ interface InviteResult {
   event: { title: string; date: string; time: string; speaker: string };
 }
 
-type Screen = "list" | "invite-type" | "personal" | "social";
+interface EventDetail {
+  id: number; title: string; eventDate: string; eventTime: string;
+  registeredCount: number; attendedCount: number; conversionRate: number;
+  inviteCode: string; guestCount: number; clickedCount: number;
+}
+
+interface EventReport {
+  event: { id: number; title: string; eventDate: string; eventTime: string; inviteCode: string };
+  guests: Array<{
+    id: number; name: string; email: string; phone: string | null;
+    registeredAt: string; clickedZoom: boolean; attended: boolean;
+    durationMinutes: number; questionsAsked: number;
+  }>;
+  funnel: { invited: number; registered: number; clickedZoom: number; attended: number };
+}
+
+const MESSAGE_TEMPLATES = [
+  {
+    id: "professional",
+    label: "Professional",
+    icon: "💼",
+    generate: (event: { title: string; date: string; time: string; speaker: string }, url: string) =>
+      `Ich möchte Sie herzlich zu unserem exklusiven Webinar einladen:\n\n📌 ${event.title}\n📅 ${event.date} um ${event.time}\n🎤 Speaker: ${event.speaker}\n\nMelden Sie sich jetzt an:\n${url}`,
+  },
+  {
+    id: "friendly",
+    label: "Friendly",
+    icon: "😊",
+    generate: (event: { title: string; date: string; time: string; speaker: string }, url: string) =>
+      `Hey! Ich habe ein spannendes Webinar für dich:\n\n🎯 ${event.title}\n📅 ${event.date}, ${event.time}\n🎤 Mit ${event.speaker}\n\nSchau mal rein, es lohnt sich! 👇\n${url}`,
+  },
+  {
+    id: "short",
+    label: "Short & Direct",
+    icon: "⚡",
+    generate: (event: { title: string; date: string; time: string; speaker: string }, url: string) =>
+      `${event.title} — ${event.date}, ${event.time}.\nJetzt anmelden: ${url}`,
+  },
+];
+
+type Screen = "list" | "detail" | "invite-type" | "template-select" | "share";
 
 export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [webinars, setWebinars] = useState<Webinar[]>([]);
@@ -27,11 +68,22 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [inviteResult, setInviteResult] = useState<InviteResult | null>(null);
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(MESSAGE_TEMPLATES[0]);
+  const [shareMode, setShareMode] = useState<"personal" | "social">("personal");
+  const [eventDetails, setEventDetails] = useState<EventDetail[]>([]);
+  const [eventReport, setEventReport] = useState<EventReport | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
-    fetch("/api/partner-app/webinars", { headers: { "x-telegram-id": telegramId } })
-      .then((r) => r.json())
-      .then((data) => { setWebinars(data); setLoading(false); })
+    Promise.all([
+      fetch("/api/partner-app/webinars", { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()),
+      fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()),
+    ])
+      .then(([webinarData, eventsData]) => {
+        setWebinars(webinarData);
+        setEventDetails(eventsData);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, [telegramId]);
 
@@ -50,17 +102,26 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     setCreating(false);
   };
 
+  const loadEventReport = async (eventId: number) => {
+    setReportLoading(true);
+    try {
+      const res = await fetch(`/api/partner-app/events/${eventId}/report`, { headers: { "x-telegram-id": telegramId } });
+      setEventReport(await res.json());
+    } catch (err) { console.error(err); }
+    setReportLoading(false);
+  };
+
   const getFullUrl = () => `${window.location.origin}${inviteResult?.inviteUrl || ""}`;
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(getFullUrl());
+  const handleCopy = (text?: string) => {
+    navigator.clipboard.writeText(text || getFullUrl());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const getShareText = () => {
     if (!inviteResult) return "";
-    return `🎯 Einladung zum Webinar:\n\n📌 ${inviteResult.event.title}\n📅 ${inviteResult.event.date} um ${inviteResult.event.time}\n🎤 ${inviteResult.event.speaker}\n\nAnmeldung: ${getFullUrl()}`;
+    return selectedTemplate.generate(inviteResult.event, getFullUrl());
   };
 
   const shareVia = (platform: string) => {
@@ -75,31 +136,47 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
       case "whatsapp": window.open(`https://wa.me/?text=${text}`, "_blank"); break;
       case "facebook": window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank"); break;
       case "email": window.open(`mailto:?subject=${encodeURIComponent(inviteResult?.event.title || "")}&body=${text}`, "_blank"); break;
-      case "instagram": navigator.clipboard.writeText(getShareText()); setCopied(true); setTimeout(() => setCopied(false), 2000); break;
+      case "instagram": handleCopy(getShareText()); break;
     }
   };
 
   const handleSelectWebinar = (w: Webinar) => {
     setSelectedWebinar(w);
     setInviteResult(null);
+    setEventReport(null);
+    setScreen("detail");
+  };
+
+  const handleStartInvite = () => {
     setScreen("invite-type");
   };
 
-  const handleInviteType = async (type: "personal" | "social") => {
+  const handleInviteType = (type: "personal" | "social") => {
+    setShareMode(type);
+    setScreen("template-select");
+  };
+
+  const handleTemplateSelected = async (template: typeof MESSAGE_TEMPLATES[0]) => {
+    setSelectedTemplate(template);
     if (!inviteResult) await createInvite();
-    setScreen(type);
+    setScreen("share");
   };
 
   const goBack = () => {
-    if (screen === "personal" || screen === "social") setScreen("invite-type");
-    else setScreen("list");
+    switch (screen) {
+      case "share": setScreen("template-select"); break;
+      case "template-select": setScreen("invite-type"); break;
+      case "invite-type": setScreen("detail"); break;
+      case "detail": setScreen("list"); setEventReport(null); break;
+      default: setScreen("list"); break;
+    }
   };
 
   if (loading) {
     return <div className="h-full flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>;
   }
 
-  if ((screen === "personal" || screen === "social") && (creating || !inviteResult)) {
+  if (screen === "share" && (creating || !inviteResult)) {
     return (
       <div className="h-full flex flex-col items-center justify-center px-6">
         <Loader2 className="w-6 h-6 animate-spin text-blue-500 mb-3" />
@@ -108,8 +185,8 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     );
   }
 
-  if (screen === "personal" || screen === "social") {
-    const shareChannels = screen === "personal"
+  if (screen === "share" && inviteResult) {
+    const shareChannels = shareMode === "personal"
       ? [
           { id: "telegram", label: "Telegram", icon: Send, bg: "bg-blue-500" },
           { id: "whatsapp", label: "WhatsApp", icon: Phone, bg: "bg-green-500" },
@@ -129,7 +206,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
         </button>
 
         <h2 className="text-lg font-bold text-gray-900 mb-5">
-          {screen === "personal" ? "Personal Invite" : "Social Share"}
+          {shareMode === "personal" ? "Personal Invite" : "Social Share"}
         </h2>
 
         <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
@@ -137,18 +214,19 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
             <Link2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <p className="text-xs text-gray-600 truncate flex-1 font-mono" data-testid="text-invite-url">{getFullUrl()}</p>
-            <button onClick={handleCopy} className="p-1.5 rounded-lg bg-white active:bg-gray-100" data-testid="button-copy-link">
+            <button onClick={() => handleCopy()} className="p-1.5 rounded-lg bg-white active:bg-gray-100" data-testid="button-copy-link">
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
             </button>
           </div>
         </div>
 
-        {screen === "social" && (
-          <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-            <p className="text-xs text-gray-400 font-medium mb-2 uppercase tracking-wide">Share text</p>
-            <p className="text-xs text-gray-600 whitespace-pre-line leading-relaxed" data-testid="text-share-message">{getShareText()}</p>
+        <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Message preview</p>
+            <span className="text-[10px] text-blue-600 font-medium">{selectedTemplate.icon} {selectedTemplate.label}</span>
           </div>
-        )}
+          <p className="text-xs text-gray-600 whitespace-pre-line leading-relaxed" data-testid="text-share-message">{getShareText()}</p>
+        </div>
 
         <p className="text-xs text-gray-400 font-medium mb-3 uppercase tracking-wide">Send via</p>
         <div className="grid grid-cols-2 gap-3 mb-5">
@@ -166,17 +244,62 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
         </div>
 
         <button
-          onClick={handleCopy}
+          onClick={() => handleCopy(getShareText())}
           className="w-full flex items-center justify-center gap-2 p-3.5 rounded-xl bg-white border border-gray-200 active:bg-gray-50"
           data-testid="button-copy-all"
         >
           {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
-          <span className="text-sm font-medium text-gray-700">{copied ? "Copied!" : "Copy link"}</span>
+          <span className="text-sm font-medium text-gray-700">{copied ? "Copied!" : "Copy message + link"}</span>
         </button>
 
         <p className="text-[11px] text-gray-400 text-center mt-4">
           All registrations via this link are automatically attributed to you.
         </p>
+      </div>
+    );
+  }
+
+  if (screen === "template-select") {
+    return (
+      <div className="px-5 pt-5 pb-28">
+        <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
+          <ChevronLeft className="w-4 h-4" /> Back
+        </button>
+
+        <h2 className="text-base font-semibold text-gray-900 mb-1">Choose message style</h2>
+        <p className="text-xs text-gray-400 mb-5">Select how your invitation will look</p>
+
+        <div className="space-y-3">
+          {MESSAGE_TEMPLATES.map((tpl, i) => {
+            const previewText = selectedWebinar
+              ? tpl.generate(
+                  { title: selectedWebinar.title, date: selectedWebinar.date, time: selectedWebinar.time, speaker: selectedWebinar.speaker },
+                  "https://..."
+                )
+              : "";
+            return (
+              <motion.button
+                key={tpl.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                onClick={() => handleTemplateSelected(tpl)}
+                className="w-full bg-white rounded-2xl p-5 text-left active:bg-gray-50 transition-colors"
+                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+                data-testid={`template-${tpl.id}`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{tpl.icon}</span>
+                    <span className="text-sm font-semibold text-gray-900">{tpl.label}</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-300" />
+                </div>
+                <p className="text-[11px] text-gray-400 whitespace-pre-line leading-relaxed line-clamp-3">{previewText}</p>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
     );
   }
@@ -187,16 +310,6 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
         <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
           <ChevronLeft className="w-4 h-4" /> Back
         </button>
-
-        {selectedWebinar && (
-          <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-            <p className="text-sm font-semibold text-gray-900 mb-1">{selectedWebinar.title}</p>
-            <div className="flex items-center gap-3 text-xs text-gray-400">
-              <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {selectedWebinar.date}</span>
-              <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {selectedWebinar.time}</span>
-            </div>
-          </div>
-        )}
 
         <h2 className="text-base font-semibold text-gray-900 mb-4">How would you like to invite?</h2>
 
@@ -240,6 +353,145 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
             </div>
           </motion.button>
         </div>
+      </div>
+    );
+  }
+
+  if (screen === "detail" && selectedWebinar) {
+    const relatedEvents = eventDetails.filter((e) => {
+      return e.title === selectedWebinar.title || (selectedWebinar as any).scheduleEventId === e.id;
+    });
+
+    return (
+      <div className="px-5 pt-5 pb-28">
+        <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
+          <ChevronLeft className="w-4 h-4" /> Back
+        </button>
+
+        <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold">
+              {selectedWebinar.typeBadge}
+            </span>
+            {selectedWebinar.language && (
+              <span className="flex items-center gap-0.5 text-[10px] text-gray-400">
+                <Globe className="w-2.5 h-2.5" /> {selectedWebinar.language.toUpperCase()}
+              </span>
+            )}
+          </div>
+          <h2 className="text-base font-bold text-gray-900 mb-2">{selectedWebinar.title}</h2>
+          <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
+            <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {selectedWebinar.date}</span>
+            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {selectedWebinar.time}</span>
+          </div>
+          {selectedWebinar.speaker && (
+            <div className="flex items-center gap-2">
+              {selectedWebinar.speakerPhoto ? (
+                <img src={selectedWebinar.speakerPhoto} alt={selectedWebinar.speaker} className="w-7 h-7 rounded-full object-cover" />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                  <User className="w-3.5 h-3.5 text-gray-400" />
+                </div>
+              )}
+              <span className="text-sm text-gray-600">{selectedWebinar.speaker}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <div className="bg-white rounded-2xl p-4 text-center" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <Send className="w-5 h-5 text-blue-500 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-gray-900">{selectedWebinar.invitesSent}</p>
+            <p className="text-[10px] text-gray-400 uppercase font-medium">Invites Sent</p>
+          </div>
+          <div className="bg-white rounded-2xl p-4 text-center" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <UserCheck className="w-5 h-5 text-emerald-500 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-gray-900">{selectedWebinar.registeredCount}</p>
+            <p className="text-[10px] text-gray-400 uppercase font-medium">Registered</p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleStartInvite}
+          className="w-full py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors mb-5"
+          data-testid="button-send-invite"
+        >
+          Send Invite
+        </button>
+
+        {relatedEvents.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Your Invite Links</h3>
+            <div className="space-y-2">
+              {relatedEvents.map((ev) => (
+                <button
+                  key={ev.id}
+                  onClick={() => loadEventReport(ev.id)}
+                  className="w-full bg-white rounded-xl p-4 flex items-center justify-between text-left active:bg-gray-50 transition-colors"
+                  style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+                  data-testid={`detail-event-${ev.id}`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-gray-400 font-mono truncate">{ev.inviteCode}</p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-xs text-gray-500"><span className="font-semibold text-gray-700">{ev.registeredCount}</span> reg</span>
+                      <span className="text-xs text-gray-500"><span className="font-semibold text-emerald-600">{ev.attendedCount}</span> att</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0 ml-2" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {eventReport && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-5">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Guest Details</h3>
+            <div className="space-y-2">
+              {eventReport.guests.map((g, i) => (
+                <motion.div
+                  key={g.id}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                  className="bg-white rounded-xl p-4"
+                  style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+                  data-testid={`guest-detail-${g.id}`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm font-medium text-gray-900">{g.name}</p>
+                    {g.attended ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold">
+                        ✓ Attended
+                      </span>
+                    ) : g.clickedZoom ? (
+                      <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold">Clicked</span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold">No show</span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-gray-400">{g.email}</p>
+                  {g.attended && (
+                    <div className="flex items-center gap-3 mt-2 pt-2 border-t border-gray-100">
+                      <span className="text-[11px] text-gray-500">⏱ {g.durationMinutes} min</span>
+                      {g.questionsAsked > 0 && <span className="text-[11px] text-gray-500">❓ {g.questionsAsked} questions</span>}
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+              {eventReport.guests.length === 0 && (
+                <p className="text-xs text-gray-400 text-center py-4">No guests registered yet</p>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {reportLoading && (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+          </div>
+        )}
       </div>
     );
   }
@@ -290,7 +542,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
               </div>
 
               {w.speaker && (
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-3">
                   {w.speakerPhoto ? (
                     <img src={w.speakerPhoto} alt={w.speaker} className="w-6 h-6 rounded-full object-cover" />
                   ) : (
@@ -302,12 +554,23 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                 </div>
               )}
 
+              <div className="flex items-center gap-4 mb-4 py-2 px-3 rounded-lg bg-gray-50">
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <Send className="w-3 h-3 text-blue-400" />
+                  <span className="font-semibold text-gray-700">{w.invitesSent}</span> sent
+                </span>
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <UserCheck className="w-3 h-3 text-emerald-400" />
+                  <span className="font-semibold text-gray-700">{w.registeredCount}</span> registered
+                </span>
+              </div>
+
               <button
                 onClick={() => handleSelectWebinar(w)}
                 className="w-full py-2.5 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors"
                 data-testid={`invite-webinar-${w.id}`}
               >
-                Invite
+                View & Invite
               </button>
             </motion.div>
           ))}

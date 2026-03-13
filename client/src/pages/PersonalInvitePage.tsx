@@ -93,6 +93,7 @@ export default function PersonalInvitePage() {
     setSending(true);
     try {
       const res = await fetch(`/api/personal-invite/${code}/init-chat`, { method: "POST" });
+      if (!res.ok) throw new Error("Init chat failed");
       const data = await res.json();
       setMessages([{ role: "assistant", content: data.reply, type: "text" }]);
       setQuickReplies(data.quickReplies || []);
@@ -132,6 +133,7 @@ export default function PersonalInvitePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
       });
+      if (!res.ok) throw new Error("Chat request failed");
       const data = await res.json();
       setMessages((prev) => [...prev, { role: "assistant", content: data.reply, type: "text" }]);
       setQuickReplies(data.quickReplies || []);
@@ -152,6 +154,10 @@ export default function PersonalInvitePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(regData),
       });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Registration failed");
+      }
       const data = await res.json();
       if (data.success) {
         setShowRegForm(false);
@@ -180,6 +186,7 @@ export default function PersonalInvitePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ preference }),
       });
+      if (!res.ok) throw new Error("Reminder request failed");
       const data = await res.json();
       if (data.chatHistory?.length) {
         setMessages((prev) => [...prev, { role: "assistant", content: data.chatHistory[data.chatHistory.length - 1].content, type: "text" }]);

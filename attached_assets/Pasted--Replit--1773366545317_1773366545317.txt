@@ -1,0 +1,174 @@
+Яков, понял тебя. Тогда давай без формального ТЗ, а прямо так, как ты общаешься с Replit — простым языком, как будто объясняешь разработчику, что нужно сделать.
+
+Вот текст, который ты можешь прямо отправить в Replit.
+
+⸻
+
+Сообщение для Replit:
+
+Смотри, давай сделаем простой прототип интерактивного приглашения на вебинар.
+
+У меня уже есть mini app / partner interface. В нём есть список событий (webinars). Партнёр может выбрать вебинар.
+
+Теперь я хочу добавить индивидуальное приглашение.
+
+То есть есть два типа приглашений:
+	1.	обычная ссылка (массовое приглашение)
+	2.	персональное AI приглашение
+
+Сейчас делаем только второй вариант.
+
+⸻
+
+Когда партнёр выбирает вебинар, у него должна быть кнопка:
+
+Create personal invite
+
+После нажатия появляется простой интерфейс.
+
+Поля:
+
+Prospect name
+Prospect type (dropdown)
+
+Типы можно сделать простые:
+
+Investor
+MLM Leader
+Entrepreneur
+Beginner
+Neutral
+
+И ещё одно поле:
+
+Optional note about the person
+
+например:
+
+“builds teams, interested in crypto”
+
+⸻
+
+После этого система генерирует invite link.
+
+Пример:
+
+/invite/{partner_id}/{webinar_id}/{invite_id}
+
+Эту ссылку партнёр отправляет человеку в Telegram или WhatsApp.
+
+⸻
+
+Когда человек открывает ссылку, он попадает не на форму регистрации, а на интерактивное приглашение.
+
+Сначала небольшая карточка:
+
+“Yakov invited you to a private webinar”
+
+показываем:
+
+Webinar title
+Date
+Time
+
+и кнопку:
+
+Open invitation
+
+⸻
+
+После нажатия открывается chat interface.
+
+AI пишет первое сообщение.
+
+Очень важно, чтобы AI ссылался на пригласившего.
+
+Пример:
+
+“Hi Alex.
+
+I’m Yakov’s assistant.
+
+He asked me to send you a personal invitation to a private webinar.
+
+He mentioned that you build large teams and thought this topic might be interesting for you.”
+
+⸻
+
+Потом AI задаёт простой вопрос:
+
+“The webinar will take place on Wednesday at 16:00.
+
+Would you like me to reserve a seat for you?”
+
+Кнопки:
+
+Yes, register me
+Tell me more
+Not sure yet
+
+⸻
+
+Если человек нажимает register, появляется короткая форма:
+
+Name
+Email
+Telegram (optional)
+
+Кнопка:
+
+Confirm registration
+
+⸻
+
+После регистрации AI пишет:
+
+“Perfect.
+
+You are now registered for the webinar.”
+
+И показывает дату и время.
+
+Потом спрашивает:
+
+“Would you like a reminder before the webinar?”
+
+Кнопки:
+
+1 hour before
+15 minutes before
+
+⸻
+
+Нужно сохранить в базе:
+
+partner_id
+webinar_id
+invite_id
+prospect_type
+name
+email
+telegram
+registration_time
+
+⸻
+
+Интерфейс должен быть chat style, как WhatsApp / iMessage.
+
+Mobile first.
+
+Очень простой, чистый интерфейс.
+
+Это MVP версия, поэтому не нужно пока делать сложную CRM или много функций.
+
+Главная цель:
+
+партнёр отправляет персональное AI приглашение,
+гость открывает ссылку,
+видит чат,
+и регистрируется на вебинар.
+
+⸻
+
+Вот такой формат идеально подходит для Replit:
+коротко, понятно, без перегруженного ТЗ, но с ясной логикой.

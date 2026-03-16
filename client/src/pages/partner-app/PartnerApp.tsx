@@ -81,7 +81,7 @@ export default function PartnerApp() {
             className="h-full overflow-y-auto no-scrollbar"
           >
             {activeTab === "dashboard" && (
-              <DashboardScreen profile={profile} telegramId={telegramId} onNavigate={setActiveTab} />
+              <DashboardScreen profile={profile} telegramId={telegramId} onNavigate={(tab: string) => setActiveTab(tab as TabId)} />
             )}
             {activeTab === "webinars" && (
               <WebinarsScreen telegramId={telegramId} />

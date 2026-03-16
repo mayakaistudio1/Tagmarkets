@@ -8,7 +8,7 @@ interface Props {
     stats: { totalInvited: number; totalAttended: number; conversionRate: number; totalEvents: number };
   };
   telegramId: string;
-  onNavigate: (tab: string) => void;
+  onNavigate: (tab: "dashboard" | "webinars" | "reports" | "ai") => void;
 }
 
 function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {

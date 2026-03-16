@@ -1141,7 +1141,7 @@ const translations: Record<Language, Record<string, string>> = {
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem('app-language');
-    return (saved === 'ru' || saved === 'de' || saved === 'en') ? saved as Language : 'ru';
+    return (saved === 'ru' || saved === 'de' || saved === 'en') ? saved as Language : 'en';
   });
 
   useEffect(() => {
@@ -1154,7 +1154,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const t = (key: string): string => {
-    return translations[language][key] || translations['ru'][key] || key;
+    return translations[language][key] || translations['en'][key] || key;
   };
 
   return (

@@ -8,6 +8,8 @@ interface InviteData {
   prospectName: string;
   partnerName: string;
   isRegistered: boolean;
+  discType: string | null;
+  inviteStrategy: string | null;
   event: {
     title: string;
     date: string;
@@ -19,6 +21,17 @@ interface InviteData {
     typeBadge: string;
   } | null;
   chatHistory: Array<{ role: string; content: string }>;
+}
+
+function getDiscQuickReplies(discType: string | null, isRegistered: boolean): string[] {
+  if (isRegistered) return ["Remind me 1 hour before", "Remind me 15 min before", "No reminder needed"];
+  switch (discType) {
+    case "D": return ["Ja, interessiert", "Zur Sache", "Registriere mich"];
+    case "I": return ["Klingt spannend!", "Erzähl mir mehr", "Ja, ich will!"];
+    case "S": return ["Kannst du mehr erzählen?", "Vielleicht", "Ja, registriere mich"];
+    case "C": return ["Was genau wird gezeigt?", "Zeig mir Details", "Ja, registriere mich"];
+    default: return ["Yes, register me", "Tell me more", "Not sure yet"];
+  }
 }
 
 interface ChatMessage {
@@ -68,7 +81,7 @@ export default function PersonalInvitePage() {
           setMessages(data.chatHistory.map((m: any) => ({ role: m.role, content: m.content, type: "text" })));
           setPhase("chat");
           if (!data.isRegistered) {
-            setQuickReplies(["Yes, register me", "Tell me more", "Not sure yet"]);
+            setQuickReplies(getDiscQuickReplies(data.discType, false));
           }
         }
         if (data.isRegistered) {
@@ -103,7 +116,7 @@ export default function PersonalInvitePage() {
       }
     } catch {
       setMessages([{ role: "assistant", content: "Hi! I'd love to tell you about this webinar. Would you like to register?", type: "text" }]);
-      setQuickReplies(["Yes, register me", "Tell me more", "Not sure yet"]);
+      setQuickReplies(getDiscQuickReplies(inviteData?.discType || null, false));
     }
     setSending(false);
   };
@@ -112,7 +125,7 @@ export default function PersonalInvitePage() {
     if (!text.trim() || sending) return;
 
     const lowerText = text.toLowerCase();
-    if (!isRegistered && (lowerText.includes("register") || lowerText.includes("registrier") || lowerText.includes("sign up") || lowerText === "yes, register me")) {
+    if (!isRegistered && (lowerText.includes("register") || lowerText.includes("registrier") || lowerText.includes("sign up") || lowerText === "yes, register me" || lowerText === "ja, ich will!" || lowerText === "ja, registriere mich")) {
       setMessages((prev) => [...prev, { role: "user", content: text, type: "text" }]);
       setQuickReplies([]);
       setShowRegForm(true);

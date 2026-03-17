@@ -20,8 +20,17 @@ interface PartnerProfile {
   stats: { totalInvited: number; totalAttended: number; conversionRate: number; totalEvents: number };
 }
 
+function getInitialTab(): TabId {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get("tab");
+  if (tab === "webinars" || tab === "reports" || tab === "ai" || tab === "dashboard") {
+    return tab;
+  }
+  return "dashboard";
+}
+
 export default function PartnerApp() {
-  const [activeTab, setActiveTab] = useState<TabId>("dashboard");
+  const [activeTab, setActiveTab] = useState<TabId>(getInitialTab);
   const [profile, setProfile] = useState<PartnerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

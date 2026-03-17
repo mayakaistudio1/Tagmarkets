@@ -219,26 +219,15 @@ async function handleInvite(chatId: number): Promise<void> {
     return;
   }
 
-  const allEvents = await storage.getScheduleEvents(true);
-  const today = new Date().toISOString().split("T")[0];
-  const events = allEvents.filter((e: any) =>
-    e.title && e.title.trim() !== "" &&
-    e.date && e.date.trim() !== "" &&
-    e.date >= today
-  );
+  const baseUrl = getBaseUrl();
+  const webAppUrl = `${baseUrl}/partner-app?tab=webinars`;
 
-  if (events.length === 0) {
-    await sendMessage(chatId, `📅 Aktuell sind keine Webinare geplant. Versuch es später noch mal.`);
-    return;
-  }
-
-  const keyboard = events.map((event: any) => [{
-    text: `${event.title.substring(0, 40)} — ${event.date}`,
-    callback_data: `invite_event_${event.id}`,
-  }]);
+  const keyboard = [
+    [{ text: "📋 Einladungen erstellen", web_app: { url: webAppUrl } }],
+  ];
 
   await sendMessage(chatId,
-    `📅 <b>Wähle ein Webinar:</b>\n\nKlicke auf ein Event, um deinen persönlichen Einladungslink zu erstellen.`,
+    `📅 <b>Einladungen erstellen</b>\n\nÖffne die Partner-App, um Einladungslinks zu erstellen — einfach oder mit KI-Personalisierung.`,
     { reply_markup: { inline_keyboard: keyboard } }
   );
 }

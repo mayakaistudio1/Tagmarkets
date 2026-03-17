@@ -110,25 +110,38 @@ async function editMessage(chatId: number, messageId: number, text: string, opti
 
 async function handleStart(chatId: number, from: any): Promise<void> {
   const partner = await storage.getPartnerByTelegramChatId(String(chatId));
+  const baseUrl = getBaseUrl();
+  const webAppUrl = `${baseUrl}/partner-app`;
+
   if (partner) {
+    const keyboard = [
+      [{ text: "📱 Partner App öffnen", web_app: { url: webAppUrl } }],
+    ];
+
     await sendMessage(chatId,
       `👋 Willkommen zurück, <b>${partner.name}</b>!\n\n` +
-      `Verfügbare Befehle:\n` +
-      `/invite — Einladungslink erstellen\n` +
-      `/events — Meine Events anzeigen\n` +
-      `/report — Event-Bericht abrufen\n` +
-      `/followup — KI-Assistent für Follow-up\n` +
-      `/help — Hilfe anzeigen`
+      `Öffne die Partner App für Dashboard, Einladungen, Statistiken und KI-Tools.`,
+      {
+        reply_markup: JSON.stringify({
+          inline_keyboard: keyboard,
+        }),
+      }
     );
     return;
   }
 
-  registrationState.set(String(chatId), { step: "name", data: { telegramChatId: String(chatId), telegramUsername: from.username || null } });
+  const keyboard = [
+    [{ text: "🚀 Jetzt registrieren", web_app: { url: webAppUrl } }],
+  ];
+
   await sendMessage(chatId,
     `🚀 <b>Willkommen beim JetUP Partner Bot!</b>\n\n` +
-    `Ich helfe dir, Einladungslinks zu erstellen, Gäste zu tracken und Follow-up-Nachrichten zu verfassen.\n\n` +
-    `Lass uns zuerst dein Profil anlegen.\n\n` +
-    `📝 <b>Wie ist dein vollständiger Name?</b>`
+    `Öffne die Partner App, um dein Profil anzulegen und loszulegen.`,
+    {
+      reply_markup: JSON.stringify({
+        inline_keyboard: keyboard,
+      }),
+    }
   );
 }
 

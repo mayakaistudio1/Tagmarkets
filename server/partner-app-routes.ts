@@ -276,6 +276,60 @@ async function getPartnerFromRequest(req: any): Promise<any | null> {
 }
 
 export function registerPartnerAppRoutes(app: Express) {
+
+  app.post("/api/partner-app/register", async (req, res) => {
+    if (!partnerAppGuard(req, res)) return;
+    try {
+      const telegramId = req.headers["x-telegram-id"] as string;
+      if (!telegramId || telegramId === "demo") {
+        return res.status(400).json({ error: "Telegram ID required" });
+      }
+
+      const existing = await storage.getPartnerByTelegramChatId(telegramId);
+      if (existing) {
+        return res.status(409).json({ error: "Partner already registered" });
+      }
+
+      const { name, cuNumber, phone, email, telegramUsername } = req.body;
+      if (!name || !cuNumber) {
+        return res.status(400).json({ error: "Name and CU number are required" });
+      }
+
+      const partner = await storage.createPartner({
+        telegramChatId: telegramId,
+        telegramUsername: telegramUsername || null,
+        name: name.trim(),
+        cuNumber: cuNumber.trim(),
+        phone: phone?.trim() || null,
+        email: email?.trim() || null,
+        status: "active",
+      });
+
+      console.log(`Partner registered via Mini App: ${partner.name} (CU: ${partner.cuNumber})`);
+
+      res.json({
+        partner: {
+          id: partner.id,
+          name: partner.name,
+          cuNumber: partner.cuNumber,
+          status: partner.status,
+        },
+        stats: {
+          totalInvited: 0,
+          totalAttended: 0,
+          conversionRate: 0,
+          totalEvents: 0,
+        },
+      });
+    } catch (error: any) {
+      console.error("Partner registration error:", error);
+      if (error.message?.includes("unique")) {
+        return res.status(409).json({ error: "Partner already registered" });
+      }
+      res.status(500).json({ error: "Registration failed" });
+    }
+  });
+
   app.get("/api/partner-app/profile", async (req, res) => {
     if (!partnerAppGuard(req, res)) return;
     try {

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Video, BarChart3, Bot, Loader2 } from "lucide-react";
+import { LayoutDashboard, Video, BarChart3, Bot, Loader2, User, Hash, Phone, Mail, ArrowRight, LogIn } from "lucide-react";
 import DashboardScreen from "./DashboardScreen";
 import WebinarsScreen from "./WebinarsScreen";
 import ReportsScreen from "./ReportsScreen";
@@ -20,6 +20,8 @@ interface PartnerProfile {
   stats: { totalInvited: number; totalAttended: number; conversionRate: number; totalEvents: number };
 }
 
+type AppState = "loading" | "needs-telegram-login" | "needs-registration" | "ready";
+
 function getInitialTab(): TabId {
   const params = new URLSearchParams(window.location.search);
   const tab = params.get("tab");
@@ -29,33 +31,296 @@ function getInitialTab(): TabId {
   return "dashboard";
 }
 
+function getTelegramId(): string | null {
+  const tg = (window as any).Telegram?.WebApp;
+  const userId = tg?.initDataUnsafe?.user?.id?.toString();
+  if (userId) return userId;
+  const stored = sessionStorage.getItem("partnerTelegramId");
+  if (stored) return stored;
+  if (process.env.NODE_ENV === "development" || window.location.hostname.includes("replit")) {
+    return "demo";
+  }
+  return null;
+}
+
+function getTelegramUsername(): string | null {
+  const tg = (window as any).Telegram?.WebApp;
+  return tg?.initDataUnsafe?.user?.username || null;
+}
+
+function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => void }) {
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [manualId, setManualId] = useState("");
+
+  useEffect(() => {
+    (window as any).onTelegramAuth = (user: any) => {
+      if (user?.id) {
+        sessionStorage.setItem("partnerTelegramId", String(user.id));
+        onLogin(String(user.id));
+      }
+    };
+
+    const botUsername = "Jetup_partner_test_bot";
+    const container = document.getElementById("telegram-login-container");
+    if (container) {
+      const script = document.createElement("script");
+      script.src = "https://telegram.org/js/telegram-widget.js?22";
+      script.setAttribute("data-telegram-login", botUsername);
+      script.setAttribute("data-size", "large");
+      script.setAttribute("data-radius", "12");
+      script.setAttribute("data-onauth", "onTelegramAuth(user)");
+      script.setAttribute("data-request-access", "write");
+      script.async = true;
+      container.appendChild(script);
+    }
+
+    return () => {
+      delete (window as any).onTelegramAuth;
+    };
+  }, [onLogin]);
+
+  return (
+    <div className="h-full flex flex-col items-center justify-center bg-white px-8 text-center" data-testid="telegram-login-screen">
+      <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-6">
+        <LogIn className="w-7 h-7 text-blue-600" />
+      </div>
+      <h2 className="text-lg font-bold text-gray-900 mb-2">JetUP Partner Hub</h2>
+      <p className="text-sm text-gray-500 mb-8 max-w-xs leading-relaxed">
+        Sign in with your Telegram account to access the Partner App.
+      </p>
+
+      <div id="telegram-login-container" className="mb-6 min-h-[44px]" />
+
+      <button
+        onClick={() => setShowManualInput(!showManualInput)}
+        className="text-xs text-gray-400 underline"
+        data-testid="button-manual-login-toggle"
+      >
+        Having trouble? Enter Telegram ID manually
+      </button>
+
+      {showManualInput && (
+        <div className="mt-4 flex gap-2">
+          <input
+            type="text"
+            value={manualId}
+            onChange={(e) => setManualId(e.target.value)}
+            placeholder="Your Telegram ID"
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            data-testid="input-manual-telegram-id"
+          />
+          <button
+            onClick={() => {
+              if (manualId.trim()) {
+                sessionStorage.setItem("partnerTelegramId", manualId.trim());
+                onLogin(manualId.trim());
+              }
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
+            data-testid="button-manual-login-submit"
+          >
+            Go
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RegistrationScreen({ telegramId, onRegistered }: { telegramId: string; onRegistered: (profile: PartnerProfile) => void }) {
+  const [name, setName] = useState("");
+  const [cuNumber, setCuNumber] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const telegramUsername = getTelegramUsername();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !cuNumber.trim()) return;
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/partner-app/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-telegram-id": telegramId,
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          cuNumber: cuNumber.trim(),
+          phone: phone.trim() || null,
+          email: email.trim() || null,
+          telegramUsername,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Registration failed");
+      }
+
+      const profile = await res.json();
+      onRegistered(profile);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="h-full flex flex-col bg-white overflow-y-auto" data-testid="registration-screen">
+      <div className="flex-1 px-6 py-10 max-w-md mx-auto w-full">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-5 mx-auto shadow-lg shadow-blue-200">
+            <span className="text-2xl">🚀</span>
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Welcome to JetUP</h1>
+          <p className="text-sm text-gray-500 leading-relaxed">
+            Set up your partner profile to get started with invitations, tracking, and AI tools.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
+              <User size={14} />
+              Full Name <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your full name"
+              required
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              data-testid="input-register-name"
+            />
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
+              <Hash size={14} />
+              CU Number <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={cuNumber}
+              onChange={(e) => setCuNumber(e.target.value)}
+              placeholder="Your CU number"
+              required
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              data-testid="input-register-cu"
+            />
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
+              <Phone size={14} />
+              Phone <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+49 123 456 7890"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              data-testid="input-register-phone"
+            />
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
+              <Mail size={14} />
+              Email <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              data-testid="input-register-email"
+            />
+          </div>
+
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600" data-testid="text-register-error">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting || !name.trim() || !cuNumber.trim()}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors mt-6"
+            data-testid="button-register-submit"
+          >
+            {submitting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                Get Started
+                <ArrowRight size={16} />
+              </>
+            )}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function PartnerApp() {
   const [activeTab, setActiveTab] = useState<TabId>(getInitialTab);
   const [profile, setProfile] = useState<PartnerProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [appState, setAppState] = useState<AppState>("loading");
+  const [telegramId, setTelegramId] = useState<string | null>(getTelegramId);
 
-  const telegramId = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || "demo";
+  const loadProfile = useCallback(async (tgId: string) => {
+    try {
+      const r = await fetch("/api/partner-app/profile", {
+        headers: { "x-telegram-id": tgId },
+      });
+      if (r.status === 401) {
+        setAppState("needs-registration");
+        return;
+      }
+      if (!r.ok) throw new Error("Failed to load profile");
+      const data = await r.json();
+      setProfile(data);
+      setAppState("ready");
+    } catch {
+      setAppState("needs-registration");
+    }
+  }, []);
 
   useEffect(() => {
-    fetch("/api/partner-app/profile", {
-      headers: { "x-telegram-id": telegramId },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error("Failed to load profile");
-        return r.json();
-      })
-      .then((data) => {
-        setProfile(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, [telegramId]);
+    if (!telegramId) {
+      setAppState("needs-telegram-login");
+      return;
+    }
+    loadProfile(telegramId);
+  }, [telegramId, loadProfile]);
 
-  if (loading) {
+  const handleTelegramLogin = useCallback((newTelegramId: string) => {
+    setTelegramId(newTelegramId);
+    setAppState("loading");
+    loadProfile(newTelegramId);
+  }, [loadProfile]);
+
+  const handleRegistered = useCallback((newProfile: PartnerProfile) => {
+    setProfile(newProfile);
+    setAppState("ready");
+  }, []);
+
+  if (appState === "loading") {
     return (
       <div className="h-full flex flex-col items-center justify-center bg-white">
         <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
@@ -63,16 +328,18 @@ export default function PartnerApp() {
     );
   }
 
-  if (error || !profile) {
+  if (appState === "needs-telegram-login") {
+    return <TelegramLoginScreen onLogin={handleTelegramLogin} />;
+  }
+
+  if (appState === "needs-registration" && telegramId) {
+    return <RegistrationScreen telegramId={telegramId} onRegistered={handleRegistered} />;
+  }
+
+  if (!profile || !telegramId) {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-white px-8 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-5">
-          <span className="text-2xl">🔒</span>
-        </div>
-        <h2 className="text-base font-semibold text-gray-900 mb-1.5">Access Restricted</h2>
-        <p className="text-sm text-gray-400 leading-relaxed">
-          Please register via the Partner Bot to get access.
-        </p>
+      <div className="h-full flex flex-col items-center justify-center bg-white">
+        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
       </div>
     );
   }

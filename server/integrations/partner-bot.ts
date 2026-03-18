@@ -236,25 +236,6 @@ async function handleRegistration(chatId: number, text: string): Promise<boolean
   return false;
 }
 
-async function handleInvite(chatId: number): Promise<void> {
-  const partner = await storage.getPartnerByTelegramChatId(String(chatId));
-  if (!partner) {
-    await sendMessage(chatId, `⚠️ Du bist noch nicht registriert. Sende /start zum Registrieren.`);
-    return;
-  }
-
-  const baseUrl = getBaseUrl();
-  const webAppUrl = `${baseUrl}/partner-app?tab=webinars`;
-
-  const keyboard = [
-    [{ text: "📋 Einladungen erstellen", web_app: { url: webAppUrl } }],
-  ];
-
-  await sendMessage(chatId,
-    `📅 <b>Einladungen erstellen</b>\n\nÖffne die Partner-App, um Einladungslinks zu erstellen — einfach oder mit KI-Personalisierung.`,
-    { reply_markup: { inline_keyboard: keyboard } }
-  );
-}
 
 async function handleInviteCallback(callbackQueryId: string, chatId: number, scheduleEventId: number, messageId: number): Promise<void> {
   const partner = await storage.getPartnerByTelegramChatId(String(chatId));
@@ -296,38 +277,6 @@ async function handleInviteCallback(callbackQueryId: string, chatId: number, sch
   );
 }
 
-async function handleEvents(chatId: number): Promise<void> {
-  const partner = await storage.getPartnerByTelegramChatId(String(chatId));
-  if (!partner) {
-    await sendMessage(chatId, `⚠️ Du bist noch nicht registriert. Sende /start zum Registrieren.`);
-    return;
-  }
-
-  const events = await storage.getInviteEventsByPartnerId(partner.id);
-
-  if (events.length === 0) {
-    await sendMessage(chatId, `📋 Du hast noch keine Events erstellt. Sende /invite um einen Einladungslink zu generieren.`);
-    return;
-  }
-
-  let msg = `📊 <b>Deine Events:</b>\n\n`;
-  for (const event of events) {
-    const status = event.isActive ? "🟢" : "⚪";
-    msg += `${status} <b>${event.title}</b>\n`;
-    msg += `   📅 ${event.eventDate} | 🕐 ${event.eventTime}\n`;
-    msg += `   👥 ${event.guestCount} registriert | ✅ ${event.clickedCount} Zoom beigetreten\n`;
-    msg += `   🔗 Code: ${event.inviteCode}\n\n`;
-  }
-
-  const keyboard = events.slice(0, 10).map(event => [{
-    text: `📊 Bericht: ${event.title.substring(0, 30)}`,
-    callback_data: `report_${event.id}`,
-  }]);
-
-  await sendMessage(chatId, msg, {
-    reply_markup: keyboard.length > 0 ? { inline_keyboard: keyboard } : undefined,
-  });
-}
 
 async function handleReport(chatId: number, eventId?: number): Promise<void> {
   const partner = await storage.getPartnerByTelegramChatId(String(chatId));
@@ -588,21 +537,25 @@ async function handleAIMessage(chatId: number, text: string): Promise<boolean> {
 }
 
 async function handleHelp(chatId: number): Promise<void> {
+  const baseUrl = getBaseUrl();
+  const webAppUrl = `${baseUrl}/partner-app`;
+
   await sendMessage(chatId,
     `📖 <b>JetUP Partner Bot — Hilfe</b>\n\n` +
+    `Alle Funktionen findest du in der <b>Partner App</b>:\n\n` +
+    `📊 Dashboard & Statistiken\n` +
+    `📅 Webinare & Einladungslinks\n` +
+    `🤖 KI-personalisierte Einladungen\n` +
+    `💬 KI Follow-up Assistent\n` +
+    `📈 Vergütungsübersicht\n\n` +
     `<b>Befehle:</b>\n` +
-    `/start — Registrierung / Willkommen\n` +
-    `/invite — Einladungslink für ein Webinar erstellen\n` +
-    `/events — Deine Events und Statistiken anzeigen\n` +
-    `/report — Detaillierten Event-Bericht abrufen\n` +
-    `/followup — KI-Assistent für Follow-up starten\n` +
-    `/help — Diese Hilfe anzeigen\n\n` +
-    `<b>So funktioniert's:</b>\n` +
-    `1. Wähle ein Webinar mit /invite\n` +
-    `2. Teile den Link mit deinen Kontakten\n` +
-    `3. Erhalte Benachrichtigungen bei Registrierungen\n` +
-    `4. Rufe nach dem Event den Bericht ab\n` +
-    `5. Nutze den KI-Assistenten für Follow-up`
+    `/start — Partner App öffnen\n` +
+    `/help — Diese Hilfe anzeigen`,
+    {
+      reply_markup: JSON.stringify({
+        inline_keyboard: [[{ text: "📱 Partner App öffnen", web_app: { url: webAppUrl } }]],
+      }),
+    }
   );
 }
 
@@ -649,29 +602,26 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
     case "/start":
       await handleStart(chatId, from);
       break;
-    case "/invite":
-      await handleInvite(chatId);
-      break;
-    case "/events":
-    case "/myevents":
-      await handleEvents(chatId);
-      break;
-    case "/report":
-      await handleReport(chatId);
-      break;
-    case "/followup":
-      await handleFollowup(chatId);
-      break;
     case "/help":
       await handleHelp(chatId);
       break;
     case "/exit":
-      await sendMessage(chatId, `✅ Follow-up-Modus beendet. Sende /help für alle Befehle.`);
+      aiConversations.delete(`${chatId}_followup`);
+      await sendMessage(chatId, `✅ Follow-up-Modus beendet.`);
       break;
     default: {
       const partner = await storage.getPartnerByTelegramChatId(String(chatId));
       if (partner) {
-        await sendMessage(chatId, `Ich verstehe diesen Befehl nicht. Sende /help für eine Liste aller Befehle.`);
+        const baseUrl = getBaseUrl();
+        const webAppUrl = `${baseUrl}/partner-app`;
+        await sendMessage(chatId,
+          `Öffne die Partner App für alle Funktionen:`,
+          {
+            reply_markup: JSON.stringify({
+              inline_keyboard: [[{ text: "📱 Partner App öffnen", web_app: { url: webAppUrl } }]],
+            }),
+          }
+        );
       } else {
         await sendMessage(chatId, `Willkommen! Sende /start um dich als Partner zu registrieren.`);
       }
@@ -694,11 +644,7 @@ async function setBotCommands(): Promise<void> {
   if (!token) return;
 
   const commands = [
-    { command: "start", description: "Registrierung / Willkommen" },
-    { command: "invite", description: "Einladungslink erstellen" },
-    { command: "events", description: "Meine Events anzeigen" },
-    { command: "report", description: "Event-Bericht abrufen" },
-    { command: "followup", description: "KI-Assistent für Follow-up" },
+    { command: "start", description: "Partner App öffnen" },
     { command: "help", description: "Hilfe anzeigen" },
   ];
 

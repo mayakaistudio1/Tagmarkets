@@ -120,6 +120,9 @@ export async function fetchZoomMeetingParticipants(meetingId: string): Promise<Z
 
     if (!res.ok) {
       const errorText = await res.text();
+      let errorJson: any = null;
+      try { errorJson = JSON.parse(errorText); } catch {}
+
       if (res.status === 400 && errorText.toLowerCase().includes("webinar")) {
         console.log("Detected webinar, trying webinar endpoint:", cleanId);
         res = await fetch(
@@ -130,9 +133,17 @@ export async function fetchZoomMeetingParticipants(meetingId: string): Promise<Z
         );
         if (!res.ok) {
           const webinarErrorText = await res.text();
+          let webinarErrorJson: any = null;
+          try { webinarErrorJson = JSON.parse(webinarErrorText); } catch {}
+
+          if (webinarErrorJson?.code === 4711) {
+            throw new Error("SCOPE_ERROR:report:read:list_webinar_participants:admin");
+          }
           console.error("Zoom webinar participants API error:", res.status, webinarErrorText);
           throw new Error(`Zoom webinar API error (${res.status}): ${webinarErrorText}`);
         }
+      } else if (errorJson?.code === 4711) {
+        throw new Error("SCOPE_ERROR:report:read:list_participants:admin");
       } else if (res.status === 404) {
         console.log("Zoom meeting not found or not yet ended:", cleanId);
         throw new Error("Meeting not found or has not ended yet. Zoom data is available after the meeting ends.");
@@ -223,7 +234,7 @@ export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl
     return { participants: [], synced: 0, skipped: 0, error: error.message };
   }
   if (participants.length === 0) {
-    return { participants: [], synced: 0, skipped: 0, error: "No participants found. The meeting may not have ended yet or the ID is incorrect." };
+    return { participants: [], synced: 0, skipped: 0 };
   }
 
   const qaData = await fetchZoomMeetingQA(meetingId);

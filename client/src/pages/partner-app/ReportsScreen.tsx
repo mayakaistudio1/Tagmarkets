@@ -182,14 +182,28 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
             <motion.div
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-3"
+              className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-3"
             >
-              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-              <p className="text-xs text-red-700 font-medium">
-                {zoomSyncError === "Zoom not configured"
-                  ? "Zoom nicht konfiguriert. Bitte Admin kontaktieren."
-                  : `Fehler: ${zoomSyncError}`}
-              </p>
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  {zoomSyncError === "Zoom not configured" ? (
+                    <p className="text-xs text-red-700 font-medium">Zoom nicht konfiguriert. Bitte Admin kontaktieren.</p>
+                  ) : zoomSyncError.startsWith("SCOPE_ERROR:") ? (
+                    <>
+                      <p className="text-xs text-red-700 font-semibold mb-1">Zoom: Fehlende Berechtigung</p>
+                      <p className="text-xs text-red-600 leading-relaxed">
+                        Das Zoom-App fehlt der Scope <span className="font-mono bg-red-100 px-1 rounded">{zoomSyncError.replace("SCOPE_ERROR:", "")}</span>.
+                      </p>
+                      <p className="text-xs text-red-500 mt-1.5 leading-relaxed">
+                        Admin: marketplace.zoom.us → App → Scopes → diesen Scope aktivieren → App neu autorisieren
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-red-700 font-medium">Fehler: {zoomSyncError}</p>
+                  )}
+                </div>
+              </div>
             </motion.div>
           )}
 

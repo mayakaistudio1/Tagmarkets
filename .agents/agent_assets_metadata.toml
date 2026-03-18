@@ -18,3 +18,9 @@ id = "R4nMXO83Jm5z2zl1mb1oN"
 uri = "file://docs/partner-app-description.md"
 type = "text"
 title = "Partner App — Описание функционала"
+
+[[outputs]]
+id = "6NWC5TecAPWeyfEEbE8Jx"
+uri = "file://docs/partner-system.md"
+type = "text"
+title = "JetUP Partner System — Полная документация"

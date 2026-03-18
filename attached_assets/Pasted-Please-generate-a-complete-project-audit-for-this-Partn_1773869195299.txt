@@ -1,0 +1,101 @@
+Please generate a complete project audit for this Partner Mini App.
+
+I need everything in a structured format so I can review and redesign the product without losing context.
+
+Create a full documentation pack in Markdown with these sections:
+
+1. PROJECT OVERVIEW
+- purpose of the mini app
+- main user role(s)
+- main user flows
+- how it connects to the main JetUP mini app
+
+2. INFORMATION ARCHITECTURE
+- all screens and routes
+- screen hierarchy
+- navigation structure
+- what happens on each screen
+
+3. UI TEXT CONTENT
+- all visible texts used in the app
+- labels
+- buttons
+- tabs
+- status badges
+- empty states
+- section titles
+- notifications
+- modal texts
+
+4. AI / PROMPTS
+- all prompts used for invitations
+- follow-up prompts
+- reminder prompts
+- system prompts
+- any dynamic prompt templates
+- where each prompt is used in the app
+
+5. EVENT LOGIC
+- how upcoming events are defined
+- how past events are defined
+- lifecycle of an event
+- what data is shown before event
+- what data is shown after event
+
+6. CONTACT / INVITATION LOGIC
+- invitation statuses
+- viewed / opened / confirmed / attended logic
+- how contacts are stored
+- how event-contact relations work
+- what actions are available per contact
+
+7. ANALYTICS / ZOOM LOGIC
+- what Zoom data is pulled
+- what metrics are calculated
+- how conversion is calculated
+- how attendance duration is calculated
+- where questions asked by attendees are stored and shown
+
+8. DATA SOURCES / API
+- all API endpoints used
+- what each endpoint returns
+- all database tables / collections / models
+- how data flows from source to UI
+
+9. DESIGN SYSTEM
+- colors
+- typography
+- spacing
+- components
+- card styles
+- button variants
+- icons
+- current visual rules
+
+10. FILE MAP
+- important files and their purpose
+- which files control navigation
+- which files control event cards
+- which files control analytics
+- which files control AI actions
+
+11. IMPROVEMENT NOTES
+- current UX weaknesses
+- duplicated logic
+- outdated components
+- unnecessary complexity
+
+Also generate:
+- a full file tree
+- a list of all reusable components
+- a list of all pages/screens
+- a list of all hardcoded texts
+- a list of all prompts/templates
+
+Output everything into one or several Markdown files inside the project, for example:
+docs/partner-miniapp-audit.md
+docs/ui-texts.md
+docs/prompts.md
+docs/file-map.md
+
+Do not include secrets or private keys.

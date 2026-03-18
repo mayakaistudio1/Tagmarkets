@@ -61,6 +61,10 @@ TELEGRAM_NOTIFY_CHAT_ID = "-5142513382"
 
 [userenv.development]
 TELEGRAM_PARTNER_BOT_TOKEN_DEV = "8725562582:AAEJR-3SiEHTSaD-cYt7P0AfrJS1yzhHHM0"
+TELEGRAM_PARTNER_BOT_USERNAME = "Jetup_partner_test_bot"
+
+[userenv.production]
+TELEGRAM_PARTNER_BOT_USERNAME = "JetUP_Partner_Bot"
 
 [postMerge]
 path = "scripts/post-merge.sh"

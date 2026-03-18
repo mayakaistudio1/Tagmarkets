@@ -6,8 +6,19 @@ import { isZoomConfigured, syncZoomDataForEvent, testZoomConnection, saveZoomCre
 
 const TELEGRAM_API = "https://api.telegram.org";
 
+function isProduction(): boolean {
+  return process.env.NODE_ENV === "production";
+}
+
 function getPartnerBotToken(): string | undefined {
+  if (isProduction()) {
+    return process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+  }
   return process.env.TELEGRAM_PARTNER_BOT_TOKEN_DEV || process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+}
+
+function getPartnerBotUsername(): string {
+  return process.env.TELEGRAM_PARTNER_BOT_USERNAME || (isProduction() ? "JetUP_Partner_Bot" : "Jetup_partner_test_bot");
 }
 
 const openai = new OpenAI({
@@ -705,9 +716,13 @@ async function setBotCommands(): Promise<void> {
 
 async function autoSetWebhook(): Promise<void> {
   const token = getPartnerBotToken();
-  if (!token) return;
+  if (!token) {
+    console.log(`Partner bot: no token found for ${isProduction() ? "production" : "development"} environment, skipping webhook setup`);
+    return;
+  }
 
   const baseUrl = getBaseUrl();
+  const botUsername = getPartnerBotUsername();
 
   const webhookUrl = `${baseUrl}/api/telegram-bot/webhook`;
   try {
@@ -717,7 +732,7 @@ async function autoSetWebhook(): Promise<void> {
       body: JSON.stringify({ url: webhookUrl }),
     });
     const result = await res.json();
-    console.log(`Partner bot webhook set to: ${webhookUrl}`, result);
+    console.log(`Partner bot webhook set: @${botUsername} → ${webhookUrl} (${isProduction() ? "PROD" : "DEV"})`, result);
   } catch (error) {
     console.error("Failed to auto-set partner bot webhook:", error);
   }
@@ -727,6 +742,10 @@ async function autoSetWebhook(): Promise<void> {
 
 export function registerPartnerBotRoutes(app: Express): void {
   autoSetWebhook();
+
+  app.get("/api/partner-app/bot-config", (_req: Request, res: Response) => {
+    res.json({ botUsername: getPartnerBotUsername() });
+  });
 
   app.post("/api/telegram-bot/webhook", async (req: Request, res: Response) => {
     try {

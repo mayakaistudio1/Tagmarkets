@@ -70,9 +70,15 @@ function LanguageSelector({ compact }: { compact?: boolean }) {
 
 function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => void }) {
   const [manualId, setManualId] = useState("");
+  const [botUsername, setBotUsername] = useState("JetUP_Partner_Bot");
   const { t } = useLanguage();
 
-  const botUsername = "Jetup_partner_test_bot";
+  useEffect(() => {
+    fetch("/api/partner-app/bot-config")
+      .then(r => r.json())
+      .then(data => { if (data.botUsername) setBotUsername(data.botUsername); })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="h-full flex flex-col items-center justify-center bg-white px-8 text-center" data-testid="telegram-login-screen">

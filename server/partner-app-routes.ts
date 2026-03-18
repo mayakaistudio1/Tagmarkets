@@ -945,6 +945,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
           banner: scheduleEvent.banner || null,
           highlights: scheduleEvent.highlights || [],
           typeBadge: scheduleEvent.typeBadge || "",
+          timezone: scheduleEvent.timezone || "CET",
         } : null,
         chatHistory: JSON.parse(invite.chatHistory || "[]"),
       });

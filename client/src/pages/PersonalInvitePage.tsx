@@ -21,6 +21,7 @@ interface InviteData {
     banner: string | null;
     highlights: string[];
     typeBadge: string;
+    timezone: string;
   } | null;
   chatHistory: Array<{ role: string; content: string }>;
 }
@@ -379,7 +380,9 @@ export default function PersonalInvitePage() {
                 </div>
                 <div>
                   <p className="text-[10px] uppercase text-gray-400 font-semibold">{t('pi.time')}</p>
-                  <p className="text-sm font-semibold text-gray-900" data-testid="text-event-time">{ev?.time || ""}</p>
+                  <p className="text-sm font-semibold text-gray-900" data-testid="text-event-time">
+                    {ev?.time || ""}{ev?.timezone ? ` ${ev.timezone}` : ""}
+                  </p>
                 </div>
               </div>
             </div>
@@ -418,7 +421,7 @@ export default function PersonalInvitePage() {
             <h2 className="text-sm font-bold text-gray-900 truncate">{ev?.title || "Webinar"}</h2>
             <div className="flex items-center gap-2 text-[11px] text-gray-400">
               <span className="flex items-center gap-0.5"><Calendar className="w-3 h-3" /> {formatDate(ev?.date || "")}</span>
-              <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" /> {ev?.time || ""}</span>
+              <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" /> {ev?.time || ""}{ev?.timezone ? ` ${ev.timezone}` : ""}</span>
               {ev?.speaker && <span className="truncate">· {ev.speaker}</span>}
             </div>
           </div>

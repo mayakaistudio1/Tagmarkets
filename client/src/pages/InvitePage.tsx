@@ -26,19 +26,36 @@ interface InviteEvent {
   scheduleEvent?: ScheduleEventData | null;
 }
 
-function CountdownTimer({ eventDate, eventTime }: { eventDate: string; eventTime: string }) {
+function getTimezoneOffsetStr(tz: string): string {
+  const tzMap: Record<string, string> = {
+    "CET": "+01:00", "CEST": "+02:00", "MET": "+01:00", "MEZ": "+01:00",
+    "MESZ": "+02:00", "UTC": "+00:00", "GMT": "+00:00", "MSK": "+03:00",
+    "Europe/Berlin": "+01:00", "Europe/Moscow": "+03:00",
+  };
+  const now = new Date();
+  const month = now.getMonth();
+  if ((tz === "CET" || tz === "Europe/Berlin" || tz === "MET" || tz === "MEZ") && month >= 2 && month <= 9) {
+    return "+02:00";
+  }
+  return tzMap[tz] || "+01:00";
+}
+
+function CountdownTimer({ eventDate, eventTime, timezone }: { eventDate: string; eventTime: string; timezone?: string }) {
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
 
   useEffect(() => {
     function parseEventDate(dateStr: string, timeStr: string): Date | null {
-      let d: Date | null = null;
+      let isoDate: string | null = null;
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        d = new Date(`${dateStr}T${timeStr || "00:00"}:00`);
+        isoDate = dateStr;
       } else if (/^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)) {
         const [day, month, year] = dateStr.split(".");
-        d = new Date(`${year}-${month}-${day}T${timeStr || "00:00"}:00`);
+        isoDate = `${year}-${month}-${day}`;
       }
-      return d && !isNaN(d.getTime()) ? d : null;
+      if (!isoDate) return null;
+      const offset = timezone ? getTimezoneOffsetStr(timezone) : "+01:00";
+      const d = new Date(`${isoDate}T${timeStr || "00:00"}:00${offset}`);
+      return !isNaN(d.getTime()) ? d : null;
     }
 
     const target = parseEventDate(eventDate, eventTime);
@@ -270,12 +287,14 @@ const InvitePage = () => {
               </div>
               <div>
                 <p className="text-[10px] uppercase text-gray-400 font-semibold">Uhrzeit</p>
-                <p className="text-sm font-semibold text-gray-900" data-testid="text-event-time">{event.eventTime}</p>
+                <p className="text-sm font-semibold text-gray-900" data-testid="text-event-time">
+                  {event.eventTime}{se?.timezone ? ` ${se.timezone}` : ""}
+                </p>
               </div>
             </div>
           </div>
 
-          <CountdownTimer eventDate={event.eventDate} eventTime={event.eventTime} />
+          <CountdownTimer eventDate={event.eventDate} eventTime={event.eventTime} timezone={se?.timezone} />
 
           {highlights.length > 0 && (
             <div className="bg-white rounded-2xl p-5 space-y-3" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>

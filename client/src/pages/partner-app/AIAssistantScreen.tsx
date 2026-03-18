@@ -1,23 +1,25 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Bot, Send, Loader2, UserPlus, CalendarPlus, PhoneCall, FileText, Target, Sparkles } from "lucide-react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface Message { role: "user" | "assistant"; content: string; }
 
-const quickActions = [
-  { id: "followup-attended", label: "Follow-up: Attendee", icon: UserPlus, prompt: "Write a follow-up message for a guest who attended the webinar and stayed the full time." },
-  { id: "followup-noshow", label: "Follow-up: No-Show", icon: Target, prompt: "Write a friendly message to a guest who registered but did not attend the webinar." },
-  { id: "invite-next", label: "Invite to next event", icon: CalendarPlus, prompt: "Write an invitation to the next webinar for a contact who attended a previous one." },
-  { id: "book-call", label: "Suggest a call", icon: PhoneCall, prompt: "Write a message to schedule a personal call with an interested contact." },
-  { id: "send-info", label: "Send materials", icon: FileText, prompt: "Write a message to send information materials about JetUP to a prospect." },
-  { id: "qualify", label: "Qualify interest", icon: Sparkles, prompt: "Give me 3 questions to assess a contact's interest in the JetUP partnership." },
-];
-
 export default function AIAssistantScreen({ telegramId, partnerName }: { telegramId: string; partnerName: string }) {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const quickActions = [
+    { id: "followup-attended", label: t('pa.ai.action.followupAttended.label'), icon: UserPlus, prompt: t('pa.ai.action.followupAttended.prompt') },
+    { id: "followup-noshow", label: t('pa.ai.action.followupNoshow.label'), icon: Target, prompt: t('pa.ai.action.followupNoshow.prompt') },
+    { id: "invite-next", label: t('pa.ai.action.inviteNext.label'), icon: CalendarPlus, prompt: t('pa.ai.action.inviteNext.prompt') },
+    { id: "book-call", label: t('pa.ai.action.bookCall.label'), icon: PhoneCall, prompt: t('pa.ai.action.bookCall.prompt') },
+    { id: "send-info", label: t('pa.ai.action.sendInfo.label'), icon: FileText, prompt: t('pa.ai.action.sendInfo.prompt') },
+    { id: "qualify", label: t('pa.ai.action.qualify.label'), icon: Sparkles, prompt: t('pa.ai.action.qualify.prompt') },
+  ];
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -37,7 +39,7 @@ export default function AIAssistantScreen({ telegramId, partnerName }: { telegra
       const data = await res.json();
       setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, an error occurred. Please try again." }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: t('pa.ai.error') }]);
     }
     setSending(false);
   };
@@ -52,8 +54,8 @@ export default function AIAssistantScreen({ telegramId, partnerName }: { telegra
             <Bot className="w-4.5 h-4.5 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-gray-900">AI Follow-up Assistant</h2>
-            <p className="text-[11px] text-gray-400">Your recruiting helper</p>
+            <h2 className="text-sm font-bold text-gray-900">{t('pa.ai.title')}</h2>
+            <p className="text-[11px] text-gray-400">{t('pa.ai.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -63,8 +65,7 @@ export default function AIAssistantScreen({ telegramId, partnerName }: { telegra
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             <div className="bg-white rounded-2xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Hi {partnerName.split(" ")[0]}! I'm your AI assistant for recruiting and follow-up.
-                Choose an action or write me directly.
+                {t('pa.ai.greeting').replace('{name}', partnerName.split(" ")[0])}
               </p>
             </div>
 
@@ -113,7 +114,7 @@ export default function AIAssistantScreen({ telegramId, partnerName }: { telegra
             <div className="px-4 py-3 rounded-2xl bg-white rounded-bl-md" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                <span className="text-xs text-gray-400">Thinking...</span>
+                <span className="text-xs text-gray-400">{t('pa.ai.thinking')}</span>
               </div>
             </div>
           </div>
@@ -125,7 +126,7 @@ export default function AIAssistantScreen({ telegramId, partnerName }: { telegra
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask the AI assistant..."
+            placeholder={t('pa.ai.placeholder')}
             className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 px-3 py-2 outline-none"
             disabled={sending}
             data-testid="input-ai-message"

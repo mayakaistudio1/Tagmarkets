@@ -173,8 +173,8 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
             >
               <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
               <p className="text-xs text-emerald-700 font-medium">
-                Zoom sync: {zoomSyncResult.synced} neu{zoomSyncResult.skipped > 0 ? `, ${zoomSyncResult.skipped} bereits vorhanden` : ""}
-                {zoomSyncResult.total === 0 && " – Noch keine Teilnehmer (Zoom-Daten ~30 Min. nach Webinar verfügbar)"}
+                Zoom sync: {zoomSyncResult.synced} {t('pa.zoomSync.new')}{zoomSyncResult.skipped > 0 ? `, ${zoomSyncResult.skipped} ${t('pa.zoomSync.alreadyPresent')}` : ""}
+                {zoomSyncResult.total === 0 && ` ${t('pa.zoomSync.noParticipants')}`}
               </p>
             </motion.div>
           )}
@@ -188,19 +188,19 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                 <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
                   {zoomSyncError === "Zoom not configured" ? (
-                    <p className="text-xs text-red-700 font-medium">Zoom nicht konfiguriert. Bitte Admin kontaktieren.</p>
+                    <p className="text-xs text-red-700 font-medium">{t('pa.zoomSync.notConfigured')}</p>
                   ) : zoomSyncError.startsWith("SCOPE_ERROR:") ? (
                     <>
-                      <p className="text-xs text-red-700 font-semibold mb-1">Zoom: Fehlende Berechtigung</p>
+                      <p className="text-xs text-red-700 font-semibold mb-1">{t('pa.zoomSync.missingScope')}</p>
                       <p className="text-xs text-red-600 leading-relaxed">
-                        Das Zoom-App fehlt der Scope <span className="font-mono bg-red-100 px-1 rounded">{zoomSyncError.replace("SCOPE_ERROR:", "")}</span>.
+                        {t('pa.zoomSync.scopeDesc')} <span className="font-mono bg-red-100 px-1 rounded">{zoomSyncError.replace("SCOPE_ERROR:", "")}</span>.
                       </p>
                       <p className="text-xs text-red-500 mt-1.5 leading-relaxed">
-                        Admin: marketplace.zoom.us → App → Scopes → diesen Scope aktivieren → App neu autorisieren
+                        {t('pa.zoomSync.adminHint')}
                       </p>
                     </>
                   ) : (
-                    <p className="text-xs text-red-700 font-medium">Fehler: {zoomSyncError}</p>
+                    <p className="text-xs text-red-700 font-medium">{t('pa.zoomSync.error')} {zoomSyncError}</p>
                   )}
                 </div>
               </div>
@@ -217,19 +217,19 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
             {zoomSyncing ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                <span className="text-blue-600">Zoom-Daten werden abgerufen...</span>
+                <span className="text-blue-600">{t('pa.zoomSync.loading')}</span>
               </>
             ) : (
               <>
                 <RefreshCw className="w-4 h-4 text-gray-500" />
-                <span>Zoom-Daten aktualisieren</span>
+                <span>{t('pa.zoomSync.button')}</span>
               </>
             )}
           </button>
 
           {!hasZoomData && !zoomSyncResult && (
             <p className="text-[11px] text-gray-400 text-center mt-2">
-              Zoom-Teilnahmedaten werden ~30 Min. nach Webinar-Ende verfügbar
+              {t('pa.zoomSync.hint')}
             </p>
           )}
         </div>

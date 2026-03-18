@@ -842,7 +842,7 @@ RULES:
 - No "I hope this message finds you well"
 - No corporate language
 - No overexplaining
-- Write in German
+- Write in ${langName}
 
 Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Message 2 text"]`;
 
@@ -865,10 +865,22 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       }
 
       if (messages.length === 0) {
-        messages = [
-          `${prospectName}, hi!\nIch bin der Assistent von ${partner.name}.\nEr wollte dich persönlich zu einem Webinar einladen.`,
-          `Am ${scheduleEvent.date} um ${scheduleEvent.time} findet ein spannendes Webinar statt.\nHast du Interesse?`,
-        ];
+        if (lang === "en") {
+          messages = [
+            `${prospectName}, hi!\nI'm the assistant of ${partner.name}.\nThey wanted to personally invite you to a webinar.`,
+            `On ${scheduleEvent.date} at ${scheduleEvent.time} there's an exciting webinar.\nAre you interested?`,
+          ];
+        } else if (lang === "ru") {
+          messages = [
+            `${prospectName}, привет!\nЯ ассистент ${partner.name}.\nОн хотел лично пригласить тебя на вебинар.`,
+            `${scheduleEvent.date} в ${scheduleEvent.time} состоится интересный вебинар.\nТебе интересно?`,
+          ];
+        } else {
+          messages = [
+            `${prospectName}, hi!\nIch bin der Assistent von ${partner.name}.\nEr wollte dich persönlich zu einem Webinar einladen.`,
+            `Am ${scheduleEvent.date} um ${scheduleEvent.time} findet ein spannendes Webinar statt.\nHast du Interesse?`,
+          ];
+        }
       }
 
       const quickReplies = getDiscQuickReplies(discType, false, lang);

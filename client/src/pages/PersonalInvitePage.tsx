@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRoute } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Calendar, Clock, User, Mic, Star, Send, ChevronRight, Globe } from "lucide-react";
+import { Loader2, Calendar, Clock, User, Mic, Star, Send, ChevronRight, Globe, ChevronDown, ChevronUp, Info, MessageSquare, Phone } from "lucide-react";
 import { useLanguage, Language } from "../contexts/LanguageContext";
 
 interface InviteData {
@@ -99,8 +99,9 @@ export default function PersonalInvitePage() {
   const [sending, setSending] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [showRegForm, setShowRegForm] = useState(false);
-  const [regData, setRegData] = useState({ name: "", email: "", telegram: "" });
+  const [regData, setRegData] = useState({ name: "", email: "", telegram: "", phone: "", reminderChannel: "whatsapp" as "whatsapp" | "telegram" });
   const [registering, setRegistering] = useState(false);
+  const [showEventInfo, setShowEventInfo] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [langInitialized, setLangInitialized] = useState(false);
 
@@ -127,7 +128,7 @@ export default function PersonalInvitePage() {
           }
         }
         if (data.isRegistered) {
-          setRegData({ name: "", email: "", telegram: "" });
+          setRegData({ name: "", email: "", telegram: "", phone: "", reminderChannel: "whatsapp" });
         }
         setLoading(false);
       })
@@ -405,8 +406,8 @@ export default function PersonalInvitePage() {
 
   return (
     <div className="h-screen flex flex-col bg-[#F5F5F7] overflow-hidden">
-      <div className="flex-shrink-0 bg-white px-5 py-3 border-b border-gray-100">
-        <div className="flex items-center gap-3">
+      <div className="flex-shrink-0 bg-white border-b border-gray-100">
+        <div className="px-5 py-3 flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
             <Star className="w-4 h-4 text-blue-600" />
           </div>
@@ -414,7 +415,56 @@ export default function PersonalInvitePage() {
             <h2 className="text-sm font-bold text-gray-900 truncate">{ev?.title || "Webinar"}</h2>
             <p className="text-[11px] text-gray-400">{t('pi.from')} {inviteData.partnerName}</p>
           </div>
+          <button
+            onClick={() => setShowEventInfo(!showEventInfo)}
+            className="p-2 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors"
+            data-testid="button-toggle-event-info"
+          >
+            {showEventInfo ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <Info className="w-4 h-4 text-gray-500" />}
+          </button>
         </div>
+        <AnimatePresence>
+          {showEventInfo && ev && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="px-5 pb-3 space-y-2.5">
+                {ev.banner && (
+                  <img src={ev.banner} alt={ev.title} className="w-full h-32 object-cover rounded-xl" />
+                )}
+                {ev.speaker && (
+                  <div className="flex items-center gap-2.5">
+                    {ev.speakerPhoto ? (
+                      <img src={ev.speakerPhoto} alt={ev.speaker} className="w-8 h-8 rounded-lg object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <Mic className="w-4 h-4 text-blue-500" />
+                      </div>
+                    )}
+                    <span className="text-xs font-medium text-gray-700">{ev.speaker}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {formatDate(ev.date)}</span>
+                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {ev.time}</span>
+                </div>
+                {ev.highlights?.length > 0 && (
+                  <ul className="space-y-1">
+                    {ev.highlights.map((h: string, i: number) => (
+                      <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                        <span className="text-blue-500 mt-0.5">•</span>{h}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar px-4 py-4 space-y-3">
@@ -481,13 +531,47 @@ export default function PersonalInvitePage() {
                 className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 data-testid="input-reg-email"
               />
-              <input
-                placeholder={t('pi.telegramOptional')}
-                value={regData.telegram}
-                onChange={(e) => setRegData({ ...regData, telegram: e.target.value })}
-                className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                data-testid="input-reg-telegram"
-              />
+              <div>
+                <p className="text-[10px] uppercase text-gray-400 font-semibold tracking-wider mb-1.5">{t('pi.reminderChannel')}</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRegData({ ...regData, reminderChannel: "whatsapp", telegram: "" })}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-colors border ${regData.reminderChannel === "whatsapp" ? "bg-green-50 border-green-300 text-green-700" : "bg-gray-50 border-gray-200 text-gray-500"}`}
+                    data-testid="button-channel-whatsapp"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    {t('pi.whatsapp')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRegData({ ...regData, reminderChannel: "telegram", phone: "" })}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-colors border ${regData.reminderChannel === "telegram" ? "bg-blue-50 border-blue-300 text-blue-700" : "bg-gray-50 border-gray-200 text-gray-500"}`}
+                    data-testid="button-channel-telegram"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    {t('pi.telegram')}
+                  </button>
+                </div>
+              </div>
+              {regData.reminderChannel === "whatsapp" ? (
+                <input
+                  placeholder={t('pi.phoneNumber')}
+                  value={regData.phone}
+                  onChange={(e) => setRegData({ ...regData, phone: e.target.value })}
+                  type="tel"
+                  className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  data-testid="input-reg-phone"
+                />
+              ) : (
+                <input
+                  placeholder={t('pi.telegramUsername')}
+                  value={regData.telegram}
+                  onChange={(e) => setRegData({ ...regData, telegram: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  data-testid="input-reg-telegram"
+                />
+              )}
               <button
                 type="submit"
                 disabled={registering}

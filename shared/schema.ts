@@ -287,6 +287,8 @@ export const personalInvites = pgTable("personal_invites", {
   guestName: text("guest_name"),
   guestEmail: text("guest_email"),
   guestTelegram: text("guest_telegram"),
+  guestPhone: text("guest_phone"),
+  reminderChannel: text("reminder_channel"),
   registeredAt: timestamp("registered_at"),
   reminderPreference: text("reminder_preference"),
   chatHistory: text("chat_history").default("[]"),

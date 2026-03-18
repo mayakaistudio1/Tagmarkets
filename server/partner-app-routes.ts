@@ -36,6 +36,8 @@ const registerPersonalInviteSchema = z.object({
   name: z.string().min(1, "name is required").max(200),
   email: z.string().email("valid email is required"),
   telegram: z.string().max(100).optional(),
+  phone: z.string().max(50).optional(),
+  reminderChannel: z.enum(["telegram", "whatsapp"]).optional(),
 });
 
 function hasAny(csv: string, values: string[]): boolean {
@@ -383,6 +385,13 @@ export function registerPartnerAppRoutes(app: Express) {
         totalAttended += attendance.length;
       }
 
+      const personalInvites = await storage.getPersonalInvitesByPartnerId(partner.id);
+      const piTotal = personalInvites.length;
+      const piRegistered = personalInvites.filter((pi) => pi.registeredAt).length;
+      const piViewed = personalInvites.filter((pi) => pi.viewedAt).length;
+
+      totalInvited += piRegistered;
+
       const conversionRate = totalInvited > 0 ? Math.round((totalAttended / totalInvited) * 100) : 0;
 
       res.json({
@@ -397,6 +406,9 @@ export function registerPartnerAppRoutes(app: Express) {
           totalAttended,
           conversionRate,
           totalEvents: events.length,
+          personalInvites: piTotal,
+          personalRegistered: piRegistered,
+          personalViewed: piViewed,
         },
       });
     } catch (error: any) {
@@ -424,6 +436,7 @@ export function registerPartnerAppRoutes(app: Express) {
 
       if (partner) {
         const partnerEvents = await storage.getInviteEventsByPartnerId(partner.id);
+        const pInvites = await storage.getPersonalInvitesByPartnerId(partner.id);
         const enriched = await Promise.all(events.map(async (se: any) => {
           const related = partnerEvents.filter((ie: any) => ie.scheduleEventId === se.id);
           let invitesSent = 0;
@@ -433,6 +446,9 @@ export function registerPartnerAppRoutes(app: Express) {
             const guests = await storage.getGuestsByEventId(ie.id);
             registeredCount += guests.length;
           }
+          const relatedPi = pInvites.filter((pi) => pi.scheduleEventId === se.id);
+          invitesSent += relatedPi.length;
+          registeredCount += relatedPi.filter((pi) => pi.registeredAt).length;
           return { ...se, invitesSent, registeredCount };
         }));
         return res.json(enriched);
@@ -1068,12 +1084,14 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       if (!parsed.success) {
         return res.status(400).json({ error: parsed.error.errors[0]?.message || "Invalid input" });
       }
-      const { name, email, telegram } = parsed.data;
+      const { name, email, telegram, phone, reminderChannel } = parsed.data;
 
       const updated = await storage.updatePersonalInviteRegistration(invite.id, {
         guestName: name,
         guestEmail: email,
         guestTelegram: telegram,
+        guestPhone: phone,
+        reminderChannel: reminderChannel,
       });
 
       const chatHistory: Array<{ role: string; content: string }> = JSON.parse(updated.chatHistory || "[]");

@@ -49,35 +49,9 @@ function getTelegramUsername(): string | null {
 }
 
 function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => void }) {
-  const [showManualInput, setShowManualInput] = useState(false);
   const [manualId, setManualId] = useState("");
 
-  useEffect(() => {
-    (window as any).onTelegramAuth = (user: any) => {
-      if (user?.id) {
-        sessionStorage.setItem("partnerTelegramId", String(user.id));
-        onLogin(String(user.id));
-      }
-    };
-
-    const botUsername = "Jetup_partner_test_bot";
-    const container = document.getElementById("telegram-login-container");
-    if (container) {
-      const script = document.createElement("script");
-      script.src = "https://telegram.org/js/telegram-widget.js?22";
-      script.setAttribute("data-telegram-login", botUsername);
-      script.setAttribute("data-size", "large");
-      script.setAttribute("data-radius", "12");
-      script.setAttribute("data-onauth", "onTelegramAuth(user)");
-      script.setAttribute("data-request-access", "write");
-      script.async = true;
-      container.appendChild(script);
-    }
-
-    return () => {
-      delete (window as any).onTelegramAuth;
-    };
-  }, [onLogin]);
+  const botUsername = "Jetup_partner_test_bot";
 
   return (
     <div className="h-full flex flex-col items-center justify-center bg-white px-8 text-center" data-testid="telegram-login-screen">
@@ -85,29 +59,42 @@ function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => voi
         <LogIn className="w-7 h-7 text-blue-600" />
       </div>
       <h2 className="text-lg font-bold text-gray-900 mb-2">JetUP Partner Hub</h2>
-      <p className="text-sm text-gray-500 mb-8 max-w-xs leading-relaxed">
+      <p className="text-sm text-gray-500 mb-6 max-w-xs leading-relaxed">
         Sign in with your Telegram account to access the Partner App.
       </p>
 
-      <div id="telegram-login-container" className="mb-6 min-h-[44px]" />
-
-      <button
-        onClick={() => setShowManualInput(!showManualInput)}
-        className="text-xs text-gray-400 underline"
-        data-testid="button-manual-login-toggle"
+      <a
+        href={`https://t.me/${botUsername}?start=open_app`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2.5 w-full max-w-xs px-5 py-3.5 rounded-xl text-white text-sm font-semibold transition-colors active:opacity-90"
+        style={{ backgroundColor: "#0088cc" }}
+        data-testid="button-open-telegram"
       >
-        Having trouble? Enter Telegram ID manually
-      </button>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+        Open in Telegram
+      </a>
 
-      {showManualInput && (
-        <div className="mt-4 flex gap-2">
+      <p className="text-xs text-gray-400 mt-3 max-w-xs leading-relaxed">
+        The bot will open the Partner App directly in Telegram with automatic authentication.
+      </p>
+
+      <div className="w-full max-w-xs border-t border-gray-100 mt-6 pt-5">
+        <p className="text-xs text-gray-400 mb-3">Already have access? Enter your Telegram ID:</p>
+        <div className="flex gap-2">
           <input
             type="text"
             value={manualId}
             onChange={(e) => setManualId(e.target.value)}
             placeholder="Your Telegram ID"
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             data-testid="input-manual-telegram-id"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && manualId.trim()) {
+                sessionStorage.setItem("partnerTelegramId", manualId.trim());
+                onLogin(manualId.trim());
+              }
+            }}
           />
           <button
             onClick={() => {
@@ -116,13 +103,14 @@ function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => voi
                 onLogin(manualId.trim());
               }
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
+            disabled={!manualId.trim()}
+            className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-40 active:bg-blue-700 transition-colors"
             data-testid="button-manual-login-submit"
           >
-            Go
+            <ArrowRight size={16} />
           </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

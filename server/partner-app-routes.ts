@@ -542,8 +542,11 @@ export function registerPartnerAppRoutes(app: Express) {
         attendanceMap.set(a.participantEmail.toLowerCase(), a);
       }
 
+      const matchedEmails = new Set<string>();
+
       const guestsWithStatus = guests.map((g) => {
         const att = attendanceMap.get(g.email.toLowerCase());
+        if (att) matchedEmails.add(g.email.toLowerCase());
         return {
           id: g.id,
           name: g.name,
@@ -552,11 +555,30 @@ export function registerPartnerAppRoutes(app: Express) {
           registeredAt: g.registeredAt,
           clickedZoom: g.clickedZoom,
           attended: !!att,
-          durationMinutes: att?.durationMinutes || 0,
-          questionsAsked: att?.questionsAsked || 0,
-          questionTexts: att?.questionTexts || [],
+          durationMinutes: att ? (att.durationMinutes ?? null) : null,
+          questionsAsked: att ? (att.questionsAsked ?? null) : null,
+          questionTexts: att?.questionTexts ?? [],
+          joinTime: att?.joinTime ?? null,
+          isWalkIn: false,
         };
       });
+
+      const walkIns = attendance
+        .filter((a) => !matchedEmails.has(a.participantEmail.toLowerCase()))
+        .map((a) => ({
+          id: -(a.id),
+          name: a.participantName || a.participantEmail,
+          email: a.participantEmail,
+          phone: null,
+          registeredAt: a.fetchedAt,
+          clickedZoom: false,
+          attended: true,
+          durationMinutes: a.durationMinutes ?? null,
+          questionsAsked: a.questionsAsked ?? null,
+          questionTexts: a.questionTexts ?? [],
+          joinTime: a.joinTime ?? null,
+          isWalkIn: true,
+        }));
 
       res.json({
         event: {
@@ -566,7 +588,7 @@ export function registerPartnerAppRoutes(app: Express) {
           eventTime: event.eventTime,
           inviteCode: event.inviteCode,
         },
-        guests: guestsWithStatus,
+        guests: [...guestsWithStatus, ...walkIns],
         funnel: {
           invited: guests.length,
           registered: guests.length,

@@ -66,13 +66,15 @@ interface InviteGuest {
   id: number;
   name: string;
   email: string;
-  phone?: string;
+  phone?: string | null;
   registeredAt: string;
   clickedZoom: boolean;
-  clickedAt?: string;
+  clickedAt?: string | null;
   attended?: boolean;
-  durationMinutes?: number;
-  questionsAsked?: number;
+  durationMinutes?: number | null;
+  questionsAsked?: number | null;
+  joinTime?: string | null;
+  isWalkIn?: boolean;
 }
 
 interface InviteEvent {
@@ -2624,19 +2626,27 @@ function InvitesTab({
                         <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Registered</th>
                         <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Clicked</th>
                         <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Attended</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Joined At</th>
                         <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Duration</th>
                         <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Q&A</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
                       {guests.map((guest) => (
-                        <tr key={guest.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{guest.name}</td>
+                        <tr key={guest.id} className={`hover:bg-gray-50 ${guest.isWalkIn ? "bg-amber-50/40" : ""}`}>
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                            {guest.name}
+                            {guest.isWalkIn && <span className="ml-1.5 text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold">Walk-in</span>}
+                          </td>
                           <td className="px-4 py-3 text-sm text-gray-600">{guest.email}</td>
                           <td className="px-4 py-3 text-sm text-gray-600">{guest.phone || "-"}</td>
-                          <td className="px-4 py-3 text-sm text-gray-500">{new Date(guest.registeredAt).toLocaleString()}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">
+                            {guest.isWalkIn ? <span className="text-gray-300">—</span> : new Date(guest.registeredAt).toLocaleString()}
+                          </td>
                           <td className="px-4 py-3 text-center">
-                            {guest.clickedZoom ? (
+                            {guest.isWalkIn ? (
+                              <span className="text-gray-300">—</span>
+                            ) : guest.clickedZoom ? (
                               <div className="flex flex-col items-center">
                                 <Check className="text-green-500" size={18} />
                                 {guest.clickedAt && <span className="text-[10px] text-gray-400">{new Date(guest.clickedAt).toLocaleTimeString()}</span>}
@@ -2654,15 +2664,22 @@ function InvitesTab({
                               <span className="text-gray-300 text-xs">—</span>
                             )}
                           </td>
+                          <td className="px-4 py-3 text-center text-sm text-gray-500">
+                            {guest.joinTime ? (
+                              <span>{new Date(guest.joinTime).toLocaleTimeString()}</span>
+                            ) : (
+                              <span className="text-gray-300">—</span>
+                            )}
+                          </td>
                           <td className="px-4 py-3 text-center text-sm text-gray-600">
-                            {guest.attended && (guest.durationMinutes ?? 0) > 0 ? (
+                            {guest.attended && guest.durationMinutes != null ? (
                               <span className="font-medium">{guest.durationMinutes}m</span>
                             ) : (
                               <span className="text-gray-300">—</span>
                             )}
                           </td>
                           <td className="px-4 py-3 text-center text-sm text-gray-600">
-                            {guest.attended && (guest.questionsAsked ?? 0) > 0 ? (
+                            {guest.attended && guest.questionsAsked != null && guest.questionsAsked > 0 ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
                                 {guest.questionsAsked}
                               </span>

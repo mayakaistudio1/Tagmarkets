@@ -1048,28 +1048,52 @@ Return ONLY valid JSON in this format:
         attendanceMap.set(a.participantEmail.toLowerCase(), a);
       }
 
+      const matchedEmails = new Set<string>();
+
       const guestsWithAttendance = guests.map(g => {
         const att = attendanceMap.get(g.email.toLowerCase());
+        if (att) matchedEmails.add(g.email.toLowerCase());
         return {
           ...g,
           attended: !!att,
-          durationMinutes: att?.durationMinutes || 0,
-          questionsAsked: att?.questionsAsked || 0,
+          durationMinutes: att ? (att.durationMinutes ?? null) : null,
+          questionsAsked: att ? (att.questionsAsked ?? null) : null,
+          joinTime: att?.joinTime ?? null,
+          isWalkIn: false,
         };
       });
 
+      const walkIns = attendance
+        .filter(a => !matchedEmails.has(a.participantEmail.toLowerCase()))
+        .map(a => ({
+          id: -(a.id),
+          name: a.participantName || a.participantEmail,
+          email: a.participantEmail,
+          phone: null,
+          registeredAt: a.fetchedAt,
+          clickedZoom: false,
+          clickedAt: null,
+          attended: true,
+          durationMinutes: a.durationMinutes ?? null,
+          questionsAsked: a.questionsAsked ?? null,
+          joinTime: a.joinTime ?? null,
+          isWalkIn: true,
+        }));
+
+      const allGuests = [...guestsWithAttendance, ...walkIns];
       const clicked = guestsWithAttendance.filter(g => g.clickedZoom);
       const notClicked = guestsWithAttendance.filter(g => !g.clickedZoom);
       const attended = guestsWithAttendance.filter(g => g.attended);
 
       res.json({
         event,
-        guests: guestsWithAttendance,
+        guests: allGuests,
         stats: {
           totalRegistered: guests.length,
           totalClicked: clicked.length,
           totalNotClicked: notClicked.length,
-          totalAttended: attended.length,
+          totalAttended: attended.length + walkIns.length,
+          totalWalkIns: walkIns.length,
         },
       });
     } catch (error: any) {

@@ -15,7 +15,8 @@ interface EventReport {
   guests: Array<{
     id: number; name: string; email: string; phone: string | null;
     registeredAt: string; clickedZoom: boolean; attended: boolean;
-    durationMinutes: number; questionsAsked: number; questionTexts: string[];
+    durationMinutes: number | null; questionsAsked: number | null; questionTexts: string[];
+    joinTime?: string | null; isWalkIn?: boolean;
   }>;
   funnel: { invited: number; registered: number; clickedZoom: number; attended: number };
 }
@@ -129,14 +130,17 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                 onClick={() => setExpandedGuest(expandedGuest === g.id ? null : g.id)}
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 truncate">{g.name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-medium text-gray-900 truncate">{g.name}</p>
+                    {g.isWalkIn && <span className="flex-shrink-0 text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold">Walk-in</span>}
+                  </div>
                   <p className="text-[11px] text-gray-400 truncate">{g.email}</p>
                 </div>
                 <div className="ml-3 flex-shrink-0">
                   {g.attended ? (
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold">
-                      ✓ {g.durationMinutes}m
-                      {g.questionsAsked > 0 && ` · ${g.questionsAsked}Q`}
+                      ✓ {g.durationMinutes != null ? `${g.durationMinutes}m` : "—"}
+                      {(g.questionsAsked ?? 0) > 0 && ` · ${g.questionsAsked}Q`}
                     </span>
                   ) : g.clickedZoom ? (
                     <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold">{t('pa.clicked')}</span>
@@ -153,7 +157,8 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                 >
                   <div className="pt-3 space-y-2">
                     <div className="flex items-center gap-4 text-xs text-gray-500">
-                      {g.attended && <span>⏱ {g.durationMinutes} min</span>}
+                      {g.attended && g.durationMinutes != null && <span>⏱ {g.durationMinutes} min</span>}
+                      {g.attended && g.joinTime && <span>🕐 {new Date(g.joinTime).toLocaleTimeString()}</span>}
                       {g.phone && <span>📞 {g.phone}</span>}
                       {g.clickedZoom && <span className="text-blue-500">🔗 {t('pa.clickedZoom')}</span>}
                     </div>
@@ -217,12 +222,19 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                 <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {event.eventDate}</span>
                 <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {event.eventTime}</span>
               </div>
-              <div className="flex items-center gap-5">
+              <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-blue-500" />
                   <span className="text-xs font-semibold text-gray-700">{event.registeredCount || event.guestCount}</span>
                   <span className="text-[10px] text-gray-400">{t('pa.registered')}</span>
                 </div>
+                {event.clickedCount > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-purple-400" />
+                    <span className="text-xs font-semibold text-gray-700">{event.clickedCount}</span>
+                    <span className="text-[10px] text-gray-400">{t('pa.clickedZoom')}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
                   <span className="text-xs font-semibold text-gray-700">{event.attendedCount}</span>

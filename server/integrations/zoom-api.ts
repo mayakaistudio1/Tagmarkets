@@ -236,7 +236,9 @@ export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl
     await storage.createZoomAttendance(attendanceData);
     existingEmails.add(email);
     synced++;
+    console.log(`[ZoomSync] Persisted attendance: ${participant.user_email} — ${participant.duration}min (eventId=${inviteEventId})`);
   }
 
+  console.log(`[ZoomSync] Complete for eventId=${inviteEventId}: ${synced} synced, ${skipped} skipped, ${participants.length} total participants`);
   return { participants, synced, skipped };
 }

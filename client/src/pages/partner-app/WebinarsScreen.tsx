@@ -208,7 +208,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [qualifyStarted, setQualifyStarted] = useState(false);
   const [multiSelectValues, setMultiSelectValues] = useState<Array<{ value: string; label: string }>>([]);
   const [partnerDisplayName, setPartnerDisplayName] = useState("");
-  const [personalInvites, setPersonalInvites] = useState<Array<{ id: number; inviteCode: string; prospectName: string; prospectType: string; discType: string; scheduleEventId: number; createdAt: string; viewedAt: string | null; registeredAt: string | null; guestName: string | null; guestEmail: string | null; isActive: boolean }>>([]);
+  const [personalInvites, setPersonalInvites] = useState<Array<{ id: number; inviteCode: string; prospectName: string; prospectType: string; discType: string; scheduleEventId: number; eventTitle: string | null; createdAt: string; viewedAt: string | null; registeredAt: string | null; guestName: string | null; guestEmail: string | null; isActive: boolean }>>([]);
 
   useEffect(() => {
     Promise.all([
@@ -1355,6 +1355,48 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
               </button>
             </motion.div>
           ))}
+        </div>
+      )}
+
+      {personalInvites.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('pa.personalInvitesSent')}</h3>
+          <div className="space-y-2">
+            {personalInvites.map((pi) => (
+              <motion.div
+                key={pi.id}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-xl p-3.5"
+                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+                data-testid={`sent-invite-${pi.id}`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-sm font-medium text-gray-900 truncate flex-1 min-w-0">{pi.prospectName}</p>
+                  {pi.registeredAt ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold flex-shrink-0 ml-2">
+                      <UserCheck className="w-3 h-3" /> {t('pa.registered')}
+                    </span>
+                  ) : pi.viewedAt ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold flex-shrink-0 ml-2">
+                      <Eye className="w-3 h-3" /> {t('pa.viewed')}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold flex-shrink-0 ml-2">
+                      <Send className="w-3 h-3" /> {t('pa.sent')}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                  {pi.eventTitle && (
+                    <span className="truncate max-w-[60%]">{pi.eventTitle}</span>
+                  )}
+                  <span>{new Date(pi.createdAt).toLocaleDateString("de-DE")}</span>
+                  {pi.discType && <span className="font-mono">DISC: {pi.discType}</span>}
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       )}
     </div>

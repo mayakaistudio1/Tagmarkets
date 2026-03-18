@@ -588,6 +588,16 @@ export function registerPartnerAppRoutes(app: Express) {
       }
 
       const invites = await storage.getPersonalInvitesByPartnerId(partner.id);
+
+      const eventIds = [...new Set(invites.map((i) => i.scheduleEventId).filter(Boolean))];
+      const eventTitleMap: Record<number, string> = {};
+      for (const eid of eventIds) {
+        try {
+          const ev = await storage.getScheduleEvent(eid);
+          if (ev) eventTitleMap[eid] = ev.title;
+        } catch {}
+      }
+
       const result = invites.map((inv) => ({
         id: inv.id,
         inviteCode: inv.inviteCode,
@@ -596,6 +606,7 @@ export function registerPartnerAppRoutes(app: Express) {
         discType: inv.discType,
         inviteStrategy: inv.inviteStrategy,
         scheduleEventId: inv.scheduleEventId,
+        eventTitle: eventTitleMap[inv.scheduleEventId] || null,
         createdAt: inv.createdAt,
         viewedAt: inv.viewedAt,
         registeredAt: inv.registeredAt,

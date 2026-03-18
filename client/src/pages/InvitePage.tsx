@@ -27,26 +27,34 @@ interface InviteEvent {
 }
 
 function getTimezoneOffsetStr(tz: string, isoDateStr?: string): string {
+  // Map all timezone abbreviations used in admin UI to IANA timezone names
   const ianaMap: Record<string, string> = {
     "CET": "Europe/Berlin", "CEST": "Europe/Berlin",
     "MEZ": "Europe/Berlin", "MESZ": "Europe/Berlin", "MET": "Europe/Berlin",
-    "MSK": "Europe/Moscow", "UTC": "UTC", "GMT": "UTC",
-    "Europe/Berlin": "Europe/Berlin", "Europe/Moscow": "Europe/Moscow",
+    "MSK": "Europe/Moscow",
+    "GST": "Asia/Dubai",
+    "EST": "America/New_York", "EDT": "America/New_York",
+    "UTC": "UTC", "GMT": "UTC",
+    "Europe/Berlin": "Europe/Berlin",
+    "Europe/Moscow": "Europe/Moscow",
+    "Asia/Dubai": "Asia/Dubai",
+    "America/New_York": "America/New_York",
   };
   const ianaZone = ianaMap[tz];
-  if (!ianaZone) return "+01:00";
-  if (ianaZone === "UTC") return "+00:00";
-  if (ianaZone === "Europe/Moscow") return "+03:00";
-  // For DST-affected zones (Europe/Berlin), use the event date not the current date
+  if (!ianaZone) return "+00:00";
+  // Use the event date (not current date) to determine DST-aware UTC offset via Intl API
   const refDate = isoDateStr ? new Date(`${isoDateStr}T12:00:00Z`) : new Date();
   try {
     const utcMs = refDate.getTime();
-    const localMs = new Date(refDate.toLocaleString("en-US", { timeZone: "Europe/Berlin" })).getTime();
-    const offsetHours = Math.round((localMs - utcMs) / (1000 * 60 * 60));
-    const sign = offsetHours >= 0 ? "+" : "-";
-    return `${sign}${String(Math.abs(offsetHours)).padStart(2, "0")}:00`;
+    const localMs = new Date(refDate.toLocaleString("en-US", { timeZone: ianaZone })).getTime();
+    const offsetMinutes = Math.round((localMs - utcMs) / (1000 * 60));
+    const sign = offsetMinutes >= 0 ? "+" : "-";
+    const absMin = Math.abs(offsetMinutes);
+    const h = String(Math.floor(absMin / 60)).padStart(2, "0");
+    const m = String(absMin % 60).padStart(2, "0");
+    return `${sign}${h}:${m}`;
   } catch {
-    return "+01:00";
+    return "+00:00";
   }
 }
 

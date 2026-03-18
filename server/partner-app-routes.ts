@@ -32,21 +32,26 @@ const registerPersonalInviteSchema = z.object({
   telegram: z.string().max(100).optional(),
 });
 
+function hasAny(csv: string, values: string[]): boolean {
+  const parts = csv.split(",");
+  return values.some((v) => parts.includes(v));
+}
+
 function selectInviteStrategy(relationship: string, motivation: string, reaction: string): string {
-  if (["mlm_leader", "entrepreneur"].includes(relationship) && ["fast_decision", "analytical"].includes(reaction)) return "Authority";
-  if (["investor"].includes(relationship) || motivation === "money_results") return "Opportunity";
-  if (["cold_contact"].includes(relationship) || ["learning_curiosity", "technology_innovation"].includes(motivation)) return "Curiosity";
-  if (reaction === "needs_trust" || motivation === "community_people") return "Support";
-  if (relationship === "business_contact") return "Opportunity";
-  if (relationship === "friend") return "Curiosity";
+  if (hasAny(relationship, ["mlm_leader", "entrepreneur"]) && hasAny(reaction, ["fast_decision", "analytical"])) return "Authority";
+  if (hasAny(relationship, ["investor"]) || hasAny(motivation, ["money_results"])) return "Opportunity";
+  if (hasAny(relationship, ["cold_contact"]) || hasAny(motivation, ["learning_curiosity", "technology_innovation"])) return "Curiosity";
+  if (hasAny(reaction, ["needs_trust"]) || hasAny(motivation, ["community_people"])) return "Support";
+  if (hasAny(relationship, ["business_contact"])) return "Opportunity";
+  if (hasAny(relationship, ["friend"])) return "Curiosity";
   return "Curiosity";
 }
 
 function inferDiscFromAnswers(motivation: string, reaction: string): string {
-  if (reaction === "fast_decision" && ["money_results", "business_growth"].includes(motivation)) return "D";
-  if (["community_people"].includes(motivation) || (reaction === "fast_decision" && motivation === "technology_innovation")) return "I";
-  if (reaction === "needs_trust" || motivation === "community_people") return "S";
-  if (reaction === "analytical" || reaction === "skeptical") return "C";
+  if (hasAny(reaction, ["fast_decision"]) && hasAny(motivation, ["money_results", "business_growth"])) return "D";
+  if (hasAny(motivation, ["community_people"]) || (hasAny(reaction, ["fast_decision"]) && hasAny(motivation, ["technology_innovation"]))) return "I";
+  if (hasAny(reaction, ["needs_trust"]) || hasAny(motivation, ["community_people"])) return "S";
+  if (hasAny(reaction, ["analytical", "skeptical"])) return "C";
   return "I";
 }
 
@@ -619,7 +624,7 @@ ${contextInfo}`;
         return res.status(401).json({ error: "Partner not found" });
       }
 
-      const { scheduleEventId, prospectName, relationship, motivation, reaction, contextNote } = req.body;
+      const { scheduleEventId, prospectName, partnerName: overrideName, relationship, motivation, reaction, contextNote } = req.body;
       if (!scheduleEventId || !prospectName || !relationship || !motivation || !reaction) {
         return res.status(400).json({ error: "Missing required fields" });
       }
@@ -629,14 +634,17 @@ ${contextInfo}`;
         return res.status(404).json({ error: "Webinar not found" });
       }
 
+      const displayPartnerName = overrideName?.trim() || partner.name;
+
       const strategy = selectInviteStrategy(relationship, motivation, reaction);
       const discType = inferDiscFromAnswers(motivation, reaction);
 
-      const relationshipMap: Record<string, string> = {
+      const relationshipLabels: Record<string, string> = {
         friend: "Neutral", business_contact: "Entrepreneur", mlm_leader: "MLM Leader",
         investor: "Investor", entrepreneur: "Entrepreneur", cold_contact: "Neutral",
       };
-      const prospectType = relationshipMap[relationship] || "Neutral";
+      const primaryRelationship = relationship.split(",")[0];
+      const prospectType = relationshipLabels[primaryRelationship] || "Neutral";
 
       const openai = getOpenAIClient();
 
@@ -664,12 +672,25 @@ ${contextInfo}`;
         case "C": discTonePart = "Tone for C-type: clear, rational, factual. Focus on structure, logic, specifics."; break;
       }
 
+      const relationshipDescription = relationship.includes(",")
+        ? `Multiple: ${relationship.split(",").join(", ")}`
+        : relationship;
+      const motivationDescription = motivation.includes(",")
+        ? `Multiple: ${motivation.split(",").join(", ")}`
+        : motivation;
+      const reactionDescription = reaction.includes(",")
+        ? `Multiple: ${reaction.split(",").join(", ")}`
+        : reaction;
+
       const generatePrompt = `Generate exactly 2 short invitation messages in German for a webinar invitation.
 
 CONTEXT:
-- You are the personal assistant of ${partner.name}
+- You are the personal assistant of ${displayPartnerName}
 - Prospect name: ${prospectName}
 - Prospect type: ${prospectType}
+- Relationship to prospect: ${relationshipDescription}
+- Prospect motivation: ${motivationDescription}
+- Prospect reaction style: ${reactionDescription}
 ${contextNote ? `- Partner's note about prospect: "${contextNote}"` : ""}
 - Webinar: "${scheduleEvent.title}" on ${scheduleEvent.date} at ${scheduleEvent.time} with ${scheduleEvent.speaker}
 
@@ -680,7 +701,7 @@ DISC TONE:
 ${discTonePart}
 
 RULES:
-- Message 1: Greet by first name, introduce as assistant of ${partner.name}, mention personal invitation, reference one relevant detail. 2-3 sentences max.
+- Message 1: Greet by first name, introduce as assistant of ${displayPartnerName}, mention personal invitation, reference one relevant detail. 2-3 sentences max.
 - Message 2: Mention webinar date/time shortly, frame relevance, ask one engagement question. 2-3 sentences max.
 - Use natural chat style, NOT email format
 - No "I hope this message finds you well"

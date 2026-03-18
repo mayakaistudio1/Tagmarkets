@@ -84,7 +84,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [prospectForm, setProspectForm] = useState({ name: "", type: "Neutral", note: "" });
 
   const [qualifyStep, setQualifyStep] = useState(0);
-  const [qualifyChatMessages, setQualifyChatMessages] = useState<Array<{ role: string; content: string; options?: Array<{ label: string; value: string }> | null }>>([]);
+  const [qualifyChatMessages, setQualifyChatMessages] = useState<Array<{ role: string; content: string; options?: Array<{ label: string; value: string }> | null; multiSelect?: boolean }>>([]);
   const [qualifyAnswers, setQualifyAnswers] = useState<{ relationship: string; motivation: string; reaction: string; contextNote: string }>({ relationship: "", motivation: "", reaction: "", contextNote: "" });
   const [qualifyContextInput, setQualifyContextInput] = useState("");
   const [generatedPreview, setGeneratedPreview] = useState<{ messages: string[]; strategy: string; discType: string; prospectType: string; quickReplies: string[]; motivation: string; reaction: string } | null>(null);
@@ -92,15 +92,21 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [previewEditText, setPreviewEditText] = useState("");
   const [generatingMessages, setGeneratingMessages] = useState(false);
   const [qualifyStarted, setQualifyStarted] = useState(false);
+  const [multiSelectValues, setMultiSelectValues] = useState<Array<{ value: string; label: string }>>([]);
+  const [partnerDisplayName, setPartnerDisplayName] = useState("");
 
   useEffect(() => {
     Promise.all([
       fetch("/api/partner-app/webinars", { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()),
       fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()),
+      fetch("/api/partner-app/profile", { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()).catch(() => null),
     ])
-      .then(([webinarData, eventsData]) => {
+      .then(([webinarData, eventsData, profileData]) => {
         setWebinars(webinarData);
         setEventDetails(eventsData);
+        if (profileData?.partner?.name) {
+          setPartnerDisplayName(profileData.partner.name);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -133,7 +139,8 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const QUALIFY_QUESTIONS = [
     {
       step: 1,
-      aiText: "Um eine starke persönliche Einladung zu erstellen, muss ich die Person ein wenig verstehen.\n\nWer ist diese Person für dich?",
+      multiSelect: true,
+      aiText: "Um eine starke persönliche Einladung zu erstellen, muss ich die Person ein wenig verstehen.\n\nWer ist diese Person für dich? (du kannst mehrere auswählen)",
       options: [
         { label: "Freund / warmer Kontakt", value: "friend" },
         { label: "Geschäftskontakt", value: "business_contact" },
@@ -145,7 +152,8 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     },
     {
       step: 2,
-      aiText: "Gut! Und was motiviert diese Person normalerweise am meisten?",
+      multiSelect: true,
+      aiText: "Gut! Und was motiviert diese Person normalerweise am meisten? (du kannst mehrere auswählen)",
       options: [
         { label: "Geld / Ergebnisse", value: "money_results" },
         { label: "Business-Wachstum", value: "business_growth" },
@@ -156,7 +164,8 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     },
     {
       step: 3,
-      aiText: "Verstanden! Wie reagiert die Person normalerweise auf neue Möglichkeiten?",
+      multiSelect: true,
+      aiText: "Verstanden! Wie reagiert die Person normalerweise auf neue Möglichkeiten? (du kannst mehrere auswählen)",
       options: [
         { label: "Schnelle Entscheidung", value: "fast_decision" },
         { label: "Analytisch / viele Fragen", value: "analytical" },
@@ -166,6 +175,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     },
     {
       step: 4,
+      multiSelect: false,
       aiText: "Fast fertig! Gibt es noch etwas Wichtiges über die Person, das ich wissen sollte? (optional)",
       options: null,
     },
@@ -177,8 +187,25 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     setQualifyContextInput("");
     setGeneratedPreview(null);
     setQualifyStarted(true);
+    setMultiSelectValues([]);
     const firstQ = QUALIFY_QUESTIONS[0];
-    setQualifyChatMessages([{ role: "assistant", content: firstQ.aiText, options: firstQ.options }]);
+    setQualifyChatMessages([{ role: "assistant", content: firstQ.aiText, options: firstQ.options, multiSelect: firstQ.multiSelect }]);
+  };
+
+  const toggleMultiSelectValue = (value: string, label: string) => {
+    setMultiSelectValues((prev) => {
+      const exists = prev.find((v) => v.value === value);
+      if (exists) return prev.filter((v) => v.value !== value);
+      return [...prev, { value, label }];
+    });
+  };
+
+  const confirmMultiSelect = async () => {
+    if (multiSelectValues.length === 0) return;
+    const combinedValue = multiSelectValues.map((v) => v.value).join(",");
+    const combinedLabel = multiSelectValues.map((v) => v.label).join(", ");
+    setMultiSelectValues([]);
+    await handleQualifyAnswer(combinedValue, combinedLabel);
   };
 
   const handleQualifyAnswer = async (value: string, label: string) => {
@@ -195,7 +222,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     const nextStep = step + 1;
     if (nextStep < QUALIFY_QUESTIONS.length) {
       const nextQ = QUALIFY_QUESTIONS[nextStep];
-      newMessages.push({ role: "assistant", content: nextQ.aiText, options: nextQ.options });
+      newMessages.push({ role: "assistant", content: nextQ.aiText, options: nextQ.options, multiSelect: nextQ.multiSelect });
       setQualifyChatMessages(newMessages);
       setQualifyStep(nextStep);
     } else {
@@ -222,6 +249,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
         body: JSON.stringify({
           scheduleEventId: selectedWebinar.id,
           prospectName: prospectForm.name,
+          partnerName: partnerDisplayName,
           relationship: ans.relationship,
           motivation: ans.motivation,
           reaction: ans.reaction,
@@ -556,20 +584,30 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           </div>
           <div className="bg-white rounded-2xl p-5 space-y-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-500">Name der Person *</label>
+              <label className="text-xs font-medium text-gray-500">Dein Name (als Einladender) *</label>
               <input
                 autoFocus
+                placeholder="z.B. Dein Name"
+                value={partnerDisplayName}
+                onChange={(e) => setPartnerDisplayName(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+                data-testid="input-partner-display-name"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-500">Name der Person *</label>
+              <input
                 placeholder="z.B. Max Müller"
                 value={prospectForm.name}
                 onChange={(e) => setProspectForm({ ...prospectForm, name: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
                 data-testid="input-prospect-name"
-                onKeyDown={(e) => { if (e.key === "Enter" && prospectForm.name.trim()) startAiQualification(); }}
+                onKeyDown={(e) => { if (e.key === "Enter" && prospectForm.name.trim() && partnerDisplayName.trim()) startAiQualification(); }}
               />
             </div>
             <button
               onClick={startAiQualification}
-              disabled={!prospectForm.name.trim()}
+              disabled={!prospectForm.name.trim() || !partnerDisplayName.trim()}
               className="w-full py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               data-testid="button-start-qualification"
             >
@@ -611,7 +649,40 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                   <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 text-sm text-gray-800 whitespace-pre-line" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
                     {msg.content}
                   </div>
-                  {msg.options && i === qualifyChatMessages.length - 1 && (
+                  {msg.options && i === qualifyChatMessages.length - 1 && msg.multiSelect && (
+                    <div className="mt-2">
+                      <div className="flex flex-wrap gap-2">
+                        {msg.options.map((opt) => {
+                          const isSelected = multiSelectValues.some((v) => v.value === opt.value);
+                          return (
+                            <button
+                              key={opt.value}
+                              onClick={() => toggleMultiSelectValue(opt.value, opt.label)}
+                              className={`px-3.5 py-2 rounded-full border text-xs font-medium transition-colors ${
+                                isSelected
+                                  ? "bg-blue-600 border-blue-600 text-white"
+                                  : "bg-white border-blue-200 text-blue-600 active:bg-blue-50"
+                              }`}
+                              data-testid={`qualify-option-${opt.value}`}
+                            >
+                              {isSelected && <span className="mr-1">✓</span>}
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {multiSelectValues.length > 0 && (
+                        <button
+                          onClick={confirmMultiSelect}
+                          className="mt-2 px-5 py-2 rounded-full bg-blue-600 text-xs font-semibold text-white active:bg-blue-700 transition-colors"
+                          data-testid="button-confirm-multi-select"
+                        >
+                          Weiter ({multiSelectValues.length} ausgewählt)
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {msg.options && i === qualifyChatMessages.length - 1 && !msg.multiSelect && (
                     <div className="flex flex-wrap gap-2 mt-2">
                       {msg.options.map((opt) => (
                         <button

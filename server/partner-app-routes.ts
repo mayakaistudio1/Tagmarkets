@@ -8,6 +8,7 @@ import crypto from "crypto";
 import { z } from "zod";
 import { notifyPartnerPersonalInviteRegistration } from "./integrations/partner-bot";
 import { sendGuestConfirmationEmail } from "./integrations/resend-email";
+import { syncZoomDataForEvent, isZoomConfigured } from "./integrations/zoom-api";
 
 const PROSPECT_TYPES = ["Investor", "MLM Leader", "Entrepreneur", "Beginner", "Neutral"] as const;
 const DISC_TYPES = ["D", "I", "S", "C"] as const;
@@ -1182,6 +1183,43 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       });
     } catch (error: any) {
       console.error("Personal invite register error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/partner-app/events/:id/zoom-sync", async (req, res) => {
+    try {
+      const telegramId = req.headers["x-telegram-id"] as string;
+      if (!telegramId) return res.status(401).json({ error: "Unauthorized" });
+
+      const partner = await storage.getPartnerByTelegramChatId(telegramId);
+      if (!partner) return res.status(401).json({ error: "Partner not found" });
+
+      if (!isZoomConfigured()) {
+        return res.status(503).json({ error: "Zoom not configured", zoomNotConfigured: true });
+      }
+
+      const eventId = parseInt(req.params.id);
+      if (isNaN(eventId)) return res.status(400).json({ error: "Invalid event ID" });
+
+      const event = await storage.getInviteEventById(eventId);
+      if (!event) return res.status(404).json({ error: "Event not found" });
+      if (event.partnerId !== partner.id) return res.status(403).json({ error: "Not your event" });
+      if (!event.zoomLink) return res.status(400).json({ error: "No Zoom link for this event" });
+
+      const result = await syncZoomDataForEvent(event.id, event.zoomLink);
+
+      if (result.error) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      res.json({
+        synced: result.synced,
+        skipped: result.skipped,
+        total: result.participants.length,
+      });
+    } catch (error: any) {
+      console.error("Partner app zoom sync error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

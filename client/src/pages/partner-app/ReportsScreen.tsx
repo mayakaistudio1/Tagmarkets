@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck, Calendar, Clock, MessageCircle } from "lucide-react";
+import { BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck, Calendar, Clock, MessageCircle, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 
 interface PartnerEvent {
@@ -19,6 +19,7 @@ interface EventReport {
     joinTime?: string | null; isWalkIn?: boolean;
   }>;
   funnel: { invited: number; registered: number; clickedZoom: number; attended: number };
+  inviteEventIds?: number[];
 }
 
 function FunnelBar({ label, value, maxValue, color }: { label: string; value: number; maxValue: number; color: string }) {
@@ -46,7 +47,11 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
   const [loading, setLoading] = useState(true);
   const [expandedGuest, setExpandedGuest] = useState<number | null>(null);
   const [selectedReport, setSelectedReport] = useState<EventReport | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<PartnerEvent | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
+  const [zoomSyncing, setZoomSyncing] = useState(false);
+  const [zoomSyncResult, setZoomSyncResult] = useState<{ synced: number; skipped: number; total: number } | null>(null);
+  const [zoomSyncError, setZoomSyncError] = useState<string | null>(null);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -58,6 +63,9 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
 
   const loadReport = async (event: PartnerEvent) => {
     setReportLoading(true);
+    setSelectedEvent(event);
+    setZoomSyncResult(null);
+    setZoomSyncError(null);
     try {
       const ids = event.inviteEventIds || [event.id];
       const reports = await Promise.all(
@@ -72,10 +80,52 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
           clickedZoom: reports.reduce((s: number, r: any) => s + r.funnel.clickedZoom, 0),
           attended: reports.reduce((s: number, r: any) => s + r.funnel.attended, 0),
         },
+        inviteEventIds: ids,
       };
       setSelectedReport(combined);
     } catch (err) { console.error(err); }
     setReportLoading(false);
+  };
+
+  const handleZoomSync = async () => {
+    if (!selectedEvent || !selectedReport) return;
+    setZoomSyncing(true);
+    setZoomSyncResult(null);
+    setZoomSyncError(null);
+
+    const ids = selectedReport.inviteEventIds || [selectedReport.event.id];
+    let totalSynced = 0;
+    let totalSkipped = 0;
+    let totalParticipants = 0;
+    let lastError: string | null = null;
+
+    for (const id of ids) {
+      try {
+        const res = await fetch(`/api/partner-app/events/${id}/zoom-sync`, {
+          method: "POST",
+          headers: { "x-telegram-id": telegramId },
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          lastError = data.error || "Sync failed";
+        } else {
+          totalSynced += data.synced || 0;
+          totalSkipped += data.skipped || 0;
+          totalParticipants += data.total || 0;
+        }
+      } catch {
+        lastError = "Network error";
+      }
+    }
+
+    setZoomSyncing(false);
+
+    if (lastError && totalSynced === 0) {
+      setZoomSyncError(lastError);
+    } else {
+      setZoomSyncResult({ synced: totalSynced, skipped: totalSkipped, total: totalParticipants });
+      await loadReport(selectedEvent);
+    }
   };
 
   if (loading) return <div className="h-full flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>;
@@ -83,10 +133,11 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
   if (selectedReport) {
     const f = selectedReport.funnel;
     const maxFunnel = Math.max(f.registered, f.clickedZoom, f.attended, 1);
+    const hasZoomData = selectedReport.guests.some(g => g.attended);
 
     return (
       <div className="px-5 pt-5 pb-28">
-        <button onClick={() => setSelectedReport(null)} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back-reports">
+        <button onClick={() => { setSelectedReport(null); setSelectedEvent(null); }} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back-reports">
           <ChevronLeft className="w-4 h-4" /> {t('pa.back')}
         </button>
 
@@ -110,6 +161,62 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                 {t('pa.conversionRateLabel')}: <span className="font-semibold text-gray-900">{Math.round((f.attended / f.registered) * 100)}%</span>
               </p>
             </div>
+          )}
+        </div>
+
+        <div className="mb-5">
+          {zoomSyncResult && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-3"
+            >
+              <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <p className="text-xs text-emerald-700 font-medium">
+                Zoom sync: {zoomSyncResult.synced} neu{zoomSyncResult.skipped > 0 ? `, ${zoomSyncResult.skipped} bereits vorhanden` : ""}
+                {zoomSyncResult.total === 0 && " – Noch keine Teilnehmer (Zoom-Daten ~30 Min. nach Webinar verfügbar)"}
+              </p>
+            </motion.div>
+          )}
+          {zoomSyncError && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-3"
+            >
+              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <p className="text-xs text-red-700 font-medium">
+                {zoomSyncError === "Zoom not configured"
+                  ? "Zoom nicht konfiguriert. Bitte Admin kontaktieren."
+                  : `Fehler: ${zoomSyncError}`}
+              </p>
+            </motion.div>
+          )}
+
+          <button
+            onClick={handleZoomSync}
+            disabled={zoomSyncing}
+            data-testid="button-zoom-sync"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 active:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+          >
+            {zoomSyncing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                <span className="text-blue-600">Zoom-Daten werden abgerufen...</span>
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 text-gray-500" />
+                <span>Zoom-Daten aktualisieren</span>
+              </>
+            )}
+          </button>
+
+          {!hasZoomData && !zoomSyncResult && (
+            <p className="text-[11px] text-gray-400 text-center mt-2">
+              Zoom-Teilnahmedaten werden ~30 Min. nach Webinar-Ende verfügbar
+            </p>
           )}
         </div>
 

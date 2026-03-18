@@ -26,18 +26,28 @@ interface InviteEvent {
   scheduleEvent?: ScheduleEventData | null;
 }
 
-function getTimezoneOffsetStr(tz: string): string {
-  const tzMap: Record<string, string> = {
-    "CET": "+01:00", "CEST": "+02:00", "MET": "+01:00", "MEZ": "+01:00",
-    "MESZ": "+02:00", "UTC": "+00:00", "GMT": "+00:00", "MSK": "+03:00",
-    "Europe/Berlin": "+01:00", "Europe/Moscow": "+03:00",
+function getTimezoneOffsetStr(tz: string, isoDateStr?: string): string {
+  const ianaMap: Record<string, string> = {
+    "CET": "Europe/Berlin", "CEST": "Europe/Berlin",
+    "MEZ": "Europe/Berlin", "MESZ": "Europe/Berlin", "MET": "Europe/Berlin",
+    "MSK": "Europe/Moscow", "UTC": "UTC", "GMT": "UTC",
+    "Europe/Berlin": "Europe/Berlin", "Europe/Moscow": "Europe/Moscow",
   };
-  const now = new Date();
-  const month = now.getMonth();
-  if ((tz === "CET" || tz === "Europe/Berlin" || tz === "MET" || tz === "MEZ") && month >= 2 && month <= 9) {
-    return "+02:00";
+  const ianaZone = ianaMap[tz];
+  if (!ianaZone) return "+01:00";
+  if (ianaZone === "UTC") return "+00:00";
+  if (ianaZone === "Europe/Moscow") return "+03:00";
+  // For DST-affected zones (Europe/Berlin), use the event date not the current date
+  const refDate = isoDateStr ? new Date(`${isoDateStr}T12:00:00Z`) : new Date();
+  try {
+    const utcMs = refDate.getTime();
+    const localMs = new Date(refDate.toLocaleString("en-US", { timeZone: "Europe/Berlin" })).getTime();
+    const offsetHours = Math.round((localMs - utcMs) / (1000 * 60 * 60));
+    const sign = offsetHours >= 0 ? "+" : "-";
+    return `${sign}${String(Math.abs(offsetHours)).padStart(2, "0")}:00`;
+  } catch {
+    return "+01:00";
   }
-  return tzMap[tz] || "+01:00";
 }
 
 function CountdownTimer({ eventDate, eventTime, timezone }: { eventDate: string; eventTime: string; timezone?: string }) {
@@ -53,7 +63,7 @@ function CountdownTimer({ eventDate, eventTime, timezone }: { eventDate: string;
         isoDate = `${year}-${month}-${day}`;
       }
       if (!isoDate) return null;
-      const offset = timezone ? getTimezoneOffsetStr(timezone) : "+01:00";
+      const offset = timezone ? getTimezoneOffsetStr(timezone, isoDate) : "+01:00";
       const d = new Date(`${isoDate}T${timeStr || "00:00"}:00${offset}`);
       return !isNaN(d.getTime()) ? d : null;
     }
@@ -78,7 +88,7 @@ function CountdownTimer({ eventDate, eventTime, timezone }: { eventDate: string;
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [eventDate, eventTime]);
+  }, [eventDate, eventTime, timezone]);
 
   if (!timeLeft) return null;
 

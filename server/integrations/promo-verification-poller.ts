@@ -1,4 +1,4 @@
-import { pollPromoSheetForVerifications } from "../googleSheets";
+import { pollPromoSheetForVerifications, syncAllPromoApplications } from "../googleSheets";
 import { storage } from "../storage";
 import { sendPromoVerificationEmail } from "./resend-email";
 import { sendTelegramNotification } from "./telegram-notify";
@@ -45,6 +45,12 @@ export async function checkAndProcessVerifications(): Promise<number> {
 
     if (processedCount > 0) {
       console.log(`Processed ${processedCount} new promo verification(s)`);
+      try {
+        await syncAllPromoApplications();
+        console.log("Google Sheet synced after poller verifications");
+      } catch (syncErr) {
+        console.error("Failed to sync Google Sheet after poller:", syncErr);
+      }
     }
   } catch (error) {
     console.error("Verification polling error:", error);

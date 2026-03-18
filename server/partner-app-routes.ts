@@ -409,7 +409,18 @@ export function registerPartnerAppRoutes(app: Express) {
     if (!partnerAppGuard(req, res)) return;
     try {
       const partner = await getPartnerFromRequest(req);
-      const events = await storage.getScheduleEvents(true);
+      const allEvents = await storage.getScheduleEvents(true);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const events = allEvents.filter((e: any) => {
+        const dateStr = e.date;
+        const parsed = new Date(dateStr);
+        if (!isNaN(parsed.getTime()) && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+          return parsed >= today;
+        }
+        return true;
+      });
 
       if (partner) {
         const partnerEvents = await storage.getInviteEventsByPartnerId(partner.id);

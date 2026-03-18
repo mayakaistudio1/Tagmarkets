@@ -141,6 +141,7 @@ export const promoApplications = pgTable("promo_applications", {
   status: text("status").notNull().default("pending"),
   verifiedAt: timestamp("verified_at"),
   emailSentAt: timestamp("email_sent_at"),
+  noMoneyEmailSentAt: timestamp("no_money_email_sent_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

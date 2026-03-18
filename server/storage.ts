@@ -45,6 +45,8 @@ export interface IStorage {
   getUnverifiedPromoApplicationByEmail(email: string, cuNumber?: string): Promise<PromoApplication | undefined>;
   markPromoApplicationVerified(id: number): Promise<PromoApplication>;
   markPromoApplicationEmailSent(id: number): Promise<PromoApplication>;
+  markPromoApplicationNoMoney(id: number): Promise<PromoApplication>;
+  getApplicationByEmailForNoMoney(email: string, cuNumber: string): Promise<PromoApplication | undefined>;
 
   getDennisPromos(activeOnly?: boolean, language?: string): Promise<DennisPromo[]>;
   getDennisPromo(id: number): Promise<DennisPromo | undefined>;
@@ -316,6 +318,21 @@ export class DatabaseStorage implements IStorage {
       .where(eq(promoApplications.id, id))
       .returning();
     return updated;
+  }
+
+  async markPromoApplicationNoMoney(id: number): Promise<PromoApplication> {
+    const [updated] = await db.update(promoApplications)
+      .set({ status: "no_money", noMoneyEmailSentAt: new Date() })
+      .where(eq(promoApplications.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getApplicationByEmailForNoMoney(email: string, cuNumber: string): Promise<PromoApplication | undefined> {
+    const results = await db.select().from(promoApplications)
+      .where(and(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)))
+      .orderBy(desc(promoApplications.createdAt));
+    return results.find(app => !app.noMoneyEmailSentAt && app.status !== "verified" && app.status !== "duplicate");
   }
 
   async getSpeakers(activeOnly?: boolean): Promise<any[]> {

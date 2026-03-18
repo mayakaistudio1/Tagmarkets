@@ -1,6 +1,6 @@
 import { pollPromoSheetForVerifications, syncAllPromoApplications } from "../googleSheets";
 import { storage } from "../storage";
-import { sendPromoVerificationEmail } from "./resend-email";
+import { sendPromoVerificationEmail, sendPromoNoMoneyEmail } from "./resend-email";
 import { sendTelegramNotification } from "./telegram-notify";
 
 const POLL_INTERVAL_MS = 3 * 60 * 1000;
@@ -10,16 +10,14 @@ export async function checkAndProcessVerifications(): Promise<number> {
   let processedCount = 0;
 
   try {
-    const verifiedInSheet = await pollPromoSheetForVerifications();
-
-    if (verifiedInSheet.length === 0) return 0;
+    const { verified: verifiedInSheet, noMoney: noMoneyInSheet } = await pollPromoSheetForVerifications();
 
     for (const entry of verifiedInSheet) {
       try {
         const app = await storage.getUnverifiedPromoApplicationByEmail(entry.email, entry.cuNumber);
         if (!app) continue;
 
-        const updated = await storage.markPromoApplicationVerified(app.id);
+        await storage.markPromoApplicationVerified(app.id);
 
         const emailSent = await sendPromoVerificationEmail(entry.email, entry.name || app.name);
 
@@ -43,11 +41,30 @@ export async function checkAndProcessVerifications(): Promise<number> {
       }
     }
 
+    for (const entry of noMoneyInSheet) {
+      try {
+        const app = await storage.getApplicationByEmailForNoMoney(entry.email, entry.cuNumber);
+        if (!app) continue;
+
+        const emailSent = await sendPromoNoMoneyEmail(entry.email, entry.name || app.name);
+
+        if (emailSent) {
+          await storage.markPromoApplicationNoMoney(app.id);
+          processedCount++;
+          console.log(`No-money email sent and recorded for ${entry.email}`);
+        } else {
+          console.error(`Failed to send no-money email for ${entry.email}`);
+        }
+      } catch (err) {
+        console.error(`Error processing no-money for ${entry.email}:`, err);
+      }
+    }
+
     if (processedCount > 0) {
-      console.log(`Processed ${processedCount} new promo verification(s)`);
+      console.log(`Processed ${processedCount} new promo action(s)`);
       try {
         await syncAllPromoApplications();
-        console.log("Google Sheet synced after poller verifications");
+        console.log("Google Sheet synced after poller actions");
       } catch (syncErr) {
         console.error("Failed to sync Google Sheet after poller:", syncErr);
       }

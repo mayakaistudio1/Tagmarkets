@@ -801,7 +801,7 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
       app.status,
       formatDate(app.createdAt),
       app.verifiedAt ? 'YES' : '',
-      app.emailSentAt ? formatDate(app.emailSentAt) : '',
+      app.noMoneyEmailSentAt ? 'no money - sent' : (app.emailSentAt ? formatDate(app.emailSentAt) : ''),
     ]);
   }
 
@@ -845,20 +845,24 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
   return { spreadsheetId, count: applications.length };
 }
 
-export async function pollPromoSheetForVerifications(): Promise<{ email: string; cuNumber: string; name: string }[]> {
+export async function pollPromoSheetForVerifications(): Promise<{
+  verified: { email: string; cuNumber: string; name: string }[];
+  noMoney: { email: string; cuNumber: string; name: string }[];
+}> {
   try {
     const spreadsheetId = await getOrCreatePromoSpreadsheet();
     const sheets = await getSheetsClient();
 
     const result = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `'${PROMO_SHEET_NAME}'!A:H`,
+      range: `'${PROMO_SHEET_NAME}'!A:I`,
     });
 
     const rows = result.data.values || [];
-    if (rows.length <= 1) return [];
+    if (rows.length <= 1) return { verified: [], noMoney: [] };
 
     const verified: { email: string; cuNumber: string; name: string }[] = [];
+    const noMoney: { email: string; cuNumber: string; name: string }[] = [];
 
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
@@ -866,15 +870,18 @@ export async function pollPromoSheetForVerifications(): Promise<{ email: string;
       const email = row[2] || '';
       const cuNumber = row[3] || '';
       const verifiedCol = (row[7] || '').toString().trim().toUpperCase();
+      const emailSentCol = (row[8] || '').toString().trim().toLowerCase();
 
       if (verifiedCol === 'YES' || verifiedCol === 'Y' || verifiedCol === '1' || verifiedCol === 'TRUE' || verifiedCol === 'X') {
         verified.push({ email, cuNumber, name });
+      } else if (emailSentCol === 'no money' && !emailSentCol.includes('sent')) {
+        noMoney.push({ email, cuNumber, name });
       }
     }
 
-    return verified;
+    return { verified, noMoney };
   } catch (error) {
     console.error('Failed to poll promo sheet for verifications:', error);
-    return [];
+    return { verified: [], noMoney: [] };
   }
 }

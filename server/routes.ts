@@ -345,6 +345,41 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/promo-admin/applications/:id/no-money", async (req, res) => {
+    if (!requirePromoAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      const apps = await storage.getPromoApplications();
+      const application = apps.find(a => a.id === id);
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+      if (application.noMoneyEmailSentAt) {
+        return res.status(400).json({ error: "No-money email already sent" });
+      }
+
+      const { sendPromoNoMoneyEmail } = await import("./integrations/resend-email");
+      const emailSent = await sendPromoNoMoneyEmail(application.email, application.name);
+
+      let updated = application;
+      if (emailSent) {
+        updated = await storage.markPromoApplicationNoMoney(id);
+      }
+
+      try {
+        const { syncAllPromoApplications } = await import("./googleSheets");
+        await syncAllPromoApplications();
+      } catch (err) {
+        console.error("Google Sheet sync error after no-money:", err);
+      }
+
+      res.json({ ...updated, noMoneyEmailSent: emailSent });
+    } catch (error) {
+      console.error("Error sending no-money email:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.get("/api/dennis-promos", async (req, res) => {
     try {
       const language = req.query.language as string | undefined;

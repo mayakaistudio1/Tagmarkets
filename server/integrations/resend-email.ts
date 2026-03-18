@@ -215,6 +215,172 @@ function buildPromoConfirmationHtml(name: string): string {
 </html>`;
 }
 
+export async function sendPromoNoMoneyEmail(to: string, name: string): Promise<boolean> {
+  try {
+    const resend = getResendClient();
+    const { data, error } = await resend.emails.send({
+      from: "JetUp <noreply@jet-up.ai>",
+      to: [to],
+      subject: "Your Promo Request Needs One More Step",
+      html: buildPromoNoMoneyHtml(name),
+    });
+    if (error) {
+      console.error("Resend no-money email error:", error);
+      return false;
+    }
+    console.log("Promo no-money email sent to", to, "id:", data?.id);
+    return true;
+  } catch (error) {
+    console.error("Failed to send promo no-money email:", error);
+    return false;
+  }
+}
+
+function buildPromoNoMoneyHtml(name: string): string {
+  const appUrl = getAppUrl();
+  const logoUrl = `${appUrl}/assets/jetup-logo-banner.png`;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Promo Request Needs One More Step</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f0f5;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f0f5;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+
+          <tr>
+            <td style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a855f7 100%);padding:44px 40px;text-align:center;">
+              <img src="${logoUrl}" alt="JetUp" style="height:72px;width:auto;" />
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:48px 48px 20px;">
+              <div style="text-align:center;margin-bottom:28px;">
+                <div style="display:inline-block;width:64px;height:64px;background-color:#fff7ed;border-radius:50%;line-height:64px;font-size:32px;">&#9888;</div>
+              </div>
+              <h1 style="margin:0 0 12px;color:#0f172a;font-size:26px;font-weight:800;text-align:center;letter-spacing:-0.5px;line-height:1.3;">
+                Your Promo Request<br>Needs One More Step
+              </h1>
+              <p style="margin:0;color:#64748b;font-size:16px;text-align:center;font-weight:400;">
+                Hello, <strong style="color:#0f172a;">${escapeHtml(name)}</strong>
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:8px 48px 32px;">
+              <p style="margin:0 0 14px;color:#475569;font-size:15px;line-height:1.7;">
+                Thank you for your interest in the <strong style="color:#0f172a;">Dennis Fast Start Promo</strong>.
+              </p>
+              <p style="margin:0;color:#475569;font-size:15px;line-height:1.7;">
+                We have reviewed your account and, at the moment of verification, your <strong style="color:#0f172a;">TAG Balance</strong> did not contain the required minimum of <strong style="color:#0f172a;">100 USD</strong> needed to participate in this promotion.
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 48px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafafe;border:1px solid #e8e8f0;border-radius:12px;overflow:hidden;">
+                <tr>
+                  <td style="padding:20px 24px 12px;">
+                    <p style="margin:0;color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;">To Continue</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 24px 20px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:12px 0;border-top:1px solid #f1f1f5;color:#475569;font-size:14px;line-height:1.6;">
+                          <span style="display:inline-block;width:24px;height:24px;background-color:#f3f0ff;color:#7c3aed;border-radius:50%;text-align:center;line-height:24px;font-size:12px;font-weight:700;margin-right:10px;vertical-align:middle;">1</span>
+                          Top up your <strong style="color:#0f172a;">TAG Balance</strong> with <strong style="color:#0f172a;">100 USD or more</strong>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:12px 0;border-top:1px solid #f1f1f5;color:#475569;font-size:14px;line-height:1.6;">
+                          <span style="display:inline-block;width:24px;height:24px;background-color:#f3f0ff;color:#7c3aed;border-radius:50%;text-align:center;line-height:24px;font-size:12px;font-weight:700;margin-right:10px;vertical-align:middle;">2</span>
+                          Once your balance has been updated, <strong style="color:#0f172a;">submit the registration form again</strong>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:12px 0;border-top:1px solid #f1f1f5;color:#475569;font-size:14px;line-height:1.6;">
+                          <span style="display:inline-block;width:24px;height:24px;background-color:#f3f0ff;color:#7c3aed;border-radius:50%;text-align:center;line-height:24px;font-size:12px;font-weight:700;margin-right:10px;vertical-align:middle;">3</span>
+                          After that, your request can be reviewed for approval
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 48px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fffbeb;border:1px solid #fde68a;border-radius:12px;">
+                <tr>
+                  <td style="padding:16px 24px;">
+                    <p style="margin:0;color:#92400e;font-size:14px;line-height:1.6;">
+                      <span style="color:#d97706;margin-right:6px;">&#8226;</span>
+                      Status: <span style="display:inline-block;background-color:#fef3c7;color:#b45309;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:4px;">Balance Below 100 USD</span>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 48px 36px;">
+              <p style="margin:0;color:#64748b;font-size:15px;line-height:1.7;text-align:center;">
+                Thank you for your understanding.
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 48px 36px;text-align:center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                <tr>
+                  <td style="padding:0 6px;">
+                    <a href="https://t.me/jet_up_official" style="display:inline-block;width:40px;height:40px;background-color:#f1f5f9;border-radius:10px;text-align:center;line-height:40px;text-decoration:none;border:1px solid #e2e8f0;">
+                      <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" style="width:20px;height:20px;vertical-align:middle;" />
+                    </a>
+                  </td>
+                  <td style="padding:0 6px;">
+                    <a href="https://www.youtube.com/@JetUP_official" style="display:inline-block;width:40px;height:40px;background-color:#f1f5f9;border-radius:10px;text-align:center;line-height:40px;text-decoration:none;border:1px solid #e2e8f0;">
+                      <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube" style="width:20px;height:20px;vertical-align:middle;" />
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background-color:#fafafe;padding:24px 48px;border-top:1px solid #f1f1f5;">
+              <p style="margin:0 0 6px;color:#94a3b8;font-size:12px;text-align:center;">
+                This is an automated message — please do not reply.
+              </p>
+              <p style="margin:0;text-align:center;">
+                <a href="${appUrl}" style="color:#8b5cf6;font-size:12px;text-decoration:none;font-weight:500;">jet-up.ai</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")

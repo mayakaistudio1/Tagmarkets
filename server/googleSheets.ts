@@ -807,7 +807,7 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
 
   await sheets.spreadsheets.values.clear({
     spreadsheetId,
-    range: `'${PROMO_SHEET_NAME}'!A:I`,
+    range: `'${PROMO_SHEET_NAME}'!A:J`,
   });
 
   await sheets.spreadsheets.values.update({
@@ -855,7 +855,7 @@ export async function pollPromoSheetForVerifications(): Promise<{
 
     const result = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `'${PROMO_SHEET_NAME}'!A:I`,
+      range: `'${PROMO_SHEET_NAME}'!A:J`,
     });
 
     const rows = result.data.values || [];
@@ -871,10 +871,14 @@ export async function pollPromoSheetForVerifications(): Promise<{
       const cuNumber = row[3] || '';
       const verifiedCol = (row[7] || '').toString().trim().toUpperCase();
       const emailSentCol = (row[8] || '').toString().trim().toLowerCase();
+      const colJ = (row[9] || '').toString().trim().toLowerCase();
 
       if (verifiedCol === 'YES' || verifiedCol === 'Y' || verifiedCol === '1' || verifiedCol === 'TRUE' || verifiedCol === 'X') {
         verified.push({ email, cuNumber, name });
-      } else if (emailSentCol === 'no money' && !emailSentCol.includes('sent')) {
+      } else if (
+        (emailSentCol.includes('no money') && !emailSentCol.includes('sent')) ||
+        (colJ.includes('no money') && !colJ.includes('sent'))
+      ) {
         noMoney.push({ email, cuNumber, name });
       }
     }

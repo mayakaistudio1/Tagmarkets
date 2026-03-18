@@ -10,7 +10,9 @@ export async function checkAndProcessVerifications(): Promise<number> {
   let processedCount = 0;
 
   try {
+    console.log('[Poller] Running verification check...');
     const { verified: verifiedInSheet, noMoney: noMoneyInSheet } = await pollPromoSheetForVerifications();
+    console.log(`[Poller] Found ${verifiedInSheet.length} verified, ${noMoneyInSheet.length} no-money entries`);
 
     for (const entry of verifiedInSheet) {
       try {

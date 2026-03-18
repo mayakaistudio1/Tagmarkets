@@ -7,6 +7,7 @@ import OpenAI from "openai";
 import crypto from "crypto";
 import { z } from "zod";
 import { notifyPartnerPersonalInviteRegistration } from "./integrations/partner-bot";
+import { sendGuestConfirmationEmail } from "./integrations/resend-email";
 
 const PROSPECT_TYPES = ["Investor", "MLM Leader", "Entrepreneur", "Beginner", "Neutral"] as const;
 const DISC_TYPES = ["D", "I", "S", "C"] as const;
@@ -935,7 +936,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         isRegistered: !!invite.registeredAt,
         discType: invite.discType || null,
         inviteStrategy: invite.inviteStrategy || null,
-        language: scheduleEvent?.language || "de",
+        language: invite.guestLanguage || scheduleEvent?.language || "de",
         event: scheduleEvent ? {
           title: scheduleEvent.title,
           date: scheduleEvent.date,
@@ -948,6 +949,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
           timezone: scheduleEvent.timezone || "CET",
         } : null,
         chatHistory: JSON.parse(invite.chatHistory || "[]"),
+        zoomLink: invite.registeredAt ? (scheduleEvent?.link || null) : null,
       });
     } catch (error: any) {
       console.error("Personal invite fetch error:", error);
@@ -1109,6 +1111,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         guestTelegram: telegram,
         guestPhone: phone,
         reminderChannel: reminderChannel,
+        guestLanguage: lang,
       });
 
       const regSuccessMessages: Record<string, string> = {
@@ -1122,6 +1125,8 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         ru: ["Напомни за 1 час", "Напомни за 15 минут", "Напоминание не нужно"],
       };
 
+      const scheduleEvent = await storage.getScheduleEvent(invite.scheduleEventId);
+
       const chatHistory: Array<{ role: string; content: string }> = JSON.parse(updated.chatHistory || "[]");
       chatHistory.push({ role: "assistant", content: regSuccessMessages[lang] || regSuccessMessages.en });
       await storage.updatePersonalInviteChatHistory(invite.id, JSON.stringify(chatHistory));
@@ -1132,11 +1137,26 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         console.error("Failed to notify partner about personal invite registration:", notifErr);
       }
 
+      if (scheduleEvent && email) {
+        sendGuestConfirmationEmail({
+          to: email,
+          name,
+          eventTitle: scheduleEvent.title,
+          eventDate: scheduleEvent.date,
+          eventTime: scheduleEvent.time,
+          timezone: scheduleEvent.timezone || "CET",
+          speaker: scheduleEvent.speaker,
+          zoomLink: scheduleEvent.link,
+          language: lang,
+        }).catch((err) => console.error("Failed to send guest confirmation email:", err));
+      }
+
       res.json({
         success: true,
         message: "Registration successful",
         chatHistory,
         quickReplies: reminderQuickReplies[lang] || reminderQuickReplies.en,
+        zoomLink: scheduleEvent?.link || null,
       });
     } catch (error: any) {
       console.error("Personal invite register error:", error);

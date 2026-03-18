@@ -2,6 +2,7 @@ import { storage } from "../storage";
 import { sendTelegramMessageToChat } from "./telegram-notify";
 import { db } from "../db";
 import { sql } from "drizzle-orm";
+import { sendGuestReminderEmail } from "./resend-email";
 
 const POLL_INTERVAL_MS = 2 * 60 * 1000;
 let pollerInterval: ReturnType<typeof setInterval> | null = null;
@@ -10,6 +11,34 @@ function getPartnerBotToken(): string | undefined {
   const isProd = process.env.NODE_ENV === "production";
   if (isProd) return process.env.TELEGRAM_PARTNER_BOT_TOKEN;
   return process.env.TELEGRAM_PARTNER_BOT_TOKEN_DEV || process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+}
+
+async function sendTelegramMessageByUsername(username: string, text: string): Promise<boolean> {
+  const token = getPartnerBotToken();
+  if (!token) {
+    console.warn("Telegram guest reminder skipped: partner bot token not set");
+    return false;
+  }
+
+  const chatId = username.startsWith("@") ? username : `@${username}`;
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      console.warn(`Telegram guest reminder to ${chatId} failed (user may not have started bot): ${err}`);
+      return false;
+    }
+    console.log(`Telegram reminder sent to ${chatId}`);
+    return true;
+  } catch (error) {
+    console.error("Telegram guest reminder send failed:", error);
+    return false;
+  }
 }
 
 async function sendPartnerBotMessage(chatId: string, text: string): Promise<boolean> {
@@ -129,24 +158,70 @@ export async function checkAndSendReminders(): Promise<number> {
         if (invite.guestPhone) contactLines.push(`📱 ${invite.guestPhone}`);
         if (invite.guestTelegram) contactLines.push(`💬 @${invite.guestTelegram.replace('@', '')}`);
 
-        const timeLabel = invite.reminderPreference === "1_hour" ? "1 Stunde" : "15 Minuten";
+        const timeLabelDe = invite.reminderPreference === "1_hour" ? "1 Stunde" : "15 Minuten";
         const eventTimeStr = `${event.date} ${event.time}`;
         const channelLabel = invite.reminderChannel === "whatsapp" ? "WhatsApp" : invite.reminderChannel === "telegram" ? "Telegram" : null;
 
         const partnerMsg =
           `⏰ <b>Erinnerung senden!</b>\n\n` +
-          `Dein Gast <b>${guestName}</b> hat eine Erinnerung ${timeLabel} vor dem Webinar angefordert.\n\n` +
+          `Dein Gast <b>${guestName}</b> hat eine Erinnerung ${timeLabelDe} vor dem Webinar angefordert.\n\n` +
           `📋 <b>Event:</b> ${event.title}\n` +
           `🕐 <b>Wann:</b> ${eventTimeStr}\n` +
           `${channelLabel ? `📨 <b>Bevorzugter Kanal:</b> ${channelLabel}\n` : ''}` +
           `${contactLines.length > 0 ? `\n<b>Kontakt:</b>\n${contactLines.join('\n')}\n` : ''}` +
           `\n💡 <i>Sende deinem Gast eine kurze Erinnerung${channelLabel ? ` über ${channelLabel}` : ''}!</i>`;
 
-        const sent = await sendPartnerBotMessage(partner.telegramChatId, partnerMsg);
-        if (sent) {
+        const partnerSent = await sendPartnerBotMessage(partner.telegramChatId, partnerMsg);
+
+        if (!partnerSent) {
+          console.warn(`Partner reminder failed for invite ${invite.id}; will retry next cycle`);
+          continue;
+        }
+
+        console.log(`Reminder notification sent to partner ${partner.name} for guest ${guestName}`);
+
+        const guestLang = invite.guestLanguage || "de";
+        const timeLabel = invite.reminderPreference === "1_hour" ? "1 hour" : "15 minutes";
+
+        let guestEmailSent = true;
+        if (invite.guestEmail) {
+          guestEmailSent = await sendGuestReminderEmail({
+            to: invite.guestEmail,
+            name: guestName,
+            eventTitle: event.title,
+            eventDate: event.date,
+            eventTime: event.time,
+            timezone: event.timezone || "CET",
+            speaker: event.speaker,
+            zoomLink: event.link,
+            language: guestLang,
+          }).catch((err) => {
+            console.error(`Failed to send guest reminder email to ${invite.guestEmail}:`, err);
+            return false;
+          });
+        }
+
+        if (invite.guestTelegram) {
+          const tgHandle = invite.guestTelegram.replace("@", "").trim();
+          const safeTitle = event.title.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          const safeSpeaker = event.speaker.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          const reminderTexts: Record<string, string> = {
+            en: `🎥 <b>Reminder!</b> The webinar "<b>${safeTitle}</b>" starts in ${timeLabel}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Join Zoom:</b> ${event.link}`,
+            de: `🎥 <b>Erinnerung!</b> Das Webinar "<b>${safeTitle}</b>" beginnt in ${invite.reminderPreference === "1_hour" ? "1 Stunde" : "15 Minuten"}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Zoom beitreten:</b> ${event.link}`,
+            ru: `🎥 <b>Напоминание!</b> Вебинар "<b>${safeTitle}</b>" начнётся через ${invite.reminderPreference === "1_hour" ? "1 час" : "15 минут"}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Войти в Zoom:</b> ${event.link}`,
+          };
+          const tgMsg = reminderTexts[guestLang] || reminderTexts.de;
+          sendTelegramMessageByUsername(tgHandle, tgMsg).catch((err) =>
+            console.error(`Failed to send Telegram reminder to @${tgHandle}:`, err)
+          );
+        }
+
+        if (guestEmailSent) {
           await storage.markPersonalInviteReminderSent(invite.id);
           sentCount++;
-          console.log(`Reminder notification sent to partner ${partner.name} for guest ${guestName}`);
+          console.log(`All reminders sent for guest ${guestName}; marked as done`);
+        } else {
+          console.warn(`Guest email reminder failed for invite ${invite.id}; will retry next cycle`);
         }
       } catch (err) {
         console.error(`Error processing reminder for invite ${invite.id}:`, err);
@@ -168,6 +243,11 @@ async function ensureReminderColumn(): Promise<void> {
     await db.execute(sql`ALTER TABLE personal_invites ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN NOT NULL DEFAULT false`);
   } catch (err) {
     console.warn("reminder_sent column migration skipped:", err);
+  }
+  try {
+    await db.execute(sql`ALTER TABLE personal_invites ADD COLUMN IF NOT EXISTS guest_language TEXT`);
+  } catch (err) {
+    console.warn("guest_language column migration skipped:", err);
   }
 }
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRoute } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Calendar, Clock, User, Mic, Star, Send, ChevronRight, Globe, MessageSquare, Phone } from "lucide-react";
+import { Loader2, Calendar, Clock, Mic, Star, Send, ChevronRight, Globe, MessageSquare, Phone, Video } from "lucide-react";
 import { useLanguage, Language } from "../contexts/LanguageContext";
 
 interface InviteData {
@@ -24,6 +24,7 @@ interface InviteData {
     timezone: string;
   } | null;
   chatHistory: Array<{ role: string; content: string }>;
+  zoomLink?: string | null;
 }
 
 const discQuickRepliesMap: Record<string, Record<string, string[]>> = {
@@ -102,6 +103,7 @@ export default function PersonalInvitePage() {
   const [showRegForm, setShowRegForm] = useState(false);
   const [regData, setRegData] = useState({ name: "", email: "", telegram: "", phone: "", reminderChannel: "whatsapp" as "whatsapp" | "telegram" });
   const [registering, setRegistering] = useState(false);
+  const [zoomLink, setZoomLink] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [langInitialized, setLangInitialized] = useState(false);
 
@@ -129,6 +131,7 @@ export default function PersonalInvitePage() {
         }
         if (data.isRegistered) {
           setRegData({ name: "", email: "", telegram: "", phone: "", reminderChannel: "whatsapp" });
+          if (data.zoomLink) setZoomLink(data.zoomLink);
         }
         setLoading(false);
       })
@@ -224,6 +227,7 @@ export default function PersonalInvitePage() {
       if (data.success) {
         setShowRegForm(false);
         setIsRegistered(true);
+        if (data.zoomLink) setZoomLink(data.zoomLink);
         setMessages((prev) => [
           ...prev,
           { role: "assistant", content: data.chatHistory?.[data.chatHistory.length - 1]?.content || `You're registered! 🎉`, type: "text" },
@@ -426,6 +430,20 @@ export default function PersonalInvitePage() {
             </div>
           </div>
         </div>
+        {isRegistered && zoomLink && (
+          <div className="px-4 pb-2.5">
+            <a
+              href={zoomLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600 text-sm font-bold text-white active:bg-blue-700 transition-colors"
+              data-testid="link-join-zoom"
+            >
+              <Video className="w-4 h-4" />
+              {language === "de" ? "Zoom beitreten" : language === "ru" ? "Войти в Zoom" : "Join Zoom"}
+            </a>
+          </div>
+        )}
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar px-4 py-4 space-y-3">

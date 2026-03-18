@@ -78,7 +78,7 @@ export interface IStorage {
 
   createPersonalInvite(data: InsertPersonalInvite): Promise<PersonalInvite>;
   getPersonalInviteByCode(code: string): Promise<PersonalInvite | undefined>;
-  updatePersonalInviteRegistration(id: number, data: { guestName: string; guestEmail: string; guestTelegram?: string; guestPhone?: string; reminderChannel?: string }): Promise<PersonalInvite>;
+  updatePersonalInviteRegistration(id: number, data: { guestName: string; guestEmail: string; guestTelegram?: string; guestPhone?: string; reminderChannel?: string; guestLanguage?: string }): Promise<PersonalInvite>;
   updatePersonalInviteChatHistory(id: number, chatHistory: string): Promise<PersonalInvite>;
   updatePersonalInviteReminder(id: number, preference: string): Promise<PersonalInvite>;
   getPersonalInvitesByPartnerId(partnerId: number): Promise<PersonalInvite[]>;
@@ -505,13 +505,14 @@ export class DatabaseStorage implements IStorage {
     return invite;
   }
 
-  async updatePersonalInviteRegistration(id: number, data: { guestName: string; guestEmail: string; guestTelegram?: string; guestPhone?: string; reminderChannel?: string }): Promise<PersonalInvite> {
+  async updatePersonalInviteRegistration(id: number, data: { guestName: string; guestEmail: string; guestTelegram?: string; guestPhone?: string; reminderChannel?: string; guestLanguage?: string }): Promise<PersonalInvite> {
     const [updated] = await db.update(personalInvites).set({
       guestName: data.guestName,
       guestEmail: data.guestEmail,
       guestTelegram: data.guestTelegram || null,
       guestPhone: data.guestPhone || null,
       reminderChannel: data.reminderChannel || null,
+      guestLanguage: data.guestLanguage || null,
       registeredAt: new Date(),
     }).where(eq(personalInvites.id, id)).returning();
     return updated;

@@ -222,3 +222,261 @@ function escapeHtml(str: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
+
+const guestEmailTranslations: Record<string, {
+  confirmSubject: string;
+  confirmHeading: string;
+  confirmSubheading: string;
+  eventDetails: string;
+  eventLabel: string;
+  dateLabel: string;
+  timeLabel: string;
+  speakerLabel: string;
+  joinButton: string;
+  confirmFooter: string;
+  reminderSubject: string;
+  reminderHeading: string;
+  reminderSubheading: string;
+  reminderFooter: string;
+  automated: string;
+}> = {
+  en: {
+    confirmSubject: "You're registered! Here are your webinar details",
+    confirmHeading: "You're registered!",
+    confirmSubheading: "Here are your details for the upcoming webinar.",
+    eventDetails: "Event Details",
+    eventLabel: "Event",
+    dateLabel: "Date",
+    timeLabel: "Time",
+    speakerLabel: "Speaker",
+    joinButton: "Join Zoom",
+    confirmFooter: "Save the link — you'll need it to join the webinar.",
+    reminderSubject: "Reminder: Your webinar starts soon!",
+    reminderHeading: "Your webinar is starting soon!",
+    reminderSubheading: "Don't forget — the webinar is about to begin. Click below to join.",
+    reminderFooter: "Click the button above to join the Zoom meeting.",
+    automated: "This is an automated message — please do not reply.",
+  },
+  de: {
+    confirmSubject: "Du bist registriert! Deine Webinar-Details",
+    confirmHeading: "Du bist registriert!",
+    confirmSubheading: "Hier sind deine Details für das kommende Webinar.",
+    eventDetails: "Event-Details",
+    eventLabel: "Event",
+    dateLabel: "Datum",
+    timeLabel: "Uhrzeit",
+    speakerLabel: "Referent",
+    joinButton: "Zoom beitreten",
+    confirmFooter: "Speichere den Link — du brauchst ihn, um am Webinar teilzunehmen.",
+    reminderSubject: "Erinnerung: Dein Webinar beginnt bald!",
+    reminderHeading: "Dein Webinar beginnt bald!",
+    reminderSubheading: "Nicht vergessen — das Webinar fängt gleich an. Klicke unten, um beizutreten.",
+    reminderFooter: "Klicke oben, um dem Zoom-Meeting beizutreten.",
+    automated: "Dies ist eine automatische Nachricht — bitte nicht antworten.",
+  },
+  ru: {
+    confirmSubject: "Вы зарегистрированы! Детали вебинара",
+    confirmHeading: "Вы зарегистрированы!",
+    confirmSubheading: "Вот ваши данные для предстоящего вебинара.",
+    eventDetails: "Детали мероприятия",
+    eventLabel: "Мероприятие",
+    dateLabel: "Дата",
+    timeLabel: "Время",
+    speakerLabel: "Спикер",
+    joinButton: "Войти в Zoom",
+    confirmFooter: "Сохраните ссылку — она понадобится для входа на вебинар.",
+    reminderSubject: "Напоминание: Ваш вебинар скоро начнётся!",
+    reminderHeading: "Ваш вебинар скоро начнётся!",
+    reminderSubheading: "Не забудьте — вебинар вот-вот начнётся. Нажмите ниже, чтобы войти.",
+    reminderFooter: "Нажмите кнопку выше, чтобы войти в Zoom.",
+    automated: "Это автоматическое сообщение — пожалуйста, не отвечайте.",
+  },
+};
+
+function buildGuestWebinarEmailHtml(params: {
+  name: string;
+  eventTitle: string;
+  eventDate: string;
+  eventTime: string;
+  timezone: string;
+  speaker: string;
+  zoomLink: string;
+  language: string;
+  isReminder: boolean;
+}): string {
+  const appUrl = getAppUrl();
+  const logoUrl = `${appUrl}/assets/jetup-logo-banner.png`;
+  const lang = params.language in guestEmailTranslations ? params.language : "en";
+  const t = guestEmailTranslations[lang];
+
+  const heading = params.isReminder ? t.reminderHeading : t.confirmHeading;
+  const subheading = params.isReminder ? t.reminderSubheading : t.confirmSubheading;
+  const footer = params.isReminder ? t.reminderFooter : t.confirmFooter;
+
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(heading)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f0f5;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f0f5;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+
+          <tr>
+            <td style="background:linear-gradient(135deg,#2563eb 0%,#3b82f6 50%,#60a5fa 100%);padding:44px 40px;text-align:center;">
+              <img src="${logoUrl}" alt="JetUp" style="height:60px;width:auto;" />
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:40px 48px 20px;">
+              <div style="text-align:center;margin-bottom:24px;">
+                <div style="display:inline-block;width:64px;height:64px;background-color:#eff6ff;border-radius:50%;line-height:64px;font-size:32px;">🎉</div>
+              </div>
+              <h1 style="margin:0 0 10px;color:#0f172a;font-size:24px;font-weight:800;text-align:center;letter-spacing:-0.5px;line-height:1.3;">
+                ${escapeHtml(heading)}
+              </h1>
+              <p style="margin:0;color:#64748b;font-size:15px;text-align:center;">
+                ${escapeHtml(subheading)}
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:8px 48px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+                <tr>
+                  <td style="padding:16px 24px 12px;">
+                    <p style="margin:0;color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;">${escapeHtml(t.eventDetails)}</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:10px 0;border-top:1px solid #f1f5f9;color:#64748b;font-size:14px;width:100px;">${escapeHtml(t.eventLabel)}</td>
+                        <td style="padding:10px 0;border-top:1px solid #f1f5f9;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(params.eventTitle)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:10px 0;border-top:1px solid #f1f5f9;color:#64748b;font-size:14px;">${escapeHtml(t.dateLabel)}</td>
+                        <td style="padding:10px 0;border-top:1px solid #f1f5f9;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(params.eventDate)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:10px 0;border-top:1px solid #f1f5f9;color:#64748b;font-size:14px;">${escapeHtml(t.timeLabel)}</td>
+                        <td style="padding:10px 0;border-top:1px solid #f1f5f9;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(params.eventTime)}${params.timezone ? ` ${escapeHtml(params.timezone)}` : ""}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:10px 0;border-top:1px solid #f1f5f9;color:#64748b;font-size:14px;">${escapeHtml(t.speakerLabel)}</td>
+                        <td style="padding:10px 0;border-top:1px solid #f1f5f9;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(params.speaker)}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr><td style="padding:8px 0;"></td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 48px 32px;text-align:center;">
+              <a href="${params.zoomLink}" style="display:inline-block;background-color:#2563eb;color:#ffffff;font-size:15px;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;letter-spacing:0.3px;">
+                🎥 ${escapeHtml(t.joinButton)}
+              </a>
+              <p style="margin:16px 0 0;color:#94a3b8;font-size:13px;">${escapeHtml(footer)}</p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background-color:#fafafe;padding:20px 48px;border-top:1px solid #f1f1f5;">
+              <p style="margin:0 0 6px;color:#94a3b8;font-size:12px;text-align:center;">
+                ${escapeHtml(t.automated)}
+              </p>
+              <p style="margin:0;text-align:center;">
+                <a href="${appUrl}" style="color:#2563eb;font-size:12px;text-decoration:none;font-weight:500;">jet-up.ai</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+export async function sendGuestConfirmationEmail(params: {
+  to: string;
+  name: string;
+  eventTitle: string;
+  eventDate: string;
+  eventTime: string;
+  timezone: string;
+  speaker: string;
+  zoomLink: string;
+  language: string;
+}): Promise<boolean> {
+  try {
+    const resend = getResendClient();
+    const lang = params.language in guestEmailTranslations ? params.language : "en";
+    const t = guestEmailTranslations[lang];
+
+    const { data, error } = await resend.emails.send({
+      from: "JetUp <noreply@jet-up.ai>",
+      to: [params.to],
+      subject: t.confirmSubject,
+      html: buildGuestWebinarEmailHtml({ ...params, isReminder: false }),
+    });
+
+    if (error) {
+      console.error("Guest confirmation email error:", error);
+      return false;
+    }
+
+    console.log("Guest confirmation email sent to", params.to, "id:", data?.id);
+    return true;
+  } catch (error) {
+    console.error("Failed to send guest confirmation email:", error);
+    return false;
+  }
+}
+
+export async function sendGuestReminderEmail(params: {
+  to: string;
+  name: string;
+  eventTitle: string;
+  eventDate: string;
+  eventTime: string;
+  timezone: string;
+  speaker: string;
+  zoomLink: string;
+  language: string;
+}): Promise<boolean> {
+  try {
+    const resend = getResendClient();
+    const lang = params.language in guestEmailTranslations ? params.language : "en";
+    const t = guestEmailTranslations[lang];
+
+    const { data, error } = await resend.emails.send({
+      from: "JetUp <noreply@jet-up.ai>",
+      to: [params.to],
+      subject: t.reminderSubject,
+      html: buildGuestWebinarEmailHtml({ ...params, isReminder: true }),
+    });
+
+    if (error) {
+      console.error("Guest reminder email error:", error);
+      return false;
+    }
+
+    console.log("Guest reminder email sent to", params.to, "id:", data?.id);
+    return true;
+  } catch (error) {
+    console.error("Failed to send guest reminder email:", error);
+    return false;
+  }
+}

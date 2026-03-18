@@ -11,7 +11,7 @@ import {
   users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers, promoApplications, dennisPromos,
   inviteEvents, inviteGuests, partners, zoomAttendance, appSettings, personalInvites,
 } from "@shared/schema";
-import { eq, desc, and, gte, lte, sql, count, or } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql, count, or, isNotNull, ne } from "drizzle-orm";
 import { db } from "./db";
 
 export interface IStorage {
@@ -83,6 +83,8 @@ export interface IStorage {
   updatePersonalInviteReminder(id: number, preference: string): Promise<PersonalInvite>;
   getPersonalInvitesByPartnerId(partnerId: number): Promise<PersonalInvite[]>;
   markPersonalInviteViewed(id: number): Promise<PersonalInvite>;
+  getPersonalInvitesPendingReminder(): Promise<PersonalInvite[]>;
+  markPersonalInviteReminderSent(id: number): Promise<PersonalInvite>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -531,6 +533,23 @@ export class DatabaseStorage implements IStorage {
 
   async markPersonalInviteViewed(id: number): Promise<PersonalInvite> {
     const [updated] = await db.update(personalInvites).set({ viewedAt: new Date() }).where(eq(personalInvites.id, id)).returning();
+    return updated;
+  }
+
+  async getPersonalInvitesPendingReminder(): Promise<PersonalInvite[]> {
+    return db.select().from(personalInvites).where(
+      and(
+        isNotNull(personalInvites.registeredAt),
+        isNotNull(personalInvites.reminderPreference),
+        ne(personalInvites.reminderPreference, "none"),
+        eq(personalInvites.reminderSent, false),
+        eq(personalInvites.isActive, true),
+      )
+    );
+  }
+
+  async markPersonalInviteReminderSent(id: number): Promise<PersonalInvite> {
+    const [updated] = await db.update(personalInvites).set({ reminderSent: true }).where(eq(personalInvites.id, id)).returning();
     return updated;
   }
 }

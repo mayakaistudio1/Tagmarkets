@@ -20,6 +20,7 @@ import { LIVEAVATAR_SYSTEM_PROMPT } from "./integrations/liveavatar";
 import OpenAI from "openai";
 import { sendTelegramNotification, formatPromoApplicationMessage } from "./integrations/telegram-notify";
 import { startVerificationPoller, checkAndProcessVerifications } from "./integrations/promo-verification-poller";
+import { startReminderScheduler } from "./integrations/reminder-scheduler";
 import { registerPartnerBotRoutes, notifyPartnerNewRegistration } from "./integrations/partner-bot";
 import { registerPartnerAppRoutes } from "./partner-app-routes";
 
@@ -888,6 +889,7 @@ Return ONLY valid JSON in this format:
   });
 
   startVerificationPoller();
+  startReminderScheduler();
 
   app.get("/api/invite/:code", async (req, res) => {
     try {

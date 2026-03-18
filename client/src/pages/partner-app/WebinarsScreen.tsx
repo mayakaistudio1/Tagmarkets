@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Calendar, Clock, User, Globe, Loader2, ChevronLeft, ChevronRight,
-  Send, Copy, Check, Share2, MessageCircle, Phone,
+  Send, Copy, Check, Share2, MessageCircle, Phone, Bell,
   Mail, Facebook, Instagram, Link2, Users, UserCheck, FileText, Sparkles,
   Eye, Star
 } from "lucide-react";
@@ -208,7 +208,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [qualifyStarted, setQualifyStarted] = useState(false);
   const [multiSelectValues, setMultiSelectValues] = useState<Array<{ value: string; label: string }>>([]);
   const [partnerDisplayName, setPartnerDisplayName] = useState("");
-  const [personalInvites, setPersonalInvites] = useState<Array<{ id: number; inviteCode: string; prospectName: string; prospectType: string; discType: string; scheduleEventId: number; eventTitle: string | null; createdAt: string; viewedAt: string | null; registeredAt: string | null; guestName: string | null; guestEmail: string | null; isActive: boolean }>>([]);
+  const [personalInvites, setPersonalInvites] = useState<Array<{ id: number; inviteCode: string; prospectName: string; prospectType: string; discType: string; scheduleEventId: number; eventTitle: string | null; createdAt: string; viewedAt: string | null; registeredAt: string | null; guestName: string | null; guestEmail: string | null; isActive: boolean; reminderPreference?: string | null; reminderSent?: boolean }>>([]);
 
   useEffect(() => {
     Promise.all([
@@ -600,7 +600,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           <p className="text-xs text-gray-400 font-medium mb-2 uppercase tracking-wide">{t('pa.personalLink')}</p>
           <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
             <Link2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
-            <p className="text-xs text-gray-600 truncate flex-1 font-mono" data-testid="text-personal-invite-url">{getPersonalInviteFullUrl()}</p>
+            <p className="text-xs text-gray-600 flex-1 font-mono break-all leading-relaxed" data-testid="text-personal-invite-url">{getPersonalInviteFullUrl()}</p>
             <button onClick={() => { navigator.clipboard.writeText(getPersonalInviteFullUrl()); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="p-1.5 rounded-lg bg-white active:bg-gray-100" data-testid="button-copy-personal-link">
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
             </button>
@@ -737,9 +737,22 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           </div>
         </div>
 
+        {personalInviteResult && (
+          <div className="mt-4 bg-white rounded-2xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <p className="text-xs text-gray-400 font-medium mb-2 uppercase tracking-wide">{t('pa.personalLink')}</p>
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
+              <Link2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <p className="text-xs text-gray-600 flex-1 font-mono break-all leading-relaxed" data-testid="text-preview-invite-url">{getPersonalInviteFullUrl()}</p>
+              <button onClick={() => { navigator.clipboard.writeText(getPersonalInviteFullUrl()); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="p-1.5 rounded-lg bg-white active:bg-gray-100" data-testid="button-copy-preview-link">
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
+              </button>
+            </div>
+          </div>
+        )}
+
         <button
           onClick={() => setScreen("personal-share")}
-          className="w-full mt-5 py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          className="w-full mt-4 py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors flex items-center justify-center gap-2"
           data-testid="button-back-to-share"
         >
           <Share2 className="w-4 h-4" /> {t('pa.shareLink')}
@@ -1172,6 +1185,12 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                         {pi.discType && (
                           <span className="text-[10px] text-gray-400 font-mono">DISC: {pi.discType}</span>
                         )}
+                        {pi.reminderPreference && pi.reminderPreference !== "none" && (
+                          <span className={`inline-flex items-center gap-0.5 text-[10px] ${pi.reminderSent ? 'text-emerald-500' : 'text-amber-500'}`}>
+                            <Bell className="w-2.5 h-2.5" />
+                            {pi.reminderSent ? '✓' : (pi.reminderPreference === '1_hour' ? '1h' : '15m')}
+                          </span>
+                        )}
                       </div>
                     </div>
                     {pi.registeredAt ? (
@@ -1398,6 +1417,12 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                   )}
                   <span>{new Date(pi.createdAt).toLocaleDateString("de-DE")}</span>
                   {pi.discType && <span className="font-mono">DISC: {pi.discType}</span>}
+                  {pi.reminderPreference && pi.reminderPreference !== "none" && (
+                    <span className={`inline-flex items-center gap-0.5 ${pi.reminderSent ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      <Bell className="w-2.5 h-2.5" />
+                      {pi.reminderSent ? '✓' : (pi.reminderPreference === '1_hour' ? '1h' : '15m')}
+                    </span>
+                  )}
                 </div>
               </motion.div>
             ))}

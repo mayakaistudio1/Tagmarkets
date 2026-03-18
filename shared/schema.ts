@@ -294,6 +294,7 @@ export const personalInvites = pgTable("personal_invites", {
   chatHistory: text("chat_history").default("[]"),
   isActive: boolean("is_active").notNull().default(true),
   viewedAt: timestamp("viewed_at"),
+  reminderSent: boolean("reminder_sent").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

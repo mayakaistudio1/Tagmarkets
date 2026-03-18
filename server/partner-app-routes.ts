@@ -613,6 +613,8 @@ export function registerPartnerAppRoutes(app: Express) {
         guestName: inv.guestName,
         guestEmail: inv.guestEmail,
         isActive: inv.isActive,
+        reminderPreference: inv.reminderPreference,
+        reminderSent: inv.reminderSent,
       }));
 
       const stats = {

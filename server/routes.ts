@@ -1041,15 +1041,35 @@ Return ONLY valid JSON in this format:
       const event = await storage.getInviteEventById(Number(req.params.id));
       if (!event) return res.status(404).json({ error: "Event not found" });
       const guests = await storage.getGuestsByEventId(event.id);
-      const clicked = guests.filter(g => g.clickedZoom);
-      const notClicked = guests.filter(g => !g.clickedZoom);
+      const attendance = await storage.getZoomAttendanceByEventId(event.id);
+
+      const attendanceMap = new Map<string, typeof attendance[0]>();
+      for (const a of attendance) {
+        attendanceMap.set(a.participantEmail.toLowerCase(), a);
+      }
+
+      const guestsWithAttendance = guests.map(g => {
+        const att = attendanceMap.get(g.email.toLowerCase());
+        return {
+          ...g,
+          attended: !!att,
+          durationMinutes: att?.durationMinutes || 0,
+          questionsAsked: att?.questionsAsked || 0,
+        };
+      });
+
+      const clicked = guestsWithAttendance.filter(g => g.clickedZoom);
+      const notClicked = guestsWithAttendance.filter(g => !g.clickedZoom);
+      const attended = guestsWithAttendance.filter(g => g.attended);
+
       res.json({
         event,
-        guests,
+        guests: guestsWithAttendance,
         stats: {
           totalRegistered: guests.length,
           totalClicked: clicked.length,
           totalNotClicked: notClicked.length,
+          totalAttended: attended.length,
         },
       });
     } catch (error: any) {

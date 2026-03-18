@@ -70,6 +70,9 @@ interface InviteGuest {
   registeredAt: string;
   clickedZoom: boolean;
   clickedAt?: string;
+  attended?: boolean;
+  durationMinutes?: number;
+  questionsAsked?: number;
 }
 
 interface InviteEvent {
@@ -2619,7 +2622,10 @@ function InvitesTab({
                         <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Email</th>
                         <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Phone</th>
                         <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Registered</th>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Clicked Zoom</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Clicked</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Attended</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Duration</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Q&A</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -2633,10 +2639,35 @@ function InvitesTab({
                             {guest.clickedZoom ? (
                               <div className="flex flex-col items-center">
                                 <Check className="text-green-500" size={18} />
-                                <span className="text-[10px] text-gray-400">{new Date(guest.clickedAt!).toLocaleTimeString()}</span>
+                                {guest.clickedAt && <span className="text-[10px] text-gray-400">{new Date(guest.clickedAt).toLocaleTimeString()}</span>}
                               </div>
                             ) : (
                               <X className="text-gray-300 mx-auto" size={18} />
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            {guest.attended ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-xs font-semibold">
+                                <Check size={12} /> Yes
+                              </span>
+                            ) : (
+                              <span className="text-gray-300 text-xs">—</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-center text-sm text-gray-600">
+                            {guest.attended && (guest.durationMinutes ?? 0) > 0 ? (
+                              <span className="font-medium">{guest.durationMinutes}m</span>
+                            ) : (
+                              <span className="text-gray-300">—</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-center text-sm text-gray-600">
+                            {guest.attended && (guest.questionsAsked ?? 0) > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
+                                {guest.questionsAsked}
+                              </span>
+                            ) : (
+                              <span className="text-gray-300">—</span>
                             )}
                           </td>
                         </tr>

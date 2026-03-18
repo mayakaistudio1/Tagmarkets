@@ -1,5 +1,7 @@
 import { storage } from "../storage";
 import { sendTelegramMessageToChat } from "./telegram-notify";
+import { db } from "../db";
+import { sql } from "drizzle-orm";
 
 const POLL_INTERVAL_MS = 2 * 60 * 1000;
 let pollerInterval: ReturnType<typeof setInterval> | null = null;
@@ -105,14 +107,16 @@ export async function checkAndSendReminders(): Promise<number> {
 
         const timeLabel = invite.reminderPreference === "1_hour" ? "1 Stunde" : "15 Minuten";
         const eventTimeStr = `${event.date} ${event.time}`;
+        const channelLabel = invite.reminderChannel === "whatsapp" ? "WhatsApp" : invite.reminderChannel === "telegram" ? "Telegram" : null;
 
         const partnerMsg =
           `⏰ <b>Erinnerung senden!</b>\n\n` +
           `Dein Gast <b>${guestName}</b> hat eine Erinnerung ${timeLabel} vor dem Webinar angefordert.\n\n` +
           `📋 <b>Event:</b> ${event.title}\n` +
           `🕐 <b>Wann:</b> ${eventTimeStr}\n` +
+          `${channelLabel ? `📨 <b>Bevorzugter Kanal:</b> ${channelLabel}\n` : ''}` +
           `${contactLines.length > 0 ? `\n<b>Kontakt:</b>\n${contactLines.join('\n')}\n` : ''}` +
-          `\n💡 <i>Sende deinem Gast eine kurze Erinnerung über den bevorzugten Kanal!</i>`;
+          `\n💡 <i>Sende deinem Gast eine kurze Erinnerung${channelLabel ? ` über ${channelLabel}` : ''}!</i>`;
 
         const sent = await sendPartnerBotMessage(partner.telegramChatId, partnerMsg);
         if (sent) {
@@ -135,22 +139,34 @@ export async function checkAndSendReminders(): Promise<number> {
   return sentCount;
 }
 
+async function ensureReminderColumn(): Promise<void> {
+  try {
+    await db.execute(sql`ALTER TABLE personal_invites ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN NOT NULL DEFAULT false`);
+  } catch (err) {
+    console.warn("reminder_sent column migration skipped:", err);
+  }
+}
+
 export function startReminderScheduler(): void {
   if (pollerInterval) return;
 
   console.log(`Starting reminder scheduler (every ${POLL_INTERVAL_MS / 1000}s)`);
 
-  pollerInterval = setInterval(() => {
-    checkAndSendReminders().catch((err) =>
-      console.error("Reminder scheduler cycle error:", err)
-    );
-  }, POLL_INTERVAL_MS);
+  ensureReminderColumn().then(() => {
+    pollerInterval = setInterval(() => {
+      checkAndSendReminders().catch((err) =>
+        console.error("Reminder scheduler cycle error:", err)
+      );
+    }, POLL_INTERVAL_MS);
 
-  setTimeout(() => {
-    checkAndSendReminders().catch((err) =>
-      console.error("Initial reminder check error:", err)
-    );
-  }, 15000);
+    setTimeout(() => {
+      checkAndSendReminders().catch((err) =>
+        console.error("Initial reminder check error:", err)
+      );
+    }, 15000);
+  }).catch((err) => {
+    console.error("Failed to start reminder scheduler:", err);
+  });
 }
 
 export function stopReminderScheduler(): void {

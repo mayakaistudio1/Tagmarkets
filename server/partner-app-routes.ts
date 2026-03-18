@@ -14,13 +14,19 @@ const REACTION_TYPES = ["fast_decision", "analytical", "skeptical", "needs_trust
 const INVITE_STRATEGIES = ["Authority", "Opportunity", "Curiosity", "Support"] as const;
 const RELATIONSHIP_TYPES = ["friend", "business_contact", "mlm_leader", "investor", "entrepreneur", "cold_contact"] as const;
 
+const csvEnum = (allowed: readonly string[]) =>
+  z.string().optional().refine(
+    (val) => !val || val.split(",").every((v) => allowed.includes(v.trim())),
+    (val) => ({ message: `Invalid value(s) in: ${val}` })
+  );
+
 const createPersonalInviteSchema = z.object({
   scheduleEventId: z.number({ required_error: "scheduleEventId is required" }),
   prospectName: z.string().min(1, "prospectName is required").max(200),
-  prospectType: z.enum(PROSPECT_TYPES).default("Neutral"),
+  prospectType: z.string().default("Neutral"),
   discType: z.enum(DISC_TYPES).optional(),
-  motivationType: z.enum(MOTIVATION_TYPES).optional(),
-  reactionType: z.enum(REACTION_TYPES).optional(),
+  motivationType: csvEnum(MOTIVATION_TYPES),
+  reactionType: csvEnum(REACTION_TYPES),
   inviteStrategy: z.enum(INVITE_STRATEGIES).optional(),
   prospectNote: z.string().max(1000).optional(),
   generatedMessages: z.string().optional(),

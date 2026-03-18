@@ -867,6 +867,32 @@ export function registerPartnerBotRoutes(app: Express): void {
   });
 }
 
+export async function notifyPartnerPersonalInviteRegistration(invite: any, guestName: string, guestEmail: string, guestPhone?: string): Promise<void> {
+  if (!invite.partnerId) return;
+
+  const partner = await storage.getPartnerById(invite.partnerId);
+  if (!partner) return;
+
+  let eventTitle = invite.prospectName ? `AI-Einladung für ${invite.prospectName}` : "Persönliche Einladung";
+  try {
+    if (invite.scheduleEventId) {
+      const ev = await storage.getScheduleEvent(invite.scheduleEventId);
+      if (ev) eventTitle = ev.title;
+    }
+  } catch {}
+
+  await sendTelegramMessageToChat(
+    partner.telegramChatId,
+    `🎯 <b>Neue Registrierung (persönliche Einladung)!</b>\n\n` +
+    `📋 <b>Event:</b> ${eventTitle}\n` +
+    `👤 <b>Gast:</b> ${guestName}\n` +
+    `📧 <b>E-Mail:</b> ${guestEmail}\n` +
+    `${guestPhone ? `📱 <b>Tel:</b> ${guestPhone}\n` : ""}` +
+    `🔗 <b>Einladungscode:</b> ${invite.inviteCode}\n` +
+    `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
+  );
+}
+
 export async function notifyPartnerNewRegistration(event: any, guest: any): Promise<void> {
   if (!event.partnerId) return;
 

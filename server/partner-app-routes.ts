@@ -6,6 +6,7 @@ import { eq, desc, and, sql, count } from "drizzle-orm";
 import OpenAI from "openai";
 import crypto from "crypto";
 import { z } from "zod";
+import { notifyPartnerPersonalInviteRegistration } from "./integrations/partner-bot";
 
 const PROSPECT_TYPES = ["Investor", "MLM Leader", "Entrepreneur", "Beginner", "Neutral"] as const;
 const DISC_TYPES = ["D", "I", "S", "C"] as const;
@@ -594,6 +595,7 @@ export function registerPartnerAppRoutes(app: Express) {
         prospectType: inv.prospectType,
         discType: inv.discType,
         inviteStrategy: inv.inviteStrategy,
+        scheduleEventId: inv.scheduleEventId,
         createdAt: inv.createdAt,
         viewedAt: inv.viewedAt,
         registeredAt: inv.registeredAt,
@@ -1085,6 +1087,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         return res.status(400).json({ error: parsed.error.errors[0]?.message || "Invalid input" });
       }
       const { name, email, telegram, phone, reminderChannel } = parsed.data;
+      const lang = (req.body.language as string) || "en";
 
       const updated = await storage.updatePersonalInviteRegistration(invite.id, {
         guestName: name,
@@ -1094,15 +1097,32 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         reminderChannel: reminderChannel,
       });
 
+      const regSuccessMessages: Record<string, string> = {
+        en: `Great news, ${name}! You're now registered for the webinar! 🎉 Would you like me to set a reminder for you?`,
+        de: `Tolle Neuigkeiten, ${name}! Sie sind jetzt für das Webinar registriert! 🎉 Möchten Sie eine Erinnerung einrichten?`,
+        ru: `Отличные новости, ${name}! Вы зарегистрированы на вебинар! 🎉 Хотите, чтобы я напомнил вам?`,
+      };
+      const reminderQuickReplies: Record<string, string[]> = {
+        en: ["Remind me 1 hour before", "Remind me 15 min before", "No reminder needed"],
+        de: ["Erinnerung 1 Stunde vorher", "Erinnerung 15 Min. vorher", "Keine Erinnerung nötig"],
+        ru: ["Напомни за 1 час", "Напомни за 15 минут", "Напоминание не нужно"],
+      };
+
       const chatHistory: Array<{ role: string; content: string }> = JSON.parse(updated.chatHistory || "[]");
-      chatHistory.push({ role: "assistant", content: `Great news, ${name}! You're now registered for the webinar! 🎉 Would you like me to set a reminder for you?` });
+      chatHistory.push({ role: "assistant", content: regSuccessMessages[lang] || regSuccessMessages.en });
       await storage.updatePersonalInviteChatHistory(invite.id, JSON.stringify(chatHistory));
+
+      try {
+        await notifyPartnerPersonalInviteRegistration(invite, name, email, phone);
+      } catch (notifErr) {
+        console.error("Failed to notify partner about personal invite registration:", notifErr);
+      }
 
       res.json({
         success: true,
         message: "Registration successful",
         chatHistory,
-        quickReplies: ["Remind me 1 hour before", "Remind me 15 min before", "No reminder needed"],
+        quickReplies: reminderQuickReplies[lang] || reminderQuickReplies.en,
       });
     } catch (error: any) {
       console.error("Personal invite register error:", error);
@@ -1124,12 +1144,16 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       }
 
       await storage.updatePersonalInviteReminder(invite.id, preference);
+      const lang = (req.body.language as string) || "en";
 
       const chatHistory: Array<{ role: string; content: string }> = JSON.parse(invite.chatHistory || "[]");
-      const reminderLabel = preference === "1_hour" ? "1 hour before" : preference === "15_min" ? "15 minutes before" : null;
-      const reminderMsg = reminderLabel
-        ? `Perfect! I'll remind you ${reminderLabel}. See you at the webinar! 🙌`
-        : "No problem! See you at the webinar! 🙌";
+      const reminderMessages: Record<string, Record<string, string>> = {
+        en: { "1_hour": "Perfect! I'll remind you 1 hour before. See you at the webinar! 🙌", "15_min": "Perfect! I'll remind you 15 minutes before. See you at the webinar! 🙌", "none": "No problem! See you at the webinar! 🙌" },
+        de: { "1_hour": "Perfekt! Ich erinnere Sie 1 Stunde vorher. Bis zum Webinar! 🙌", "15_min": "Perfekt! Ich erinnere Sie 15 Minuten vorher. Bis zum Webinar! 🙌", "none": "Kein Problem! Bis zum Webinar! 🙌" },
+        ru: { "1_hour": "Отлично! Напомню за 1 час до начала. До встречи на вебинаре! 🙌", "15_min": "Отлично! Напомню за 15 минут до начала. До встречи на вебинаре! 🙌", "none": "Хорошо! До встречи на вебинаре! 🙌" },
+      };
+      const langMsgs = reminderMessages[lang] || reminderMessages.en;
+      const reminderMsg = langMsgs[preference] || langMsgs.none;
       chatHistory.push({ role: "assistant", content: reminderMsg });
       await storage.updatePersonalInviteChatHistory(invite.id, JSON.stringify(chatHistory));
 

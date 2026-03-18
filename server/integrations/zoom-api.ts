@@ -111,7 +111,7 @@ export async function fetchZoomMeetingParticipants(meetingId: string): Promise<Z
     const token = await getZoomAccessToken();
     const cleanId = meetingId.replace(/\s/g, "");
 
-    const res = await fetch(
+    let res = await fetch(
       `https://api.zoom.us/v2/report/meetings/${cleanId}/participants?page_size=300`,
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -120,7 +120,20 @@ export async function fetchZoomMeetingParticipants(meetingId: string): Promise<Z
 
     if (!res.ok) {
       const errorText = await res.text();
-      if (res.status === 404) {
+      if (res.status === 400 && errorText.toLowerCase().includes("webinar")) {
+        console.log("Detected webinar, trying webinar endpoint:", cleanId);
+        res = await fetch(
+          `https://api.zoom.us/v2/report/webinars/${cleanId}/participants?page_size=300`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (!res.ok) {
+          const webinarErrorText = await res.text();
+          console.error("Zoom webinar participants API error:", res.status, webinarErrorText);
+          throw new Error(`Zoom webinar API error (${res.status}): ${webinarErrorText}`);
+        }
+      } else if (res.status === 404) {
         console.log("Zoom meeting not found or not yet ended:", cleanId);
         throw new Error("Meeting not found or has not ended yet. Zoom data is available after the meeting ends.");
       } else if (res.status === 429) {
@@ -147,7 +160,7 @@ export async function fetchZoomMeetingQA(meetingId: string): Promise<ZoomQAEntry
     const token = await getZoomAccessToken();
     const cleanId = meetingId.replace(/\s/g, "");
 
-    const res = await fetch(
+    let res = await fetch(
       `https://api.zoom.us/v2/report/meetings/${cleanId}/qa`,
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -155,7 +168,21 @@ export async function fetchZoomMeetingQA(meetingId: string): Promise<ZoomQAEntry
     );
 
     if (!res.ok) {
-      return [];
+      const errorText = await res.text();
+      if (res.status === 400 && errorText.toLowerCase().includes("webinar")) {
+        console.log("Detected webinar Q&A, trying webinar endpoint:", cleanId);
+        res = await fetch(
+          `https://api.zoom.us/v2/report/webinars/${cleanId}/qa`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (!res.ok) {
+          return [];
+        }
+      } else {
+        return [];
+      }
     }
 
     const data = await res.json();

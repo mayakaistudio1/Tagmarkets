@@ -209,16 +209,21 @@ async function handleRegistration(chatId: number, text: string): Promise<boolean
 
       registrationState.delete(String(chatId));
 
+      const baseUrl = getBaseUrl();
+      const webAppUrl = `${baseUrl}/partner-app`;
+
       await sendMessage(chatId,
         `✅ <b>Registrierung abgeschlossen!</b>\n\n` +
         `👤 Name: ${partner.name}\n` +
         `🔢 CU: ${partner.cuNumber}\n` +
         `${partner.phone ? `📱 Tel: ${partner.phone}\n` : ""}` +
         `${partner.email ? `📧 E-Mail: ${partner.email}\n` : ""}\n` +
-        `Du kannst jetzt loslegen:\n` +
-        `/invite — Einladungslink erstellen\n` +
-        `/events — Meine Events anzeigen\n` +
-        `/help — Hilfe`
+        `Öffne die Partner App, um loszulegen!`,
+        {
+          reply_markup: JSON.stringify({
+            inline_keyboard: [[{ text: "📱 Partner App öffnen", web_app: { url: webAppUrl } }]],
+          }),
+        }
       );
 
       console.log(`New partner registered: ${partner.name} (CU: ${partner.cuNumber})`);
@@ -403,7 +408,7 @@ async function handleZoomSync(callbackQueryId: string, chatId: number, eventId: 
     } else if (result.synced > 0) {
       let msg = `✅ ${result.synced} Teilnehmer synchronisiert!`;
       if (result.skipped > 0) msg += ` (${result.skipped} bereits vorhanden)`;
-      msg += `\n\nSende /report für den aktualisierten Bericht.`;
+      msg += `\n\nDie aktualisierten Daten findest du in der Partner App.`;
       await sendMessage(chatId, msg);
     } else {
       await sendMessage(chatId, `ℹ️ Keine neuen Teilnehmerdaten gefunden.${result.skipped > 0 ? ` ${result.skipped} bereits synchronisiert.` : ''}`);

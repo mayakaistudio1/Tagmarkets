@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck, Calendar, Clock, MessageCircle } from "lucide-react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface PartnerEvent {
   id: number; title: string; eventDate: string; eventTime: string;
@@ -45,6 +46,7 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
   const [expandedGuest, setExpandedGuest] = useState<number | null>(null);
   const [selectedReport, setSelectedReport] = useState<EventReport | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } })
@@ -84,7 +86,7 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
     return (
       <div className="px-5 pt-5 pb-28">
         <button onClick={() => setSelectedReport(null)} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back-reports">
-          <ChevronLeft className="w-4 h-4" /> Back
+          <ChevronLeft className="w-4 h-4" /> {t('pa.back')}
         </button>
 
         <div className="mb-5">
@@ -94,23 +96,23 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
 
         <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
           <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-blue-500" /> Conversion Funnel
+            <BarChart3 className="w-4 h-4 text-blue-500" /> {t('pa.conversionFunnel')}
           </h3>
           <div className="space-y-4">
-            <FunnelBar label="Registered" value={f.registered} maxValue={maxFunnel} color="bg-blue-500" />
-            <FunnelBar label="Clicked Zoom" value={f.clickedZoom} maxValue={maxFunnel} color="bg-purple-500" />
-            <FunnelBar label="Attended" value={f.attended} maxValue={maxFunnel} color="bg-emerald-500" />
+            <FunnelBar label={t('pa.registered')} value={f.registered} maxValue={maxFunnel} color="bg-blue-500" />
+            <FunnelBar label={t('pa.clickedZoom')} value={f.clickedZoom} maxValue={maxFunnel} color="bg-purple-500" />
+            <FunnelBar label={t('pa.attended')} value={f.attended} maxValue={maxFunnel} color="bg-emerald-500" />
           </div>
           {f.registered > 0 && (
             <div className="pt-3 mt-4 border-t border-gray-100">
               <p className="text-xs text-gray-400">
-                Conversion rate: <span className="font-semibold text-gray-900">{Math.round((f.attended / f.registered) * 100)}%</span>
+                {t('pa.conversionRateLabel')}: <span className="font-semibold text-gray-900">{Math.round((f.attended / f.registered) * 100)}%</span>
               </p>
             </div>
           )}
         </div>
 
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Guests ({selectedReport.guests.length})</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('pa.guests')} ({selectedReport.guests.length})</h3>
         <div className="space-y-2">
           {selectedReport.guests.map((g, i) => (
             <motion.div
@@ -137,9 +139,9 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                       {g.questionsAsked > 0 && ` · ${g.questionsAsked}Q`}
                     </span>
                   ) : g.clickedZoom ? (
-                    <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold">Clicked</span>
+                    <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold">{t('pa.clicked')}</span>
                   ) : (
-                    <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold">No show</span>
+                    <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold">{t('pa.noShow')}</span>
                   )}
                 </div>
               </button>
@@ -153,12 +155,12 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       {g.attended && <span>⏱ {g.durationMinutes} min</span>}
                       {g.phone && <span>📞 {g.phone}</span>}
-                      {g.clickedZoom && <span className="text-blue-500">🔗 Clicked Zoom</span>}
+                      {g.clickedZoom && <span className="text-blue-500">🔗 {t('pa.clickedZoom')}</span>}
                     </div>
                     {g.questionTexts && g.questionTexts.length > 0 && (
                       <div className="mt-2">
                         <p className="text-[11px] font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
-                          <MessageCircle className="w-3 h-3" /> Questions asked:
+                          <MessageCircle className="w-3 h-3" /> {t('pa.questionsAsked')}:
                         </p>
                         <div className="space-y-1.5">
                           {g.questionTexts.map((q, qi) => (
@@ -170,7 +172,7 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                       </div>
                     )}
                     {(!g.questionTexts || g.questionTexts.length === 0) && g.attended && (
-                      <p className="text-[11px] text-gray-400 italic">No questions asked</p>
+                      <p className="text-[11px] text-gray-400 italic">{t('pa.noQuestions')}</p>
                     )}
                   </div>
                 </motion.div>
@@ -184,15 +186,15 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
 
   return (
     <div className="px-5 pt-5 pb-28">
-      <h2 className="text-lg font-bold text-gray-900 mb-5">Statistics</h2>
+      <h2 className="text-lg font-bold text-gray-900 mb-5">{t('pa.statistics')}</h2>
 
       {events.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
             <BarChart3 className="w-6 h-6 text-gray-400" />
           </div>
-          <p className="text-sm text-gray-500">No events yet</p>
-          <p className="text-xs text-gray-400 mt-1">Create your first invite</p>
+          <p className="text-sm text-gray-500">{t('pa.noEventsYet')}</p>
+          <p className="text-xs text-gray-400 mt-1">{t('pa.createFirstInvite')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -219,12 +221,12 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                 <div className="flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-blue-500" />
                   <span className="text-xs font-semibold text-gray-700">{event.registeredCount || event.guestCount}</span>
-                  <span className="text-[10px] text-gray-400">reg</span>
+                  <span className="text-[10px] text-gray-400">{t('pa.registered')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
                   <span className="text-xs font-semibold text-gray-700">{event.attendedCount}</span>
-                  <span className="text-[10px] text-gray-400">att</span>
+                  <span className="text-[10px] text-gray-400">{t('pa.attended')}</span>
                 </div>
               </div>
             </motion.button>

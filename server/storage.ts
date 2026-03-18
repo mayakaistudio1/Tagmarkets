@@ -82,6 +82,7 @@ export interface IStorage {
   updatePersonalInviteChatHistory(id: number, chatHistory: string): Promise<PersonalInvite>;
   updatePersonalInviteReminder(id: number, preference: string): Promise<PersonalInvite>;
   getPersonalInvitesByPartnerId(partnerId: number): Promise<PersonalInvite[]>;
+  markPersonalInviteViewed(id: number): Promise<PersonalInvite>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -524,6 +525,11 @@ export class DatabaseStorage implements IStorage {
 
   async getPersonalInvitesByPartnerId(partnerId: number): Promise<PersonalInvite[]> {
     return db.select().from(personalInvites).where(eq(personalInvites.partnerId, partnerId)).orderBy(desc(personalInvites.createdAt));
+  }
+
+  async markPersonalInviteViewed(id: number): Promise<PersonalInvite> {
+    const [updated] = await db.update(personalInvites).set({ viewedAt: new Date() }).where(eq(personalInvites.id, id)).returning();
+    return updated;
   }
 }
 

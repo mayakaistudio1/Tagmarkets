@@ -291,6 +291,7 @@ export const personalInvites = pgTable("personal_invites", {
   reminderPreference: text("reminder_preference"),
   chatHistory: text("chat_history").default("[]"),
   isActive: boolean("is_active").notNull().default(true),
+  viewedAt: timestamp("viewed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -299,6 +300,7 @@ export const insertPersonalInviteSchema = createInsertSchema(personalInvites).om
   createdAt: true,
   inviteCode: true,
   registeredAt: true,
+  viewedAt: true,
 });
 
 export type InsertPersonalInvite = z.infer<typeof insertPersonalInviteSchema>;

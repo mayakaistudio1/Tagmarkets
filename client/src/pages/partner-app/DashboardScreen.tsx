@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Users, TrendingUp, CalendarDays, ArrowUpRight, ChevronRight, Calendar, Clock, Video, Send, UserCheck } from "lucide-react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface Props {
   profile: {
@@ -45,6 +46,7 @@ interface PartnerEvent {
 export default function DashboardScreen({ profile, telegramId, onNavigate }: Props) {
   const [webinars, setWebinars] = useState<Webinar[]>([]);
   const [pastEvents, setPastEvents] = useState<PartnerEvent[]>([]);
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetch("/api/partner-app/webinars", { headers: { "x-telegram-id": telegramId } })
@@ -62,50 +64,50 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
 
   const stats = [
     {
-      label: "Total Attendees",
+      label: t('pa.totalAttendees'),
       value: profile.stats.totalAttended,
       suffix: "",
       icon: Users,
       iconBg: "bg-purple-100",
       iconColor: "text-purple-600",
       accent: "bg-purple-50",
-      hint: profile.stats.totalAttended > 0 ? `+${Math.min(profile.stats.totalAttended, 8)}% this month` : "No data yet",
+      hint: profile.stats.totalAttended > 0 ? `+${Math.min(profile.stats.totalAttended, 8)}%` : t('pa.noDataYet'),
     },
     {
-      label: "Attendance Rate",
+      label: t('pa.attendanceRate'),
       value: profile.stats.conversionRate,
       suffix: "%",
       icon: TrendingUp,
       iconBg: "bg-emerald-100",
       iconColor: "text-emerald-600",
       accent: "bg-emerald-50",
-      hint: profile.stats.conversionRate >= 40 ? "High engagement" : "Keep inviting",
+      hint: profile.stats.conversionRate >= 40 ? t('pa.highEngagement') : t('pa.keepInviting'),
     },
     {
-      label: "Upcoming Scheduled",
+      label: t('pa.upcomingScheduled'),
       value: profile.stats.totalEvents,
       suffix: "",
       icon: CalendarDays,
       iconBg: "bg-amber-100",
       iconColor: "text-amber-600",
       accent: "bg-amber-50",
-      hint: "Next 7 days",
+      hint: t('pa.next7days'),
     },
   ];
 
   return (
     <div className="px-5 pt-6 pb-28">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-        <p className="text-xs text-gray-400 font-medium mb-0.5">Welcome back</p>
+        <p className="text-xs text-gray-400 font-medium mb-0.5">{t('pa.welcomeBack')}</p>
         <h1 className="text-xl font-bold text-gray-900" data-testid="text-partner-welcome">{firstName}</h1>
       </motion.div>
 
       {webinars.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900">Upcoming Meetings</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('pa.upcomingMeetings')}</h3>
             <button onClick={() => onNavigate("webinars")} className="text-xs text-blue-600 font-medium flex items-center gap-0.5" data-testid="link-all-webinars">
-              See all <ChevronRight className="w-3 h-3" />
+              {t('pa.seeAll')} <ChevronRight className="w-3 h-3" />
             </button>
           </div>
           <div className="space-y-3">
@@ -140,11 +142,11 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
                     <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-100">
                       <span className="flex items-center gap-1 text-xs text-gray-500">
                         <Send className="w-3 h-3 text-blue-400" />
-                        <span className="font-semibold text-gray-700">{w.invitesSent}</span> sent
+                        <span className="font-semibold text-gray-700">{w.invitesSent}</span> {t('pa.sent')}
                       </span>
                       <span className="flex items-center gap-1 text-xs text-gray-500">
                         <UserCheck className="w-3 h-3 text-emerald-400" />
-                        <span className="font-semibold text-gray-700">{w.registeredCount}</span> registered
+                        <span className="font-semibold text-gray-700">{w.registeredCount}</span> {t('pa.registered')}
                       </span>
                     </div>
                   </div>
@@ -158,7 +160,7 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
       <div className="space-y-4 mb-6">
         {stats.map((card, i) => (
           <motion.div
-            key={card.label}
+            key={i}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 + i * 0.08 }}
@@ -171,7 +173,7 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
                 <card.icon className={`w-5 h-5 ${card.iconColor}`} />
               </div>
               <p className="text-sm text-gray-500 mb-1">{card.label}</p>
-              <p className="text-3xl font-bold text-gray-900" data-testid={`stat-${card.label.toLowerCase().replace(/\s/g, "-")}`}>
+              <p className="text-3xl font-bold text-gray-900" data-testid={`stat-card-${i}`}>
                 <AnimatedCounter value={card.value} suffix={card.suffix} />
               </p>
               <div className="flex items-center gap-1 mt-1.5">
@@ -186,9 +188,9 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
       {pastEvents.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900">Past Events</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('pa.pastEvents')}</h3>
             <button onClick={() => onNavigate("reports")} className="text-xs text-blue-600 font-medium flex items-center gap-0.5" data-testid="link-all-reports">
-              See all <ChevronRight className="w-3 h-3" />
+              {t('pa.seeAll')} <ChevronRight className="w-3 h-3" />
             </button>
           </div>
           <div className="space-y-2">
@@ -210,11 +212,11 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
                 <div className="flex items-center gap-4 ml-3 flex-shrink-0">
                   <div className="text-center">
                     <p className="text-sm font-semibold text-gray-900">{event.registeredCount}</p>
-                    <p className="text-[9px] text-gray-400 uppercase">Reg</p>
+                    <p className="text-[9px] text-gray-400 uppercase">{t('pa.registered')}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm font-semibold text-emerald-600">{event.attendedCount}</p>
-                    <p className="text-[9px] text-gray-400 uppercase">Att</p>
+                    <p className="text-[9px] text-gray-400 uppercase">{t('pa.attended')}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-300" />
                 </div>

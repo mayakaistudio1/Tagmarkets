@@ -3,8 +3,10 @@ import { motion } from "framer-motion";
 import {
   Calendar, Clock, User, Globe, Loader2, ChevronLeft, ChevronRight,
   Send, Copy, Check, Share2, MessageCircle, Phone,
-  Mail, Facebook, Instagram, Link2, Users, UserCheck, FileText, Sparkles
+  Mail, Facebook, Instagram, Link2, Users, UserCheck, FileText, Sparkles,
+  Eye, Star
 } from "lucide-react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface Webinar {
   id: number; title: string; date: string; time: string; timezone: string;
@@ -64,9 +66,121 @@ interface PersonalInviteResult {
   event: { title: string; date: string; time: string; speaker: string };
 }
 
-type Screen = "list" | "detail" | "invite-type" | "template-select" | "share" | "personal-form" | "personal-share" | "personal-preview";
+type Screen = "list" | "detail" | "invite-type" | "template-select" | "share" | "personal-form" | "personal-share" | "personal-preview" | "invite-preview";
+
+const qualifyQuestionsEn = [
+  {
+    step: 1, multiSelect: true,
+    aiText: "To create a strong personal invitation, I need to understand this person a bit.\n\nWho is this person to you? (you can select multiple)",
+    options: [
+      { label: "Friend / warm contact", value: "friend" },
+      { label: "Business contact", value: "business_contact" },
+      { label: "MLM Leader", value: "mlm_leader" },
+      { label: "Investor type", value: "investor" },
+      { label: "Entrepreneur", value: "entrepreneur" },
+      { label: "Cold contact", value: "cold_contact" },
+    ],
+  },
+  {
+    step: 2, multiSelect: true,
+    aiText: "Great! What motivates this person the most? (you can select multiple)",
+    options: [
+      { label: "Money / Results", value: "money_results" },
+      { label: "Business growth", value: "business_growth" },
+      { label: "Technology / Innovation", value: "technology_innovation" },
+      { label: "Community / People", value: "community_people" },
+      { label: "Learning / Curiosity", value: "learning_curiosity" },
+    ],
+  },
+  {
+    step: 3, multiSelect: true,
+    aiText: "Got it! How does this person usually react to new opportunities? (you can select multiple)",
+    options: [
+      { label: "Quick decision", value: "fast_decision" },
+      { label: "Analytical / many questions", value: "analytical" },
+      { label: "Skeptical", value: "skeptical" },
+      { label: "Needs trust first", value: "needs_trust" },
+    ],
+  },
+  { step: 4, multiSelect: false, aiText: "Almost done! Is there anything else important about this person I should know? (optional)", options: null },
+];
+
+const qualifyQuestionsDe = [
+  {
+    step: 1, multiSelect: true,
+    aiText: "Um eine starke persönliche Einladung zu erstellen, muss ich die Person ein wenig verstehen.\n\nWer ist diese Person für dich? (du kannst mehrere auswählen)",
+    options: [
+      { label: "Freund / warmer Kontakt", value: "friend" },
+      { label: "Geschäftskontakt", value: "business_contact" },
+      { label: "MLM Leader", value: "mlm_leader" },
+      { label: "Investor-Typ", value: "investor" },
+      { label: "Unternehmer", value: "entrepreneur" },
+      { label: "Kalter Kontakt", value: "cold_contact" },
+    ],
+  },
+  {
+    step: 2, multiSelect: true,
+    aiText: "Gut! Und was motiviert diese Person normalerweise am meisten? (du kannst mehrere auswählen)",
+    options: [
+      { label: "Geld / Ergebnisse", value: "money_results" },
+      { label: "Business-Wachstum", value: "business_growth" },
+      { label: "Technologie / Innovation", value: "technology_innovation" },
+      { label: "Community / Menschen", value: "community_people" },
+      { label: "Lernen / Neugier", value: "learning_curiosity" },
+    ],
+  },
+  {
+    step: 3, multiSelect: true,
+    aiText: "Verstanden! Wie reagiert die Person normalerweise auf neue Möglichkeiten? (du kannst mehrere auswählen)",
+    options: [
+      { label: "Schnelle Entscheidung", value: "fast_decision" },
+      { label: "Analytisch / viele Fragen", value: "analytical" },
+      { label: "Skeptisch", value: "skeptical" },
+      { label: "Braucht erst Vertrauen", value: "needs_trust" },
+    ],
+  },
+  { step: 4, multiSelect: false, aiText: "Fast fertig! Gibt es noch etwas Wichtiges über die Person, das ich wissen sollte? (optional)", options: null },
+];
+
+const qualifyQuestionsRu = [
+  {
+    step: 1, multiSelect: true,
+    aiText: "Чтобы создать сильное персональное приглашение, мне нужно немного понять этого человека.\n\nКто этот человек для вас? (можно выбрать несколько)",
+    options: [
+      { label: "Друг / тёплый контакт", value: "friend" },
+      { label: "Деловой контакт", value: "business_contact" },
+      { label: "MLM Лидер", value: "mlm_leader" },
+      { label: "Инвестор", value: "investor" },
+      { label: "Предприниматель", value: "entrepreneur" },
+      { label: "Холодный контакт", value: "cold_contact" },
+    ],
+  },
+  {
+    step: 2, multiSelect: true,
+    aiText: "Отлично! Что больше всего мотивирует этого человека? (можно выбрать несколько)",
+    options: [
+      { label: "Деньги / Результаты", value: "money_results" },
+      { label: "Рост бизнеса", value: "business_growth" },
+      { label: "Технологии / Инновации", value: "technology_innovation" },
+      { label: "Сообщество / Люди", value: "community_people" },
+      { label: "Обучение / Любопытство", value: "learning_curiosity" },
+    ],
+  },
+  {
+    step: 3, multiSelect: true,
+    aiText: "Понял! Как этот человек обычно реагирует на новые возможности? (можно выбрать несколько)",
+    options: [
+      { label: "Быстрое решение", value: "fast_decision" },
+      { label: "Аналитик / много вопросов", value: "analytical" },
+      { label: "Скептик", value: "skeptical" },
+      { label: "Сначала нужно доверие", value: "needs_trust" },
+    ],
+  },
+  { step: 4, multiSelect: false, aiText: "Почти готово! Есть ли что-то ещё важное об этом человеке, что мне стоит знать? (необязательно)", options: null },
+];
 
 export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
+  const { t, language } = useLanguage();
   const [webinars, setWebinars] = useState<Webinar[]>([]);
   const [loading, setLoading] = useState(true);
   const [screen, setScreen] = useState<Screen>("list");
@@ -136,50 +250,8 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     setReportLoading(false);
   };
 
-  const QUALIFY_QUESTIONS = [
-    {
-      step: 1,
-      multiSelect: true,
-      aiText: "Um eine starke persönliche Einladung zu erstellen, muss ich die Person ein wenig verstehen.\n\nWer ist diese Person für dich? (du kannst mehrere auswählen)",
-      options: [
-        { label: "Freund / warmer Kontakt", value: "friend" },
-        { label: "Geschäftskontakt", value: "business_contact" },
-        { label: "MLM Leader", value: "mlm_leader" },
-        { label: "Investor-Typ", value: "investor" },
-        { label: "Unternehmer", value: "entrepreneur" },
-        { label: "Kalter Kontakt", value: "cold_contact" },
-      ],
-    },
-    {
-      step: 2,
-      multiSelect: true,
-      aiText: "Gut! Und was motiviert diese Person normalerweise am meisten? (du kannst mehrere auswählen)",
-      options: [
-        { label: "Geld / Ergebnisse", value: "money_results" },
-        { label: "Business-Wachstum", value: "business_growth" },
-        { label: "Technologie / Innovation", value: "technology_innovation" },
-        { label: "Community / Menschen", value: "community_people" },
-        { label: "Lernen / Neugier", value: "learning_curiosity" },
-      ],
-    },
-    {
-      step: 3,
-      multiSelect: true,
-      aiText: "Verstanden! Wie reagiert die Person normalerweise auf neue Möglichkeiten? (du kannst mehrere auswählen)",
-      options: [
-        { label: "Schnelle Entscheidung", value: "fast_decision" },
-        { label: "Analytisch / viele Fragen", value: "analytical" },
-        { label: "Skeptisch", value: "skeptical" },
-        { label: "Braucht erst Vertrauen", value: "needs_trust" },
-      ],
-    },
-    {
-      step: 4,
-      multiSelect: false,
-      aiText: "Fast fertig! Gibt es noch etwas Wichtiges über die Person, das ich wissen sollte? (optional)",
-      options: null,
-    },
-  ];
+  const qualifyQuestionSets: Record<string, typeof qualifyQuestionsEn> = { en: qualifyQuestionsEn, de: qualifyQuestionsDe, ru: qualifyQuestionsRu };
+  const QUALIFY_QUESTIONS = qualifyQuestionSets[language] || qualifyQuestionsEn;
 
   const startAiQualification = () => {
     setQualifyStep(0);
@@ -226,7 +298,8 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
       setQualifyChatMessages(newMessages);
       setQualifyStep(nextStep);
     } else {
-      newMessages.push({ role: "assistant", content: "Perfekt! Ich generiere jetzt deine personalisierte Einladung..." });
+      const genMsg = language === "de" ? "Perfekt! Ich generiere jetzt deine personalisierte Einladung..." : language === "ru" ? "Отлично! Генерирую персональное приглашение..." : "Perfect! Generating your personalized invitation...";
+      newMessages.push({ role: "assistant", content: genMsg });
       setQualifyChatMessages(newMessages);
       setQualifyStep(nextStep);
       await generatePreviewMessages(newAnswers);
@@ -234,8 +307,10 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   };
 
   const handleContextSubmit = async () => {
-    const value = qualifyContextInput.trim() || "keine zusätzlichen Infos";
-    await handleQualifyAnswer(value, qualifyContextInput.trim() || "Übersprungen");
+    const skipLabel = language === "de" ? "Übersprungen" : language === "ru" ? "Пропущено" : "Skipped";
+    const noInfo = language === "de" ? "keine zusätzlichen Infos" : language === "ru" ? "нет дополнительной информации" : "no additional info";
+    const value = qualifyContextInput.trim() || noInfo;
+    await handleQualifyAnswer(value, qualifyContextInput.trim() || skipLabel);
   };
 
   const generatePreviewMessages = async (answers?: typeof qualifyAnswers) => {
@@ -254,13 +329,14 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           motivation: ans.motivation,
           reaction: ans.reaction,
           contextNote: ans.contextNote,
+          language,
         }),
       });
       if (!res.ok) throw new Error("Generation failed");
       const data = await res.json();
       setGeneratedPreview(data);
       setScreen("personal-preview");
-    } catch { alert("Fehler bei der Generierung. Bitte erneut versuchen."); }
+    } catch { alert(language === "de" ? "Fehler bei der Generierung. Bitte erneut versuchen." : language === "ru" ? "Ошибка генерации. Попробуйте снова." : "Generation failed. Please try again."); }
     setGeneratingMessages(false);
   };
 
@@ -285,13 +361,14 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        alert(errData.error || "Fehler beim Erstellen. Bitte erneut versuchen.");
+        const fallback = language === "de" ? "Fehler beim Erstellen. Bitte erneut versuchen." : language === "ru" ? "Ошибка создания. Попробуйте снова." : "Creation failed. Please try again.";
+        alert(errData.error || fallback);
         return;
       }
       const data = await res.json();
       setPersonalInviteResult(data);
       setScreen("personal-share");
-    } catch (err) { console.error(err); alert("Fehler beim Erstellen. Bitte erneut versuchen."); }
+    } catch (err) { console.error(err); alert(language === "de" ? "Fehler beim Erstellen. Bitte erneut versuchen." : language === "ru" ? "Ошибка создания. Попробуйте снова." : "Creation failed. Please try again."); }
     setPersonalCreating(false);
   };
 
@@ -391,15 +468,15 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     return (
       <div className="px-5 pt-5 pb-28">
         <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
-          <ChevronLeft className="w-4 h-4" /> Back
+          <ChevronLeft className="w-4 h-4" /> {t('pa.back')}
         </button>
 
         <h2 className="text-lg font-bold text-gray-900 mb-5">
-          {shareMode === "personal" ? "Personal Invite" : "Social Share"}
+          {shareMode === "personal" ? t('pa.personalInvite') : t('pa.socialShareTitle')}
         </h2>
 
         <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-          <p className="text-xs text-gray-400 font-medium mb-2 uppercase tracking-wide">Your invite link</p>
+          <p className="text-xs text-gray-400 font-medium mb-2 uppercase tracking-wide">{t('pa.yourLink')}</p>
           <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
             <Link2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <p className="text-xs text-gray-600 truncate flex-1 font-mono" data-testid="text-invite-url">{getFullUrl()}</p>
@@ -411,13 +488,13 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
 
         <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Message preview</p>
+            <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{t('pa.messagePreview')}</p>
             <span className="text-[10px] text-blue-600 font-medium">{selectedTemplate.icon} {selectedTemplate.label}</span>
           </div>
           <p className="text-xs text-gray-600 whitespace-pre-line leading-relaxed" data-testid="text-share-message">{getShareText()}</p>
         </div>
 
-        <p className="text-xs text-gray-400 font-medium mb-3 uppercase tracking-wide">Send via</p>
+        <p className="text-xs text-gray-400 font-medium mb-3 uppercase tracking-wide">{t('pa.sendVia')}</p>
         <div className="grid grid-cols-2 gap-3 mb-5">
           {shareChannels.map((ch) => (
             <button
@@ -438,11 +515,11 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           data-testid="button-copy-all"
         >
           {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
-          <span className="text-sm font-medium text-gray-700">{copied ? "Copied!" : "Copy message + link"}</span>
+          <span className="text-sm font-medium text-gray-700">{copied ? t('pa.copied') : t('pa.copyMessageLink')}</span>
         </button>
 
         <p className="text-[11px] text-gray-400 text-center mt-4">
-          All registrations via this link are automatically attributed to you.
+          {t('pa.allRegistrations')}
         </p>
       </div>
     );
@@ -452,11 +529,11 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     return (
       <div className="px-5 pt-5 pb-28">
         <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
-          <ChevronLeft className="w-4 h-4" /> Back
+          <ChevronLeft className="w-4 h-4" /> {t('pa.back')}
         </button>
 
-        <h2 className="text-base font-semibold text-gray-900 mb-1">Choose message style</h2>
-        <p className="text-xs text-gray-400 mb-5">Select how your invitation will look</p>
+        <h2 className="text-base font-semibold text-gray-900 mb-1">{t('pa.chooseStyle')}</h2>
+        <p className="text-xs text-gray-400 mb-5">{t('pa.chooseStyleDesc')}</p>
 
         <div className="space-y-3">
           {MESSAGE_TEMPLATES.map((tpl, i) => {
@@ -505,14 +582,14 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     return (
       <div className="px-5 pt-5 pb-28">
         <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
-          <ChevronLeft className="w-4 h-4" /> Back
+          <ChevronLeft className="w-4 h-4" /> {t('pa.back')}
         </button>
 
-        <h2 className="text-lg font-bold text-gray-900 mb-1">Personal Invite Created</h2>
-        <p className="text-xs text-gray-400 mb-5">AI will personally invite {prospectForm.name}</p>
+        <h2 className="text-lg font-bold text-gray-900 mb-1">{t('pa.inviteCreated')}</h2>
+        <p className="text-xs text-gray-400 mb-5">{t('pa.aiWillInvite')} {prospectForm.name}</p>
 
         <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-          <p className="text-xs text-gray-400 font-medium mb-2 uppercase tracking-wide">Your personal invite link</p>
+          <p className="text-xs text-gray-400 font-medium mb-2 uppercase tracking-wide">{t('pa.personalLink')}</p>
           <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
             <Link2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <p className="text-xs text-gray-600 truncate flex-1 font-mono" data-testid="text-personal-invite-url">{getPersonalInviteFullUrl()}</p>
@@ -526,12 +603,12 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           <div className="flex items-start gap-2">
             <Sparkles className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-blue-700 leading-relaxed">
-              When {prospectForm.name} opens this link, an AI assistant will personally invite them to the webinar and help them register — all in a conversational chat.
+              {t('pa.aiWillUseMessages')} {prospectForm.name} {t('pa.opensLink')}
             </p>
           </div>
         </div>
 
-        <p className="text-xs text-gray-400 font-medium mb-3 uppercase tracking-wide">Send via</p>
+        <p className="text-xs text-gray-400 font-medium mb-3 uppercase tracking-wide">{t('pa.sendVia')}</p>
         <div className="space-y-2 mb-5">
           {personalShareChannels.map((ch) => (
             <button
@@ -560,7 +637,104 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           data-testid="button-copy-personal-all"
         >
           {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
-          <span className="text-sm font-medium text-gray-700">{copied ? "Copied!" : "Copy message + link"}</span>
+          <span className="text-sm font-medium text-gray-700">{copied ? t('pa.copied') : t('pa.copyMessageLink')}</span>
+        </button>
+
+        <button
+          onClick={() => setScreen("invite-preview")}
+          className="w-full flex items-center justify-center gap-2 p-3.5 rounded-xl bg-blue-50 border border-blue-200 active:bg-blue-100 mt-3"
+          data-testid="button-preview-invite"
+        >
+          <Eye className="w-4 h-4 text-blue-600" />
+          <span className="text-sm font-medium text-blue-700">{t('pa.preview.title')}</span>
+        </button>
+      </div>
+    );
+  }
+
+  if (screen === "invite-preview" && selectedWebinar && generatedPreview) {
+    return (
+      <div className="px-5 pt-5 pb-28">
+        <button onClick={() => setScreen("personal-share")} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
+          <ChevronLeft className="w-4 h-4" /> {t('pa.back')}
+        </button>
+
+        <div className="flex items-center gap-2 mb-4">
+          <Eye className="w-5 h-5 text-blue-600" />
+          <h2 className="text-base font-semibold text-gray-900">{t('pa.preview.title')}</h2>
+        </div>
+
+        <div className="bg-[#F5F5F7] rounded-2xl overflow-hidden" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+          <div className="bg-white px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center">
+              <Star className="w-3.5 h-3.5 text-blue-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-gray-900 truncate">{selectedWebinar.title}</p>
+              <p className="text-[10px] text-gray-400">{t('pa.preview.chatPreview')}</p>
+            </div>
+          </div>
+
+          <div className="px-4 py-4 space-y-3 max-h-[300px] overflow-y-auto no-scrollbar">
+            {generatedPreview.messages.map((msg, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.15 }}
+                className="flex justify-start"
+              >
+                <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-bl-md bg-white text-sm text-gray-700 leading-relaxed" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+                  <p className="whitespace-pre-wrap">{msg}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {generatedPreview.quickReplies.length > 0 && (
+            <div className="px-4 pb-3">
+              <div className="flex flex-wrap gap-2">
+                {generatedPreview.quickReplies.map((qr) => (
+                  <span key={qr} className="px-3 py-1.5 rounded-full bg-white border border-blue-200 text-xs font-medium text-blue-600">{qr}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4">
+          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-3">{t('pa.preview.eventDetails')}</p>
+          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <p className="text-sm font-semibold text-gray-900 mb-2">{selectedWebinar.title}</p>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="flex items-center gap-1 text-xs text-gray-400">
+                <Calendar className="w-3 h-3" /> {selectedWebinar.date}
+              </span>
+              <span className="flex items-center gap-1 text-xs text-gray-400">
+                <Clock className="w-3 h-3" /> {selectedWebinar.time}
+              </span>
+            </div>
+            {selectedWebinar.speaker && (
+              <div className="flex items-center gap-2">
+                {selectedWebinar.speakerPhoto ? (
+                  <img src={selectedWebinar.speakerPhoto} alt={selectedWebinar.speaker} className="w-6 h-6 rounded-full object-cover" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+                    <User className="w-3 h-3 text-gray-400" />
+                  </div>
+                )}
+                <span className="text-xs text-gray-500">{selectedWebinar.speaker}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <button
+          onClick={() => setScreen("personal-share")}
+          className="w-full mt-5 py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          data-testid="button-back-to-share"
+        >
+          <Share2 className="w-4 h-4" /> {t('pa.shareLink')}
         </button>
       </div>
     );
@@ -571,23 +745,23 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
       return (
         <div className="px-5 pt-5 pb-28">
           <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
-            <ChevronLeft className="w-4 h-4" /> Zurück
+            <ChevronLeft className="w-4 h-4" /> {t('pa.back')}
           </button>
           <div className="flex items-center gap-2 mb-5">
             <Sparkles className="w-5 h-5 text-blue-600" />
-            <h2 className="text-base font-semibold text-gray-900">AI Invite erstellen</h2>
+            <h2 className="text-base font-semibold text-gray-900">{t('pa.personalAI')}</h2>
           </div>
           <div className="bg-white rounded-2xl p-5 mb-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-            <p className="text-xs text-gray-400 mb-1">Für Webinar</p>
+            <p className="text-xs text-gray-400 mb-1">{t('pa.upcomingMeetings')}</p>
             <p className="text-sm font-semibold text-gray-900">{selectedWebinar.title}</p>
-            <p className="text-xs text-gray-400 mt-1">{selectedWebinar.date} um {selectedWebinar.time}</p>
+            <p className="text-xs text-gray-400 mt-1">{selectedWebinar.date} · {selectedWebinar.time}</p>
           </div>
           <div className="bg-white rounded-2xl p-5 space-y-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-500">Dein Name (als Einladender) *</label>
+              <label className="text-xs font-medium text-gray-500">{t('pa.partnerName')} *</label>
               <input
                 autoFocus
-                placeholder="z.B. Dein Name"
+                placeholder={t('pa.partnerNamePlaceholder')}
                 value={partnerDisplayName}
                 onChange={(e) => setPartnerDisplayName(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
@@ -595,9 +769,9 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-500">Name der Person *</label>
+              <label className="text-xs font-medium text-gray-500">{t('pa.prospectName')} *</label>
               <input
-                placeholder="z.B. Max Müller"
+                placeholder={t('pa.prospectNamePlaceholder')}
                 value={prospectForm.name}
                 onChange={(e) => setProspectForm({ ...prospectForm, name: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
@@ -612,7 +786,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
               data-testid="button-start-qualification"
             >
               <Sparkles className="w-4 h-4" />
-              Weiter
+              {t('pa.startAI')}
             </button>
           </div>
         </div>
@@ -631,7 +805,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-900">AI Invite Builder</p>
-              <p className="text-[10px] text-gray-400">für {prospectForm.name}</p>
+              <p className="text-[10px] text-gray-400">{prospectForm.name}</p>
             </div>
           </div>
         </div>
@@ -677,7 +851,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                           className="mt-2 px-5 py-2 rounded-full bg-blue-600 text-xs font-semibold text-white active:bg-blue-700 transition-colors"
                           data-testid="button-confirm-multi-select"
                         >
-                          Weiter ({multiSelectValues.length} ausgewählt)
+                          {t('pa.continue')} ({multiSelectValues.length} {t('pa.selected')})
                         </button>
                       )}
                     </div>
@@ -711,7 +885,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                         className="px-4 py-2 rounded-full bg-blue-600 text-xs font-medium text-white active:bg-blue-700"
                         data-testid="button-submit-context"
                       >
-                        {qualifyContextInput.trim() ? "Senden" : "Überspringen"}
+                        {qualifyContextInput.trim() ? (language === "de" ? "Senden" : language === "ru" ? "Отправить" : "Send") : t('pa.skip')}
                       </button>
                     </div>
                   )}
@@ -727,7 +901,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
             <div className="flex justify-start">
               <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 flex items-center gap-2" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
                 <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                <span className="text-sm text-gray-500">Generiere Einladung...</span>
+                <span className="text-sm text-gray-500">{t('pa.generating')}</span>
               </div>
             </div>
           )}
@@ -737,27 +911,27 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   }
 
   if (screen === "personal-preview" && selectedWebinar && generatedPreview) {
-    const strategyLabels: Record<string, string> = {
-      Authority: "Authority — für Leader",
-      Opportunity: "Opportunity — für Investoren",
-      Curiosity: "Curiosity — für Neugierige",
-      Support: "Support — für Einsteiger",
+    const strategyLabelsMap: Record<string, Record<string, string>> = {
+      en: { Authority: "Authority — for Leaders", Opportunity: "Opportunity — for Investors", Curiosity: "Curiosity — for the Curious", Support: "Support — for Beginners" },
+      de: { Authority: "Authority — für Leader", Opportunity: "Opportunity — für Investoren", Curiosity: "Curiosity — für Neugierige", Support: "Support — für Einsteiger" },
+      ru: { Authority: "Authority — для лидеров", Opportunity: "Opportunity — для инвесторов", Curiosity: "Curiosity — для любопытных", Support: "Support — для начинающих" },
     };
-    const discLabels: Record<string, string> = {
-      D: "D — Dominanz",
-      I: "I — Einfluss",
-      S: "S — Stabilität",
-      C: "C — Gewissenhaftigkeit",
+    const discLabelsMap: Record<string, Record<string, string>> = {
+      en: { D: "D — Dominance", I: "I — Influence", S: "S — Steadiness", C: "C — Conscientiousness" },
+      de: { D: "D — Dominanz", I: "I — Einfluss", S: "S — Stabilität", C: "C — Gewissenhaftigkeit" },
+      ru: { D: "D — Доминирование", I: "I — Влияние", S: "S — Стабильность", C: "C — Добросовестность" },
     };
+    const strategyLabels = strategyLabelsMap[language] || strategyLabelsMap.en;
+    const discLabels = discLabelsMap[language] || discLabelsMap.en;
     return (
       <div className="px-5 pt-5 pb-28">
         <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
-          <ChevronLeft className="w-4 h-4" /> Zurück
+          <ChevronLeft className="w-4 h-4" /> {t('pa.back')}
         </button>
 
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-5 h-5 text-blue-600" />
-          <h2 className="text-base font-semibold text-gray-900">Vorschau der Einladung</h2>
+          <h2 className="text-base font-semibold text-gray-900">{t('pa.previewTitle')}</h2>
         </div>
 
         <div className="flex gap-2 mb-4">
@@ -773,7 +947,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           {generatedPreview.messages.map((msg, i) => (
             <div key={i} className="bg-white rounded-2xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-medium text-gray-400">Nachricht {i + 1}</span>
+                <span className="text-[10px] font-medium text-gray-400">{t('pa.message')} {i + 1}</span>
                 <button
                   onClick={() => {
                     if (previewEditing === i) {
@@ -789,7 +963,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                   className="text-[10px] font-medium text-blue-600 active:opacity-60"
                   data-testid={`button-edit-message-${i}`}
                 >
-                  {previewEditing === i ? "Speichern" : "Bearbeiten"}
+                  {previewEditing === i ? t('pa.save') : t('pa.edit')}
                 </button>
               </div>
               {previewEditing === i ? (
@@ -808,7 +982,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
         </div>
 
         <div className="bg-white rounded-2xl p-4 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-          <p className="text-[10px] font-medium text-gray-400 mb-2">Quick Replies für {prospectForm.name}</p>
+          <p className="text-[10px] font-medium text-gray-400 mb-2">{t('pa.quickRepliesFor')} {prospectForm.name}</p>
           <div className="flex flex-wrap gap-2">
             {generatedPreview.quickReplies.map((qr) => (
               <span key={qr} className="px-3 py-1.5 rounded-full bg-blue-50 text-xs font-medium text-blue-600">{qr}</span>
@@ -823,7 +997,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
             className="flex-1 py-3 rounded-xl bg-gray-100 text-sm font-semibold text-gray-700 active:bg-gray-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             data-testid="button-regenerate"
           >
-            {generatingMessages ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Sparkles className="w-4 h-4" /> Neu generieren</>}
+            {generatingMessages ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Sparkles className="w-4 h-4" /> {t('pa.regenerate')}</>}
           </button>
           <button
             onClick={confirmAndCreateInvite}
@@ -831,12 +1005,12 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
             className="flex-1 py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             data-testid="button-confirm-invite"
           >
-            {personalCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4" /> Bestätigen</>}
+            {personalCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4" /> {t('pa.confirm')}</>}
           </button>
         </div>
 
         <p className="text-[11px] text-gray-400 text-center mt-4 leading-relaxed">
-          Die KI wird diese Nachrichten verwenden, wenn {prospectForm.name} den Link öffnet.
+          {t('pa.aiWillUseMessages')} {prospectForm.name} {t('pa.opensLink')}
         </p>
       </div>
     );
@@ -846,10 +1020,10 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     return (
       <div className="px-5 pt-5 pb-28">
         <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
-          <ChevronLeft className="w-4 h-4" /> Back
+          <ChevronLeft className="w-4 h-4" /> {t('pa.back')}
         </button>
 
-        <h2 className="text-base font-semibold text-gray-900 mb-4">How would you like to invite?</h2>
+        <h2 className="text-base font-semibold text-gray-900 mb-4">{t('pa.inviteType')}</h2>
 
         <div className="space-y-3">
           <motion.button
@@ -865,8 +1039,8 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                 <User className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Personal Invite</p>
-                <p className="text-xs text-gray-400">Send directly to a person</p>
+                <p className="text-sm font-semibold text-gray-900">{t('pa.personalAI')}</p>
+                <p className="text-xs text-gray-400">{t('pa.personalAIDesc')}</p>
               </div>
             </div>
           </motion.button>
@@ -885,8 +1059,8 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                 <Share2 className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Social Share</p>
-                <p className="text-xs text-gray-400">Share on social media</p>
+                <p className="text-sm font-semibold text-gray-900">{t('pa.socialShare')}</p>
+                <p className="text-xs text-gray-400">{t('pa.socialShareDesc')}</p>
               </div>
             </div>
           </motion.button>
@@ -903,7 +1077,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     return (
       <div className="px-5 pt-5 pb-28">
         <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back">
-          <ChevronLeft className="w-4 h-4" /> Back
+          <ChevronLeft className="w-4 h-4" /> {t('pa.back')}
         </button>
 
         <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
@@ -940,12 +1114,12 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
           <div className="bg-white rounded-2xl p-4 text-center" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <Send className="w-5 h-5 text-blue-500 mx-auto mb-2" />
             <p className="text-2xl font-bold text-gray-900">{selectedWebinar.invitesSent}</p>
-            <p className="text-[10px] text-gray-400 uppercase font-medium">Invites Sent</p>
+            <p className="text-[10px] text-gray-400 uppercase font-medium">{t('pa.sent')}</p>
           </div>
           <div className="bg-white rounded-2xl p-4 text-center" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <UserCheck className="w-5 h-5 text-emerald-500 mx-auto mb-2" />
             <p className="text-2xl font-bold text-gray-900">{selectedWebinar.registeredCount}</p>
-            <p className="text-[10px] text-gray-400 uppercase font-medium">Registered</p>
+            <p className="text-[10px] text-gray-400 uppercase font-medium">{t('pa.registered')}</p>
           </div>
         </div>
 
@@ -955,7 +1129,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
             className="flex-1 py-3 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors"
             data-testid="button-send-invite"
           >
-            Send Invite
+            {t('pa.socialShare')}
           </button>
           <button
             onClick={() => { setQualifyStarted(false); setProspectForm({ name: "", type: "Neutral", note: "" }); setPersonalInviteResult(null); setScreen("personal-form"); }}
@@ -963,13 +1137,13 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
             data-testid="button-personal-ai-invite"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            AI Invite
+            {t('pa.personalAI')}
           </button>
         </div>
 
         {relatedEvents.length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Your Invite Links</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('pa.invites')}</h3>
             <div className="space-y-2">
               {relatedEvents.map((ev) => (
                 <button
@@ -982,8 +1156,8 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                   <div className="min-w-0 flex-1">
                     <p className="text-xs text-gray-400 font-mono truncate">{ev.inviteCode}</p>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="text-xs text-gray-500"><span className="font-semibold text-gray-700">{ev.registeredCount}</span> reg</span>
-                      <span className="text-xs text-gray-500"><span className="font-semibold text-emerald-600">{ev.attendedCount}</span> att</span>
+                      <span className="text-xs text-gray-500"><span className="font-semibold text-gray-700">{ev.registeredCount}</span> {t('pa.registered')}</span>
+                      <span className="text-xs text-gray-500"><span className="font-semibold text-emerald-600">{ev.attendedCount}</span> {t('pa.attended')}</span>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0 ml-2" />
@@ -995,7 +1169,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
 
         {eventReport && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Guest Details</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('pa.guestList')}</h3>
             <div className="space-y-2">
               {eventReport.guests.map((g, i) => (
                 <motion.div
@@ -1011,12 +1185,12 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                     <p className="text-sm font-medium text-gray-900">{g.name}</p>
                     {g.attended ? (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold">
-                        ✓ Attended
+                        ✓ {t('pa.attended')}
                       </span>
                     ) : g.clickedZoom ? (
-                      <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold">Clicked</span>
+                      <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold">{t('pa.clicked')}</span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold">No show</span>
+                      <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold">{t('pa.noShow')}</span>
                     )}
                   </div>
                   <p className="text-[11px] text-gray-400">{g.email}</p>
@@ -1024,7 +1198,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                     <div className="mt-2 pt-2 border-t border-gray-100">
                       <div className="flex items-center gap-3">
                         <span className="text-[11px] text-gray-500">⏱ {g.durationMinutes} min</span>
-                        {g.questionsAsked > 0 && <span className="text-[11px] text-gray-500">💬 {g.questionsAsked} questions</span>}
+                        {g.questionsAsked > 0 && <span className="text-[11px] text-gray-500">💬 {g.questionsAsked} {t('pa.questionsAsked')}</span>}
                       </div>
                       {g.questionTexts && g.questionTexts.length > 0 && (
                         <div className="mt-2 space-y-1">
@@ -1040,7 +1214,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                 </motion.div>
               ))}
               {eventReport.guests.length === 0 && (
-                <p className="text-xs text-gray-400 text-center py-4">No guests registered yet</p>
+                <p className="text-xs text-gray-400 text-center py-4">{t('pa.noGuests')}</p>
               )}
             </div>
           </motion.div>
@@ -1057,14 +1231,14 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
 
   return (
     <div className="px-5 pt-5 pb-28">
-      <h2 className="text-lg font-bold text-gray-900 mb-5">Upcoming Meetings</h2>
+      <h2 className="text-lg font-bold text-gray-900 mb-5">{t('pa.upcomingMeetings')}</h2>
 
       {webinars.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
             <Calendar className="w-6 h-6 text-gray-400" />
           </div>
-          <p className="text-sm text-gray-500">No meetings scheduled</p>
+          <p className="text-sm text-gray-500">{t('pa.noMeetings')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -1116,11 +1290,11 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
               <div className="flex items-center gap-4 mb-4 py-2 px-3 rounded-lg bg-gray-50">
                 <span className="flex items-center gap-1 text-xs text-gray-500">
                   <Send className="w-3 h-3 text-blue-400" />
-                  <span className="font-semibold text-gray-700">{w.invitesSent}</span> sent
+                  <span className="font-semibold text-gray-700">{w.invitesSent}</span> {t('pa.sent')}
                 </span>
                 <span className="flex items-center gap-1 text-xs text-gray-500">
                   <UserCheck className="w-3 h-3 text-emerald-400" />
-                  <span className="font-semibold text-gray-700">{w.registeredCount}</span> registered
+                  <span className="font-semibold text-gray-700">{w.registeredCount}</span> {t('pa.registered')}
                 </span>
               </div>
 
@@ -1129,7 +1303,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
                 className="w-full py-2.5 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors"
                 data-testid={`invite-webinar-${w.id}`}
               >
-                View & Invite
+                {t('pa.viewInvite')}
               </button>
             </motion.div>
           ))}

@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Video, BarChart3, Bot, Loader2, User, Hash, Phone, Mail, ArrowRight, LogIn, LogOut } from "lucide-react";
+import { LayoutDashboard, Video, BarChart3, Bot, Loader2, User, Hash, Phone, Mail, ArrowRight, LogIn, LogOut, Globe } from "lucide-react";
 import DashboardScreen from "./DashboardScreen";
 import WebinarsScreen from "./WebinarsScreen";
 import ReportsScreen from "./ReportsScreen";
 import AIAssistantScreen from "./AIAssistantScreen";
+import { useLanguage, type Language } from "../../contexts/LanguageContext";
 
-const tabs = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "webinars", label: "Meetings", icon: Video },
-  { id: "reports", label: "Statistics", icon: BarChart3 },
-  { id: "ai", label: "AI", icon: Bot },
+const tabDefs = [
+  { id: "dashboard", labelKey: "pa.dashboard", icon: LayoutDashboard },
+  { id: "webinars", labelKey: "pa.meetings", icon: Video },
+  { id: "reports", labelKey: "pa.statistics", icon: BarChart3 },
+  { id: "ai", labelKey: "pa.ai", icon: Bot },
 ] as const;
 
-type TabId = (typeof tabs)[number]["id"];
+type TabId = (typeof tabDefs)[number]["id"];
 
 interface PartnerProfile {
   partner: { id: number; name: string; cuNumber: string; status: string };
@@ -48,19 +49,42 @@ function getTelegramUsername(): string | null {
   return tg?.initDataUnsafe?.user?.username || null;
 }
 
+function LanguageSelector({ compact }: { compact?: boolean }) {
+  const { language, setLanguage } = useLanguage();
+  const langs: Language[] = ["de", "en", "ru"];
+  return (
+    <div className="flex items-center gap-1" data-testid="language-selector">
+      {langs.map((l) => (
+        <button
+          key={l}
+          onClick={() => setLanguage(l)}
+          className={`px-2 py-1 rounded-lg text-xs font-semibold transition-colors ${language === l ? "bg-blue-100 text-blue-700" : "text-gray-400 hover:bg-gray-100"}`}
+          data-testid={`lang-${l}`}
+        >
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => void }) {
   const [manualId, setManualId] = useState("");
+  const { t } = useLanguage();
 
   const botUsername = "Jetup_partner_test_bot";
 
   return (
     <div className="h-full flex flex-col items-center justify-center bg-white px-8 text-center" data-testid="telegram-login-screen">
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-6">
         <LogIn className="w-7 h-7 text-blue-600" />
       </div>
-      <h2 className="text-lg font-bold text-gray-900 mb-2">JetUP Partner Hub</h2>
+      <h2 className="text-lg font-bold text-gray-900 mb-2">{t('pa.login.title')}</h2>
       <p className="text-sm text-gray-500 mb-6 max-w-xs leading-relaxed">
-        Sign in with your Telegram account to access the Partner App.
+        {t('pa.login.subtitle')}
       </p>
 
       <a
@@ -72,21 +96,21 @@ function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => voi
         data-testid="button-open-telegram"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-        Open in Telegram
+        {t('pa.login.openTelegram')}
       </a>
 
       <p className="text-xs text-gray-400 mt-3 max-w-xs leading-relaxed">
-        The bot will open the Partner App directly in Telegram with automatic authentication.
+        {t('pa.login.botHint')}
       </p>
 
       <div className="w-full max-w-xs border-t border-gray-100 mt-6 pt-5">
-        <p className="text-xs text-gray-400 mb-3">Already have access? Enter your Telegram ID:</p>
+        <p className="text-xs text-gray-400 mb-3">{t('pa.login.manualHint')}</p>
         <div className="flex gap-2">
           <input
             type="text"
             value={manualId}
             onChange={(e) => setManualId(e.target.value)}
-            placeholder="Your Telegram ID"
+            placeholder="Telegram ID"
             className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             data-testid="input-manual-telegram-id"
             onKeyDown={(e) => {
@@ -122,6 +146,7 @@ function RegistrationScreen({ telegramId, onRegistered }: { telegramId: string; 
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const telegramUsername = getTelegramUsername();
 
@@ -164,14 +189,17 @@ function RegistrationScreen({ telegramId, onRegistered }: { telegramId: string; 
 
   return (
     <div className="h-full flex flex-col bg-white overflow-y-auto" data-testid="registration-screen">
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <div className="flex-1 px-6 py-10 max-w-md mx-auto w-full">
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-5 mx-auto shadow-lg shadow-blue-200">
             <span className="text-2xl">🚀</span>
           </div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Welcome to JetUP</h1>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">{t('pa.register.title')}</h1>
           <p className="text-sm text-gray-500 leading-relaxed">
-            Set up your partner profile to get started with invitations, tracking, and AI tools.
+            {t('pa.register.subtitle')}
           </p>
         </div>
 
@@ -179,13 +207,12 @@ function RegistrationScreen({ telegramId, onRegistered }: { telegramId: string; 
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
               <User size={14} />
-              Full Name <span className="text-red-400">*</span>
+              {t('pa.register.name')} <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Your full name"
               required
               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               data-testid="input-register-name"
@@ -195,13 +222,12 @@ function RegistrationScreen({ telegramId, onRegistered }: { telegramId: string; 
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
               <Hash size={14} />
-              CU Number <span className="text-red-400">*</span>
+              {t('pa.register.cu')} <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
               value={cuNumber}
               onChange={(e) => setCuNumber(e.target.value)}
-              placeholder="Your CU number"
               required
               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               data-testid="input-register-cu"
@@ -211,7 +237,7 @@ function RegistrationScreen({ telegramId, onRegistered }: { telegramId: string; 
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
               <Phone size={14} />
-              Phone <span className="text-gray-400 font-normal">(optional)</span>
+              {t('pa.register.phone')}
             </label>
             <input
               type="tel"
@@ -226,7 +252,7 @@ function RegistrationScreen({ telegramId, onRegistered }: { telegramId: string; 
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
               <Mail size={14} />
-              Email <span className="text-gray-400 font-normal">(optional)</span>
+              {t('pa.register.email')}
             </label>
             <input
               type="email"
@@ -254,7 +280,7 @@ function RegistrationScreen({ telegramId, onRegistered }: { telegramId: string; 
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                Get Started
+                {t('pa.register.submit')}
                 <ArrowRight size={16} />
               </>
             )}
@@ -342,28 +368,32 @@ export default function PartnerApp() {
     );
   }
 
+  const { t } = useLanguage();
   const isTelegramContext = !!(window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id;
 
   return (
     <div className="h-full flex flex-col bg-[#F5F5F7] overflow-hidden">
-      {!isTelegramContext && (
-        <div className="flex-shrink-0 flex items-center justify-between px-4 py-2.5 bg-white border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
-              <User size={14} className="text-blue-600" />
-            </div>
-            <span className="text-sm font-medium text-gray-700">{profile.partner.name}</span>
+      <div className="flex-shrink-0 flex items-center justify-between px-4 py-2.5 bg-white border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
+            <User size={14} className="text-blue-600" />
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 active:bg-gray-200 transition-colors"
-            data-testid="button-logout"
-          >
-            <LogOut size={14} />
-            Logout
-          </button>
+          <span className="text-sm font-medium text-gray-700">{profile.partner.name}</span>
         </div>
-      )}
+        <div className="flex items-center gap-2">
+          <LanguageSelector />
+          {!isTelegramContext && (
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+              data-testid="button-logout"
+            >
+              <LogOut size={14} />
+              {t('pa.logout')}
+            </button>
+          )}
+        </div>
+      </div>
       <main className="flex-1 overflow-hidden relative">
         <AnimatePresence mode="wait">
           <motion.div
@@ -392,7 +422,7 @@ export default function PartnerApp() {
 
       <div className="flex-shrink-0 bg-white border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
         <div className="flex items-center justify-around px-4 pt-2 pb-1">
-          {tabs.map((tab) => {
+          {tabDefs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
@@ -407,7 +437,7 @@ export default function PartnerApp() {
                   className={isActive ? "text-blue-600" : "text-gray-400"}
                 />
                 <span className={`text-[10px] leading-none ${isActive ? "font-semibold text-blue-600" : "font-medium text-gray-400"}`}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </span>
               </button>
             );

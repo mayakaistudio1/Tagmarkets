@@ -61,15 +61,39 @@ function inferDiscFromAnswers(motivation: string, reaction: string): string {
   return "I";
 }
 
-function getDiscQuickReplies(discType: string, isRegistered: boolean): string[] {
-  if (isRegistered) return ["Remind me 1 hour before", "Remind me 15 min before", "No reminder needed"];
-  switch (discType) {
-    case "D": return ["Ja, interessiert", "Zur Sache", "Registriere mich"];
-    case "I": return ["Klingt spannend!", "Erzähl mir mehr", "Ja, ich will!"];
-    case "S": return ["Kannst du mehr erzählen?", "Vielleicht", "Ja, registriere mich"];
-    case "C": return ["Was genau wird gezeigt?", "Zeig mir Details", "Ja, registriere mich"];
-    default: return ["Yes, register me", "Tell me more", "Not sure yet"];
-  }
+function getDiscQuickReplies(discType: string, isRegistered: boolean, lang: string = "de"): string[] {
+  const reminderMap: Record<string, string[]> = {
+    en: ["Remind me 1 hour before", "Remind me 15 min before", "No reminder needed"],
+    de: ["Erinnerung 1 Stunde vorher", "Erinnerung 15 Min. vorher", "Keine Erinnerung nötig"],
+    ru: ["Напомни за 1 час", "Напомни за 15 минут", "Напоминание не нужно"],
+  };
+  if (isRegistered) return reminderMap[lang] || reminderMap.en;
+
+  const qrMap: Record<string, Record<string, string[]>> = {
+    en: {
+      D: ["Yes, interested", "Get to the point", "Register me"],
+      I: ["Sounds exciting!", "Tell me more", "Yes, I want in!"],
+      S: ["Can you tell me more?", "Maybe", "Yes, register me"],
+      C: ["What exactly will be shown?", "Show me details", "Yes, register me"],
+      default: ["Yes, register me", "Tell me more", "Not sure yet"],
+    },
+    de: {
+      D: ["Ja, interessiert", "Zur Sache", "Registriere mich"],
+      I: ["Klingt spannend!", "Erzähl mir mehr", "Ja, ich will!"],
+      S: ["Kannst du mehr erzählen?", "Vielleicht", "Ja, registriere mich"],
+      C: ["Was genau wird gezeigt?", "Zeig mir Details", "Ja, registriere mich"],
+      default: ["Ja, registriere mich", "Erzähl mir mehr", "Bin mir unsicher"],
+    },
+    ru: {
+      D: ["Да, интересно", "К делу", "Зарегистрируй меня"],
+      I: ["Звучит круто!", "Расскажи ещё", "Да, хочу!"],
+      S: ["Расскажи подробнее?", "Может быть", "Да, зарегистрируй"],
+      C: ["Что именно покажут?", "Покажи детали", "Да, зарегистрируй"],
+      default: ["Да, зарегистрируй", "Расскажи ещё", "Пока не уверен"],
+    },
+  };
+  const langQr = qrMap[lang] || qrMap.en;
+  return langQr[discType] || langQr.default;
 }
 
 function buildMasterSystemPrompt(partnerName: string, invite: any, scheduleEvent: any): string {
@@ -196,7 +220,7 @@ CRITICAL RULES:
 - If they ask for more info, share 1-2 relevant highlights
 - If unsure, gently encourage with the right tone for their type
 - After registration, congratulate and offer reminder
-- Respond in German (the prospect speaks German)
+- Respond in ${(invite as any)._lang === "en" ? "English" : (invite as any)._lang === "ru" ? "Russian" : "German"} (the prospect speaks ${(invite as any)._lang === "en" ? "English" : (invite as any)._lang === "ru" ? "Russian" : "German"})
 - Never make up information not provided above`;
 }
 
@@ -527,6 +551,43 @@ export function registerPartnerAppRoutes(app: Express) {
     }
   });
 
+  app.get("/api/partner-app/personal-invites", async (req, res) => {
+    if (!partnerAppGuard(req, res)) return;
+    try {
+      const partner = await getPartnerFromRequest(req);
+      if (!partner) {
+        return res.status(401).json({ error: "Partner not found" });
+      }
+
+      const invites = await storage.getPersonalInvitesByPartnerId(partner.id);
+      const result = invites.map((inv) => ({
+        id: inv.id,
+        inviteCode: inv.inviteCode,
+        prospectName: inv.prospectName,
+        prospectType: inv.prospectType,
+        discType: inv.discType,
+        inviteStrategy: inv.inviteStrategy,
+        createdAt: inv.createdAt,
+        viewedAt: inv.viewedAt,
+        registeredAt: inv.registeredAt,
+        guestName: inv.guestName,
+        guestEmail: inv.guestEmail,
+        isActive: inv.isActive,
+      }));
+
+      const stats = {
+        total: invites.length,
+        viewed: invites.filter((i) => i.viewedAt).length,
+        registered: invites.filter((i) => i.registeredAt).length,
+      };
+
+      res.json({ invites: result, stats });
+    } catch (error: any) {
+      console.error("Partner app personal invites error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/partner-app/create-invite", async (req, res) => {
     if (!partnerAppGuard(req, res)) return;
     try {
@@ -630,7 +691,8 @@ ${contextInfo}`;
         return res.status(401).json({ error: "Partner not found" });
       }
 
-      const { scheduleEventId, prospectName, partnerName: overrideName, relationship, motivation, reaction, contextNote } = req.body;
+      const { scheduleEventId, prospectName, partnerName: overrideName, relationship, motivation, reaction, contextNote, language: reqLang } = req.body;
+      const lang = reqLang || "de";
       if (!scheduleEventId || !prospectName || !relationship || !motivation || !reaction) {
         return res.status(400).json({ error: "Missing required fields" });
       }
@@ -688,7 +750,8 @@ ${contextInfo}`;
         ? `Multiple: ${reaction.split(",").join(", ")}`
         : reaction;
 
-      const generatePrompt = `Generate exactly 2 short invitation messages in German for a webinar invitation.
+      const langName = lang === "en" ? "English" : lang === "ru" ? "Russian" : "German";
+      const generatePrompt = `Generate exactly 2 short invitation messages in ${langName} for a webinar invitation.
 
 CONTEXT:
 - You are the personal assistant of ${displayPartnerName}
@@ -742,7 +805,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         ];
       }
 
-      const quickReplies = getDiscQuickReplies(discType, false);
+      const quickReplies = getDiscQuickReplies(discType, false, lang);
 
       res.json({
         messages,
@@ -816,6 +879,10 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         return res.status(404).json({ error: "Invite not found" });
       }
 
+      if (!invite.viewedAt) {
+        await storage.markPersonalInviteViewed(invite.id);
+      }
+
       const scheduleEvent = await storage.getScheduleEvent(invite.scheduleEventId);
       const partner = await storage.getPartnerById(invite.partnerId);
 
@@ -826,6 +893,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         isRegistered: !!invite.registeredAt,
         discType: invite.discType || null,
         inviteStrategy: invite.inviteStrategy || null,
+        language: scheduleEvent?.language || "de",
         event: scheduleEvent ? {
           title: scheduleEvent.title,
           date: scheduleEvent.date,
@@ -851,7 +919,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         return res.status(404).json({ error: "Invite not found" });
       }
 
-      const { message } = req.body;
+      const { message, language } = req.body;
       if (!message) {
         return res.status(400).json({ error: "message is required" });
       }
@@ -863,7 +931,8 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       const chatHistory: Array<{ role: string; content: string }> = JSON.parse(invite.chatHistory || "[]");
       chatHistory.push({ role: "user", content: message });
 
-      const systemPrompt = buildMasterSystemPrompt(partnerName, invite, scheduleEvent);
+      const inviteWithLang = { ...invite, _lang: language || "de" } as any;
+      const systemPrompt = buildMasterSystemPrompt(partnerName, inviteWithLang, scheduleEvent);
 
       const openai = getOpenAIClient();
       const completion = await openai.chat.completions.create({
@@ -888,13 +957,13 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       let quickReplies: string[] = [];
       if (!invite.registeredAt) {
         const lowerMsg = message.toLowerCase();
-        if (lowerMsg.includes("registrier") || lowerMsg.includes("register") || lowerMsg.includes("sign up") || lowerMsg.includes("ja")) {
+        if (lowerMsg.includes("registrier") || lowerMsg.includes("register") || lowerMsg.includes("sign up") || lowerMsg.includes("ja") || lowerMsg.includes("зарегистрируй") || lowerMsg.includes("хочу")) {
           quickReplies = [];
         } else {
-          quickReplies = getDiscQuickReplies(discType, false);
+          quickReplies = getDiscQuickReplies(discType, false, language || "de");
         }
       } else if (!invite.reminderPreference) {
-        quickReplies = getDiscQuickReplies(discType, true);
+        quickReplies = getDiscQuickReplies(discType, true, language || "de");
       }
 
       res.json({ reply, quickReplies, isRegistered: !!invite.registeredAt });
@@ -912,13 +981,14 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       }
 
       const discType = invite.discType || "I";
+      const lang = req.body?.language || "de";
 
       const existingHistory: Array<{ role: string; content: string }> = JSON.parse(invite.chatHistory || "[]");
       if (existingHistory.length > 0) {
         const quickReplies = !invite.registeredAt
-          ? getDiscQuickReplies(discType, false)
+          ? getDiscQuickReplies(discType, false, lang)
           : !invite.reminderPreference
-            ? getDiscQuickReplies(discType, true)
+            ? getDiscQuickReplies(discType, true, lang)
             : [];
         return res.json({ reply: existingHistory[0].content, chatHistory: existingHistory, quickReplies, isRegistered: !!invite.registeredAt });
       }
@@ -931,7 +1001,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         return res.json({
           reply: generatedMessages[0],
           chatHistory,
-          quickReplies: getDiscQuickReplies(discType, false),
+          quickReplies: getDiscQuickReplies(discType, false, lang),
           isRegistered: false,
         });
       }
@@ -939,15 +1009,16 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       const scheduleEvent = await storage.getScheduleEvent(invite.scheduleEventId);
       const partner = await storage.getPartnerById(invite.partnerId);
       const partnerName = partner?.name || "Partner";
-
-      const systemPrompt = buildMasterSystemPrompt(partnerName, invite, scheduleEvent);
+      const inviteWithLang = { ...invite, _lang: lang } as any;
+      const systemPrompt = buildMasterSystemPrompt(partnerName, inviteWithLang, scheduleEvent);
+      const langName = lang === "en" ? "English" : lang === "ru" ? "Russian" : "German";
 
       const openai = getOpenAIClient();
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Generate your first greeting message for ${invite.prospectName}. Remember: short, personal, conversational. In German.` },
+          { role: "user", content: `Generate your first greeting message for ${invite.prospectName}. Remember: short, personal, conversational. In ${langName}.` },
         ],
         temperature: 0.8,
         max_tokens: 200,
@@ -962,7 +1033,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       res.json({
         reply: firstMessage,
         chatHistory,
-        quickReplies: getDiscQuickReplies(discType, false),
+        quickReplies: getDiscQuickReplies(discType, false, lang),
         isRegistered: false,
       });
     } catch (error: any) {

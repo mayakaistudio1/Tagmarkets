@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRoute } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Calendar, Clock, User, Mic, Star, Send, ChevronRight } from "lucide-react";
+import { Loader2, Calendar, Clock, User, Mic, Star, Send, ChevronRight, Globe } from "lucide-react";
+import { useLanguage, Language } from "../contexts/LanguageContext";
 
 interface InviteData {
   inviteCode: string;
@@ -10,6 +11,7 @@ interface InviteData {
   isRegistered: boolean;
   discType: string | null;
   inviteStrategy: string | null;
+  language?: string;
   event: {
     title: string;
     date: string;
@@ -23,15 +25,41 @@ interface InviteData {
   chatHistory: Array<{ role: string; content: string }>;
 }
 
-function getDiscQuickReplies(discType: string | null, isRegistered: boolean): string[] {
-  if (isRegistered) return ["Remind me 1 hour before", "Remind me 15 min before", "No reminder needed"];
-  switch (discType) {
-    case "D": return ["Ja, interessiert", "Zur Sache", "Registriere mich"];
-    case "I": return ["Klingt spannend!", "Erzähl mir mehr", "Ja, ich will!"];
-    case "S": return ["Kannst du mehr erzählen?", "Vielleicht", "Ja, registriere mich"];
-    case "C": return ["Was genau wird gezeigt?", "Zeig mir Details", "Ja, registriere mich"];
-    default: return ["Yes, register me", "Tell me more", "Not sure yet"];
-  }
+const discQuickRepliesMap: Record<string, Record<string, string[]>> = {
+  en: {
+    D: ["Yes, interested", "Get to the point", "Register me"],
+    I: ["Sounds exciting!", "Tell me more", "Yes, I want in!"],
+    S: ["Can you tell me more?", "Maybe", "Yes, register me"],
+    C: ["What exactly will be shown?", "Show me details", "Yes, register me"],
+    default: ["Yes, register me", "Tell me more", "Not sure yet"],
+  },
+  de: {
+    D: ["Ja, interessiert", "Zur Sache", "Registriere mich"],
+    I: ["Klingt spannend!", "Erzähl mir mehr", "Ja, ich will!"],
+    S: ["Kannst du mehr erzählen?", "Vielleicht", "Ja, registriere mich"],
+    C: ["Was genau wird gezeigt?", "Zeig mir Details", "Ja, registriere mich"],
+    default: ["Ja, registriere mich", "Erzähl mir mehr", "Bin mir unsicher"],
+  },
+  ru: {
+    D: ["Да, интересно", "К делу", "Зарегистрируй меня"],
+    I: ["Звучит круто!", "Расскажи ещё", "Да, хочу!"],
+    S: ["Расскажи подробнее?", "Может быть", "Да, зарегистрируй"],
+    C: ["Что именно покажут?", "Покажи детали", "Да, зарегистрируй"],
+    default: ["Да, зарегистрируй", "Расскажи ещё", "Пока не уверен"],
+  },
+};
+
+const reminderRepliesMap: Record<string, string[]> = {
+  en: ["Remind me 1 hour before", "Remind me 15 min before", "No reminder needed"],
+  de: ["Erinnerung 1 Stunde vorher", "Erinnerung 15 Min. vorher", "Keine Erinnerung nötig"],
+  ru: ["Напомни за 1 час", "Напомни за 15 минут", "Напоминание не нужно"],
+};
+
+function getDiscQuickReplies(discType: string | null, isRegistered: boolean, lang: string = "en"): string[] {
+  const l = lang in discQuickRepliesMap ? lang : "en";
+  if (isRegistered) return reminderRepliesMap[l] || reminderRepliesMap.en;
+  const langMap = discQuickRepliesMap[l];
+  return langMap[discType || "default"] || langMap.default;
 }
 
 interface ChatMessage {
@@ -49,9 +77,17 @@ function formatDate(dateStr: string): string {
   return dateStr;
 }
 
+function detectLanguage(): Language {
+  const nav = navigator.language?.toLowerCase() || "";
+  if (nav.startsWith("de")) return "de";
+  if (nav.startsWith("ru")) return "ru";
+  return "en";
+}
+
 export default function PersonalInvitePage() {
   const [, params] = useRoute("/personal-invite/:code");
   const code = params?.code;
+  const { language, setLanguage, t } = useLanguage();
 
   const [inviteData, setInviteData] = useState<InviteData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +102,7 @@ export default function PersonalInvitePage() {
   const [regData, setRegData] = useState({ name: "", email: "", telegram: "" });
   const [registering, setRegistering] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [langInitialized, setLangInitialized] = useState(false);
 
   useEffect(() => {
     if (!code) return;
@@ -77,11 +114,16 @@ export default function PersonalInvitePage() {
       .then((data) => {
         setInviteData(data);
         setIsRegistered(data.isRegistered);
+        if (!langInitialized) {
+          const inviteLang = (data.language as Language) || detectLanguage();
+          if (["en", "de", "ru"].includes(inviteLang)) setLanguage(inviteLang as Language);
+          setLangInitialized(true);
+        }
         if (data.chatHistory?.length > 0) {
           setMessages(data.chatHistory.map((m: any) => ({ role: m.role, content: m.content, type: "text" })));
           setPhase("chat");
           if (!data.isRegistered) {
-            setQuickReplies(getDiscQuickReplies(data.discType, false));
+            setQuickReplies(getDiscQuickReplies(data.discType, false, language));
           }
         }
         if (data.isRegistered) {
@@ -105,18 +147,23 @@ export default function PersonalInvitePage() {
     setPhase("chat");
     setSending(true);
     try {
-      const res = await fetch(`/api/personal-invite/${code}/init-chat`, { method: "POST" });
+      const res = await fetch(`/api/personal-invite/${code}/init-chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ language }),
+      });
       if (!res.ok) throw new Error("Init chat failed");
       const data = await res.json();
       setMessages([{ role: "assistant", content: data.reply, type: "text" }]);
-      setQuickReplies(data.quickReplies || []);
+      setQuickReplies(data.quickReplies || getDiscQuickReplies(inviteData?.discType || null, false, language));
       setIsRegistered(data.isRegistered);
       if (data.chatHistory?.length > 1) {
         setMessages(data.chatHistory.map((m: any) => ({ role: m.role, content: m.content, type: "text" })));
       }
     } catch {
-      setMessages([{ role: "assistant", content: "Hi! I'd love to tell you about this webinar. Would you like to register?", type: "text" }]);
-      setQuickReplies(getDiscQuickReplies(inviteData?.discType || null, false));
+      const fallbackMsg = language === "de" ? "Hallo! Ich möchte Ihnen gerne von diesem Webinar erzählen. Möchten Sie sich registrieren?" : language === "ru" ? "Привет! Хочу рассказать вам о вебинаре. Хотите зарегистрироваться?" : "Hi! I'd love to tell you about this webinar. Would you like to register?";
+      setMessages([{ role: "assistant", content: fallbackMsg, type: "text" }]);
+      setQuickReplies(getDiscQuickReplies(inviteData?.discType || null, false, language));
     }
     setSending(false);
   };
@@ -125,7 +172,7 @@ export default function PersonalInvitePage() {
     if (!text.trim() || sending) return;
 
     const lowerText = text.toLowerCase();
-    if (!isRegistered && (lowerText.includes("register") || lowerText.includes("registrier") || lowerText.includes("sign up") || lowerText === "yes, register me" || lowerText === "ja, ich will!" || lowerText === "ja, registriere mich")) {
+    if (!isRegistered && (lowerText.includes("register") || lowerText.includes("registrier") || lowerText.includes("зарегистрируй") || lowerText.includes("sign up") || lowerText === "yes, register me" || lowerText === "ja, ich will!" || lowerText === "ja, registriere mich" || lowerText === "да, хочу!" || lowerText === "да, зарегистрируй")) {
       setMessages((prev) => [...prev, { role: "user", content: text, type: "text" }]);
       setQuickReplies([]);
       setShowRegForm(true);
@@ -144,7 +191,7 @@ export default function PersonalInvitePage() {
       const res = await fetch(`/api/personal-invite/${code}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, language }),
       });
       if (!res.ok) throw new Error("Chat request failed");
       const data = await res.json();
@@ -152,7 +199,8 @@ export default function PersonalInvitePage() {
       setQuickReplies(data.quickReplies || []);
       setIsRegistered(data.isRegistered);
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, something went wrong. Please try again.", type: "text" }]);
+      const errMsg = language === "de" ? "Entschuldigung, etwas ist schiefgelaufen. Bitte versuchen Sie es erneut." : language === "ru" ? "Извините, что-то пошло не так. Попробуйте ещё раз." : "Sorry, something went wrong. Please try again.";
+      setMessages((prev) => [...prev, { role: "assistant", content: errMsg, type: "text" }]);
     }
     setSending(false);
   };
@@ -182,7 +230,8 @@ export default function PersonalInvitePage() {
         setQuickReplies(data.quickReplies || []);
       }
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Registration failed. Please try again.", type: "text" }]);
+      const errMsg = language === "de" ? "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut." : language === "ru" ? "Регистрация не удалась. Попробуйте ещё раз." : "Registration failed. Please try again.";
+      setMessages((prev) => [...prev, { role: "assistant", content: errMsg, type: "text" }]);
     }
     setRegistering(false);
   };
@@ -192,7 +241,7 @@ export default function PersonalInvitePage() {
     setQuickReplies([]);
     setSending(true);
 
-    const preference = choice.includes("1 hour") ? "1_hour" : choice.includes("15 min") ? "15_min" : "none";
+    const preference = (choice.includes("1 hour") || choice.includes("1 Stunde") || choice.includes("1 час")) ? "1_hour" : (choice.includes("15 min") || choice.includes("15 Min") || choice.includes("15 минут")) ? "15_min" : "none";
     try {
       const res = await fetch(`/api/personal-invite/${code}/reminder`, {
         method: "POST",
@@ -205,7 +254,8 @@ export default function PersonalInvitePage() {
         setMessages((prev) => [...prev, { role: "assistant", content: data.chatHistory[data.chatHistory.length - 1].content, type: "text" }]);
       }
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Got it! See you at the webinar!", type: "text" }]);
+      const fallback = language === "de" ? "Verstanden! Bis zum Webinar!" : language === "ru" ? "Понял! До встречи на вебинаре!" : "Got it! See you at the webinar!";
+      setMessages((prev) => [...prev, { role: "assistant", content: fallback, type: "text" }]);
     }
     setSending(false);
   };
@@ -214,7 +264,7 @@ export default function PersonalInvitePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-white p-6">
         <Loader2 className="w-6 h-6 animate-spin text-blue-500 mb-3" />
-        <p className="text-sm text-gray-400">Loading invitation...</p>
+        <p className="text-sm text-gray-400">{t('pi.loading')}</p>
       </div>
     );
   }
@@ -225,18 +275,39 @@ export default function PersonalInvitePage() {
         <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
           <span className="text-xl">❌</span>
         </div>
-        <h1 className="text-lg font-bold text-gray-900 mb-1.5">Invitation Not Found</h1>
-        <p className="text-sm text-gray-400">This invitation link is no longer available.</p>
+        <h1 className="text-lg font-bold text-gray-900 mb-1.5">{t('pi.notFound')}</h1>
+        <p className="text-sm text-gray-400">{t('pi.notFoundDesc')}</p>
       </div>
     );
   }
 
   const ev = inviteData.event;
 
+  const langOptions: { value: Language; label: string }[] = [
+    { value: "en", label: "EN" },
+    { value: "de", label: "DE" },
+    { value: "ru", label: "RU" },
+  ];
+
   if (phase === "landing") {
     return (
       <div className="min-h-screen bg-[#F5F5F7] overflow-y-auto no-scrollbar">
         <div className="max-w-md mx-auto px-5 py-6 space-y-5">
+          <div className="flex justify-end">
+            <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+              <Globe className="w-3 h-3 text-gray-400" />
+              {langOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setLanguage(opt.value)}
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors ${language === opt.value ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-600"}`}
+                  data-testid={`lang-${opt.value}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -245,7 +316,7 @@ export default function PersonalInvitePage() {
             <img src="/jetup-logo.png" alt="JetUP Logo" className="h-8" data-testid="img-logo" />
             <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
               <Star className="w-3 h-3 mr-1.5" />
-              Personal Invitation
+              {t('pi.personalInvitation')}
             </div>
           </motion.div>
 
@@ -269,10 +340,10 @@ export default function PersonalInvitePage() {
           >
             <div className="text-center space-y-1.5">
               <p className="text-sm text-gray-400">
-                <span className="text-blue-600 font-medium" data-testid="text-partner-name">{inviteData.partnerName}</span> invited you
+                <span className="text-blue-600 font-medium" data-testid="text-partner-name">{inviteData.partnerName}</span> {t('pi.invitedYou')}
               </p>
               <h1 className="text-xl font-bold text-gray-900 leading-tight" data-testid="text-event-title">
-                {ev?.title || "Private Webinar"}
+                {ev?.title || "Webinar"}
               </h1>
             </div>
 
@@ -286,7 +357,7 @@ export default function PersonalInvitePage() {
                   </div>
                 )}
                 <div>
-                  <p className="text-[10px] uppercase text-gray-400 font-semibold tracking-wider">Speaker</p>
+                  <p className="text-[10px] uppercase text-gray-400 font-semibold tracking-wider">{t('pi.speaker')}</p>
                   <p className="text-sm font-semibold text-gray-900">{ev.speaker}</p>
                 </div>
               </div>
@@ -298,7 +369,7 @@ export default function PersonalInvitePage() {
                   <Calendar className="w-5 h-5 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase text-gray-400 font-semibold">Date</p>
+                  <p className="text-[10px] uppercase text-gray-400 font-semibold">{t('pi.date')}</p>
                   <p className="text-sm font-semibold text-gray-900" data-testid="text-event-date">{formatDate(ev?.date || "")}</p>
                 </div>
               </div>
@@ -307,7 +378,7 @@ export default function PersonalInvitePage() {
                   <Clock className="w-5 h-5 text-amber-500" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase text-gray-400 font-semibold">Time</p>
+                  <p className="text-[10px] uppercase text-gray-400 font-semibold">{t('pi.time')}</p>
                   <p className="text-sm font-semibold text-gray-900" data-testid="text-event-time">{ev?.time || ""}</p>
                 </div>
               </div>
@@ -319,13 +390,13 @@ export default function PersonalInvitePage() {
               className="w-full py-4 rounded-2xl bg-blue-600 text-base font-bold text-white active:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               data-testid="button-open-invitation"
             >
-              Open Invitation
+              {t('pi.openInvitation')}
               <ChevronRight className="w-5 h-5" />
             </motion.button>
           </motion.div>
 
           <div className="text-center pb-4">
-            <p className="text-[10px] text-gray-400">Powered by JetUP</p>
+            <p className="text-[10px] text-gray-400">{t('pi.poweredBy')}</p>
           </div>
         </div>
       </div>
@@ -341,7 +412,7 @@ export default function PersonalInvitePage() {
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="text-sm font-bold text-gray-900 truncate">{ev?.title || "Webinar"}</h2>
-            <p className="text-[11px] text-gray-400">from {inviteData.partnerName}</p>
+            <p className="text-[11px] text-gray-400">{t('pi.from')} {inviteData.partnerName}</p>
           </div>
         </div>
       </div>
@@ -352,7 +423,7 @@ export default function PersonalInvitePage() {
             <div className="px-4 py-3 rounded-2xl bg-white rounded-bl-md" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                <span className="text-xs text-gray-400">Preparing your invitation...</span>
+                <span className="text-xs text-gray-400">{t('pi.preparing')}</span>
               </div>
             </div>
           </div>
@@ -392,10 +463,10 @@ export default function PersonalInvitePage() {
               className="max-w-[90%] bg-white rounded-2xl rounded-bl-md p-4 space-y-3"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
             >
-              <p className="text-xs font-semibold text-gray-700 mb-2">Quick Registration</p>
+              <p className="text-xs font-semibold text-gray-700 mb-2">{t('pi.quickReg')}</p>
               <input
                 required
-                placeholder="Your name"
+                placeholder={t('pi.yourName')}
                 value={regData.name}
                 onChange={(e) => setRegData({ ...regData, name: e.target.value })}
                 className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
@@ -404,14 +475,14 @@ export default function PersonalInvitePage() {
               <input
                 required
                 type="email"
-                placeholder="Your email"
+                placeholder={t('pi.yourEmail')}
                 value={regData.email}
                 onChange={(e) => setRegData({ ...regData, email: e.target.value })}
                 className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 data-testid="input-reg-email"
               />
               <input
-                placeholder="Telegram @username (optional)"
+                placeholder={t('pi.telegramOptional')}
                 value={regData.telegram}
                 onChange={(e) => setRegData({ ...regData, telegram: e.target.value })}
                 className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
@@ -423,7 +494,7 @@ export default function PersonalInvitePage() {
                 className="w-full py-2.5 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 transition-colors disabled:opacity-50"
                 data-testid="button-confirm-register"
               >
-                {registering ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Confirm Registration"}
+                {registering ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : t('pi.confirmReg')}
               </button>
             </form>
           </motion.div>
@@ -434,7 +505,7 @@ export default function PersonalInvitePage() {
             <div className="px-4 py-3 rounded-2xl bg-white rounded-bl-md" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                <span className="text-xs text-gray-400">Typing...</span>
+                <span className="text-xs text-gray-400">{t('pi.typing')}</span>
               </div>
             </div>
           </div>
@@ -451,7 +522,7 @@ export default function PersonalInvitePage() {
                 animate={{ opacity: 1, scale: 1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  if (qr.includes("Remind") || qr.includes("No reminder")) {
+                  if (qr.includes("Remind") || qr.includes("No reminder") || qr.includes("Erinnerung") || qr.includes("Keine Erinnerung") || qr.includes("Напомни") || qr.includes("Напоминание")) {
                     handleReminderChoice(qr);
                   } else {
                     sendMessage(qr);
@@ -476,7 +547,7 @@ export default function PersonalInvitePage() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message..."
+              placeholder={t('pi.typeMessage')}
               className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 px-3 py-2 outline-none"
               disabled={sending}
               data-testid="input-chat-message"

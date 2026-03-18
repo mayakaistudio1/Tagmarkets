@@ -5,9 +5,13 @@
 2. [Структура базы данных](#структура-базы-данных)
 3. [Компоненты системы](#компоненты-системы)
 4. [Flow от начала до конца](#flow-от-начала-до-конца)
-5. [Интеграция с Zoom](#интеграция-с-zoom)
-6. [Админка — что означают разделы](#админка)
-7. [API Endpoints](#api-endpoints)
+5. [Персональные AI-приглашения (DISC)](#персональные-ai-приглашения-disc)
+6. [Автоматические уведомления партнеру](#автоматические-уведомления-партнеру)
+7. [Визуальные примеры интерфейсов](#визуальные-примеры-интерфейсов)
+8. [Интеграция с Zoom](#интеграция-с-zoom)
+9. [Админка — что означают разделы](#админка)
+10. [API Endpoints](#api-endpoints)
+11. [Что работает и что НЕ работает](#что-работает-и-что-не-работает)
 
 ---
 
@@ -479,6 +483,818 @@ export async function syncZoomDataForEvent(
   
   return { participants, synced, skipped };
 }
+```
+
+---
+
+## 🤖 Персональные AI-приглашения (DISC)
+
+### Что это такое?
+
+**Персональные AI-приглашения** — это продвинутая версия обычного инвайта, где:
+1. Партнер отвечает на вопросы о конкретном проспекте
+2. AI определяет **DISC-тип** личности (Dominance, Influence, Steadiness, Conscientiousness)
+3. Генерируются **2 персонализированных сообщения** под этот тип
+4. Проспект попадает на страницу с **AI-чатом**, который ведет диалог в его стиле
+5. Inline-регистрация прямо в чате
+
+### Зачем это нужно?
+
+**Проблема с обычными инвайтами:**
+- Одна и та же ссылка для всех
+- Холодное landing page без персонализации
+- Низкая конверсия с "холодными" контактами
+
+**Решение с AI:**
+- Партнер квалифицирует лид заранее
+- Сообщение подстраивается под тип личности
+- AI-ассистент вовлекает в диалог
+- Выше конверсия регистрации
+
+### DISC-профилирование
+
+**4 типа личности:**
+
+#### D (Dominance) — Доминирование
+- **Характер:** Прямой, решительный, ориентирован на результат
+- **Что важно:** Эффективность, быстрые решения, контроль
+- **Стиль общения:** Короткие фразы, факты, "к делу"
+- **Quick Replies:** "Да, интересно" / "К делу" / "Регистрируй"
+
+#### I (Influence) — Влияние
+- **Характер:** Общительный, энтузиаст, оптимист
+- **Что важно:** Люди, эмоции, новые возможности
+- **Стиль общения:** Энергичный, дружелюбный, истории
+- **Quick Replies:** "Звучит круто!" / "Расскажи ещё" / "Да, хочу!"
+
+#### S (Steadiness) — Стабильность
+- **Характер:** Спокойный, надежный, избегает рисков
+- **Что важно:** Доверие, стабильность, поддержка
+- **Стиль общения:** Мягкий, поддерживающий, без давления
+- **Quick Replies:** "Расскажи подробнее?" / "Может быть" / "Да, зарегистрируй"
+
+#### C (Conscientiousness) — Добросовестность
+- **Характер:** Аналитический, точный, скептик
+- **Что важно:** Детали, доказательства, логика
+- **Стиль общения:** Структурированный, с цифрами и фактами
+- **Quick Replies:** "Что именно покажут?" / "Покажи детали" / "Да, зарегистрируй"
+
+### Flow персонального AI-инвайта
+
+```
+1. Партнер выбирает вебинар → нажимает "AI Invite"
+                    ↓
+2. Заполняет форму о проспекте:
+   - Имя проспекта
+   - Тип отношений (друг / бизнес-контакт / MLM-лидер / инвестор)
+   - Что мотивирует? (деньги / рост бизнеса / технологии / сообщество)
+   - Как реагирует? (быстрые решения / аналитик / скептик / нужно доверие)
+   - Дополнительные заметки (опционально)
+                    ↓
+3. AI анализ (backend):
+   a) Определяет DISC-тип на основе ответов:
+      • fast_decision + money_results → D (Доминирование)
+      • community_people OR needs_trust → S (Стабильность)
+      • analytical OR skeptical → C (Добросовестность)
+      • Остальное → I (Влияние)
+   
+   b) Выбирает стратегию приглашения:
+      • Authority — для MLM-лидеров и предпринимателей
+      • Opportunity — для инвесторов
+      • Curiosity — для холодных контактов
+      • Support — для тех, кому нужно доверие
+   
+   c) Генерирует 2 сообщения через GPT-4o-mini:
+      Промпт учитывает:
+      - DISC-тип (тон и стиль)
+      - Стратегию (фокус сообщения)
+      - Язык проспекта (EN/DE/RU)
+      - Имя партнера
+      - Название вебинара
+                    ↓
+4. Партнер видит превью:
+   ┌───────────────────────────────────────┐
+   │ Preview: Персональное приглашение     │
+   ├───────────────────────────────────────┤
+   │ Проспект: Иван Петров                 │
+   │ DISC: I (Influence)                   │
+   │ Стратегия: Curiosity                  │
+   │                                       │
+   │ Сообщение 1:                          │
+   │ "Привет, Иван! 🚀                     │
+   │  Вот эта тема меня прям зацепила...   │
+   │  [полный текст]"                      │
+   │                                       │
+   │ Сообщение 2:                          │
+   │ "Иван, слушай!                        │
+   │  Там будет живая демонстрация...      │
+   │  [полный текст]"                      │
+   │                                       │
+   │ Quick Replies:                        │
+   │ • Звучит круто!                       │
+   │ • Расскажи ещё                        │
+   │ • Да, хочу!                           │
+   └───────────────────────────────────────┘
+                    ↓
+5. Партнер подтверждает → получает ссылку:
+   /personal-invite/xyz789
+                    ↓
+6. Проспект открывает ссылку → видит AI-чат:
+   ┌───────────────────────────────────────┐
+   │ 💬 Chat от Dennis                     │
+   ├───────────────────────────────────────┤
+   │ 👤 Dennis Assistent                   │
+   │ Привет, Иван! 🚀                      │
+   │ Вот эта тема меня прям зацепила...    │
+   │                                       │
+   │ [Звучит круто!] [Расскажи ещё]        │
+   │ [Да, хочу!]                           │
+   │                                       │
+   │ 📅 Webinar Card:                      │
+   │ Трейдинг стратегии                    │
+   │ 20 марта, 19:00 CET                   │
+   │ Спикер: John Doe                      │
+   └───────────────────────────────────────┘
+                    ↓
+7. Проспект взаимодействует:
+   - Кликает на Quick Reply ИЛИ пишет свой текст
+   - AI отвечает в соответствии с DISC-типом
+   - Вовлекает в разговор
+                    ↓
+8. Inline регистрация в чате:
+   AI: "Отлично! Давай зарегистрирую тебя.
+        Как тебя представить на вебинаре?"
+   
+   [Форма прямо в чате:]
+   Имя: [Иван Петров]
+   Email: [ivan@example.com]
+   Telegram: [@ivanpetrov] (опционально)
+   
+   [Зарегистрироваться]
+                    ↓
+9. После регистрации:
+   - Партнер получает уведомление в Telegram
+   - Проспект получает confirmation email
+   - В чате появляется кнопка "Join Zoom"
+   - AI предлагает настроить напоминание
+```
+
+### Код: определение DISC-типа
+
+```typescript
+// server/partner-app-routes.ts
+function inferDiscFromAnswers(motivation: string, reaction: string): string {
+  // D — Доминирование (быстрые решения + результат)
+  if (hasAny(reaction, ["fast_decision"]) && 
+      hasAny(motivation, ["money_results", "business_growth"])) 
+    return "D";
+  
+  // I — Влияние (люди + энергия)
+  if (hasAny(motivation, ["community_people"]) || 
+      (hasAny(reaction, ["fast_decision"]) && 
+       hasAny(motivation, ["technology_innovation"]))) 
+    return "I";
+  
+  // S — Стабильность (доверие + поддержка)
+  if (hasAny(reaction, ["needs_trust"]) || 
+      hasAny(motivation, ["community_people"])) 
+    return "S";
+  
+  // C — Добросовестность (аналитик + скептик)
+  if (hasAny(reaction, ["analytical", "skeptical"])) 
+    return "C";
+  
+  // По умолчанию I
+  return "I";
+}
+```
+
+### Код: генерация сообщений
+
+```typescript
+// Промпт для GPT-4o-mini
+const systemPrompt = `
+You are a personal assistant helping a partner invite a prospect to a webinar.
+
+DISC TYPE: ${discType} (${discToneGuide})
+
+STRATEGY: ${invite.inviteStrategy}
+${strategyGuide}
+
+Generate 2 short, personalized messages (2-3 sentences each) 
+that ${partner.name} can send to ${invite.prospectName}.
+
+Language: ${language}
+Tone: Natural, conversational, like a personal message.
+`;
+```
+
+### Преимущества
+
+✅ **Высокая персонализация** — каждый проспект видит свой стиль общения
+✅ **AI вовлечение** — чат создает диалог, а не просто форму
+✅ **Квалификация лида** — партнер думает о проспекте заранее
+✅ **Inline регистрация** — без редиректов, всё в чате
+✅ **Multilingual** — EN/DE/RU автоматически
+
+---
+
+## 🔔 Автоматические уведомления партнеру
+
+### Что партнер получает АВТОМАТИЧЕСКИ
+
+#### 1. ✅ Уведомление о регистрации гостя (РАБОТАЕТ)
+
+**Когда:** Гость заполняет форму регистрации на `/invite/:code` или `/personal-invite/:code`
+
+**Что приходит:**
+```
+🎉 Neue Registrierung!
+
+📊 Event: Трейдинг стратегии
+📅 2026-03-20 19:00
+
+👤 Gast:
+   Иван Петров
+   ivan@example.com
+   +7 999 123 4567
+
+🔗 Einladungscode: x8k2p
+⏰ 18.03.2026 22:35
+```
+
+**Канал:** Telegram (Partner Bot)
+
+**Код:** `server/integrations/partner-bot.ts` → `notifyPartnerNewRegistration()`
+
+**Триггер:** 
+- `POST /api/invite/:code/register` (обычный инвайт)
+- `POST /api/personal-invite/:code/register` (AI инвайт)
+
+---
+
+#### 2. ✅ Уведомление о клике на Zoom (РАБОТАЕТ опционально)
+
+**Когда:** Гость кликает "Присоединиться к Zoom"
+
+**Что приходит:**
+```
+🔗 Zoom-Link geklickt!
+
+👤 Иван Петров (ivan@example.com)
+📊 Event: Трейдинг стратегии
+⏰ 20.03.2026 18:55
+```
+
+**Канал:** Telegram
+
+**Код:** `server/routes.ts` → `POST /api/invite/:code/click`
+
+**Статус:** Опционально (можно включить)
+
+---
+
+#### 3. ✅ Напоминание о проспекте с reminder (РАБОТАЕТ)
+
+**Когда:** За час или 15 минут до вебинара (если гость выбрал напоминание)
+
+**Что приходит:**
+```
+⏰ Erinnerung: Gast möchte erinnert werden!
+
+👤 Иван Петров
+📊 Event: Трейдинг стратегии
+🕐 Beginnt in 1 Stunde (19:00 CET)
+📱 Bevorzugter Kanal: WhatsApp
+
+Hinweis: Gast hat ein Reminder gewünscht. 
+Du kannst ihn jetzt persönlich kontaktieren.
+```
+
+**Канал:** Telegram
+
+**Код:** `server/integrations/reminder-scheduler.ts` → `checkAndSendReminders()`
+
+**Триггер:** Background scheduler (каждые 2 минуты)
+
+---
+
+### Что партнер НЕ получает АВТОМАТИЧЕСКИ (проблемы!)
+
+#### 4. ❌ Уведомление после окончания вебинара (НЕ РАБОТАЕТ!)
+
+**Что ДОЛЖНО быть:**
+```
+📊 Webinar beendet: Трейдинг стратегии
+
+Deine Ergebnisse:
+📝 Registriert: 8 Gäste
+🔗 Zoom geklickt: 6
+⏳ Warte auf Zoom-Daten...
+
+💡 Tipp: Zoom-Daten werden ~30 Min. 
+nach Ende verfügbar. Dann kannst du 
+sehen, wer wirklich teilgenommen hat.
+
+[🔄 Zoom-Daten jetzt abrufen]
+```
+
+**Что ЕСТЬ сейчас:** НИЧЕГО! Партнер должен сам зайти в бот и проверить.
+
+**Почему важно:**
+- Партнер не знает, что вебинар закончился
+- Упускает момент для follow-up
+- Не видит "горячих" лидов сразу
+
+**Что нужно добавить:**
+1. Определять, когда вебинар закончился (event_date + event_time + 2 часа)
+2. Проверять раз в 10-15 минут
+3. Отправлять summary партнеру автоматически
+4. Предлагать кнопку "Обновить Zoom данные"
+
+---
+
+#### 5. ❌ Автоматическая синхронизация Zoom (НЕ РАБОТАЕТ!)
+
+**Что ДОЛЖНО быть:**
+- Через 30 минут после окончания вебинара
+- Система автоматически запрашивает Zoom API
+- Синхронизирует данные
+- Отправляет партнеру полный отчет с attendance
+
+**Что ЕСТЬ сейчас:**
+- Партнер должен ВРУЧНУЮ нажать кнопку "🔄 Zoom-Daten aktualisieren"
+- Если забыл — данные не синхронизируются
+- Неудобно
+
+**Почему важно:**
+- Партнер может забыть
+- Данные устаревают
+- Неточная статистика
+
+**Что нужно добавить:**
+1. Background job через 30-40 минут после окончания
+2. Автоматический вызов `syncZoomDataForEvent()`
+3. Отправка результата партнеру:
+   ```
+   ✅ Zoom-Daten synchronisiert!
+   
+   📊 Трейдинг стратегии
+   📅 2026-03-20 19:00
+   
+   ✅ Teilgenommen: 4 von 8 (50%)
+   • Иван Петров — 85 min, 2 Fragen
+   • Мария Сидорова — 120 min, 5 Fragen
+   ...
+   
+   ❌ No-show: 4
+   • Петр Иванов
+   • ...
+   
+   🆕 Walk-in: 1 (nicht über deinen Link)
+   
+   [📊 Vollständiger Bericht] [💬 AI Follow-up]
+   ```
+
+---
+
+#### 6. ❌ Еженедельный summary (НЕ РАБОТАЕТ!)
+
+**Что ДОЛЖНО быть:**
+```
+📊 Wochenreport: 14. - 20. März
+
+Deine Aktivität:
+🔗 Einladungen erstellt: 12
+👥 Registrierungen: 45
+✅ Teilnahmen: 23 (51% Conversion)
+
+Top Event:
+📊 Трейдинг стратегии
+   8 reg. → 4 attended (50%)
+
+💡 Tipp: 22 Gäste haben nicht teilgenommen. 
+   Nutze AI Follow-up für Nachfassung!
+
+[📊 Detaillierter Bericht]
+```
+
+**Что ЕСТЬ сейчас:** Ничего
+
+**Почему важно:**
+- Партнер видит свой прогресс
+- Мотивация продолжать
+- Напоминание о no-show для follow-up
+
+---
+
+### Summary: Автоматические уведомления
+
+| Событие | Статус | Канал | Когда срабатывает |
+|---------|--------|-------|-------------------|
+| Гость зарегистрировался | ✅ Работает | Telegram | Сразу при регистрации |
+| Гость кликнул Zoom | ⚠️ Опционально | Telegram | При клике (можно включить) |
+| Напоминание (reminder) | ✅ Работает | Telegram | За 1 час / 15 мин до вебинара |
+| **Вебинар закончился** | ❌ НЕ РАБОТАЕТ | - | Должно быть через ~2 часа после начала |
+| **Zoom автосинхронизация** | ❌ НЕ РАБОТАЕТ | - | Должно быть через 30 мин после окончания |
+| **Еженедельный отчет** | ❌ НЕ РАБОТАЕТ | - | Должно быть каждый понедельник |
+
+---
+
+## 📱 Визуальные примеры интерфейсов
+
+### 1. Telegram Bot — главное меню
+
+```
+🤖 @Jetup_partner_test_bot
+
+👋 Willkommen zurück, Dennis!
+
+Öffne die Partner App für Dashboard, 
+Einladungen, Statistiken und KI-Tools.
+
+┌─────────────────────────────────┐
+│ 📱 Partner App öffnen           │ ← Mini App button
+└─────────────────────────────────┘
+```
+
+**Команды:**
+- `/start` — открыть Partner App
+- `/invite` — открыть Partner App на вкладке Webinars
+- `/events` — список событий (inline keyboard)
+- `/report` — отчет по событию
+- `/followup` — AI follow-up ассистент
+
+---
+
+### 2. Partner Mini App — Dashboard
+
+```
+┌────────────────────────────────────────┐
+│ 📊 Dashboard                           │
+├────────────────────────────────────────┤
+│                                        │
+│  👋 Hallo, Dennis!                     │
+│  CU-1234                               │
+│                                        │
+│  📈 Deine Statistik (März)             │
+│  ┌────────────┬────────────┐          │
+│  │ 🔗 Invites │ 👥 Gäste   │          │
+│  │     12     │     45     │          │
+│  └────────────┴────────────┘          │
+│  ┌────────────┬────────────┐          │
+│  │ ✅ Attended│ 📊 Rate    │          │
+│  │     23     │    51%     │          │
+│  └────────────┴────────────┘          │
+│                                        │
+│  🚀 Nächster Webinar:                  │
+│  📅 Трейдинг стратегии                 │
+│  20. März, 19:00 CET                   │
+│                                        │
+│  [Einladung erstellen]                 │
+│                                        │
+├────────────────────────────────────────┤
+│  [📊 Dashboard] [📅 Webinars] [📈]    │ ← Bottom tabs
+└────────────────────────────────────────┘
+```
+
+---
+
+### 3. Webinars Screen — список вебинаров
+
+```
+┌────────────────────────────────────────┐
+│ 📅 Webinars                            │
+├────────────────────────────────────────┤
+│                                        │
+│  🔴 Live & Upcoming                    │
+│                                        │
+│  ┌──────────────────────────────────┐ │
+│  │ 📊 Трейдинг стратегии            │ │
+│  │ 20 марта, 19:00 CET              │ │
+│  │ 🎤 John Doe                      │ │
+│  │                                  │ │
+│  │ [Einladung erstellen]            │ │
+│  └──────────────────────────────────┘ │
+│                                        │
+│  ┌──────────────────────────────────┐ │
+│  │ 💰 Passives Einkommen            │ │
+│  │ 22 марта, 18:00 CET              │ │
+│  │ 🎤 Maria Schmidt                 │ │
+│  │                                  │ │
+│  │ [Einladung erstellen]            │ │
+│  └──────────────────────────────────┘ │
+│                                        │
+│  📚 Vergangene Events                  │
+│  (можно создать новый инвайт)          │
+│                                        │
+├────────────────────────────────────────┤
+│  [📊] [📅 Webinars] [📈 Reports]      │
+└────────────────────────────────────────┘
+```
+
+---
+
+### 4. Invite Type Selection
+
+```
+┌────────────────────────────────────────┐
+│ Einladung erstellen                    │
+│ Трейдинг стратегии                     │
+├────────────────────────────────────────┤
+│                                        │
+│  Welche Art von Einladung?             │
+│                                        │
+│  ┌──────────────────────────────────┐ │
+│  │ 📢 Social Share                  │ │
+│  │ Schnelle Einladung für          │ │
+│  │ WhatsApp, Telegram, Email       │ │
+│  │                                  │ │
+│  │ [Auswählen]                     │ │
+│  └──────────────────────────────────┘ │
+│                                        │
+│  ┌──────────────────────────────────┐ │
+│  │ 🤖 Persönliches AI-Invite        │ │
+│  │ KI-gestützte Einladung          │ │
+│  │ mit DISC-Profiling              │ │
+│  │                                  │ │
+│  │ [Auswählen]                     │ │
+│  └──────────────────────────────────┘ │
+│                                        │
+│  [← Zurück]                            │
+└────────────────────────────────────────┘
+```
+
+---
+
+### 5. Personal AI Invite — Qualification Form
+
+```
+┌────────────────────────────────────────┐
+│ 🤖 Persönliches AI-Invite              │
+│ Трейдинг стратегии                     │
+├────────────────────────────────────────┤
+│                                        │
+│  Name des Prospects:                   │
+│  [Иван Петров_____________]            │
+│                                        │
+│  Beziehung:                            │
+│  ○ Freund                              │
+│  ○ Geschäftskontakt                    │
+│  ● MLM-Leader                          │
+│  ○ Investor                            │
+│  ○ Kalter Kontakt                      │
+│                                        │
+│  Was motiviert ihn? (mehrere möglich)  │
+│  ☑ Geld & Ergebnisse                   │
+│  ☐ Geschäftswachstum                   │
+│  ☑ Technologie & Innovation            │
+│  ☐ Community & Leute                   │
+│  ☐ Lernen & Neugier                    │
+│                                        │
+│  Wie reagiert er typischerweise?       │
+│  ☑ Schnelle Entscheidungen             │
+│  ☐ Analytisch / will Details           │
+│  ☐ Skeptisch / kritisch                │
+│  ☐ Braucht Vertrauen                   │
+│                                        │
+│  Notizen (optional):                   │
+│  [Hat eigenes MLM-Team,              ] │
+│  [sucht neue Möglichkeiten___________] │
+│                                        │
+│  [🚀 AI analysieren & Messages generieren] │
+│                                        │
+│  [← Zurück]                            │
+└────────────────────────────────────────┘
+```
+
+---
+
+### 6. Personal AI Invite — Preview
+
+```
+┌────────────────────────────────────────┐
+│ 🎯 Preview: Persönliche Einladung      │
+├────────────────────────────────────────┤
+│                                        │
+│  Prospect: Иван Петров                 │
+│  DISC: D (Dominance)                   │
+│  Strategie: Authority                  │
+│                                        │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                        │
+│  💬 Nachricht 1:                       │
+│  ┌────────────────────────────────┐   │
+│  │ Иван, ich hab da was für dich. │   │
+│  │ Webinar am 20. März — Strategie│   │
+│  │ die funktioniert. Konkret,     │   │
+│  │ messbar, ohne Blabla. Dein     │   │
+│  │ Team wird's danken.            │   │
+│  └────────────────────────────────┘   │
+│                                        │
+│  💬 Nachricht 2:                       │
+│  ┌────────────────────────────────┐   │
+│  │ Nur 90 Minuten, live Demo,    │   │
+│  │ direkte Zahlen. Kein Sales-    │   │
+│  │ Pitch. Wenn du Ergebnisse      │   │
+│  │ willst, klick hier.            │   │
+│  └────────────────────────────────┘   │
+│                                        │
+│  🔘 Quick Replies:                     │
+│  • Ja, interessiert                    │
+│  • Zur Sache                           │
+│  • Registriere mich                    │
+│                                        │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                        │
+│  [✓ Bestätigen & Link erhalten]       │
+│  [🔄 Neu generieren]  [✏ Bearbeiten]  │
+│  [← Zurück]                            │
+└────────────────────────────────────────┘
+```
+
+---
+
+### 7. Personal Invite Page — Proспект видит
+
+```
+┌────────────────────────────────────────┐
+│ 💬 Einladung von Dennis                │
+├────────────────────────────────────────┤
+│                                        │
+│  👤 Dennis Assistent                   │
+│  ┌────────────────────────────────┐   │
+│  │ Иван, ich hab da was für dich. │   │
+│  │ Webinar am 20. März — Strategie│   │
+│  │ die funktioniert. Konkret,     │   │
+│  │ messbar, ohne Blabla. Dein     │   │
+│  │ Team wird's danken.            │   │
+│  └────────────────────────────────┘   │
+│                                        │
+│  ┌──────────────────────────────────┐ │
+│  │ 📊 Трейдинг стратегии            │ │
+│  │ 📅 20. März 2026, 19:00 CET      │ │
+│  │ 🎤 John Doe                      │ │
+│  │ ⏱ Dauer: 90 Minuten              │ │
+│  └──────────────────────────────────┘ │
+│                                        │
+│  💬 Quick Replies:                     │
+│  ┌─────────────┬─────────────┬─────┐  │
+│  │ Ja, interes-│ Zur Sache  │ Reg-│  │
+│  │ siert       │            │istr-│  │
+│  │             │            │iere │  │
+│  └─────────────┴─────────────┴─────┘  │
+│                                        │
+│  ⌨ Oder schreib deine Nachricht:       │
+│  [____________________________]        │
+│  [Senden]                              │
+│                                        │
+│  🌐 [DE] [EN] [RU]  ← Language selector│
+└────────────────────────────────────────┘
+```
+
+---
+
+### 8. Reports Screen — статистика партнера
+
+```
+┌────────────────────────────────────────┐
+│ 📈 Reports                             │
+├────────────────────────────────────────┤
+│                                        │
+│  📊 Deine Events                       │
+│                                        │
+│  ┌──────────────────────────────────┐ │
+│  │ Трейдинг стратегии               │ │
+│  │ 20. März 2026, 19:00             │ │
+│  │                                  │ │
+│  │ 📝 Registriert: 8                │ │
+│  │ 🔗 Clicked: 6                    │ │
+│  │ ✅ Attended: 4 (50%)             │ │
+│  │ 🆕 Walk-in: 1                    │ │
+│  │                                  │ │
+│  │ [Details anzeigen]               │ │
+│  └──────────────────────────────────┘ │
+│                                        │
+│  ┌──────────────────────────────────┐ │
+│  │ Passives Einkommen               │ │
+│  │ 22. März 2026, 18:00             │ │
+│  │                                  │ │
+│  │ 📝 Registriert: 5                │ │
+│  │ 🔗 Clicked: 3                    │ │
+│  │ ✅ Attended: — (noch nicht)      │ │
+│  │                                  │ │
+│  │ [Details anzeigen]               │ │
+│  └──────────────────────────────────┘ │
+│                                        │
+├────────────────────────────────────────┤
+│  [📊] [📅] [📈 Reports]               │
+└────────────────────────────────────────┘
+```
+
+---
+
+### 9. Report Details — детальный отчет
+
+```
+┌────────────────────────────────────────┐
+│ ← Event Report                         │
+│ Трейдинг стратегии                     │
+├────────────────────────────────────────┤
+│                                        │
+│  📊 Funnel:                            │
+│  ┌─────────────────────────────────┐  │
+│  │ 📝 Registered        8          │  │
+│  │ ↓                               │  │
+│  │ 🔗 Clicked Zoom      6 (75%)    │  │
+│  │ ↓                               │  │
+│  │ ✅ Attended          4 (50%)    │  │
+│  └─────────────────────────────────┘  │
+│                                        │
+│  [🔄 Zoom-Daten aktualisieren]         │
+│                                        │
+│  👥 Gäste (5 total):                   │
+│                                        │
+│  ✅ Иван Петров                        │
+│     ivan@example.com                   │
+│     🕐 85 min  •  💬 2 Fragen          │
+│     [▼ Mehr]                           │
+│                                        │
+│  ✅ Мария Сидорова                     │
+│     maria@example.com                  │
+│     🕐 120 min  •  💬 5 Fragen         │
+│     [▼ Mehr]                           │
+│                                        │
+│  ❌ Петр Иванов (No-show)              │
+│     petr@example.com                   │
+│     Registriert, nicht teilgenommen    │
+│                                        │
+│  ❌ Анна Ковалева (No-show)            │
+│     anna@example.com                   │
+│     Registriert, nicht teilgenommen    │
+│                                        │
+│  🟡 Unknown Guest (Walk-in)            │
+│     guest@example.com                  │
+│     🕐 45 min  •  💬 0 Fragen          │
+│                                        │
+│  [💬 AI Follow-up generieren]          │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+---
+
+### 10. Telegram Bot — Report im Chat
+
+```
+@Jetup_partner_test_bot
+
+Du → /report
+
+Bot →
+📊 Event-Bericht: Трейдинг стратегии
+📅 2026-03-20 19:00
+
+👤 Partner: Dennis (CU-1234)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 Statistik:
+📝 Registriert: 8 Gäste
+🔗 Zoom geklickt: 6
+✅ Teilgenommen: 4 (50% Conversion)
+🆕 Walk-in: 1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ TEILGENOMMEN (4):
+
+• Иван Петров
+  📧 ivan@example.com
+  🕐 85 Minuten
+  💬 2 Fragen gestellt
+
+• Мария Сидорова
+  📧 maria@example.com
+  🕐 120 Minuten
+  💬 5 Fragen gestellt
+
+• ...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ NO-SHOW (4):
+
+• Петр Иванов (petr@example.com)
+• ...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌──────────────────────────────┐
+│ 🔄 Zoom-Daten aktualisieren  │
+├──────────────────────────────┤
+│ 💬 AI Follow-up erstellen    │
+└──────────────────────────────┘
 ```
 
 ---
@@ -1069,3 +1885,543 @@ TELEGRAM_PARTNER_BOT_TOKEN=...
 # Partner App
 PARTNER_APP_ENABLED=true
 ```
+
+---
+
+## ⚠️ Что работает и что НЕ работает
+
+### ✅ ЧТО РАБОТАЕТ (реализовано и протестировано)
+
+#### 1. Регистрация партнера
+- ✅ Telegram Bot распознает нового пользователя
+- ✅ Mini App открывает форму регистрации
+- ✅ Данные сохраняются в `partners` таблицу
+- ✅ Партнер получает доступ к Dashboard
+
+#### 2. Создание обычных инвайтов (Social Share)
+- ✅ Партнер выбирает вебинар
+- ✅ Генерируется уникальный код
+- ✅ Создается запись в `invite_events`
+- ✅ Партнер получает ссылку `/invite/:code`
+- ✅ Landing page показывает информацию о вебинаре
+
+#### 3. Регистрация гостей
+- ✅ Гость заполняет форму (имя, email, телефон)
+- ✅ Запись создается в `invite_guests`
+- ✅ **Партнер СРАЗУ получает уведомление в Telegram**
+- ✅ Гость получает confirmation email
+- ✅ Гость видит кнопку "Join Zoom"
+
+#### 4. Трекинг кликов на Zoom
+- ✅ Клик на "Join Zoom" отслеживается
+- ✅ `clicked_zoom = true` сохраняется в БД
+- ✅ Timestamp `clicked_at` записывается
+- ✅ Редирект на Zoom ссылку работает
+
+#### 5. Персональные AI-инвайты (DISC)
+- ✅ Форма квалификации проспекта
+- ✅ Автоматическое определение DISC-типа
+- ✅ Генерация 2 персонализированных сообщений через GPT-4o-mini
+- ✅ Preview перед отправкой
+- ✅ AI-чат на странице `/personal-invite/:code`
+- ✅ Quick Replies под DISC-тип
+- ✅ Inline регистрация в чате
+- ✅ Multilingual (EN/DE/RU)
+
+#### 6. Напоминания гостям
+- ✅ Гость выбирает reminder (1 час / 15 мин)
+- ✅ Background scheduler проверяет каждые 2 минуты
+- ✅ Отправка email за 1 час / 15 минут до вебинара
+- ✅ Отправка Telegram DM (если указан @username)
+- ✅ Уведомление партнеру, что гость хочет reminder
+
+#### 7. Zoom интеграция (РУЧНАЯ)
+- ✅ Server-to-Server OAuth с Zoom
+- ✅ Запрос `/v2/report/meetings/:id/participants`
+- ✅ **Автоматическое переключение на `/v2/report/webinars/:id` при ошибке 400**
+- ✅ Запрос Q&A данных
+- ✅ Сопоставление участников с гостями по email
+- ✅ Создание walk-in записей для unmatched участников
+- ✅ Сохранение в `zoom_attendance`
+- ✅ Детальное логирование каждого участника
+
+#### 8. Отчеты в Mini App
+- ✅ Группировка событий по `scheduleEventId`
+- ✅ Funnel статистика (registered → clicked → attended)
+- ✅ Детальный список гостей
+- ✅ Walk-in участники с меткой 🟡
+- ✅ Null-safe отображение (duration, questions)
+- ✅ Кнопка "🔄 Zoom-Daten aktualisieren"
+
+#### 9. Отчеты в Telegram Bot
+- ✅ Команда `/events` — список событий
+- ✅ Команда `/report` — детальный отчет
+- ✅ Inline keyboard для выбора события
+- ✅ Кнопка Zoom Sync в отчете
+- ✅ AI Follow-up ассистент (`/followup`)
+
+#### 10. Админка
+- ✅ Список всех инвайтов (Invites)
+- ✅ Список всех партнеров (Partners)
+- ✅ View Details modal с walk-in участниками
+- ✅ 9 колонок: Name, Email, Registered, Clicked, Attended, Join Time, Duration, Q&A, Walk-in
+- ✅ Ручной Zoom Sync через админку
+
+---
+
+### ❌ ЧТО НЕ РАБОТАЕТ (критические пробелы)
+
+#### 1. ❌ АВТОМАТИЧЕСКОЕ уведомление партнеру после вебинара
+
+**Проблема:**
+Партнер НЕ получает уведомление, когда вебинар закончился.
+
+**Что должно быть:**
+```
+⏰ Webinar beendet: Трейдинг стратегии
+📅 20. März, 19:00-21:00
+
+Deine vorläufige Statistik:
+📝 Registriert: 8
+🔗 Zoom geklickt: 6
+⏳ Zoom-Daten noch nicht verfügbar
+
+💡 Tipp: Daten werden ~30 Min nach Ende 
+   verfügbar. Ich informiere dich automatisch!
+
+[🔄 Jetzt manuell abrufen]
+```
+
+**Текущее состояние:**
+- Партнер должен САМ зайти в бот и проверить
+- Упускается момент для "горячего" follow-up
+- Партнер может забыть проверить
+
+**Что нужно сделать:**
+1. Создать background job в `server/integrations/reminder-scheduler.ts`
+2. Проверять события, которые закончились ~2 часа назад
+3. Отправлять summary партнеру автоматически
+4. Помечать событие как "notified_completion = true"
+
+**Примерный код:**
+```typescript
+// server/integrations/reminder-scheduler.ts
+async function checkCompletedWebinars() {
+  const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+  
+  const events = await db
+    .select()
+    .from(inviteEvents)
+    .where(
+      and(
+        eq(inviteEvents.isActive, true),
+        eq(inviteEvents.notifiedCompletion, false),
+        // event_date + event_time + 2 hours < now
+      )
+    );
+  
+  for (const event of events) {
+    const partner = await storage.getPartnerById(event.partnerId);
+    const stats = await storage.getEventStats(event.id);
+    
+    await sendMessage(partner.telegramChatId, 
+      `⏰ Webinar beendet: ${event.title}\n\n` +
+      `📝 Registriert: ${stats.registered}\n` +
+      `🔗 Clicked: ${stats.clicked}\n` +
+      `⏳ Zoom-Daten werden in ~30 Min verfügbar sein.`
+    );
+    
+    // Mark as notified
+    await db.update(inviteEvents)
+      .set({ notifiedCompletion: true })
+      .where(eq(inviteEvents.id, event.id));
+  }
+}
+```
+
+---
+
+#### 2. ❌ АВТОМАТИЧЕСКАЯ синхронизация Zoom
+
+**Проблема:**
+Партнер должен ВРУЧНУЮ нажать "🔄 Zoom-Daten aktualisieren".
+
+**Что должно быть:**
+- Через 30-40 минут после окончания вебинара
+- Система АВТОМАТИЧЕСКИ вызывает `syncZoomDataForEvent()`
+- Отправляет партнеру полный отчет с attendance
+- Партнер видит "горячих" лидов сразу
+
+**Текущее состояние:**
+- Если партнер забыл нажать кнопку → данные НЕ синхронизируются
+- Неудобно для партнера
+- Данные устаревают
+
+**Что нужно сделать:**
+1. Добавить в background scheduler
+2. Через 30 минут после "webinar ended" → запустить sync
+3. Отправить результат партнеру:
+   ```
+   ✅ Zoom-Daten automatisch synchronisiert!
+   
+   📊 Трейдинг стратегии
+   
+   ✅ Teilgenommen: 4 von 8 (50%)
+   • Иван Петров — 85min, 2 Fragen ⭐
+   • Мария Сидорова — 120min, 5 Fragen ⭐⭐
+   ...
+   
+   ❌ No-show: 4
+   🆕 Walk-in: 1
+   
+   [📊 Vollständiger Bericht] [💬 AI Follow-up]
+   ```
+
+**Примерный код:**
+```typescript
+async function autoSyncZoomData() {
+  const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
+  
+  const events = await db
+    .select()
+    .from(inviteEvents)
+    .where(
+      and(
+        eq(inviteEvents.isActive, true),
+        eq(inviteEvents.zoomSynced, false),
+        // event ended 30+ minutes ago
+      )
+    );
+  
+  for (const event of events) {
+    try {
+      const result = await syncZoomDataForEvent(event.id, event.zoomLink);
+      
+      const partner = await storage.getPartnerById(event.partnerId);
+      
+      // Send detailed report
+      await sendMessage(partner.telegramChatId, buildSyncReport(event, result));
+      
+      // Mark as synced
+      await db.update(inviteEvents)
+        .set({ zoomSynced: true })
+        .where(eq(inviteEvents.id, event.id));
+        
+    } catch (error) {
+      console.error(`Auto-sync failed for event ${event.id}:`, error);
+    }
+  }
+}
+```
+
+---
+
+#### 3. ❌ Еженедельный summary для партнера
+
+**Проблема:**
+Партнер не получает общий overview своей активности.
+
+**Что должно быть:**
+```
+📊 Wochenreport: 14.-20. März
+
+Hallo Dennis! 👋
+
+Deine Aktivität:
+🔗 Einladungen erstellt: 12
+👥 Registrierungen: 45
+✅ Teilnahmen: 23 (51% Conversion)
+
+📈 Best Event:
+   Трейдинг стратегии
+   8 reg → 4 attended (50%)
+
+⚠️ 22 No-shows diese Woche
+   💡 Nutze AI Follow-up!
+
+[📊 Detaillierter Report]
+```
+
+**Текущее состояние:**
+- Ничего
+- Партнер не видит общую картину
+- Нет мотивации
+
+**Что нужно сделать:**
+1. Cron job каждый понедельник 9:00
+2. Агрегировать статистику за неделю
+3. Отправить summary партнеру
+
+---
+
+#### 4. ⚠️ Walk-in участники не учитываются в funnel conversion
+
+**Проблема:**
+Walk-in участники показываются в отчете, но не влияют на конверсию.
+
+**Пример:**
+- Registered: 8
+- Attended: 4 + 2 walk-in = 6 total
+- Conversion: 4/8 = 50% (walk-in не учитываются)
+
+**Правильно или нет?**
+Зависит от цели метрики:
+- **Для оценки качества лидов партнера** → правильно (считать только его лиды)
+- **Для общей статистики вебинара** → неправильно (считать всех)
+
+**Решение:**
+Показывать ДВЕ метрики:
+```
+✅ Deine Gäste: 4 von 8 (50%)
+👥 Gesamt Teilnehmer: 6 (inkl. 2 Walk-in)
+```
+
+---
+
+#### 5. ⚠️ Нет push-уведомлений в Mini App
+
+**Проблема:**
+Все уведомления идут только в Telegram Bot.
+
+**Что могло бы быть:**
+- Mini App открыт → показывать badge на иконке Reports
+- In-app notification: "Neue Registrierung!"
+- Звуковое уведомление (опционально)
+
+**Текущее состояние:**
+- Партнер должен переключаться в бота
+- Неудобно, если работает в Mini App
+
+**Что нужно:**
+1. WebSocket или Server-Sent Events
+2. Real-time обновления в Mini App
+3. Badge count на tab Reports
+
+---
+
+#### 6. ⚠️ Нет A/B тестирования сообщений
+
+**Проблема:**
+Партнер не знает, какое из 2 AI-сгенерированных сообщений лучше.
+
+**Что могло бы быть:**
+- Система отслеживает, какое сообщение использовал партнер
+- После регистрации проспекта → записывает "message_variant": 1 или 2
+- Показывает статистику: "Message 1: 60% conversion, Message 2: 40%"
+
+**Текущее состояние:**
+- Генерируется 2 сообщения, но нет tracking
+- Партнер не знает, что работает лучше
+
+---
+
+#### 7. ⚠️ Нет автоматического follow-up
+
+**Проблема:**
+Партнер должен ВРУЧНУЮ создавать follow-up через `/followup` команду.
+
+**Что могло бы быть:**
+- Автоматически через 24 часа после no-show:
+  ```
+  💬 Auto Follow-up Vorschlag
+  
+  Петр Иванов hat sich registriert, 
+  aber nicht teilgenommen.
+  
+  AI-generiertes Follow-up:
+  "Hi Петр! Schade, dass es gestern 
+  nicht geklappt hat. Die Aufzeichnung 
+  ist verfügbar: [link]
+  
+  Nächster Live-Termin: 25. März"
+  
+  [✓ Senden] [✏ Bearbeiten] [✗ Skip]
+  ```
+
+**Текущее состояние:**
+- Партнер должен помнить и делать вручную
+- Упускаются лиды
+
+---
+
+### 📋 ROADMAP: Что доделать в первую очередь
+
+#### Критично (необходимо для полноценной работы):
+
+1. **✅ Добавить автоматическое уведомление "вебинар закончился"**
+   - Время: 2-3 часа
+   - Файл: `server/integrations/reminder-scheduler.ts`
+   - Добавить поле `notified_completion` в `invite_events` table
+
+2. **✅ Автоматическая синхронизация Zoom**
+   - Время: 3-4 часа
+   - Файл: `server/integrations/reminder-scheduler.ts`
+   - Добавить поле `zoom_synced` в `invite_events` table
+   - Через 30 мин после окончания → auto-sync → notify partner
+
+3. **⚠️ Еженедельный summary**
+   - Время: 2-3 часа
+   - Новая функция в scheduler
+   - Cron job: каждый понедельник 9:00
+
+#### Важно (улучшает UX):
+
+4. **Walk-in в конверсии** — показывать 2 метрики (1 час)
+5. **Push-уведомления в Mini App** — real-time updates (4-6 часов)
+6. **A/B tracking сообщений** — отслеживать варианты (2-3 часа)
+
+#### Nice to have (можно позже):
+
+7. **Автоматический follow-up** — предложения через 24 часа (5-6 часов)
+8. **Экспорт в CSV/Excel** — отчеты для анализа (2 часа)
+9. **Telegram inline buttons** — быстрые действия прямо из уведомлений (3 часа)
+
+---
+
+### 🔧 Технический долг
+
+1. **❌ Нет обработки timezone для разных регионов**
+   - Все времена в CET
+   - Если партнер в Москве → путаница
+
+2. **❌ Отсутствует rate limiting на Zoom API**
+   - Можно получить 429 ошибку
+   - Нужна очередь запросов
+
+3. **❌ Нет retry логики для failed notifications**
+   - Если Telegram недоступен → уведомление потеряно
+   - Нужна queue с retry
+
+4. **❌ Нет unit/integration тестов**
+   - Сложно находить регрессии
+   - Рискованно деплоить
+
+---
+
+### 📊 Метрики для мониторинга
+
+**Что нужно отслеживать:**
+
+1. **Партнерская активность:**
+   - Сколько инвайтов создано за неделю
+   - Сколько партнеров активны (создали хотя бы 1 инвайт)
+   - Средний conversion rate по партнерам
+
+2. **Качество лидов:**
+   - Registered → Clicked (сколько % доходит до Zoom)
+   - Clicked → Attended (сколько % реально приходит)
+   - Walk-in ratio (много walk-in = партнер не квалифицирует)
+
+3. **Zoom интеграция:**
+   - Сколько % событий синхронизировано
+   - Сколько failed syncs
+   - Средняя duration участников
+
+4. **AI-инвайты:**
+   - Conversion rate: Personal AI vs Social Share
+   - Какие DISC-типы конвертируются лучше
+   - Какие стратегии (Authority/Opportunity/Curiosity/Support) эффективнее
+
+---
+
+## 📞 Следующие шаги
+
+**Для разработчика:**
+1. Прочитать этот документ полностью
+2. Реализовать критичные фичи из ROADMAP (1-2)
+3. Добавить недостающие поля в БД:
+   ```sql
+   ALTER TABLE invite_events 
+   ADD COLUMN notified_completion BOOLEAN DEFAULT FALSE,
+   ADD COLUMN zoom_synced BOOLEAN DEFAULT FALSE;
+   ```
+4. Протестировать на dev боте
+
+**Для администратора:**
+1. Убедиться, что Zoom credentials настроены правильно
+2. Проверить, что партнеры получают уведомления
+3. Следить за метриками conversion rate
+
+**Для партнера:**
+1. Использовать Personal AI Invite для "холодных" контактов
+2. Social Share для "теплых" контактов
+3. Проверять отчеты после каждого вебинара
+4. Использовать AI Follow-up для no-show гостей
+
+---
+
+## 📚 Дополнительные ресурсы
+
+**Файлы кода:**
+- `server/partner-app-routes.ts` — Partner App API
+- `server/integrations/partner-bot.ts` — Telegram Bot
+- `server/integrations/zoom-api.ts` — Zoom интеграция
+- `server/integrations/reminder-scheduler.ts` — Background jobs
+- `shared/schema.ts` — База данных
+- `client/src/pages/partner-app/` — Frontend Mini App
+
+**Environment переменные:**
+```bash
+# Telegram
+TELEGRAM_PARTNER_BOT_TOKEN=...          # Prod bot
+TELEGRAM_PARTNER_BOT_TOKEN_DEV=...      # Dev bot
+TELEGRAM_PARTNER_BOT_USERNAME=...       # Bot username
+
+# Zoom
+ZOOM_ACCOUNT_ID=...
+ZOOM_CLIENT_ID=...
+ZOOM_CLIENT_SECRET=...
+
+# Email
+RESEND_API_KEY=...
+
+# OpenAI (для AI-инвайтов)
+AI_INTEGRATIONS_OPENAI_API_KEY=...
+AI_INTEGRATIONS_OPENAI_BASE_URL=...
+
+# Feature flags
+PARTNER_APP_ENABLED=true
+```
+
+**Useful SQL queries:**
+```sql
+-- Все инвайты партнера
+SELECT e.*, COUNT(g.id) as guests_count
+FROM invite_events e
+LEFT JOIN invite_guests g ON g.invite_event_id = e.id
+WHERE e.partner_id = 1
+GROUP BY e.id;
+
+-- Conversion rate по партнерам
+SELECT 
+  p.name,
+  COUNT(DISTINCT g.id) as registered,
+  COUNT(DISTINCT za.id) as attended,
+  ROUND(COUNT(DISTINCT za.id)::numeric / 
+        NULLIF(COUNT(DISTINCT g.id), 0) * 100, 1) as rate
+FROM partners p
+JOIN invite_events e ON e.partner_id = p.id
+LEFT JOIN invite_guests g ON g.invite_event_id = e.id
+LEFT JOIN zoom_attendance za ON za.invite_guest_id = g.id
+GROUP BY p.name
+ORDER BY rate DESC;
+
+-- Walk-in участники по событиям
+SELECT 
+  e.title,
+  e.event_date,
+  COUNT(*) as walk_ins
+FROM zoom_attendance za
+JOIN invite_events e ON za.invite_event_id = e.id
+WHERE za.invite_guest_id IS NULL
+GROUP BY e.id, e.title, e.event_date
+ORDER BY e.event_date DESC;
+```
+
+---
+
+**Конец документации**
+
+Этот документ содержит полное описание Partner System от А до Я. 
+Если остались вопросы — смотрите код в указанных файлах или спрашивайте у разработчика.
+

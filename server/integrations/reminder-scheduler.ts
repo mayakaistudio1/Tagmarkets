@@ -37,13 +37,37 @@ async function sendPartnerBotMessage(chatId: string, text: string): Promise<bool
   }
 }
 
-function parseEventDateTime(dateStr: string, timeStr: string): Date | null {
+function getTimezoneOffset(tz: string): string {
+  const tzMap: Record<string, string> = {
+    "CET": "+01:00",
+    "CEST": "+02:00",
+    "MET": "+01:00",
+    "MEZ": "+01:00",
+    "MESZ": "+02:00",
+    "UTC": "+00:00",
+    "GMT": "+00:00",
+    "MSK": "+03:00",
+    "Europe/Berlin": "+01:00",
+    "Europe/Moscow": "+03:00",
+  };
+
+  const now = new Date();
+  const berlinMonth = now.getMonth();
+  if ((tz === "CET" || tz === "Europe/Berlin" || tz === "MET" || tz === "MEZ") && berlinMonth >= 2 && berlinMonth <= 9) {
+    return "+02:00";
+  }
+
+  return tzMap[tz] || "+01:00";
+}
+
+function parseEventDateTime(dateStr: string, timeStr: string, timezone?: string): Date | null {
   try {
     const match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
     if (!match) return null;
     const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
     if (!timeMatch) return null;
-    const dt = new Date(`${match[0]}T${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}:00+01:00`);
+    const offset = getTimezoneOffset(timezone || "CET");
+    const dt = new Date(`${match[0]}T${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}:00${offset}`);
     if (isNaN(dt.getTime())) return null;
     return dt;
   } catch {
@@ -68,7 +92,7 @@ export async function checkAndSendReminders(): Promise<number> {
           continue;
         }
 
-        const eventTime = parseEventDateTime(event.date, event.time);
+        const eventTime = parseEventDateTime(event.date, event.time, event.timezone);
         if (!eventTime) {
           console.warn(`Cannot parse event date/time for event ${event.id}: ${event.date} ${event.time}`);
           continue;

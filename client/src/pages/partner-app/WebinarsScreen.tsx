@@ -371,6 +371,11 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
       const data = await res.json();
       setPersonalInviteResult(data);
       setScreen("personal-share");
+      try {
+        const piRes = await fetch("/api/partner-app/personal-invites", { headers: { "x-telegram-id": telegramId } });
+        const piData = await piRes.json();
+        if (piData?.invites) setPersonalInvites(piData.invites);
+      } catch {}
     } catch (err) { console.error(err); alert(language === "de" ? "Fehler beim Erstellen. Bitte erneut versuchen." : language === "ru" ? "Ошибка создания. Попробуйте снова." : "Creation failed. Please try again."); }
     setPersonalCreating(false);
   };

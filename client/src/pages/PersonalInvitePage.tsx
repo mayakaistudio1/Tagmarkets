@@ -114,8 +114,8 @@ export default function PersonalInvitePage() {
       .then((data) => {
         setInviteData(data);
         setIsRegistered(data.isRegistered);
+        const inviteLang = (data.language as Language) || detectLanguage();
         if (!langInitialized) {
-          const inviteLang = (data.language as Language) || detectLanguage();
           if (["en", "de", "ru"].includes(inviteLang)) setLanguage(inviteLang as Language);
           setLangInitialized(true);
         }
@@ -123,7 +123,7 @@ export default function PersonalInvitePage() {
           setMessages(data.chatHistory.map((m: any) => ({ role: m.role, content: m.content, type: "text" })));
           setPhase("chat");
           if (!data.isRegistered) {
-            setQuickReplies(getDiscQuickReplies(data.discType, false, language));
+            setQuickReplies(getDiscQuickReplies(data.discType, false, inviteLang));
           }
         }
         if (data.isRegistered) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Video, BarChart3, Bot, Loader2, User, Hash, Phone, Mail, ArrowRight, LogIn } from "lucide-react";
+import { LayoutDashboard, Video, BarChart3, Bot, Loader2, User, Hash, Phone, Mail, ArrowRight, LogIn, LogOut } from "lucide-react";
 import DashboardScreen from "./DashboardScreen";
 import WebinarsScreen from "./WebinarsScreen";
 import ReportsScreen from "./ReportsScreen";
@@ -32,14 +32,14 @@ function getInitialTab(): TabId {
 }
 
 function getTelegramId(): string | null {
+  if (sessionStorage.getItem("partnerLoggedOut") === "true") {
+    return null;
+  }
   const tg = (window as any).Telegram?.WebApp;
   const userId = tg?.initDataUnsafe?.user?.id?.toString();
   if (userId) return userId;
   const stored = sessionStorage.getItem("partnerTelegramId");
   if (stored) return stored;
-  if (process.env.NODE_ENV === "development" || window.location.hostname.includes("replit")) {
-    return "demo";
-  }
   return null;
 }
 
@@ -310,10 +310,20 @@ export default function PartnerApp() {
   }, [telegramId, loadProfile]);
 
   const handleTelegramLogin = useCallback((newTelegramId: string) => {
+    sessionStorage.removeItem("partnerLoggedOut");
+    sessionStorage.setItem("partnerTelegramId", newTelegramId);
     setTelegramId(newTelegramId);
     setAppState("loading");
     loadProfile(newTelegramId);
   }, [loadProfile]);
+
+  const handleLogout = useCallback(() => {
+    sessionStorage.setItem("partnerLoggedOut", "true");
+    sessionStorage.removeItem("partnerTelegramId");
+    setTelegramId(null);
+    setProfile(null);
+    setAppState("needs-telegram-login");
+  }, []);
 
   const handleRegistered = useCallback((newProfile: PartnerProfile) => {
     setProfile(newProfile);
@@ -344,8 +354,28 @@ export default function PartnerApp() {
     );
   }
 
+  const isTelegramContext = !!(window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id;
+
   return (
     <div className="h-full flex flex-col bg-[#F5F5F7] overflow-hidden">
+      {!isTelegramContext && (
+        <div className="flex-shrink-0 flex items-center justify-between px-4 py-2.5 bg-white border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
+              <User size={14} className="text-blue-600" />
+            </div>
+            <span className="text-sm font-medium text-gray-700">{profile.partner.name}</span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+            data-testid="button-logout"
+          >
+            <LogOut size={14} />
+            Logout
+          </button>
+        </div>
+      )}
       <main className="flex-1 overflow-hidden relative">
         <AnimatePresence mode="wait">
           <motion.div

@@ -65,6 +65,7 @@ TELEGRAM_PARTNER_BOT_USERNAME = "Jetup_partner_test_bot"
 
 [userenv.production]
 TELEGRAM_PARTNER_BOT_USERNAME = "JetUP_Partner_Bot"
+PARTNER_APP_ENABLED = "true"
 
 [postMerge]
 path = "scripts/post-merge.sh"

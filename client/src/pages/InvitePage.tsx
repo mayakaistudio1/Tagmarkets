@@ -42,20 +42,29 @@ function getTimezoneOffsetStr(tz: string, isoDateStr?: string): string {
   };
   const ianaZone = ianaMap[tz];
   if (!ianaZone) return "+00:00";
-  // Use the event date (not current date) to determine DST-aware UTC offset via Intl API
+  // Use the event date (not current date) to resolve DST correctly.
+  // Intl.DateTimeFormat shortOffset returns "GMT+1", "GMT+2", "GMT-5", etc.
+  // This is browser-timezone-independent — it reads directly from the IANA database.
   const refDate = isoDateStr ? new Date(`${isoDateStr}T12:00:00Z`) : new Date();
   try {
-    const utcMs = refDate.getTime();
-    const localMs = new Date(refDate.toLocaleString("en-US", { timeZone: ianaZone })).getTime();
-    const offsetMinutes = Math.round((localMs - utcMs) / (1000 * 60));
-    const sign = offsetMinutes >= 0 ? "+" : "-";
-    const absMin = Math.abs(offsetMinutes);
-    const h = String(Math.floor(absMin / 60)).padStart(2, "0");
-    const m = String(absMin % 60).padStart(2, "0");
-    return `${sign}${h}:${m}`;
+    const dtf = new Intl.DateTimeFormat("en", {
+      timeZone: ianaZone,
+      timeZoneName: "shortOffset",
+    });
+    const parts = dtf.formatToParts(refDate);
+    const tzPart = parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+    if (tzPart === "GMT") return "+00:00";
+    const match = tzPart.match(/^GMT([+-])(\d{1,2})(?::(\d{2}))?$/);
+    if (match) {
+      const sign = match[1];
+      const h = match[2].padStart(2, "0");
+      const m = (match[3] ?? "00").padStart(2, "0");
+      return `${sign}${h}:${m}`;
+    }
   } catch {
-    return "+00:00";
+    // fall through
   }
+  return "+00:00";
 }
 
 function CountdownTimer({ eventDate, eventTime, timezone }: { eventDate: string; eventTime: string; timezone?: string }) {

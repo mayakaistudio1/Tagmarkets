@@ -134,6 +134,8 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
     const f = selectedReport.funnel;
     const maxFunnel = Math.max(f.registered, f.clickedZoom, f.attended, 1);
     const hasZoomData = selectedReport.guests.some(g => g.attended);
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const isFutureEvent = selectedReport.event.eventDate > todayStr;
 
     return (
       <div className="px-5 pt-5 pb-28">
@@ -165,72 +167,83 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
         </div>
 
         <div className="mb-5">
-          {zoomSyncResult && (
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-3"
-            >
-              <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <p className="text-xs text-emerald-700 font-medium">
-                Zoom sync: {zoomSyncResult.synced} {t('pa.zoomSync.new')}{zoomSyncResult.skipped > 0 ? `, ${zoomSyncResult.skipped} ${t('pa.zoomSync.alreadyPresent')}` : ""}
-                {zoomSyncResult.total === 0 && ` ${t('pa.zoomSync.noParticipants')}`}
-              </p>
-            </motion.div>
-          )}
-          {zoomSyncError && (
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-3"
-            >
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  {zoomSyncError === "Zoom not configured" ? (
-                    <p className="text-xs text-red-700 font-medium">{t('pa.zoomSync.notConfigured')}</p>
-                  ) : zoomSyncError.startsWith("SCOPE_ERROR:") ? (
-                    <>
-                      <p className="text-xs text-red-700 font-semibold mb-1">{t('pa.zoomSync.missingScope')}</p>
-                      <p className="text-xs text-red-600 leading-relaxed">
-                        {t('pa.zoomSync.scopeDesc')} <span className="font-mono bg-red-100 px-1 rounded">{zoomSyncError.replace("SCOPE_ERROR:", "")}</span>.
-                      </p>
-                      <p className="text-xs text-red-500 mt-1.5 leading-relaxed">
-                        {t('pa.zoomSync.adminHint')}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="text-xs text-red-700 font-medium">{t('pa.zoomSync.error')} {zoomSyncError}</p>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
+          {isFutureEvent ? (
+            <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3" data-testid="zoom-sync-future-notice">
+              <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
+              <p className="text-xs text-blue-600">{t('pa.zoomSync.futureEvent')}</p>
+            </div>
+          ) : (
+            <>
+              {zoomSyncResult && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-3"
+                >
+                  <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <p className="text-xs text-emerald-700 font-medium">
+                    Zoom sync: {zoomSyncResult.synced} {t('pa.zoomSync.new')}{zoomSyncResult.skipped > 0 ? `, ${zoomSyncResult.skipped} ${t('pa.zoomSync.alreadyPresent')}` : ""}
+                    {zoomSyncResult.total === 0 && ` ${t('pa.zoomSync.noParticipants')}`}
+                  </p>
+                </motion.div>
+              )}
+              {zoomSyncError && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-3"
+                >
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      {zoomSyncError === "FUTURE_EVENT" ? (
+                        <p className="text-xs text-red-700 font-medium">{t('pa.zoomSync.futureEvent')}</p>
+                      ) : zoomSyncError === "Zoom not configured" ? (
+                        <p className="text-xs text-red-700 font-medium">{t('pa.zoomSync.notConfigured')}</p>
+                      ) : zoomSyncError.startsWith("SCOPE_ERROR:") ? (
+                        <>
+                          <p className="text-xs text-red-700 font-semibold mb-1">{t('pa.zoomSync.missingScope')}</p>
+                          <p className="text-xs text-red-600 leading-relaxed">
+                            {t('pa.zoomSync.scopeDesc')} <span className="font-mono bg-red-100 px-1 rounded">{zoomSyncError.replace("SCOPE_ERROR:", "")}</span>.
+                          </p>
+                          <p className="text-xs text-red-500 mt-1.5 leading-relaxed">
+                            {t('pa.zoomSync.adminHint')}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-red-700 font-medium">{t('pa.zoomSync.error')} {zoomSyncError}</p>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
-          <button
-            onClick={handleZoomSync}
-            disabled={zoomSyncing}
-            data-testid="button-zoom-sync"
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 active:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
-          >
-            {zoomSyncing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                <span className="text-blue-600">{t('pa.zoomSync.loading')}</span>
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-4 h-4 text-gray-500" />
-                <span>{t('pa.zoomSync.button')}</span>
-              </>
-            )}
-          </button>
+              <button
+                onClick={handleZoomSync}
+                disabled={zoomSyncing}
+                data-testid="button-zoom-sync"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 active:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+              >
+                {zoomSyncing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                    <span className="text-blue-600">{t('pa.zoomSync.loading')}</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 text-gray-500" />
+                    <span>{t('pa.zoomSync.button')}</span>
+                  </>
+                )}
+              </button>
 
-          {!hasZoomData && !zoomSyncResult && (
-            <p className="text-[11px] text-gray-400 text-center mt-2">
-              {t('pa.zoomSync.hint')}
-            </p>
+              {!hasZoomData && !zoomSyncResult && (
+                <p className="text-[11px] text-gray-400 text-center mt-2">
+                  {t('pa.zoomSync.hint')}
+                </p>
+              )}
+            </>
           )}
         </div>
 

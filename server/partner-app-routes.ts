@@ -426,15 +426,11 @@ export function registerPartnerAppRoutes(app: Express) {
       const partner = await getPartnerFromRequest(req);
       const allEvents = await storage.getScheduleEvents(true);
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const todayStr = new Date().toISOString().slice(0, 10);
       const events = allEvents.filter((e: any) => {
         const dateStr = e.date;
-        const parsed = new Date(dateStr);
-        if (!isNaN(parsed.getTime()) && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
-          return parsed >= today;
-        }
-        return true;
+        if (!/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return false;
+        return dateStr >= todayStr;
       });
 
       if (partner) {
@@ -1219,7 +1215,14 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       if (event.partnerId !== partner.id) return res.status(403).json({ error: "Not your event" });
       if (!event.zoomLink) return res.status(400).json({ error: "No Zoom link for this event" });
 
-      const result = await syncZoomDataForEvent(event.id, event.zoomLink);
+      if (event.eventDate) {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        if (event.eventDate > todayStr) {
+          return res.status(400).json({ error: "FUTURE_EVENT", message: "Zoom sync is not available for future events" });
+        }
+      }
+
+      const result = await syncZoomDataForEvent(event.id, event.zoomLink, event.eventDate ?? undefined);
 
       if (result.error) {
         return res.status(400).json({ error: result.error });

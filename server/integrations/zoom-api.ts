@@ -212,7 +212,7 @@ export function extractMeetingId(zoomUrl: string): string | null {
   return match ? match[1] : null;
 }
 
-export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl: string): Promise<{
+export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl: string, eventDate?: string): Promise<{
   participants: ZoomParticipant[];
   synced: number;
   skipped: number;
@@ -235,6 +235,22 @@ export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl
   }
   if (participants.length === 0) {
     return { participants: [], synced: 0, skipped: 0 };
+  }
+
+  if (eventDate && /^\d{4}-\d{2}-\d{2}$/.test(eventDate)) {
+    const eventMidnightUtc = new Date(`${eventDate}T00:00:00Z`).getTime();
+    const windowMs = 12 * 60 * 60 * 1000;
+    const windowStart = eventMidnightUtc - windowMs;
+    const windowEnd = eventMidnightUtc + 24 * 60 * 60 * 1000 + windowMs;
+    const before = participants.length;
+    participants = participants.filter((p) => {
+      const joinMs = new Date(p.join_time).getTime();
+      return joinMs >= windowStart && joinMs <= windowEnd;
+    });
+    const filtered = before - participants.length;
+    if (filtered > 0) {
+      console.log(`[ZoomSync] Filtered out ${filtered} participant(s) from other occurrences (eventDate=${eventDate})`);
+    }
   }
 
   const qaData = await fetchZoomMeetingQA(meetingId);

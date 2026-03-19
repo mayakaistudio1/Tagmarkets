@@ -24,3 +24,9 @@ id = "6NWC5TecAPWeyfEEbE8Jx"
 uri = "file://docs/partner-system.md"
 type = "text"
 title = "JetUP Partner System — Полная документация"
+
+[[outputs]]
+id = "cskHRJmOayopLD0QWQGIh"
+uri = "file://attached_assets/partner-app-redesign-schema.png"
+type = "image"
+title = "Partner Mini App — Redesign Schema"

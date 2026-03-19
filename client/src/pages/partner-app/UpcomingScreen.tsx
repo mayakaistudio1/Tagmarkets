@@ -4,7 +4,7 @@ import {
   Calendar, Clock, Globe, Loader2, ChevronLeft,
   Send, Copy, Check, Share2, MessageCircle, Phone, Bell,
   Mail, Link2, Users, UserCheck, Sparkles, Video,
-  ChevronRight, User
+  ChevronRight, User, Eye, Star
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 
@@ -44,7 +44,7 @@ const qualifyQuestionsRu = [
   { step: 4, multiSelect: false, aiText: "Есть ли что-то ещё важное? (необязательно)", options: null },
 ];
 
-type Screen = "list" | "detail" | "invite-type" | "personal-form" | "personal-qualify" | "personal-preview" | "personal-share" | "social-share";
+type Screen = "list" | "detail" | "invite-type" | "personal-form" | "personal-qualify" | "personal-preview" | "personal-share" | "invite-preview" | "social-share";
 
 function isUpcoming(dateStr: string, timeStr: string): boolean {
   try {
@@ -216,7 +216,8 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
 
   const goBack = () => {
     switch (screen) {
-      case "personal-share": setScreen("detail"); break;
+      case "invite-preview": setScreen("personal-share"); break;
+      case "personal-share": setScreen("list"); break;
       case "personal-preview": setScreen("personal-qualify"); break;
       case "personal-qualify": setScreen("personal-form"); break;
       case "personal-form": setScreen("invite-type"); break;
@@ -279,6 +280,7 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
 
   if (screen === "personal-share") {
     const url = getPersonalUrl();
+    const shareText = `${language === "de" ? "Hey" : language === "ru" ? "Привет" : "Hey"} ${prospectName}! ${language === "de" ? "Ich habe eine persönliche Einladung für dich:" : language === "ru" ? "Я подготовил специальное приглашение для тебя:" : "I have a special invitation for you:"}\n${url}`;
     return (
       <div className="px-5 pt-5 pb-28">
         <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back"><ChevronLeft className="w-4 h-4" /> {t("pa.back")}</button>
@@ -288,6 +290,12 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
           </div>
           <h2 className="text-base font-bold text-gray-900 mb-1">{t("pa.inviteCreated")}</h2>
           <p className="text-xs text-gray-500">{t("pa.aiWillInvite")} {prospectName}</p>
+        </div>
+        <div className="bg-blue-50 rounded-2xl p-4 mb-4 flex items-start gap-2.5">
+          <Sparkles className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-blue-700 leading-relaxed">
+            {t("pa.aiWillUseMessages")} {prospectName} {t("pa.opensLink")}
+          </p>
         </div>
         <div className="bg-white rounded-2xl p-4 mb-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
           <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-2">{t("pa.personalLink")}</p>
@@ -299,18 +307,92 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-3">{t("pa.sendVia")}</p>
+        <div className="space-y-2 mb-4">
           {[
             { id: "telegram", label: "Telegram", bg: "bg-blue-500", icon: Send },
             { id: "whatsapp", label: "WhatsApp", bg: "bg-green-500", icon: MessageCircle },
             { id: "email", label: "Email", bg: "bg-gray-600", icon: Mail },
           ].map(ch => (
-            <button key={ch.id} onClick={() => shareVia(ch.id, url)} className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl ${ch.bg} text-white active:opacity-80`} data-testid={`share-personal-${ch.id}`}>
+            <button key={ch.id} onClick={() => shareVia(ch.id, url, shareText)} className={`w-full flex items-center gap-2.5 py-3.5 px-4 rounded-xl ${ch.bg} text-white active:opacity-80`} data-testid={`share-personal-${ch.id}`}>
               <ch.icon className="w-4 h-4" />
-              <span className="text-[10px] font-semibold">{ch.label}</span>
+              <span className="text-sm font-semibold">{ch.label}</span>
             </button>
           ))}
         </div>
+        <button onClick={() => handleCopy(shareText)} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 active:bg-gray-50 mb-3" data-testid="button-copy-personal-message">
+          {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
+          {copied ? t("pa.copied") : t("pa.copyMessageLink")}
+        </button>
+        {generatedPreview && (
+          <button onClick={() => setScreen("invite-preview")} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-50 border border-blue-200 text-sm font-medium text-blue-700 active:bg-blue-100 mb-4" data-testid="button-preview-invite">
+            <Eye className="w-4 h-4 text-blue-600" />
+            {t("pa.preview.title")}
+          </button>
+        )}
+        <button onClick={() => setScreen("list")} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gray-900 text-white text-sm font-semibold active:opacity-80" data-testid="button-done-back-to-list">
+          {language === "de" ? "Fertig — zurück zur Liste" : language === "ru" ? "Готово — к списку вебинаров" : "Done — back to webinars"}
+        </button>
+      </div>
+    );
+  }
+
+  if (screen === "invite-preview" && selected && generatedPreview) {
+    return (
+      <div className="px-5 pt-5 pb-28">
+        <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-5 active:opacity-60" data-testid="button-back"><ChevronLeft className="w-4 h-4" /> {t("pa.back")}</button>
+        <div className="flex items-center gap-2 mb-4">
+          <Eye className="w-5 h-5 text-blue-600" />
+          <h2 className="text-base font-semibold text-gray-900">{t("pa.preview.title")}</h2>
+        </div>
+        <div className="bg-[#F5F5F7] rounded-2xl overflow-hidden mb-4" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+          <div className="bg-white px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center">
+              <Star className="w-3.5 h-3.5 text-blue-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-gray-900 truncate">{selected.title}</p>
+              <p className="text-[10px] text-gray-400">{t("pa.preview.chatPreview")}</p>
+            </div>
+          </div>
+          <div className="px-4 py-4 space-y-3 max-h-[300px] overflow-y-auto no-scrollbar">
+            {generatedPreview.messages.map((msg, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12 }} className="flex justify-start">
+                <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-bl-md bg-white text-sm text-gray-700 leading-relaxed" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+                  <p className="whitespace-pre-wrap" data-testid={`preview-chat-msg-${i}`}>{msg}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          {generatedPreview.quickReplies.length > 0 && (
+            <div className="px-4 pb-3">
+              <div className="flex flex-wrap gap-2">
+                {generatedPreview.quickReplies.map(qr => (
+                  <span key={qr} className="px-3 py-1.5 rounded-full bg-white border border-blue-200 text-xs font-medium text-blue-600">{qr}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="mb-4">
+          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-3">{t("pa.preview.eventDetails")}</p>
+          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <p className="text-sm font-semibold text-gray-900 mb-2">{selected.title}</p>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="flex items-center gap-1 text-xs text-gray-400"><Calendar className="w-3 h-3" /> {selected.date}</span>
+              <span className="flex items-center gap-1 text-xs text-gray-400"><Clock className="w-3 h-3" /> {selected.time}</span>
+            </div>
+            {selected.speaker && (
+              <div className="flex items-center gap-2">
+                {selected.speakerPhoto ? <img src={selected.speakerPhoto} alt={selected.speaker} className="w-6 h-6 rounded-full object-cover" /> : <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center"><User className="w-3 h-3 text-gray-400" /></div>}
+                <span className="text-xs text-gray-500">{selected.speaker}</span>
+              </div>
+            )}
+          </div>
+        </div>
+        <button onClick={() => setScreen("personal-share")} className="w-full py-3.5 rounded-xl bg-blue-600 text-sm font-semibold text-white active:bg-blue-700 flex items-center justify-center gap-2" data-testid="button-back-to-share">
+          <Share2 className="w-4 h-4" /> {t("pa.shareLink")}
+        </button>
       </div>
     );
   }

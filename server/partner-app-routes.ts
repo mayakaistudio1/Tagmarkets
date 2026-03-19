@@ -1166,35 +1166,45 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       try {
         if (invite.partnerId && invite.scheduleEventId) {
           const partnerInviteEvents = await storage.getInviteEventsByPartnerId(invite.partnerId);
-          let matchingInviteEvent = partnerInviteEvents.find(
+          const siblings = partnerInviteEvents.filter(
             (ie) => ie.scheduleEventId === invite.scheduleEventId
           );
 
-          if (!matchingInviteEvent && scheduleEvent) {
-            const partner = await storage.getPartnerById(invite.partnerId);
-            if (partner) {
-              matchingInviteEvent = await storage.createInviteEvent({
-                partnerId: partner.id,
-                partnerName: partner.name,
-                partnerCu: partner.cuNumber,
-                scheduleEventId: invite.scheduleEventId,
-                zoomLink: scheduleEvent.link || "",
-                title: scheduleEvent.title,
-                eventDate: scheduleEvent.date,
-                eventTime: scheduleEvent.time,
-                isActive: true,
-              });
+          // Check for duplicate email across all sibling invite events for this webinar
+          let alreadyInGuests = false;
+          for (const ie of siblings) {
+            const existing = await storage.getGuestsByEventId(ie.id);
+            if (existing.some((g) => g.email.toLowerCase() === email.toLowerCase())) {
+              alreadyInGuests = true;
+              break;
             }
           }
 
-          if (matchingInviteEvent) {
-            const existingGuests = await storage.getGuestsByEventId(matchingInviteEvent.id);
-            const alreadyExists = existingGuests.some(
-              (g) => g.email.toLowerCase() === email.toLowerCase()
-            );
-            if (!alreadyExists) {
+          if (!alreadyInGuests) {
+            // Use existing invite event or create one for this partner + webinar
+            let targetEventId: number | null = siblings.length > 0 ? siblings[0].id : null;
+
+            if (targetEventId === null && scheduleEvent) {
+              const partner = await storage.getPartnerById(invite.partnerId);
+              if (partner) {
+                const created = await storage.createInviteEvent({
+                  partnerId: partner.id,
+                  partnerName: partner.name,
+                  partnerCu: partner.cuNumber,
+                  scheduleEventId: invite.scheduleEventId,
+                  zoomLink: scheduleEvent.link || "",
+                  title: scheduleEvent.title,
+                  eventDate: scheduleEvent.date,
+                  eventTime: scheduleEvent.time,
+                  isActive: true,
+                });
+                targetEventId = created.id;
+              }
+            }
+
+            if (targetEventId !== null) {
               await storage.addInviteGuest({
-                inviteEventId: matchingInviteEvent.id,
+                inviteEventId: targetEventId,
                 name,
                 email,
                 phone: phone || null,

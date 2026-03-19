@@ -1162,6 +1162,53 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       chatHistory.push({ role: "assistant", content: regSuccessMessages[lang] || regSuccessMessages.en });
       await storage.updatePersonalInviteChatHistory(invite.id, JSON.stringify(chatHistory));
 
+      // Task #30: Sync registration into invite_guests so it appears in partner statistics
+      try {
+        if (invite.partnerId && invite.scheduleEventId) {
+          const partnerInviteEvents = await storage.getInviteEventsByPartnerId(invite.partnerId);
+          let matchingInviteEvent = partnerInviteEvents.find(
+            (ie) => ie.scheduleEventId === invite.scheduleEventId
+          );
+
+          if (!matchingInviteEvent && scheduleEvent) {
+            const partner = await storage.getPartnerById(invite.partnerId);
+            if (partner) {
+              matchingInviteEvent = await storage.createInviteEvent({
+                partnerId: partner.id,
+                partnerName: partner.name,
+                partnerCu: partner.cuNumber,
+                scheduleEventId: invite.scheduleEventId,
+                zoomLink: scheduleEvent.link || "",
+                title: scheduleEvent.title,
+                eventDate: scheduleEvent.date,
+                eventTime: scheduleEvent.time,
+                isActive: true,
+              });
+            }
+          }
+
+          if (matchingInviteEvent) {
+            const existingGuests = await storage.getGuestsByEventId(matchingInviteEvent.id);
+            const alreadyExists = existingGuests.some(
+              (g) => g.email.toLowerCase() === email.toLowerCase()
+            );
+            if (!alreadyExists) {
+              await storage.addInviteGuest({
+                inviteEventId: matchingInviteEvent.id,
+                name,
+                email,
+                phone: phone || null,
+              });
+              console.log(`[Task#30] AI invite guest synced to invite_guests: ${email} → inviteEventId ${matchingInviteEvent.id}`);
+            } else {
+              console.log(`[Task#30] AI invite guest already in invite_guests (skipped): ${email}`);
+            }
+          }
+        }
+      } catch (guestSyncErr) {
+        console.error("[Task#30] Failed to sync AI invite guest to invite_guests:", guestSyncErr);
+      }
+
       try {
         await notifyPartnerPersonalInviteRegistration(invite, name, email, phone);
       } catch (notifErr) {

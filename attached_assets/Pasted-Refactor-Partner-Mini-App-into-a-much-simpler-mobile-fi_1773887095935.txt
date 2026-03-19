@@ -1,0 +1,257 @@
+Refactor Partner Mini App into a much simpler mobile-first partner action hub.
+
+Main principle:
+Partner Mini App = invitation and follow-up tool, NOT a mini admin dashboard.
+AI must be embedded into actions, not exist as a separate heavy tab.
+
+GOALS
+- simplify UX
+- separate upcoming and past event flows
+- reduce dashboard/admin feeling
+- keep existing backend and core logic where possible
+- preserve personal AI invite, reports, Zoom sync, guest page, Telegram support
+
+NEW BOTTOM NAVIGATION
+Replace current navigation with:
+1. Upcoming
+2. Past
+3. Contacts
+4. Statistics
+
+Remove separate AI tab from bottom navigation.
+
+NEW UX LOGIC
+The app must follow the event lifecycle:
+1. Upcoming event → invite people
+2. Event finished → review report
+3. After report → run AI follow-up
+4. Separate overview → overall statistics and contacts
+
+UPCOMING TAB
+Show only future webinars.
+Each event card must include:
+- title
+- date/time
+- language
+- speaker
+- sent
+- viewed/opened/clicked if available
+- registered
+Actions:
+- Invite
+- Open
+
+IMPORTANT:
+Upcoming cards must NEVER show:
+- attended
+- avg duration
+- questions
+- walk-ins
+- post-event conversion
+
+UPCOMING EVENT DETAIL
+Keep it focused only on pre-event actions.
+
+Structure:
+- header: title, date/time, speaker, language
+- actions: Social Invite, Personal AI Invite, Copy Link, Telegram, WhatsApp
+- short stats: sent, viewed/clicked, registered
+- guest/contact list with actions: remind, resend, AI message
+
+Do not show post-event analytics here.
+
+PAST TAB
+Past events must automatically move from Upcoming to Past based strictly on event datetime.
+
+Past event card should show:
+- title
+- date
+- speaker
+- registered
+- attended
+- avg duration if available
+Actions:
+- Report
+- AI Follow-up
+
+PAST EVENT REPORT
+Create a clean post-event report screen with:
+- total invited
+- total registered
+- total clicked Zoom
+- total attended
+- conversion
+- avg duration
+
+Add sections:
+1. Attended
+- name
+- contact info if available
+- duration
+- join/leave
+- questions if available
+
+2. No-show / missed
+- registered but absent
+- clicked but absent
+- invited but inactive
+
+3. AI Follow-up
+Simple actions:
+- AI follow-up for attendees
+- AI follow-up for registered but absent
+- AI follow-up for no-shows
+- AI follow-up for highly engaged guests
+
+4. Zoom status
+- if not synced: show Sync Zoom
+- if synced: show last sync time
+
+CONTACTS TAB
+Add a unified contacts workspace across all events.
+
+Must support:
+- all
+- invited
+- viewed
+- registered
+- attended
+- no-show
+- follow-up needed
+
+Search by:
+- name
+- email
+- phone
+- webinar title
+
+Each row shows:
+- name
+- status
+- related webinar
+- source type: social invite / personal AI invite
+- last action date
+- next best action
+
+Row actions:
+- resend
+- AI follow-up
+- invite to next webinar
+- open profile
+
+STATISTICS TAB
+Keep this as overview only, not the main workflow.
+
+Show:
+- total invited
+- total registered
+- total attended
+- conversion rate
+- active upcoming events
+- recent finished events
+
+Filters:
+- 7 days
+- 30 days
+- by webinar
+- by speaker
+- by language
+- by invite type
+
+IMPORTANT:
+If walk-ins exist, show them separately from partner conversion.
+Do not mix walk-in attendance with direct partner conversion.
+
+PERSONAL AI INVITE FLOW
+Keep this feature, but simplify UX.
+
+Refactor into 3-step guided assistant flow:
+1. Quick Start
+- name
+- optional short context
+
+2. Smart Qualification
+- who is this person
+- what motivates them most
+- what tone should the message have
+
+3. Ready to Send
+- generated message
+- one primary CTA: Send
+- secondary actions: Telegram, WhatsApp, Email, Copy, Preview
+
+Requirements:
+- clear progress indicator
+- less form feeling
+- more assistant feeling
+- fewer choices per step
+- faster flow
+
+GUEST PAGE
+Simplify guest-facing personal invite page:
+- shorter hero
+- faster path to CTA
+- registration higher on screen
+- keep personal feeling and conversion focus
+
+DATA / LOGIC FIXES
+Fix incorrect mixing of upcoming and past data.
+
+Rules:
+- Upcoming = only pre-event metrics
+- Past = post-event metrics
+- Event state = strictly based on event datetime
+
+Investigate and fix:
+- merge between /api/partner-app/webinars and /api/partner-app/events
+- grouping by scheduleEventId
+- date parsing issues for non-ISO dates
+- attendance/report data leaking into upcoming cards
+- shared Zoom links causing attendance to stick between events
+
+IMPORTANT:
+Even if backend returns attended data for future events, upcoming UI must never render it.
+
+VISUAL DIRECTION
+Make the UI lighter and cleaner:
+- remove heavy dashboard feeling
+- remove oversized KPI tiles on entry
+- remove unnecessary funnel/admin density
+- keep compact clean cards
+- one clear CTA per card
+- premium light JetUP mobile feel
+
+I18N
+All screens and new strings must fully support:
+- DE
+- EN
+- RU
+
+No hardcoded final UI strings.
+
+TECH CONSTRAINT
+Do NOT rebuild backend from scratch.
+Reuse current:
+- auth flow
+- webinar endpoints
+- invite endpoints
+- personal AI invite logic
+- qualification flow
+- guest page
+- reports
+- Zoom sync
+- Telegram support
+
+DELIVERABLES
+1. Refactored screen structure
+2. Updated navigation
+3. Updated upcoming/past/contact/statistics flows
+4. Data logic fixes for event states
+5. Simplified personal AI invite flow
+6. Cleaner mobile UI
+7. Preserve working backend logic wherever possible
+
+
+
+
+Нарисуй это еще дополнительно как визуал схему 

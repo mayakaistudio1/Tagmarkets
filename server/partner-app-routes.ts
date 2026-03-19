@@ -1162,7 +1162,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       chatHistory.push({ role: "assistant", content: regSuccessMessages[lang] || regSuccessMessages.en });
       await storage.updatePersonalInviteChatHistory(invite.id, JSON.stringify(chatHistory));
 
-      // Task #30: Sync registration into invite_guests so it appears in partner statistics
+      // Sync registration into invite_guests for unified statistics and Zoom matching
       try {
         if (invite.partnerId && invite.scheduleEventId) {
           const partnerInviteEvents = await storage.getInviteEventsByPartnerId(invite.partnerId);
@@ -1199,14 +1199,11 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
                 email,
                 phone: phone || null,
               });
-              console.log(`[Task#30] AI invite guest synced to invite_guests: ${email} → inviteEventId ${matchingInviteEvent.id}`);
-            } else {
-              console.log(`[Task#30] AI invite guest already in invite_guests (skipped): ${email}`);
             }
           }
         }
       } catch (guestSyncErr) {
-        console.error("[Task#30] Failed to sync AI invite guest to invite_guests:", guestSyncErr);
+        console.error("Failed to sync personal invite guest to statistics:", guestSyncErr);
       }
 
       try {

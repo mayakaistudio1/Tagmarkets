@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Video, BarChart3, Bot, Loader2, User, Hash, Phone, Mail, ArrowRight, LogIn, LogOut, Globe } from "lucide-react";
-import DashboardScreen from "./DashboardScreen";
-import WebinarsScreen from "./WebinarsScreen";
-import ReportsScreen from "./ReportsScreen";
-import AIAssistantScreen from "./AIAssistantScreen";
+import { Calendar, Clock, Users, BarChart3, Loader2, User, Hash, Phone, Mail, ArrowRight, LogIn, LogOut } from "lucide-react";
+import UpcomingScreen from "./UpcomingScreen";
+import PastScreen from "./PastScreen";
+import ContactsScreen from "./ContactsScreen";
+import StatisticsScreen from "./StatisticsScreen";
 import { useLanguage, type Language } from "../../contexts/LanguageContext";
 
 const tabDefs = [
-  { id: "dashboard", labelKey: "pa.dashboard", icon: LayoutDashboard },
-  { id: "webinars", labelKey: "pa.meetings", icon: Video },
-  { id: "reports", labelKey: "pa.statistics", icon: BarChart3 },
-  { id: "ai", labelKey: "pa.ai", icon: Bot },
+  { id: "upcoming", labelKey: "pa.nav.upcoming", icon: Calendar },
+  { id: "past", labelKey: "pa.nav.past", icon: Clock },
+  { id: "contacts", labelKey: "pa.nav.contacts", icon: Users },
+  { id: "statistics", labelKey: "pa.nav.statistics", icon: BarChart3 },
 ] as const;
 
 type TabId = (typeof tabDefs)[number]["id"];
@@ -26,22 +26,18 @@ type AppState = "loading" | "needs-telegram-login" | "needs-registration" | "rea
 function getInitialTab(): TabId {
   const params = new URLSearchParams(window.location.search);
   const tab = params.get("tab");
-  if (tab === "webinars" || tab === "reports" || tab === "ai" || tab === "dashboard") {
-    return tab;
-  }
-  return "dashboard";
+  if (tab === "upcoming" || tab === "past" || tab === "contacts" || tab === "statistics") return tab;
+  if (tab === "webinars" || tab === "dashboard") return "upcoming";
+  if (tab === "reports" || tab === "ai") return "past";
+  return "upcoming";
 }
 
 function getTelegramId(): string | null {
-  if (sessionStorage.getItem("partnerLoggedOut") === "true") {
-    return null;
-  }
+  if (sessionStorage.getItem("partnerLoggedOut") === "true") return null;
   const tg = (window as any).Telegram?.WebApp;
   const userId = tg?.initDataUnsafe?.user?.id?.toString();
   if (userId) return userId;
-  const stored = sessionStorage.getItem("partnerTelegramId");
-  if (stored) return stored;
-  return null;
+  return sessionStorage.getItem("partnerTelegramId");
 }
 
 function getTelegramUsername(): string | null {
@@ -49,20 +45,16 @@ function getTelegramUsername(): string | null {
   return tg?.initDataUnsafe?.user?.username || null;
 }
 
-function LanguageSelector({ compact }: { compact?: boolean }) {
+function LanguageSelector() {
   const { language, setLanguage } = useLanguage();
   const langs: Language[] = ["de", "en", "ru"];
   return (
     <div className="flex items-center gap-1" data-testid="language-selector">
-      {langs.map((l) => (
-        <button
-          key={l}
-          onClick={() => setLanguage(l)}
+      {langs.map(l => (
+        <button key={l} onClick={() => setLanguage(l)}
           className={`px-2 py-1 rounded-lg text-xs font-semibold transition-colors ${language === l ? "bg-blue-100 text-blue-700" : "text-gray-400 hover:bg-gray-100"}`}
           data-testid={`lang-${l}`}
-        >
-          {l.toUpperCase()}
-        </button>
+        >{l.toUpperCase()}</button>
       ))}
     </div>
   );
@@ -82,17 +74,12 @@ function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => voi
 
   return (
     <div className="h-full flex flex-col items-center justify-center bg-white px-8 text-center" data-testid="telegram-login-screen">
-      <div className="absolute top-4 right-4">
-        <LanguageSelector />
-      </div>
+      <div className="absolute top-4 right-4"><LanguageSelector /></div>
       <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-6">
         <LogIn className="w-7 h-7 text-blue-600" />
       </div>
-      <h2 className="text-lg font-bold text-gray-900 mb-2">{t('pa.login.title')}</h2>
-      <p className="text-sm text-gray-500 mb-6 max-w-xs leading-relaxed">
-        {t('pa.login.subtitle')}
-      </p>
-
+      <h2 className="text-lg font-bold text-gray-900 mb-2">{t("pa.login.title")}</h2>
+      <p className="text-sm text-gray-500 mb-6 max-w-xs leading-relaxed">{t("pa.login.subtitle")}</p>
       <a
         href={`https://t.me/${botUsername}?start=open_app`}
         target="_blank"
@@ -102,39 +89,20 @@ function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => voi
         data-testid="button-open-telegram"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-        {t('pa.login.openTelegram')}
+        {t("pa.login.openTelegram")}
       </a>
-
-      <p className="text-xs text-gray-400 mt-3 max-w-xs leading-relaxed">
-        {t('pa.login.botHint')}
-      </p>
-
+      <p className="text-xs text-gray-400 mt-3 max-w-xs leading-relaxed">{t("pa.login.botHint")}</p>
       <div className="w-full max-w-xs border-t border-gray-100 mt-6 pt-5">
-        <p className="text-xs text-gray-400 mb-3">{t('pa.login.manualHint')}</p>
+        <p className="text-xs text-gray-400 mb-3">{t("pa.login.manualHint")}</p>
         <div className="flex gap-2">
-          <input
-            type="text"
-            value={manualId}
-            onChange={(e) => setManualId(e.target.value)}
-            placeholder="Telegram ID"
-            className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          <input type="text" value={manualId} onChange={e => setManualId(e.target.value)} placeholder="Telegram ID"
+            className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             data-testid="input-manual-telegram-id"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && manualId.trim()) {
-                sessionStorage.setItem("partnerTelegramId", manualId.trim());
-                onLogin(manualId.trim());
-              }
-            }}
+            onKeyDown={e => { if (e.key === "Enter" && manualId.trim()) { sessionStorage.setItem("partnerTelegramId", manualId.trim()); onLogin(manualId.trim()); } }}
           />
-          <button
-            onClick={() => {
-              if (manualId.trim()) {
-                sessionStorage.setItem("partnerTelegramId", manualId.trim());
-                onLogin(manualId.trim());
-              }
-            }}
+          <button onClick={() => { if (manualId.trim()) { sessionStorage.setItem("partnerTelegramId", manualId.trim()); onLogin(manualId.trim()); } }}
             disabled={!manualId.trim()}
-            className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-40 active:bg-blue-700 transition-colors"
+            className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-40 active:bg-blue-700"
             data-testid="button-manual-login-submit"
           >
             <ArrowRight size={16} />
@@ -153,143 +121,60 @@ function RegistrationScreen({ telegramId, onRegistered }: { telegramId: string; 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { t } = useLanguage();
-
   const telegramUsername = getTelegramUsername();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !cuNumber.trim()) return;
-
     setSubmitting(true);
     setError(null);
-
     try {
       const res = await fetch("/api/partner-app/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-telegram-id": telegramId,
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          cuNumber: cuNumber.trim(),
-          phone: phone.trim() || null,
-          email: email.trim() || null,
-          telegramUsername,
-        }),
+        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        body: JSON.stringify({ name: name.trim(), cuNumber: cuNumber.trim(), phone: phone.trim() || null, email: email.trim() || null, telegramUsername }),
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Registration failed");
-      }
-
-      const profile = await res.json();
-      onRegistered(profile);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
+      if (!res.ok) { const data = await res.json(); throw new Error(data.error || "Registration failed"); }
+      onRegistered(await res.json());
+    } catch (err: any) { setError(err.message); }
+    finally { setSubmitting(false); }
   };
 
   return (
     <div className="h-full flex flex-col bg-white overflow-y-auto" data-testid="registration-screen">
-      <div className="absolute top-4 right-4">
-        <LanguageSelector />
-      </div>
+      <div className="absolute top-4 right-4"><LanguageSelector /></div>
       <div className="flex-1 px-6 py-10 max-w-md mx-auto w-full">
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-5 mx-auto shadow-lg shadow-blue-200">
             <span className="text-2xl">🚀</span>
           </div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">{t('pa.register.title')}</h1>
-          <p className="text-sm text-gray-500 leading-relaxed">
-            {t('pa.register.subtitle')}
-          </p>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">{t("pa.register.title")}</h1>
+          <p className="text-sm text-gray-500 leading-relaxed">{t("pa.register.subtitle")}</p>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
-              <User size={14} />
-              {t('pa.register.name')} <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              data-testid="input-register-name"
-            />
-          </div>
-
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
-              <Hash size={14} />
-              {t('pa.register.cu')} <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={cuNumber}
-              onChange={(e) => setCuNumber(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              data-testid="input-register-cu"
-            />
-          </div>
-
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
-              <Phone size={14} />
-              {t('pa.register.phone')}
-            </label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+49 123 456 7890"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              data-testid="input-register-phone"
-            />
-          </div>
-
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
-              <Mail size={14} />
-              {t('pa.register.email')}
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              data-testid="input-register-email"
-            />
-          </div>
-
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600" data-testid="text-register-error">
-              {error}
+          {[
+            { label: t("pa.register.name"), icon: User, value: name, setter: setName, type: "text", required: true, testId: "input-register-name" },
+            { label: t("pa.register.cu"), icon: Hash, value: cuNumber, setter: setCuNumber, type: "text", required: true, testId: "input-register-cu" },
+            { label: t("pa.register.phone"), icon: Phone, value: phone, setter: setPhone, type: "tel", required: false, placeholder: "+49 123 456 7890", testId: "input-register-phone" },
+            { label: t("pa.register.email"), icon: Mail, value: email, setter: setEmail, type: "email", required: false, placeholder: "your@email.com", testId: "input-register-email" },
+          ].map(f => (
+            <div key={f.testId}>
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
+                <f.icon size={14} /> {f.label} {f.required && <span className="text-red-400">*</span>}
+              </label>
+              <input type={f.type} value={f.value} onChange={e => f.setter(e.target.value)} required={f.required}
+                placeholder={"placeholder" in f ? f.placeholder : undefined}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                data-testid={f.testId}
+              />
             </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting || !name.trim() || !cuNumber.trim()}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors mt-6"
+          ))}
+          {error && <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600" data-testid="text-register-error">{error}</div>}
+          <button type="submit" disabled={submitting || !name.trim() || !cuNumber.trim()}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 mt-6"
             data-testid="button-register-submit"
           >
-            {submitting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <>
-                {t('pa.register.submit')}
-                <ArrowRight size={16} />
-              </>
-            )}
+            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>{t("pa.register.submit")}<ArrowRight size={16} /></>}
           </button>
         </form>
       </div>
@@ -302,39 +187,29 @@ export default function PartnerApp() {
   const [profile, setProfile] = useState<PartnerProfile | null>(null);
   const [appState, setAppState] = useState<AppState>("loading");
   const [telegramId, setTelegramId] = useState<string | null>(getTelegramId);
+  const { t } = useLanguage();
 
   const loadProfile = useCallback(async (tgId: string) => {
     try {
-      const r = await fetch("/api/partner-app/profile", {
-        headers: { "x-telegram-id": tgId },
-      });
-      if (r.status === 401) {
-        setAppState("needs-registration");
-        return;
-      }
-      if (!r.ok) throw new Error("Failed to load profile");
-      const data = await r.json();
-      setProfile(data);
+      const r = await fetch("/api/partner-app/profile", { headers: { "x-telegram-id": tgId } });
+      if (r.status === 401) { setAppState("needs-registration"); return; }
+      if (!r.ok) throw new Error();
+      setProfile(await r.json());
       setAppState("ready");
-    } catch {
-      setAppState("needs-registration");
-    }
+    } catch { setAppState("needs-registration"); }
   }, []);
 
   useEffect(() => {
-    if (!telegramId) {
-      setAppState("needs-telegram-login");
-      return;
-    }
+    if (!telegramId) { setAppState("needs-telegram-login"); return; }
     loadProfile(telegramId);
   }, [telegramId, loadProfile]);
 
-  const handleTelegramLogin = useCallback((newTelegramId: string) => {
+  const handleTelegramLogin = useCallback((newId: string) => {
     sessionStorage.removeItem("partnerLoggedOut");
-    sessionStorage.setItem("partnerTelegramId", newTelegramId);
-    setTelegramId(newTelegramId);
+    sessionStorage.setItem("partnerTelegramId", newId);
+    setTelegramId(newId);
     setAppState("loading");
-    loadProfile(newTelegramId);
+    loadProfile(newId);
   }, [loadProfile]);
 
   const handleLogout = useCallback(() => {
@@ -345,36 +220,11 @@ export default function PartnerApp() {
     setAppState("needs-telegram-login");
   }, []);
 
-  const handleRegistered = useCallback((newProfile: PartnerProfile) => {
-    setProfile(newProfile);
-    setAppState("ready");
-  }, []);
+  if (appState === "loading") return <div className="h-full flex flex-col items-center justify-center bg-white"><Loader2 className="w-6 h-6 text-gray-400 animate-spin" /></div>;
+  if (appState === "needs-telegram-login") return <TelegramLoginScreen onLogin={handleTelegramLogin} />;
+  if (appState === "needs-registration" && telegramId) return <RegistrationScreen telegramId={telegramId} onRegistered={p => { setProfile(p); setAppState("ready"); }} />;
+  if (!profile || !telegramId) return <div className="h-full flex flex-col items-center justify-center bg-white"><Loader2 className="w-6 h-6 text-gray-400 animate-spin" /></div>;
 
-  if (appState === "loading") {
-    return (
-      <div className="h-full flex flex-col items-center justify-center bg-white">
-        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
-      </div>
-    );
-  }
-
-  if (appState === "needs-telegram-login") {
-    return <TelegramLoginScreen onLogin={handleTelegramLogin} />;
-  }
-
-  if (appState === "needs-registration" && telegramId) {
-    return <RegistrationScreen telegramId={telegramId} onRegistered={handleRegistered} />;
-  }
-
-  if (!profile || !telegramId) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center bg-white">
-        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
-      </div>
-    );
-  }
-
-  const { t } = useLanguage();
   const isTelegramContext = !!(window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id;
 
   return (
@@ -384,22 +234,21 @@ export default function PartnerApp() {
           <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
             <User size={14} className="text-blue-600" />
           </div>
-          <span className="text-sm font-medium text-gray-700">{profile.partner.name}</span>
+          <span className="text-sm font-medium text-gray-700" data-testid="text-partner-name">{profile.partner.name}</span>
         </div>
         <div className="flex items-center gap-2">
           <LanguageSelector />
           {!isTelegramContext && (
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+            <button onClick={handleLogout}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 active:bg-gray-200"
               data-testid="button-logout"
             >
-              <LogOut size={14} />
-              {t('pa.logout')}
+              <LogOut size={14} /> {t("pa.logout")}
             </button>
           )}
         </div>
       </div>
+
       <main className="flex-1 overflow-hidden relative">
         <AnimatePresence mode="wait">
           <motion.div
@@ -407,41 +256,27 @@ export default function PartnerApp() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: 0.12 }}
             className="h-full overflow-y-auto no-scrollbar"
           >
-            {activeTab === "dashboard" && (
-              <DashboardScreen profile={profile} telegramId={telegramId} onNavigate={setActiveTab} />
-            )}
-            {activeTab === "webinars" && (
-              <WebinarsScreen telegramId={telegramId} />
-            )}
-            {activeTab === "reports" && (
-              <ReportsScreen telegramId={telegramId} />
-            )}
-            {activeTab === "ai" && (
-              <AIAssistantScreen telegramId={telegramId} partnerName={profile.partner.name} />
-            )}
+            {activeTab === "upcoming" && <UpcomingScreen telegramId={telegramId} />}
+            {activeTab === "past" && <PastScreen telegramId={telegramId} />}
+            {activeTab === "contacts" && <ContactsScreen telegramId={telegramId} />}
+            {activeTab === "statistics" && <StatisticsScreen telegramId={telegramId} profile={profile} />}
           </motion.div>
         </AnimatePresence>
       </main>
 
       <div className="flex-shrink-0 bg-white border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
         <div className="flex items-center justify-around px-4 pt-2 pb-1">
-          {tabDefs.map((tab) => {
+          {tabDefs.map(tab => {
             const isActive = activeTab === tab.id;
             return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                 className="flex flex-col items-center justify-center py-1.5 gap-1 min-w-[56px] transition-all active:scale-95"
                 data-testid={`partner-tab-${tab.id}`}
               >
-                <tab.icon
-                  size={20}
-                  strokeWidth={isActive ? 2 : 1.5}
-                  className={isActive ? "text-blue-600" : "text-gray-400"}
-                />
+                <tab.icon size={20} strokeWidth={isActive ? 2 : 1.5} className={isActive ? "text-blue-600" : "text-gray-400"} />
                 <span className={`text-[10px] leading-none ${isActive ? "font-semibold text-blue-600" : "font-medium text-gray-400"}`}>
                   {t(tab.labelKey)}
                 </span>

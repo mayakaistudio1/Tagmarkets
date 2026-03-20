@@ -293,7 +293,51 @@ function partnerAppGuard(req: any, res: any): boolean {
   return true;
 }
 
+function signPartnerToken(telegramId: string): string {
+  const botToken = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+  if (!botToken) throw new Error("Bot token not configured");
+  const expiry = Date.now() + 30 * 24 * 3600 * 1000;
+  const payload = Buffer.from(`${telegramId}.${expiry}`).toString("base64url");
+  const sig = crypto.createHmac("sha256", botToken).update(payload).digest("base64url");
+  return `${payload}.${sig}`;
+}
+
+function verifyPartnerToken(token: string): string | null {
+  try {
+    const botToken = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+    if (!botToken) return null;
+    const lastDot = token.lastIndexOf(".");
+    if (lastDot < 0) return null;
+    const payload = token.slice(0, lastDot);
+    const sig = token.slice(lastDot + 1);
+    const expectedSig = crypto.createHmac("sha256", botToken).update(payload).digest("base64url");
+    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))) return null;
+    const decoded = Buffer.from(payload, "base64url").toString();
+    const lastDot2 = decoded.lastIndexOf(".");
+    const telegramId = decoded.slice(0, lastDot2);
+    const expiry = parseInt(decoded.slice(lastDot2 + 1), 10);
+    if (Date.now() > expiry) return null;
+    return telegramId;
+  } catch {
+    return null;
+  }
+}
+
+function getTelegramIdFromRequest(req: any): string | null {
+  const partnerToken = req.headers["x-partner-token"] as string;
+  if (partnerToken) return verifyPartnerToken(partnerToken);
+  const telegramId = req.headers["x-telegram-id"] as string;
+  return telegramId || null;
+}
+
 async function getPartnerFromRequest(req: any): Promise<any | null> {
+  const partnerToken = req.headers["x-partner-token"] as string;
+  if (partnerToken) {
+    const telegramId = verifyPartnerToken(partnerToken);
+    if (!telegramId) return null;
+    return storage.getPartnerByTelegramChatId(telegramId);
+  }
+
   const telegramId = req.headers["x-telegram-id"] as string;
   if (!telegramId) return null;
 
@@ -320,7 +364,7 @@ export function registerPartnerAppRoutes(app: Express) {
   app.post("/api/partner-app/register", async (req, res) => {
     if (!partnerAppGuard(req, res)) return;
     try {
-      const telegramId = req.headers["x-telegram-id"] as string;
+      const telegramId = getTelegramIdFromRequest(req);
       if (!telegramId || telegramId === "demo") {
         return res.status(400).json({ error: "Telegram ID required" });
       }
@@ -410,7 +454,8 @@ export function registerPartnerAppRoutes(app: Express) {
         return res.status(404).json({ error: "Partner not registered" });
       }
 
-      return res.json({ telegramId });
+      const partnerToken = signPartnerToken(telegramId);
+      return res.json({ partnerToken, telegramId });
     } catch (error) {
       console.error("Telegram login error:", error);
       res.status(500).json({ error: "Login failed" });

@@ -7,6 +7,7 @@ import {
   Eye, Star
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { getPartnerAuthHeader } from "./partnerAuth";
 
 interface Webinar {
   id: number; title: string; date: string; time: string; timezone: string;
@@ -212,10 +213,10 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/partner-app/webinars", { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()),
-      fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()),
-      fetch("/api/partner-app/profile", { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()).catch(() => null),
-      fetch("/api/partner-app/personal-invites", { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()).catch(() => ({ invites: [] })),
+      fetch("/api/partner-app/webinars", { headers: { ...getPartnerAuthHeader() } }).then((r) => r.json()),
+      fetch("/api/partner-app/events", { headers: { ...getPartnerAuthHeader() } }).then((r) => r.json()),
+      fetch("/api/partner-app/profile", { headers: { ...getPartnerAuthHeader() } }).then((r) => r.json()).catch(() => null),
+      fetch("/api/partner-app/personal-invites", { headers: { ...getPartnerAuthHeader() } }).then((r) => r.json()).catch(() => ({ invites: [] })),
     ])
       .then(([webinarData, eventsData, profileData, piData]) => {
         setWebinars(webinarData);
@@ -235,7 +236,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     try {
       const res = await fetch("/api/partner-app/create-invite", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        headers: { "Content-Type": "application/json", ...getPartnerAuthHeader() },
         body: JSON.stringify({ scheduleEventId: selectedWebinar.id }),
       });
       const data = await res.json();
@@ -247,7 +248,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const loadEventReport = async (eventId: number) => {
     setReportLoading(true);
     try {
-      const res = await fetch(`/api/partner-app/events/${eventId}/report`, { headers: { "x-telegram-id": telegramId } });
+      const res = await fetch(`/api/partner-app/events/${eventId}/report`, { headers: { ...getPartnerAuthHeader() } });
       setEventReport(await res.json());
     } catch (err) { console.error(err); }
     setReportLoading(false);
@@ -323,7 +324,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     try {
       const res = await fetch("/api/partner-app/generate-invite-messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        headers: { "Content-Type": "application/json", ...getPartnerAuthHeader() },
         body: JSON.stringify({
           scheduleEventId: selectedWebinar.id,
           prospectName: prospectForm.name,
@@ -349,7 +350,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
     try {
       const res = await fetch("/api/partner-app/create-personal-invite", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        headers: { "Content-Type": "application/json", ...getPartnerAuthHeader() },
         body: JSON.stringify({
           scheduleEventId: selectedWebinar.id,
           prospectName: prospectForm.name,
@@ -372,7 +373,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
       setPersonalInviteResult(data);
       setScreen("personal-share");
       try {
-        const piRes = await fetch("/api/partner-app/personal-invites", { headers: { "x-telegram-id": telegramId } });
+        const piRes = await fetch("/api/partner-app/personal-invites", { headers: { ...getPartnerAuthHeader() } });
         const piData = await piRes.json();
         if (piData?.invites) setPersonalInvites(piData.invites);
       } catch {}

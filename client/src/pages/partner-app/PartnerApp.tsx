@@ -6,6 +6,7 @@ import PastScreen from "./PastScreen";
 import ContactsScreen from "./ContactsScreen";
 import StatisticsScreen from "./StatisticsScreen";
 import { useLanguage, type Language } from "../../contexts/LanguageContext";
+import { getPartnerAuthHeader, clearPartnerSession, getStoredTelegramId, hasPartnerSession } from "./partnerAuth";
 
 const tabDefs = [
   { id: "upcoming", labelKey: "pa.nav.upcoming", icon: Calendar },
@@ -31,14 +32,6 @@ function getInitialTab(): TabId {
   if (tab === "webinars" || tab === "dashboard") return "upcoming";
   if (tab === "reports" || tab === "ai") return "past";
   return "upcoming";
-}
-
-function getTelegramId(): string | null {
-  if (sessionStorage.getItem("partnerLoggedOut") === "true") return null;
-  const tg = (window as any).Telegram?.WebApp;
-  const userId = tg?.initDataUnsafe?.user?.id?.toString();
-  if (userId) return userId;
-  return localStorage.getItem("partnerTelegramId") || sessionStorage.getItem("partnerTelegramId");
 }
 
 function getTelegramUsername(): string | null {
@@ -75,8 +68,7 @@ interface TelegramAuthUser {
   hash: string;
 }
 
-function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => void }) {
-  const [manualId, setManualId] = useState("");
+function TelegramLoginScreen({ onLogin }: { onLogin: () => void }) {
   const [botUsername, setBotUsername] = useState("JetUP_Partner_Bot");
   const [widgetError, setWidgetError] = useState<string | null>(null);
   const [widgetLoading, setWidgetLoading] = useState(false);
@@ -120,9 +112,10 @@ function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => voi
           setWidgetLoading(false);
           return;
         }
+        localStorage.setItem("partnerWebToken", data.partnerToken);
         localStorage.setItem("partnerTelegramId", data.telegramId);
         sessionStorage.removeItem("partnerLoggedOut");
-        onLogin(data.telegramId);
+        onLogin();
       } catch {
         setWidgetError(t("pa.login.authError"));
         setWidgetLoading(false);
@@ -185,33 +178,6 @@ function TelegramLoginScreen({ onLogin }: { onLogin: (telegramId: string) => voi
         {t("pa.login.openTelegram")}
       </a>
       <p className="text-xs text-gray-400 mt-3 max-w-xs leading-relaxed">{t("pa.login.botHint")}</p>
-      <div className="w-full max-w-xs border-t border-gray-100 mt-6 pt-5">
-        <p className="text-xs text-gray-400 mb-3">{t("pa.login.manualHint")}</p>
-        <div className="flex gap-2">
-          <input type="text" value={manualId} onChange={e => setManualId(e.target.value)} placeholder="Telegram ID"
-            className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            data-testid="input-manual-telegram-id"
-            onKeyDown={e => {
-              if (e.key === "Enter" && manualId.trim()) {
-                localStorage.setItem("partnerTelegramId", manualId.trim());
-                onLogin(manualId.trim());
-              }
-            }}
-          />
-          <button onClick={() => {
-            if (manualId.trim()) {
-              localStorage.setItem("partnerTelegramId", manualId.trim());
-              onLogin(manualId.trim());
-            }
-          }}
-            disabled={!manualId.trim()}
-            className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-40 active:bg-blue-700"
-            data-testid="button-manual-login-submit"
-          >
-            <ArrowRight size={16} />
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
@@ -242,7 +208,7 @@ function RegistrationScreen({
     try {
       const res = await fetch("/api/partner-app/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        headers: { "Content-Type": "application/json", ...getPartnerAuthHeader() },
         body: JSON.stringify({ name: name.trim(), cuNumber: cuNumber.trim(), phone: phone.trim() || null, email: email.trim() || null, telegramUsername }),
       });
       if (res.status === 409) {
@@ -329,13 +295,14 @@ export default function PartnerApp() {
   const [profile, setProfile] = useState<PartnerProfile | null>(null);
   const [appState, setAppState] = useState<AppState>("loading");
   const [errorKind, setErrorKind] = useState<ErrorKind>("server-error");
-  const [telegramId, setTelegramId] = useState<string | null>(getTelegramId);
+  const [sessionActive, setSessionActive] = useState<boolean>(() => hasPartnerSession());
+  const telegramId = getStoredTelegramId();
   const { t } = useLanguage();
 
-  const loadProfile = useCallback(async (tgId: string) => {
+  const loadProfile = useCallback(async () => {
     setAppState("loading");
     try {
-      const r = await fetch("/api/partner-app/profile", { headers: { "x-telegram-id": tgId } });
+      const r = await fetch("/api/partner-app/profile", { headers: { ...getPartnerAuthHeader() } });
       if (r.status === 401) { setAppState("needs-registration"); return; }
       if (r.status === 404) { setErrorKind("feature-disabled"); setAppState("error"); return; }
       if (!r.ok) { setErrorKind("server-error"); setAppState("error"); return; }
@@ -348,28 +315,24 @@ export default function PartnerApp() {
   }, []);
 
   useEffect(() => {
-    if (!telegramId) { setAppState("needs-telegram-login"); return; }
-    loadProfile(telegramId);
-  }, [telegramId, loadProfile]);
+    if (!sessionActive) { setAppState("needs-telegram-login"); return; }
+    loadProfile();
+  }, [sessionActive, loadProfile]);
 
-  const handleTelegramLogin = useCallback((newId: string) => {
-    sessionStorage.removeItem("partnerLoggedOut");
-    localStorage.setItem("partnerTelegramId", newId);
-    setTelegramId(newId);
+  const handleTelegramLogin = useCallback(() => {
+    setSessionActive(true);
   }, []);
 
   const handleLogout = useCallback(() => {
-    sessionStorage.setItem("partnerLoggedOut", "true");
-    localStorage.removeItem("partnerTelegramId");
-    sessionStorage.removeItem("partnerTelegramId");
-    setTelegramId(null);
+    clearPartnerSession();
+    setSessionActive(false);
     setProfile(null);
     setAppState("needs-telegram-login");
   }, []);
 
   const handleRetry = useCallback(() => {
-    if (telegramId) loadProfile(telegramId);
-  }, [telegramId, loadProfile]);
+    loadProfile();
+  }, [loadProfile]);
 
   if (appState === "loading") return <div className="h-full flex flex-col items-center justify-center bg-white"><Loader2 className="w-6 h-6 text-gray-400 animate-spin" /></div>;
   if (appState === "needs-telegram-login") return <TelegramLoginScreen onLogin={handleTelegramLogin} />;
@@ -378,10 +341,10 @@ export default function PartnerApp() {
     <RegistrationScreen
       telegramId={telegramId}
       onRegistered={p => { setProfile(p); setAppState("ready"); }}
-      onAlreadyRegistered={() => loadProfile(telegramId)}
+      onAlreadyRegistered={loadProfile}
     />
   );
-  if (!profile || !telegramId) return <div className="h-full flex flex-col items-center justify-center bg-white"><Loader2 className="w-6 h-6 text-gray-400 animate-spin" /></div>;
+  if (!profile) return <div className="h-full flex flex-col items-center justify-center bg-white"><Loader2 className="w-6 h-6 text-gray-400 animate-spin" /></div>;
 
   const isTelegramContext = isInTelegramMiniApp();
 
@@ -417,10 +380,10 @@ export default function PartnerApp() {
             transition={{ duration: 0.12 }}
             className="h-full overflow-y-auto no-scrollbar"
           >
-            {activeTab === "upcoming" && <UpcomingScreen telegramId={telegramId} />}
-            {activeTab === "past" && <PastScreen telegramId={telegramId} />}
-            {activeTab === "contacts" && <ContactsScreen telegramId={telegramId} />}
-            {activeTab === "statistics" && <StatisticsScreen telegramId={telegramId} profile={profile} />}
+            {activeTab === "upcoming" && <UpcomingScreen telegramId={telegramId ?? "demo"} />}
+            {activeTab === "past" && <PastScreen telegramId={telegramId ?? "demo"} />}
+            {activeTab === "contacts" && <ContactsScreen telegramId={telegramId ?? "demo"} />}
+            {activeTab === "statistics" && <StatisticsScreen telegramId={telegramId ?? "demo"} profile={profile} />}
           </motion.div>
         </AnimatePresence>
       </main>

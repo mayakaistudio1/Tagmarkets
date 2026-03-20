@@ -7,6 +7,7 @@ import {
   ChevronRight, User, Eye, Star
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { getPartnerAuthHeader } from "./partnerAuth";
 
 interface Webinar {
   id: number; title: string; date: string; time: string; timezone: string;
@@ -84,8 +85,8 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/partner-app/webinars", { headers: { "x-telegram-id": telegramId } }).then(r => r.json()),
-      fetch("/api/partner-app/profile", { headers: { "x-telegram-id": telegramId } }).then(r => r.json()).catch(() => null),
+      fetch("/api/partner-app/webinars", { headers: { ...getPartnerAuthHeader() } }).then(r => r.json()),
+      fetch("/api/partner-app/profile", { headers: { ...getPartnerAuthHeader() } }).then(r => r.json()).catch(() => null),
     ]).then(([webinarData, profileData]) => {
       const upcoming = (webinarData || []).filter((w: Webinar) => isUpcoming(w.date, w.time));
       setWebinars(upcoming);
@@ -100,7 +101,7 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
     try {
       const res = await fetch("/api/partner-app/create-invite", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        headers: { "Content-Type": "application/json", ...getPartnerAuthHeader() },
         body: JSON.stringify({ scheduleEventId: selected.id }),
       });
       setInviteResult(await res.json());
@@ -184,7 +185,7 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
     try {
       const res = await fetch("/api/partner-app/generate-invite-messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        headers: { "Content-Type": "application/json", ...getPartnerAuthHeader() },
         body: JSON.stringify({ scheduleEventId: selected.id, prospectName, partnerName, relationship: ans.relationship, motivation: ans.motivation, reaction: ans.reaction, contextNote: ans.contextNote, language }),
       });
       if (!res.ok) throw new Error();
@@ -202,7 +203,7 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
     try {
       const res = await fetch("/api/partner-app/create-personal-invite", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        headers: { "Content-Type": "application/json", ...getPartnerAuthHeader() },
         body: JSON.stringify({ scheduleEventId: selected.id, prospectName, prospectType: generatedPreview.prospectType, discType: generatedPreview.discType, motivationType: generatedPreview.motivation, reactionType: generatedPreview.reaction, inviteStrategy: generatedPreview.strategy, generatedMessages: JSON.stringify(generatedPreview.messages), prospectNote: qualifyAnswers.contextNote || undefined }),
       });
       if (!res.ok) throw new Error();

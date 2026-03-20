@@ -5,6 +5,7 @@ import {
   Calendar, ChevronDown, ArrowUpRight, Loader2
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { getPartnerAuthHeader } from "./partnerAuth";
 
 type FilterPeriod = "7d" | "30d" | "all";
 
@@ -56,7 +57,7 @@ export default function StatisticsScreen({ telegramId, profile }: { telegramId: 
   const [period, setPeriod] = useState<FilterPeriod>("all");
 
   useEffect(() => {
-    fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } })
+    fetch("/api/partner-app/events", { headers: { ...getPartnerAuthHeader() } })
       .then(r => r.json())
       .then(eventsData => {
         setEvents(eventsData || []);

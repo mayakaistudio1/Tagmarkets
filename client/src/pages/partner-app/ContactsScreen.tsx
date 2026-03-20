@@ -5,6 +5,7 @@ import {
   Calendar, Mail, Phone, Filter, Clock, Star
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { getPartnerAuthHeader } from "./partnerAuth";
 
 type ContactStatus = "all" | "invited" | "registered" | "attended" | "no-show" | "follow-up";
 
@@ -63,7 +64,7 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } })
+    fetch("/api/partner-app/events", { headers: { ...getPartnerAuthHeader() } })
       .then(r => r.json())
       .then(async (events: PartnerEvent[]) => {
         const all: Contact[] = [];
@@ -72,7 +73,7 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
             try {
               const ids = event.inviteEventIds || [event.id];
               const reports = await Promise.all(
-                ids.map(id => fetch(`/api/partner-app/events/${id}/report`, { headers: { "x-telegram-id": telegramId } }).then(r => r.json()))
+                ids.map(id => fetch(`/api/partner-app/events/${id}/report`, { headers: { ...getPartnerAuthHeader() } }).then(r => r.json()))
               );
               const guests: Guest[] = reports.flatMap((r: any) => r.guests || []);
               guests.forEach(g => {

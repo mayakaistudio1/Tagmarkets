@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Bot, Send, Loader2, UserPlus, CalendarPlus, PhoneCall, FileText, Target, Sparkles } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { getPartnerAuthHeader } from "./partnerAuth";
 
 interface Message { role: "user" | "assistant"; content: string; }
 
@@ -33,7 +34,7 @@ export default function AIAssistantScreen({ telegramId, partnerName }: { telegra
     try {
       const res = await fetch("/api/partner-app/ai-followup", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        headers: { "Content-Type": "application/json", ...getPartnerAuthHeader() },
         body: JSON.stringify({ message: text }),
       });
       const data = await res.json();

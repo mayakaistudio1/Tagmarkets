@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck, Calendar, Clock, MessageCircle, RefreshCw, CheckCircle, AlertCircle, Layers } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { getPartnerAuthHeader } from "./partnerAuth";
 
 interface PartnerEvent {
   id: number; title: string; eventDate: string; eventTime: string;
@@ -65,7 +66,7 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
   const { t } = useLanguage();
 
   useEffect(() => {
-    fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } })
+    fetch("/api/partner-app/events", { headers: { ...getPartnerAuthHeader() } })
       .then((r) => r.json())
       .then((data) => { setEvents(data); setLoading(false); })
       .catch(() => setLoading(false));
@@ -79,7 +80,7 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
     try {
       const ids = event.inviteEventIds || [event.id];
       const reports = await Promise.all(
-        ids.map((id) => fetch(`/api/partner-app/events/${id}/report`, { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()))
+        ids.map((id) => fetch(`/api/partner-app/events/${id}/report`, { headers: { ...getPartnerAuthHeader() } }).then((r) => r.json()))
       );
       // Merge method breakdown across all sub-reports
       const mergedMethodMap: Record<string, { invited: number; attended: number }> = {};
@@ -135,7 +136,7 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
       try {
         const res = await fetch(`/api/partner-app/events/${id}/zoom-sync`, {
           method: "POST",
-          headers: { "x-telegram-id": telegramId },
+          headers: { ...getPartnerAuthHeader() },
         });
         const data = await res.json();
         if (!res.ok) {

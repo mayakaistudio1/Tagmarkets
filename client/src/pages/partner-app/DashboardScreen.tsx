@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Users, TrendingUp, CalendarDays, ArrowUpRight, ChevronRight, Calendar, Clock, Video, Send, UserCheck } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { getPartnerAuthHeader } from "./partnerAuth";
 
 interface Props {
   profile: {
@@ -49,12 +50,12 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
   const { t } = useLanguage();
 
   useEffect(() => {
-    fetch("/api/partner-app/webinars", { headers: { "x-telegram-id": telegramId } })
+    fetch("/api/partner-app/webinars", { headers: { ...getPartnerAuthHeader() } })
       .then((r) => r.json())
       .then((data) => setWebinars(data.slice(0, 3)))
       .catch(() => {});
 
-    fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } })
+    fetch("/api/partner-app/events", { headers: { ...getPartnerAuthHeader() } })
       .then((r) => r.json())
       .then((data) => setPastEvents(data.slice(0, 3)))
       .catch(() => {});

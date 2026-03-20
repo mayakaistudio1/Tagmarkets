@@ -6,6 +6,7 @@ import {
   Bot, Send, Target, Star, Sparkles
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { getPartnerAuthHeader } from "./partnerAuth";
 
 interface PartnerEvent {
   id: number; title: string; eventDate: string; eventTime: string;
@@ -77,7 +78,7 @@ export default function PastScreen({ telegramId }: { telegramId: string }) {
   const [aiSending, setAiSending] = useState(false);
 
   useEffect(() => {
-    fetch("/api/partner-app/events", { headers: { "x-telegram-id": telegramId } })
+    fetch("/api/partner-app/events", { headers: { ...getPartnerAuthHeader() } })
       .then(r => r.json())
       .then(data => {
         const past = (data || []).filter((e: PartnerEvent) => isPast(e.eventDate, e.eventTime));
@@ -96,7 +97,7 @@ export default function PastScreen({ telegramId }: { telegramId: string }) {
     try {
       const ids = event.inviteEventIds || [event.id];
       const reports = await Promise.all(
-        ids.map(id => fetch(`/api/partner-app/events/${id}/report`, { headers: { "x-telegram-id": telegramId } }).then(r => r.json()))
+        ids.map(id => fetch(`/api/partner-app/events/${id}/report`, { headers: { ...getPartnerAuthHeader() } }).then(r => r.json()))
       );
       const combined: EventReport = {
         event: reports[0].event,
@@ -125,7 +126,7 @@ export default function PastScreen({ telegramId }: { telegramId: string }) {
     let lastError: string | null = null;
     for (const id of ids) {
       try {
-        const res = await fetch(`/api/partner-app/events/${id}/zoom-sync`, { method: "POST", headers: { "x-telegram-id": telegramId } });
+        const res = await fetch(`/api/partner-app/events/${id}/zoom-sync`, { method: "POST", headers: { ...getPartnerAuthHeader() } });
         const data = await res.json();
         if (!res.ok) lastError = data.error || "Sync failed";
         else { synced += data.synced || 0; skipped += data.skipped || 0; total += data.total || 0; }
@@ -144,7 +145,7 @@ export default function PastScreen({ telegramId }: { telegramId: string }) {
     try {
       const res = await fetch("/api/partner-app/ai-followup", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-telegram-id": telegramId },
+        headers: { "Content-Type": "application/json", ...getPartnerAuthHeader() },
         body: JSON.stringify({ message: text }),
       });
       const data = await res.json();

@@ -289,7 +289,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async findDuplicatePromoApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined> {
-    // A no_money record is an invitation to retry, not a blocker — exclude it from duplicate detection
+    // Exclude no_money records: they are an invitation to retry after topping up, not blockers.
+    // Only pending, verified, rejected, or duplicate records count as true duplicates.
+    // Transition: pending → no_money → [user tops up] → new pending (retry) → verified
     const [found] = await db.select().from(promoApplications)
       .where(and(
         or(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)),
@@ -300,6 +302,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async findNoMoneyApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined> {
+    // Returns the most recent no_money record for this email/CU, used to detect retry-after-topup.
+    // If the caller already confirmed no duplicate exists (i.e. no pending/verified record),
+    // and this returns a result, the new submission is a legitimate retry.
     const [found] = await db.select().from(promoApplications)
       .where(and(
         or(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)),

@@ -74,7 +74,7 @@ export function formatPromoApplicationMessage(app: {
   }
 
   if (app.isRetryAfterTopup) {
-    lines.push(``, `🔄 <i>Vorherige Anmeldung hatte unzureichendes Guthaben. Dieser Antrag ist neu zu prüfen.</i>`);
+    lines.push(``, `🔄 <i>↩️ Retry after top-up — Vorherige Anmeldung hatte unzureichendes Guthaben. Dieser Antrag ist neu zu prüfen.</i>`);
   } else if (app.isDuplicate) {
     lines.push(``, `🔁 <i>Diese E-Mail oder CU-Nummer wurde bereits verwendet.</i>`);
   }

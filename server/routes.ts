@@ -151,10 +151,14 @@ export async function registerRoutes(
         return res.status(400).json({ error: "CU-Nummer muss mit 'CU' beginnen" });
       }
 
+      // findDuplicatePromoApplication excludes no_money records — so a user whose only prior
+      // record is no_money is NOT considered a duplicate and can resubmit after topping up.
+      // If a pending/verified/rejected record already exists, it is still caught as a duplicate.
       const existing = await storage.findDuplicatePromoApplication(validatedData.email, validatedData.cuNumber);
       const isDuplicate = !!existing;
 
-      // Detect retry-after-topup: not a duplicate, but a prior no_money record exists
+      // Detect retry-after-topup: submission is not a duplicate, but a prior no_money record exists.
+      // This means the user topped up and is resubmitting — signal this to admin via Telegram/Sheets.
       const priorNoMoney = !isDuplicate
         ? await storage.findNoMoneyApplication(validatedData.email, validatedData.cuNumber)
         : undefined;

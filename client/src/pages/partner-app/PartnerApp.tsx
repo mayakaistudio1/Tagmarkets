@@ -39,10 +39,6 @@ function getTelegramUsername(): string | null {
   return tg?.initDataUnsafe?.user?.username || null;
 }
 
-function isInTelegramMiniApp(): boolean {
-  return !!(window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id;
-}
-
 function LanguageSelector() {
   const { language, setLanguage } = useLanguage();
   const langs: Language[] = ["de", "en", "ru"];
@@ -75,7 +71,6 @@ function TelegramLoginScreen({ onLogin }: { onLogin: () => void }) {
   const [notRegistered, setNotRegistered] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
-  const inTelegramApp = isInTelegramMiniApp();
 
   useEffect(() => {
     fetch("/api/partner-app/bot-config")
@@ -85,7 +80,7 @@ function TelegramLoginScreen({ onLogin }: { onLogin: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (inTelegramApp || !botUsername || !widgetRef.current) return;
+    if (!botUsername || !widgetRef.current) return;
     const container = widgetRef.current;
     container.innerHTML = "";
     setWidgetError(null);
@@ -102,6 +97,13 @@ function TelegramLoginScreen({ onLogin }: { onLogin: () => void }) {
           body: JSON.stringify(user),
         });
         const data = await res.json();
+        if (res.status === 404 && data.regToken) {
+          localStorage.setItem("partnerWebToken", data.regToken);
+          localStorage.setItem("partnerTelegramId", data.telegramId);
+          sessionStorage.removeItem("partnerLoggedOut");
+          onLogin();
+          return;
+        }
         if (res.status === 404) {
           setNotRegistered(true);
           setWidgetLoading(false);
@@ -135,7 +137,7 @@ function TelegramLoginScreen({ onLogin }: { onLogin: () => void }) {
       container.innerHTML = "";
       delete (window as any).__partnerTelegramAuthCallback;
     };
-  }, [botUsername, inTelegramApp, t, onLogin]);
+  }, [botUsername, t, onLogin]);
 
   return (
     <div className="h-full flex flex-col items-center justify-center bg-white px-8 text-center" data-testid="telegram-login-screen">
@@ -146,25 +148,23 @@ function TelegramLoginScreen({ onLogin }: { onLogin: () => void }) {
       <h2 className="text-lg font-bold text-gray-900 mb-2">{t("pa.login.title")}</h2>
       <p className="text-sm text-gray-500 mb-6 max-w-xs leading-relaxed">{t("pa.login.subtitle")}</p>
 
-      {!inTelegramApp && (
-        <div className="w-full max-w-xs flex flex-col items-center gap-3 mb-4">
-          {widgetLoading ? (
-            <div className="flex items-center gap-2 text-sm text-gray-500 py-3">
-              <Loader2 className="w-4 h-4 animate-spin" /> Verifying…
-            </div>
-          ) : (
-            <div ref={widgetRef} className="flex justify-center" data-testid="telegram-widget-container" />
-          )}
-          {widgetError && (
-            <p className="text-xs text-red-500" data-testid="text-widget-error">{widgetError}</p>
-          )}
-          {notRegistered && (
-            <p className="text-xs text-amber-600 leading-relaxed max-w-xs" data-testid="text-not-registered">
-              {t("pa.login.notRegistered")}
-            </p>
-          )}
-        </div>
-      )}
+      <div className="w-full max-w-xs flex flex-col items-center gap-3 mb-4">
+        {widgetLoading ? (
+          <div className="flex items-center gap-2 text-sm text-gray-500 py-3">
+            <Loader2 className="w-4 h-4 animate-spin" /> Verifying…
+          </div>
+        ) : (
+          <div ref={widgetRef} className="flex justify-center" data-testid="telegram-widget-container" />
+        )}
+        {widgetError && (
+          <p className="text-xs text-red-500" data-testid="text-widget-error">{widgetError}</p>
+        )}
+        {notRegistered && (
+          <p className="text-xs text-amber-600 leading-relaxed max-w-xs" data-testid="text-not-registered">
+            {t("pa.login.notRegistered")}
+          </p>
+        )}
+      </div>
 
       <a
         href={`https://t.me/${botUsername}?start=open_app`}
@@ -290,19 +290,55 @@ function ErrorScreen({ kind, onRetry }: { kind: ErrorKind; onRetry: () => void }
   );
 }
 
+async function initMiniAppSession(): Promise<"ok" | "not-registered" | "error"> {
+  const tg = (window as any).Telegram?.WebApp;
+  if (!tg?.initData) return "error";
+
+  if (process.env.NODE_ENV === "development" && !tg.initData) return "error";
+
+  try {
+    const res = await fetch("/api/partner-app/validate-init-data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ initData: tg.initData }),
+    });
+    const data = await res.json();
+
+    if (res.status === 404 && data.regToken) {
+      localStorage.setItem("partnerWebToken", data.regToken);
+      localStorage.setItem("partnerTelegramId", data.telegramId);
+      sessionStorage.removeItem("partnerLoggedOut");
+      return "not-registered";
+    }
+    if (!res.ok) return "error";
+
+    localStorage.setItem("partnerWebToken", data.partnerToken);
+    localStorage.setItem("partnerTelegramId", data.telegramId);
+    sessionStorage.removeItem("partnerLoggedOut");
+    return "ok";
+  } catch {
+    return "error";
+  }
+}
+
 export default function PartnerApp() {
   const [activeTab, setActiveTab] = useState<TabId>(getInitialTab);
   const [profile, setProfile] = useState<PartnerProfile | null>(null);
   const [appState, setAppState] = useState<AppState>("loading");
   const [errorKind, setErrorKind] = useState<ErrorKind>("server-error");
-  const [sessionActive, setSessionActive] = useState<boolean>(() => hasPartnerSession());
-  const telegramId = getStoredTelegramId();
   const { t } = useLanguage();
+
+  const telegramId = getStoredTelegramId();
 
   const loadProfile = useCallback(async () => {
     setAppState("loading");
+    const authHeaders = getPartnerAuthHeader();
+    if (!authHeaders["x-partner-token"] && !authHeaders["x-telegram-id"]) {
+      setAppState("needs-telegram-login");
+      return;
+    }
     try {
-      const r = await fetch("/api/partner-app/profile", { headers: { ...getPartnerAuthHeader() } });
+      const r = await fetch("/api/partner-app/profile", { headers: authHeaders });
       if (r.status === 401) { setAppState("needs-registration"); return; }
       if (r.status === 404) { setErrorKind("feature-disabled"); setAppState("error"); return; }
       if (!r.ok) { setErrorKind("server-error"); setAppState("error"); return; }
@@ -315,17 +351,41 @@ export default function PartnerApp() {
   }, []);
 
   useEffect(() => {
-    if (!sessionActive) { setAppState("needs-telegram-login"); return; }
-    loadProfile();
-  }, [sessionActive, loadProfile]);
+    if (sessionStorage.getItem("partnerLoggedOut") === "true") {
+      setAppState("needs-telegram-login");
+      return;
+    }
+
+    const tg = (window as any).Telegram?.WebApp;
+
+    if (tg?.initData) {
+      initMiniAppSession().then(result => {
+        if (result === "not-registered") {
+          setAppState("needs-registration");
+        } else if (result === "ok") {
+          loadProfile();
+        } else {
+          setErrorKind("server-error");
+          setAppState("error");
+        }
+      });
+      return;
+    }
+
+    if (hasPartnerSession()) {
+      loadProfile();
+      return;
+    }
+
+    setAppState("needs-telegram-login");
+  }, [loadProfile]);
 
   const handleTelegramLogin = useCallback(() => {
-    setSessionActive(true);
-  }, []);
+    loadProfile();
+  }, [loadProfile]);
 
   const handleLogout = useCallback(() => {
     clearPartnerSession();
-    setSessionActive(false);
     setProfile(null);
     setAppState("needs-telegram-login");
   }, []);
@@ -346,7 +406,7 @@ export default function PartnerApp() {
   );
   if (!profile) return <div className="h-full flex flex-col items-center justify-center bg-white"><Loader2 className="w-6 h-6 text-gray-400 animate-spin" /></div>;
 
-  const isTelegramContext = isInTelegramMiniApp();
+  const isTelegramContext = !!(window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id;
 
   return (
     <div className="h-full flex flex-col bg-[#F5F5F7] overflow-hidden">

@@ -326,8 +326,11 @@ function verifyPartnerToken(token: string): string | null {
 function getTelegramIdFromRequest(req: any): string | null {
   const partnerToken = req.headers["x-partner-token"] as string;
   if (partnerToken) return verifyPartnerToken(partnerToken);
-  const telegramId = req.headers["x-telegram-id"] as string;
-  return telegramId || null;
+  if (process.env.NODE_ENV === "development") {
+    const telegramId = req.headers["x-telegram-id"] as string;
+    if (telegramId && telegramId !== "demo") return telegramId;
+  }
+  return null;
 }
 
 async function getPartnerFromRequest(req: any): Promise<any | null> {
@@ -338,25 +341,25 @@ async function getPartnerFromRequest(req: any): Promise<any | null> {
     return storage.getPartnerByTelegramChatId(telegramId);
   }
 
-  const telegramId = req.headers["x-telegram-id"] as string;
-  if (!telegramId) return null;
-
-  if (telegramId === "demo" && process.env.NODE_ENV === "development") {
-    const allPartners = await storage.getAllPartners();
-    if (allPartners.length > 0) return allPartners[0];
-    return {
-      id: 0,
-      telegramChatId: "demo",
-      name: "Demo Partner",
-      cuNumber: "CU00000",
-      phone: null,
-      email: null,
-      status: "active",
-      createdAt: new Date(),
-    };
+  if (process.env.NODE_ENV === "development") {
+    const telegramId = req.headers["x-telegram-id"] as string;
+    if (telegramId === "demo") {
+      const allPartners = await storage.getAllPartners();
+      if (allPartners.length > 0) return allPartners[0];
+      return {
+        id: 0,
+        telegramChatId: "demo",
+        name: "Demo Partner",
+        cuNumber: "CU00000",
+        phone: null,
+        email: null,
+        status: "active",
+        createdAt: new Date(),
+      };
+    }
   }
 
-  return storage.getPartnerByTelegramChatId(telegramId);
+  return null;
 }
 
 export function registerPartnerAppRoutes(app: Express) {
@@ -439,7 +442,7 @@ export function registerPartnerAppRoutes(app: Express) {
       const secretKey = crypto.createHash("sha256").update(botToken).digest();
       const expectedHash = crypto.createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
 
-      if (expectedHash !== hash) {
+      if (!crypto.timingSafeEqual(Buffer.from(expectedHash), Buffer.from(hash))) {
         return res.status(401).json({ error: "Invalid Telegram auth signature" });
       }
 
@@ -450,15 +453,73 @@ export function registerPartnerAppRoutes(app: Express) {
 
       const telegramId = String(id);
       const partner = await storage.getPartnerByTelegramChatId(telegramId);
+      const partnerToken = signPartnerToken(telegramId);
       if (!partner) {
-        return res.status(404).json({ error: "Partner not registered" });
+        return res.status(404).json({ error: "Partner not registered", telegramId, regToken: partnerToken });
       }
 
-      const partnerToken = signPartnerToken(telegramId);
       return res.json({ partnerToken, telegramId });
     } catch (error) {
       console.error("Telegram login error:", error);
       res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  app.post("/api/partner-app/validate-init-data", async (req, res) => {
+    if (!partnerAppGuard(req, res)) return;
+    try {
+      const { initData } = req.body;
+      if (!initData) return res.status(400).json({ error: "initData required" });
+
+      const botToken = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+      if (!botToken) return res.status(503).json({ error: "Bot not configured" });
+
+      const params = new URLSearchParams(initData);
+      const hash = params.get("hash");
+      if (!hash) return res.status(400).json({ error: "Missing hash in initData" });
+
+      params.delete("hash");
+      const dataCheckString = [...params.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => `${k}=${v}`)
+        .join("\n");
+
+      const secretKey = crypto.createHmac("sha256", "WebAppData").update(botToken).digest();
+      const expectedHash = crypto.createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
+
+      if (!crypto.timingSafeEqual(Buffer.from(expectedHash), Buffer.from(hash))) {
+        return res.status(401).json({ error: "Invalid initData signature" });
+      }
+
+      const authDateStr = params.get("auth_date");
+      if (authDateStr) {
+        const now = Math.floor(Date.now() / 1000);
+        if (now - parseInt(authDateStr, 10) > 86400) {
+          return res.status(401).json({ error: "initData expired" });
+        }
+      }
+
+      const userJson = params.get("user");
+      if (!userJson) return res.status(400).json({ error: "No user data in initData" });
+
+      let user: any;
+      try { user = JSON.parse(userJson); } catch {
+        return res.status(400).json({ error: "Invalid user data in initData" });
+      }
+
+      const telegramId = String(user.id);
+      const partner = await storage.getPartnerByTelegramChatId(telegramId);
+
+      const partnerToken = signPartnerToken(telegramId);
+
+      if (!partner) {
+        return res.status(404).json({ error: "Partner not registered", telegramId, regToken: partnerToken });
+      }
+
+      return res.json({ partnerToken, telegramId });
+    } catch (error) {
+      console.error("validate-init-data error:", error);
+      res.status(500).json({ error: "Validation failed" });
     }
   });
 

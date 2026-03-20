@@ -1033,6 +1033,7 @@ Return ONLY valid JSON in this format:
       const parsed = insertInviteGuestSchema.safeParse({
         ...req.body,
         inviteEventId: event.id,
+        invitationMethod: "bulk_link",
       });
       if (!parsed.success) {
         return res.status(400).json({ error: fromZodError(parsed.error).message });

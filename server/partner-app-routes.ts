@@ -561,6 +561,7 @@ export function registerPartnerAppRoutes(app: Express) {
           questionTexts: att?.questionTexts ?? [],
           joinTime: att?.joinTime ?? null,
           isWalkIn: false,
+          invitationMethod: g.invitationMethod ?? null,
         };
       });
 
@@ -571,6 +572,26 @@ export function registerPartnerAppRoutes(app: Express) {
       const avgDurationMinutes = validDurations.length > 0
         ? Math.round(validDurations.reduce((s, d) => s + d, 0) / validDurations.length)
         : null;
+
+      // Compute method breakdown — only from registered guests (not walk-ins)
+      // Guests with null invitation_method are historical; group under "unknown" (Other / Link)
+      const methodGroups: Record<string, { invited: number; attended: number }> = {};
+      for (const g of guestsWithStatus) {
+        const method = g.invitationMethod ?? "unknown";
+        if (!methodGroups[method]) {
+          methodGroups[method] = { invited: 0, attended: 0 };
+        }
+        methodGroups[method].invited += 1;
+        if (g.attended) methodGroups[method].attended += 1;
+      }
+      const methodBreakdown = Object.entries(methodGroups)
+        .filter(([, stats]) => stats.invited > 0)
+        .map(([method, stats]) => ({
+          method,
+          invited: stats.invited,
+          attended: stats.attended,
+          conversionRate: stats.invited > 0 ? Math.round((stats.attended / stats.invited) * 100) : 0,
+        }));
 
       res.json({
         event: {
@@ -589,6 +610,7 @@ export function registerPartnerAppRoutes(app: Express) {
           attended: partnerAttended.length,
           avgDurationMinutes,
         },
+        methodBreakdown,
       });
     } catch (error: any) {
       console.error("Partner app event report error:", error);
@@ -1205,6 +1227,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
                 name,
                 email,
                 phone: phone || null,
+                invitationMethod: "personal_ai",
               });
             }
           }

@@ -590,6 +590,10 @@ const translations: Record<Language, Record<string, string>> = {
     'pi.eventInfo': 'О мероприятии',
     'pi.confirmReg': 'Подтвердить регистрацию',
     'pi.typeMessage': 'Напишите сообщение...',
+    'pa.invitationBreakdown': 'Разбивка по методу приглашения',
+    'pa.method.personal_ai': 'AI Personal',
+    'pa.method.bulk_link': 'Общая ссылка',
+    'pa.method.unknown': 'Другое / Ссылка',
   },
   de: {
     'home.title': 'JetUP',
@@ -1170,6 +1174,10 @@ const translations: Record<Language, Record<string, string>> = {
     'pi.eventInfo': 'Über die Veranstaltung',
     'pi.confirmReg': 'Registrierung bestätigen',
     'pi.typeMessage': 'Nachricht eingeben...',
+    'pa.invitationBreakdown': 'Aufschlüsselung nach Einladungsmethode',
+    'pa.method.personal_ai': 'AI Persönlich',
+    'pa.method.bulk_link': 'Gruppen-Link',
+    'pa.method.unknown': 'Andere / Link',
   },
   en: {
     'home.title': 'JetUP',
@@ -1750,6 +1758,10 @@ const translations: Record<Language, Record<string, string>> = {
     'pi.eventInfo': 'About the event',
     'pi.confirmReg': 'Confirm Registration',
     'pi.typeMessage': 'Type a message...',
+    'pa.invitationBreakdown': 'Invitation Breakdown',
+    'pa.method.personal_ai': 'AI Personal',
+    'pa.method.bulk_link': 'Bulk Link',
+    'pa.method.unknown': 'Other / Link',
   },
 };
 

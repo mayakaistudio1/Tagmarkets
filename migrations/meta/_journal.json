@@ -8,6 +8,13 @@
       "when": 1773367758334,
       "tag": "0000_stale_lucky_pierre",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1742510000000,
+      "tag": "0001_invite_guests_invitation_method",
+      "breakpoints": true
     }
   ]
 }

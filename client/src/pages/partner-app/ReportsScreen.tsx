@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck, Calendar, Clock, MessageCircle, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
+import { BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck, Calendar, Clock, MessageCircle, RefreshCw, CheckCircle, AlertCircle, Layers } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 
 interface PartnerEvent {
@@ -10,16 +10,24 @@ interface PartnerEvent {
   inviteEventIds?: number[];
 }
 
+interface MethodBreakdownEntry {
+  method: string;
+  invited: number;
+  attended: number;
+  conversionRate: number;
+}
+
 interface EventReport {
   event: { id: number; title: string; eventDate: string; eventTime: string; inviteCode: string };
   guests: Array<{
     id: number; name: string; email: string; phone: string | null;
     registeredAt: string; clickedZoom: boolean; attended: boolean;
     durationMinutes: number | null; questionsAsked: number | null; questionTexts: string[];
-    joinTime?: string | null; isWalkIn?: boolean;
+    joinTime?: string | null; isWalkIn?: boolean; invitationMethod?: string | null;
   }>;
   funnel: { invited: number; registered: number; clickedZoom: number; attended: number; avgDurationMinutes?: number | null };
   walkInCount?: number;
+  methodBreakdown: MethodBreakdownEntry[];
   inviteEventIds?: number[];
 }
 
@@ -47,6 +55,7 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
   const [events, setEvents] = useState<PartnerEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedGuest, setExpandedGuest] = useState<number | null>(null);
+  const [expandedMethod, setExpandedMethod] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<EventReport | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<PartnerEvent | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
@@ -72,6 +81,26 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
       const reports = await Promise.all(
         ids.map((id) => fetch(`/api/partner-app/events/${id}/report`, { headers: { "x-telegram-id": telegramId } }).then((r) => r.json()))
       );
+      // Merge method breakdown across all sub-reports
+      const mergedMethodMap: Record<string, { invited: number; attended: number }> = {};
+      for (const r of reports) {
+        for (const entry of (r.methodBreakdown ?? [])) {
+          if (!mergedMethodMap[entry.method]) {
+            mergedMethodMap[entry.method] = { invited: 0, attended: 0 };
+          }
+          mergedMethodMap[entry.method].invited += entry.invited;
+          mergedMethodMap[entry.method].attended += entry.attended;
+        }
+      }
+      const mergedMethodBreakdown: MethodBreakdownEntry[] = Object.entries(mergedMethodMap)
+        .filter(([, s]) => s.invited > 0)
+        .map(([method, s]) => ({
+          method,
+          invited: s.invited,
+          attended: s.attended,
+          conversionRate: s.invited > 0 ? Math.round((s.attended / s.invited) * 100) : 0,
+        }));
+
       const combined: EventReport = {
         event: reports[0].event,
         guests: reports.flatMap((r: any) => r.guests),
@@ -82,6 +111,7 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
           clickedZoom: reports.reduce((s: number, r: any) => s + r.funnel.clickedZoom, 0),
           attended: reports.reduce((s: number, r: any) => s + r.funnel.attended, 0),
         },
+        methodBreakdown: mergedMethodBreakdown,
         inviteEventIds: ids,
       };
       setSelectedReport(combined);
@@ -167,6 +197,77 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
             </div>
           )}
         </div>
+
+        {selectedReport.methodBreakdown && selectedReport.methodBreakdown.length > 0 && (
+          <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-violet-500" /> {t('pa.invitationBreakdown')}
+            </h3>
+            <div className="space-y-2">
+              {selectedReport.methodBreakdown.map((entry) => {
+                const isExpanded = expandedMethod === entry.method;
+                const methodLabel = t(`pa.method.${entry.method}`);
+                const filteredGuests = selectedReport.guests.filter(
+                  (g) => !g.isWalkIn && (g.invitationMethod ?? "unknown") === entry.method
+                );
+                return (
+                  <div key={entry.method} className="rounded-xl overflow-hidden border border-gray-100" data-testid={`method-row-${entry.method}`}>
+                    <button
+                      className="w-full flex items-center justify-between px-4 py-3 text-left bg-gray-50 active:bg-gray-100 transition-colors"
+                      onClick={() => setExpandedMethod(isExpanded ? null : entry.method)}
+                      data-testid={`button-method-expand-${entry.method}`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-sm font-medium text-gray-800 truncate">{methodLabel}</span>
+                        <span className="text-[10px] text-gray-400 flex-shrink-0">{entry.invited} {t('pa.invited')} · {entry.attended} {t('pa.attended')}</span>
+                      </div>
+                      <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${entry.conversionRate >= 50 ? "bg-emerald-50 text-emerald-600" : entry.conversionRate >= 20 ? "bg-amber-50 text-amber-600" : "bg-gray-100 text-gray-500"}`}
+                          data-testid={`badge-conversion-${entry.method}`}
+                        >
+                          {entry.conversionRate}%
+                        </span>
+                        <ChevronRight className={`w-3.5 h-3.5 text-gray-300 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                      </div>
+                    </button>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        className="border-t border-gray-100"
+                      >
+                        {filteredGuests.length === 0 ? (
+                          <p className="text-xs text-gray-400 px-4 py-3 italic">{t('pa.noGuests')}</p>
+                        ) : (
+                          <div className="divide-y divide-gray-50">
+                            {filteredGuests.map((g) => (
+                              <div key={g.id} className="px-4 py-2.5 flex items-center justify-between" data-testid={`method-guest-${entry.method}-${g.id}`}>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-medium text-gray-800 truncate">{g.name}</p>
+                                  <p className="text-[11px] text-gray-400 truncate">{g.email}</p>
+                                </div>
+                                <div className="ml-3 flex-shrink-0">
+                                  {g.attended ? (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold">
+                                      ✓ {g.durationMinutes != null ? `${g.durationMinutes}m` : "—"}
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold">{t('pa.noShow')}</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="mb-5">
           {isFutureEvent ? (
@@ -273,9 +374,15 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
                 onClick={() => setExpandedGuest(expandedGuest === g.id ? null : g.id)}
               >
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="text-sm font-medium text-gray-900 truncate">{g.name}</p>
                     {g.isWalkIn && <span className="flex-shrink-0 text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold">Walk-in</span>}
+                    {!g.isWalkIn && (() => {
+                      const m = g.invitationMethod ?? "unknown";
+                      if (m === "personal_ai") return <span className="flex-shrink-0 text-[9px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full font-semibold" data-testid={`tag-method-${g.id}`}>{t('pa.method.personal_ai')}</span>;
+                      if (m === "bulk_link") return <span className="flex-shrink-0 text-[9px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-semibold" data-testid={`tag-method-${g.id}`}>{t('pa.method.bulk_link')}</span>;
+                      return <span className="flex-shrink-0 text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full font-semibold" data-testid={`tag-method-${g.id}`}>{t('pa.method.unknown')}</span>;
+                    })()}
                   </div>
                   <p className="text-[11px] text-gray-400 truncate">{g.email}</p>
                 </div>

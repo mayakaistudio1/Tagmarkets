@@ -238,6 +238,7 @@ export const inviteGuests = pgTable("invite_guests", {
   registeredAt: timestamp("registered_at").defaultNow().notNull(),
   clickedZoom: boolean("clicked_zoom").notNull().default(false),
   clickedAt: timestamp("clicked_at"),
+  invitationMethod: text("invitation_method"),
 });
 
 export const insertInviteGuestSchema = createInsertSchema(inviteGuests).omit({

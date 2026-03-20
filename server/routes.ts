@@ -973,7 +973,7 @@ Return ONLY valid JSON in this format:
         return res.status(404).json({ error: "Event not found" });
       }
 
-      // Reject registrations for past events
+      // Reject registrations for past events (timezone-aware)
       const eventDateIso = (() => {
         const d = event.eventDate;
         if (/^\d{2}\.\d{2}\.\d{4}$/.test(d)) {
@@ -982,9 +982,38 @@ Return ONLY valid JSON in this format:
         }
         return d;
       })();
-      const eventDateTime = new Date(`${eventDateIso}T${event.eventTime || "00:00"}:00`);
-      if (!isNaN(eventDateTime.getTime()) && eventDateTime < new Date()) {
-        return res.status(400).json({ message: "Dieses Event hat bereits stattgefunden." });
+      if (/^\d{4}-\d{2}-\d{2}$/.test(eventDateIso)) {
+        let timezone = "Europe/Berlin";
+        if (event.scheduleEventId) {
+          const se = await storage.getScheduleEvent(event.scheduleEventId);
+          if (se?.timezone) {
+            const tzMap: Record<string, string> = {
+              "CET": "Europe/Berlin", "CEST": "Europe/Berlin", "MEZ": "Europe/Berlin", "MESZ": "Europe/Berlin",
+              "MSK": "Europe/Moscow", "GST": "Asia/Dubai",
+              "EST": "America/New_York", "EDT": "America/New_York",
+              "UTC": "UTC", "GMT": "UTC",
+            };
+            timezone = tzMap[se.timezone] ?? se.timezone;
+          }
+        }
+        try {
+          const eventDateTimeStr = `${eventDateIso}T${event.eventTime || "00:00"}:00`;
+          const formatter = new Intl.DateTimeFormat("en", { timeZone: timezone, hour12: false,
+            year: "numeric", month: "2-digit", day: "2-digit",
+            hour: "2-digit", minute: "2-digit", second: "2-digit" });
+          const nowParts = formatter.formatToParts(new Date());
+          const p = (type: string) => nowParts.find(x => x.type === type)?.value ?? "00";
+          const nowInTz = new Date(`${p("year")}-${p("month")}-${p("day")}T${p("hour")}:${p("minute")}:${p("second")}`);
+          const eventLocal = new Date(eventDateTimeStr);
+          if (!isNaN(eventLocal.getTime()) && eventLocal < nowInTz) {
+            return res.status(400).json({ message: "Dieses Event hat bereits stattgefunden." });
+          }
+        } catch {
+          const eventDateTime = new Date(`${eventDateIso}T${event.eventTime || "00:00"}:00`);
+          if (!isNaN(eventDateTime.getTime()) && eventDateTime < new Date()) {
+            return res.status(400).json({ message: "Dieses Event hat bereits stattgefunden." });
+          }
+        }
       }
 
       // Reject duplicate email registrations for the same invite event

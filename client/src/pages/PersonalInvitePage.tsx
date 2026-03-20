@@ -133,6 +133,7 @@ export default function PersonalInvitePage() {
         if (data.isRegistered) {
           setRegData({ name: "", email: "", telegram: "", phone: "", reminderChannel: "whatsapp" });
           if (data.zoomLink) setZoomLink(data.zoomLink);
+          setShowSuccessScreen(true);
         }
         setLoading(false);
       })

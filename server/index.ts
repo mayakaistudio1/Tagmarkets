@@ -67,6 +67,21 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  try {
+    const { Pool } = await import("pg");
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const client = await pool.connect();
+    try {
+      await client.query("ALTER TABLE invite_guests ADD COLUMN IF NOT EXISTS invitation_method text");
+      log("Database migrations applied", "db");
+    } finally {
+      client.release();
+      await pool.end();
+    }
+  } catch (e) {
+    console.error("Migration error:", e);
+  }
+
   const { seedDatabase } = await import("./seed");
   try {
     await seedDatabase();

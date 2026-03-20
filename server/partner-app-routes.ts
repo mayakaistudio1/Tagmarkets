@@ -10,6 +10,11 @@ import { notifyPartnerPersonalInviteRegistration } from "./integrations/partner-
 import { sendGuestConfirmationEmail } from "./integrations/resend-email";
 import { syncZoomDataForEvent, isZoomConfigured } from "./integrations/zoom-api";
 
+function getPartnerBotToken(): string | undefined {
+  if (process.env.NODE_ENV === "production") return process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+  return process.env.TELEGRAM_PARTNER_BOT_TOKEN_DEV || process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+}
+
 const PROSPECT_TYPES = ["Investor", "MLM Leader", "Entrepreneur", "Beginner", "Neutral"] as const;
 const DISC_TYPES = ["D", "I", "S", "C"] as const;
 const MOTIVATION_TYPES = ["money_results", "business_growth", "technology_innovation", "community_people", "learning_curiosity"] as const;
@@ -294,7 +299,7 @@ function partnerAppGuard(req: any, res: any): boolean {
 }
 
 function signPartnerToken(telegramId: string): string {
-  const botToken = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+  const botToken = getPartnerBotToken();
   if (!botToken) throw new Error("Bot token not configured");
   const expiry = Date.now() + 30 * 24 * 3600 * 1000;
   const payload = Buffer.from(`${telegramId}.${expiry}`).toString("base64url");
@@ -304,7 +309,7 @@ function signPartnerToken(telegramId: string): string {
 
 function verifyPartnerToken(token: string): string | null {
   try {
-    const botToken = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+    const botToken = getPartnerBotToken();
     if (!botToken) return null;
     const lastDot = token.lastIndexOf(".");
     if (lastDot < 0) return null;
@@ -425,7 +430,7 @@ export function registerPartnerAppRoutes(app: Express) {
         return res.status(400).json({ error: "Missing required Telegram auth fields" });
       }
 
-      const botToken = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+      const botToken = getPartnerBotToken();
       if (!botToken) return res.status(503).json({ error: "Bot not configured" });
 
       const authFields: Record<string, string> = { id: String(id), auth_date: String(auth_date) };
@@ -471,7 +476,7 @@ export function registerPartnerAppRoutes(app: Express) {
       const { initData } = req.body;
       if (!initData) return res.status(400).json({ error: "initData required" });
 
-      const botToken = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+      const botToken = getPartnerBotToken();
       if (!botToken) return res.status(503).json({ error: "Bot not configured" });
 
       const params = new URLSearchParams(initData);

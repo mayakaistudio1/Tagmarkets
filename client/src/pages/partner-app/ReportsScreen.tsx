@@ -18,7 +18,8 @@ interface EventReport {
     durationMinutes: number | null; questionsAsked: number | null; questionTexts: string[];
     joinTime?: string | null; isWalkIn?: boolean;
   }>;
-  funnel: { invited: number; registered: number; clickedZoom: number; attended: number };
+  funnel: { invited: number; registered: number; clickedZoom: number; attended: number; avgDurationMinutes?: number | null };
+  walkInCount?: number;
   inviteEventIds?: number[];
 }
 
@@ -74,6 +75,7 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
       const combined: EventReport = {
         event: reports[0].event,
         guests: reports.flatMap((r: any) => r.guests),
+        walkInCount: reports.reduce((s: number, r: any) => s + (r.walkInCount ?? 0), 0),
         funnel: {
           invited: reports.reduce((s: number, r: any) => s + r.funnel.invited, 0),
           registered: reports.reduce((s: number, r: any) => s + r.funnel.registered, 0),
@@ -246,6 +248,13 @@ export default function ReportsScreen({ telegramId }: { telegramId: string }) {
             </>
           )}
         </div>
+
+        {(selectedReport.walkInCount ?? 0) > 0 && (
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-4" data-testid="walk-in-banner">
+            <Users className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <p className="text-xs text-amber-700">{selectedReport.walkInCount} Walk-ins — nicht über deinen Link</p>
+          </div>
+        )}
 
         <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('pa.guests')} ({selectedReport.guests.length})</h3>
         <div className="space-y-2">

@@ -491,8 +491,10 @@ export function registerPartnerAppRoutes(app: Express) {
 
         const guests = await storage.getGuestsByEventId(event.id);
         const attendance = await storage.getZoomAttendanceByEventId(event.id);
+        const attendanceEmailSet = new Set(attendance.map((a: any) => a.participantEmail.toLowerCase()));
+        const partnerAttendedCount = guests.filter((g: any) => attendanceEmailSet.has(g.email.toLowerCase())).length;
         group.totalGuests += guests.length;
-        group.totalAttended += attendance.length;
+        group.totalAttended += partnerAttendedCount;
         group.totalClicked += guests.filter((g: any) => g.clickedZoom).length;
       }
 
@@ -544,6 +546,8 @@ export function registerPartnerAppRoutes(app: Express) {
       const guestsWithStatus = guests.map((g) => {
         const att = attendanceMap.get(g.email.toLowerCase());
         if (att) matchedEmails.add(g.email.toLowerCase());
+        const rawDuration = att ? (att.durationMinutes ?? null) : null;
+        const durationMinutes = rawDuration != null && rawDuration > 480 ? null : rawDuration;
         return {
           id: g.id,
           name: g.name,
@@ -552,7 +556,7 @@ export function registerPartnerAppRoutes(app: Express) {
           registeredAt: g.registeredAt,
           clickedZoom: g.clickedZoom,
           attended: !!att,
-          durationMinutes: att ? (att.durationMinutes ?? null) : null,
+          durationMinutes,
           questionsAsked: att ? (att.questionsAsked ?? null) : null,
           questionTexts: att?.questionTexts ?? [],
           joinTime: att?.joinTime ?? null,
@@ -560,22 +564,13 @@ export function registerPartnerAppRoutes(app: Express) {
         };
       });
 
-      const walkIns = attendance
-        .filter((a) => !matchedEmails.has(a.participantEmail.toLowerCase()))
-        .map((a) => ({
-          id: -(a.id),
-          name: a.participantName || a.participantEmail,
-          email: a.participantEmail,
-          phone: null,
-          registeredAt: a.fetchedAt,
-          clickedZoom: false,
-          attended: true,
-          durationMinutes: a.durationMinutes ?? null,
-          questionsAsked: a.questionsAsked ?? null,
-          questionTexts: a.questionTexts ?? [],
-          joinTime: a.joinTime ?? null,
-          isWalkIn: true,
-        }));
+      const walkInCount = attendance.filter((a) => !matchedEmails.has(a.participantEmail.toLowerCase())).length;
+
+      const partnerAttended = guestsWithStatus.filter((g) => g.attended);
+      const validDurations = partnerAttended.map((g) => g.durationMinutes).filter((d): d is number => d != null);
+      const avgDurationMinutes = validDurations.length > 0
+        ? Math.round(validDurations.reduce((s, d) => s + d, 0) / validDurations.length)
+        : null;
 
       res.json({
         event: {
@@ -585,12 +580,14 @@ export function registerPartnerAppRoutes(app: Express) {
           eventTime: event.eventTime,
           inviteCode: event.inviteCode,
         },
-        guests: [...guestsWithStatus, ...walkIns],
+        guests: guestsWithStatus,
+        walkInCount,
         funnel: {
           invited: guests.length,
           registered: guests.length,
           clickedZoom: guests.filter((g) => g.clickedZoom).length,
-          attended: attendance.length,
+          attended: partnerAttended.length,
+          avgDurationMinutes,
         },
       });
     } catch (error: any) {

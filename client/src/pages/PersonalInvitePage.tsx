@@ -101,6 +101,7 @@ export default function PersonalInvitePage() {
   const [sending, setSending] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [showRegForm, setShowRegForm] = useState(false);
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
   const [regData, setRegData] = useState({ name: "", email: "", telegram: "", phone: "", reminderChannel: "whatsapp" as "whatsapp" | "telegram" });
   const [registering, setRegistering] = useState(false);
   const [zoomLink, setZoomLink] = useState<string | null>(null);
@@ -228,11 +229,8 @@ export default function PersonalInvitePage() {
         setShowRegForm(false);
         setIsRegistered(true);
         if (data.zoomLink) setZoomLink(data.zoomLink);
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: data.chatHistory?.[data.chatHistory.length - 1]?.content || `You're registered! 🎉`, type: "text" },
-        ]);
-        setQuickReplies(data.quickReplies || []);
+        setShowSuccessScreen(true);
+        setQuickReplies([]);
       }
     } catch {
       const errMsg = language === "de" ? "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut." : language === "ru" ? "Регистрация не удалась. Попробуйте ещё раз." : "Registration failed. Please try again.";
@@ -403,6 +401,54 @@ export default function PersonalInvitePage() {
           </motion.div>
 
           <div className="text-center pb-4">
+            <p className="text-[10px] text-gray-400">{t('pi.poweredBy')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showSuccessScreen) {
+    const successTitle = language === "de" ? "Registrierung erfolgreich!" : language === "ru" ? "Регистрация прошла успешно!" : "Registration successful!";
+    const successSub = language === "de" ? "Du bist für das Event angemeldet." : language === "ru" ? "Ты зарегистрирован на мероприятие." : "You're registered for the event.";
+    const zoomBtnLabel = language === "de" ? "Zoom Meeting beitreten" : language === "ru" ? "Войти в Zoom Meeting" : "Join Zoom Meeting";
+    const zoomNote = language === "de" ? "Klicke auf den Button, um das Zoom-Meeting in einem neuen Tab zu öffnen." : language === "ru" ? "Нажми кнопку, чтобы открыть Zoom в новой вкладке." : "Click the button to open the Zoom meeting in a new tab.";
+    return (
+      <div className="min-h-screen bg-[#F5F5F7] overflow-y-auto no-scrollbar">
+        <div className="max-w-md mx-auto px-5 py-10 space-y-6 flex flex-col items-center text-center">
+          <img src="/jetup-logo.png" alt="JetUP Logo" className="h-8" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full space-y-5"
+          >
+            <div className="bg-emerald-50 rounded-2xl p-6">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">✓</span>
+              </div>
+              <p className="text-base font-bold text-gray-900">{successTitle}</p>
+              <p className="text-sm text-gray-500 mt-1">{successSub}</p>
+            </div>
+            {zoomLink ? (
+              <a
+                href={zoomLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-blue-600 text-base font-bold text-white active:bg-blue-700 transition-colors"
+                data-testid="link-join-zoom-success"
+              >
+                <Video className="w-5 h-5" />
+                {zoomBtnLabel}
+              </a>
+            ) : (
+              <div className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-blue-200 text-base font-bold text-blue-400 cursor-not-allowed">
+                <Video className="w-5 h-5" />
+                {zoomBtnLabel}
+              </div>
+            )}
+            <p className="text-xs text-gray-400">{zoomNote}</p>
+          </motion.div>
+          <div className="pt-4">
             <p className="text-[10px] text-gray-400">{t('pi.poweredBy')}</p>
           </div>
         </div>

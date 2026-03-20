@@ -237,7 +237,13 @@ const InvitePage = () => {
   const se = event.scheduleEvent;
   const speakerName = se?.speaker;
   const speakerPhoto = se?.speakerPhoto;
-  const highlights = se?.highlights || [];
+  const rawHighlights = se?.highlights || [];
+  const highlights = rawHighlights.length > 0 ? rawHighlights : [
+    "Praxisnahes Trading-Wissen aus erster Hand",
+    "Strategien für alle Marktbedingungen",
+    "Live-Analyse mit erfahrenen Experten",
+    "Fragen & Antworten mit dem Speaker",
+  ];
   const bannerUrl = se?.banner;
 
   return (

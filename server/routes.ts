@@ -972,6 +972,31 @@ Return ONLY valid JSON in this format:
       if (!event || !event.isActive) {
         return res.status(404).json({ error: "Event not found" });
       }
+
+      // Reject registrations for past events
+      const eventDateIso = (() => {
+        const d = event.eventDate;
+        if (/^\d{2}\.\d{2}\.\d{4}$/.test(d)) {
+          const [dd, mm, yyyy] = d.split(".");
+          return `${yyyy}-${mm}-${dd}`;
+        }
+        return d;
+      })();
+      const eventDateTime = new Date(`${eventDateIso}T${event.eventTime || "00:00"}:00`);
+      if (!isNaN(eventDateTime.getTime()) && eventDateTime < new Date()) {
+        return res.status(400).json({ message: "Dieses Event hat bereits stattgefunden." });
+      }
+
+      // Reject duplicate email registrations for the same invite event
+      const email = (req.body.email || "").trim().toLowerCase();
+      if (email) {
+        const existingGuests = await storage.getGuestsByEventId(event.id);
+        const duplicate = existingGuests.find(g => g.email.trim().toLowerCase() === email);
+        if (duplicate) {
+          return res.status(400).json({ message: "Du bist bereits für dieses Event registriert." });
+        }
+      }
+
       const parsed = insertInviteGuestSchema.safeParse({
         ...req.body,
         inviteEventId: event.id,

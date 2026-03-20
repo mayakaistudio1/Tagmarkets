@@ -154,6 +154,12 @@ export async function registerRoutes(
       const existing = await storage.findDuplicatePromoApplication(validatedData.email, validatedData.cuNumber);
       const isDuplicate = !!existing;
 
+      // Detect retry-after-topup: not a duplicate, but a prior no_money record exists
+      const priorNoMoney = !isDuplicate
+        ? await storage.findNoMoneyApplication(validatedData.email, validatedData.cuNumber)
+        : undefined;
+      const isRetryAfterTopup = !!priorNoMoney;
+
       const application = await storage.createPromoApplication({
         ...validatedData,
         ...(isDuplicate ? { status: "duplicate" } : {}),
@@ -170,17 +176,19 @@ export async function registerRoutes(
         cuNumber: validatedData.cuNumber,
         promoTitle,
         isDuplicate,
+        isRetryAfterTopup,
       });
       sendTelegramNotification(tgMessage).catch((err) =>
         console.error("TG notify error:", err)
       );
 
+      const sheetStatus = isDuplicate ? "duplicate" : isRetryAfterTopup ? "retry" : "pending";
       appendPromoApplicationToSheet({
         name: validatedData.name,
         email: validatedData.email,
         cuNumber: validatedData.cuNumber,
         promoTitle,
-        status: isDuplicate ? "duplicate" : "pending",
+        status: sheetStatus,
         createdAt: application.createdAt,
       }).catch((err) => console.error("Sheets append error:", err));
 

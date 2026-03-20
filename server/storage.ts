@@ -42,6 +42,7 @@ export interface IStorage {
   getPromoApplications(): Promise<PromoApplication[]>;
   updatePromoApplicationStatus(id: number, status: string): Promise<PromoApplication>;
   findDuplicatePromoApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined>;
+  findNoMoneyApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined>;
   getUnverifiedPromoApplicationByEmail(email: string, cuNumber?: string): Promise<PromoApplication | undefined>;
   markPromoApplicationVerified(id: number): Promise<PromoApplication>;
   markPromoApplicationEmailSent(id: number): Promise<PromoApplication>;
@@ -288,8 +289,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async findDuplicatePromoApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined> {
+    // A no_money record is an invitation to retry, not a blocker — exclude it from duplicate detection
     const [found] = await db.select().from(promoApplications)
-      .where(or(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)))
+      .where(and(
+        or(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)),
+        ne(promoApplications.status, "no_money")
+      ))
+      .limit(1);
+    return found;
+  }
+
+  async findNoMoneyApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined> {
+    const [found] = await db.select().from(promoApplications)
+      .where(and(
+        or(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)),
+        eq(promoApplications.status, "no_money")
+      ))
+      .orderBy(desc(promoApplications.createdAt))
       .limit(1);
     return found;
   }

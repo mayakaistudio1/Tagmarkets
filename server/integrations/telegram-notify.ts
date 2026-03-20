@@ -50,9 +50,19 @@ export function formatPromoApplicationMessage(app: {
   cuNumber: string;
   promoTitle?: string;
   isDuplicate?: boolean;
+  isRetryAfterTopup?: boolean;
 }): string {
+  let header: string;
+  if (app.isRetryAfterTopup) {
+    header = `↩️ <b>Wiederholung nach Aufladung!</b>`;
+  } else if (app.isDuplicate) {
+    header = `⚠️ <b>Wiederholte Anmeldung!</b>`;
+  } else {
+    header = `🎯 <b>Neue Promo-Anmeldung!</b>`;
+  }
+
   const lines = [
-    app.isDuplicate ? `⚠️ <b>Wiederholte Anmeldung!</b>` : `🎯 <b>Neue Promo-Anmeldung!</b>`,
+    header,
     ``,
     `👤 <b>Name:</b> ${app.name}`,
     `📧 <b>E-Mail:</b> ${app.email}`,
@@ -63,7 +73,9 @@ export function formatPromoApplicationMessage(app: {
     lines.push(`📋 <b>Aktion:</b> ${app.promoTitle}`);
   }
 
-  if (app.isDuplicate) {
+  if (app.isRetryAfterTopup) {
+    lines.push(``, `🔄 <i>Vorherige Anmeldung hatte unzureichendes Guthaben. Dieser Antrag ist neu zu prüfen.</i>`);
+  } else if (app.isDuplicate) {
     lines.push(``, `🔁 <i>Diese E-Mail oder CU-Nummer wurde bereits verwendet.</i>`);
   }
 

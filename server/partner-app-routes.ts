@@ -370,6 +370,53 @@ export function registerPartnerAppRoutes(app: Express) {
     }
   });
 
+  app.post("/api/partner-app/telegram-login", async (req, res) => {
+    if (!partnerAppGuard(req, res)) return;
+    try {
+      const { id, first_name, last_name, username, photo_url, auth_date, hash } = req.body;
+      if (!id || !auth_date || !hash) {
+        return res.status(400).json({ error: "Missing required Telegram auth fields" });
+      }
+
+      const botToken = process.env.TELEGRAM_PARTNER_BOT_TOKEN;
+      if (!botToken) return res.status(503).json({ error: "Bot not configured" });
+
+      const authFields: Record<string, string> = { id: String(id), auth_date: String(auth_date) };
+      if (first_name) authFields.first_name = first_name;
+      if (last_name) authFields.last_name = last_name;
+      if (username) authFields.username = username;
+      if (photo_url) authFields.photo_url = photo_url;
+
+      const dataCheckString = Object.entries(authFields)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => `${k}=${v}`)
+        .join("\n");
+
+      const secretKey = crypto.createHash("sha256").update(botToken).digest();
+      const expectedHash = crypto.createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
+
+      if (expectedHash !== hash) {
+        return res.status(401).json({ error: "Invalid Telegram auth signature" });
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      if (now - parseInt(String(auth_date), 10) > 86400) {
+        return res.status(401).json({ error: "Auth data expired" });
+      }
+
+      const telegramId = String(id);
+      const partner = await storage.getPartnerByTelegramChatId(telegramId);
+      if (!partner) {
+        return res.status(404).json({ error: "Partner not registered" });
+      }
+
+      return res.json({ telegramId });
+    } catch (error) {
+      console.error("Telegram login error:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
   app.get("/api/partner-app/profile", async (req, res) => {
     if (!partnerAppGuard(req, res)) return;
     try {

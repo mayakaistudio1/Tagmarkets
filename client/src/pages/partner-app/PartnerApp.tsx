@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Clock, Users, BarChart3, Loader2, User, Hash, Phone, Mail, ArrowRight, LogIn, LogOut, WifiOff, RefreshCw, AlertCircle } from "lucide-react";
 import UpcomingScreen from "./UpcomingScreen";
@@ -54,22 +54,8 @@ function LanguageSelector() {
   );
 }
 
-interface TelegramAuthUser {
-  id: number;
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  auth_date: number;
-  hash: string;
-}
-
-function TelegramLoginScreen({ onLogin }: { onLogin: () => void }) {
+function TelegramLoginScreen({ onLogin: _onLogin }: { onLogin: () => void }) {
   const [botUsername, setBotUsername] = useState("JetUP_Partner_Bot");
-  const [widgetError, setWidgetError] = useState<string | null>(null);
-  const [widgetLoading, setWidgetLoading] = useState(false);
-  const [notRegistered, setNotRegistered] = useState(false);
-  const widgetRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -79,66 +65,6 @@ function TelegramLoginScreen({ onLogin }: { onLogin: () => void }) {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (!botUsername || !widgetRef.current) return;
-    const container = widgetRef.current;
-    container.innerHTML = "";
-    setWidgetError(null);
-    setNotRegistered(false);
-
-    (window as any).__partnerTelegramAuthCallback = async (user: TelegramAuthUser) => {
-      setWidgetLoading(true);
-      setWidgetError(null);
-      setNotRegistered(false);
-      try {
-        const res = await fetch("/api/partner-app/telegram-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(user),
-        });
-        const data = await res.json();
-        if (res.status === 404 && data.regToken) {
-          localStorage.setItem("partnerWebToken", data.regToken);
-          localStorage.setItem("partnerTelegramId", data.telegramId);
-          sessionStorage.removeItem("partnerLoggedOut");
-          onLogin();
-          return;
-        }
-        if (res.status === 404) {
-          setNotRegistered(true);
-          setWidgetLoading(false);
-          return;
-        }
-        if (!res.ok) {
-          setWidgetError(t("pa.login.authError"));
-          setWidgetLoading(false);
-          return;
-        }
-        localStorage.setItem("partnerWebToken", data.partnerToken);
-        localStorage.setItem("partnerTelegramId", data.telegramId);
-        sessionStorage.removeItem("partnerLoggedOut");
-        onLogin();
-      } catch {
-        setWidgetError(t("pa.login.authError"));
-        setWidgetLoading(false);
-      }
-    };
-
-    const script = document.createElement("script");
-    script.src = "https://telegram.org/js/telegram-widget.js?22";
-    script.setAttribute("data-telegram-login", botUsername);
-    script.setAttribute("data-size", "large");
-    script.setAttribute("data-onauth", "__partnerTelegramAuthCallback(user)");
-    script.setAttribute("data-request-access", "write");
-    script.async = true;
-    container.appendChild(script);
-
-    return () => {
-      container.innerHTML = "";
-      delete (window as any).__partnerTelegramAuthCallback;
-    };
-  }, [botUsername, t, onLogin]);
-
   return (
     <div className="h-full flex flex-col items-center justify-center bg-white px-8 text-center" data-testid="telegram-login-screen">
       <div className="absolute top-4 right-4"><LanguageSelector /></div>
@@ -146,25 +72,7 @@ function TelegramLoginScreen({ onLogin }: { onLogin: () => void }) {
         <LogIn className="w-7 h-7 text-blue-600" />
       </div>
       <h2 className="text-lg font-bold text-gray-900 mb-2">{t("pa.login.title")}</h2>
-      <p className="text-sm text-gray-500 mb-6 max-w-xs leading-relaxed">{t("pa.login.subtitle")}</p>
-
-      <div className="w-full max-w-xs flex flex-col items-center gap-3 mb-4">
-        {widgetLoading ? (
-          <div className="flex items-center gap-2 text-sm text-gray-500 py-3">
-            <Loader2 className="w-4 h-4 animate-spin" /> Verifying…
-          </div>
-        ) : (
-          <div ref={widgetRef} className="flex justify-center" data-testid="telegram-widget-container" />
-        )}
-        {widgetError && (
-          <p className="text-xs text-red-500" data-testid="text-widget-error">{widgetError}</p>
-        )}
-        {notRegistered && (
-          <p className="text-xs text-amber-600 leading-relaxed max-w-xs" data-testid="text-not-registered">
-            {t("pa.login.notRegistered")}
-          </p>
-        )}
-      </div>
+      <p className="text-sm text-gray-500 mb-8 max-w-xs leading-relaxed">{t("pa.login.subtitle")}</p>
 
       <a
         href={`https://t.me/${botUsername}?start=open_app`}

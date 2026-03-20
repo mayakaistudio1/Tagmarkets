@@ -54,7 +54,7 @@ function LanguageSelector() {
   );
 }
 
-function TelegramLoginScreen({ onLogin: _onLogin }: { onLogin: () => void }) {
+function TelegramLoginScreen() {
   const [botUsername, setBotUsername] = useState("JetUP_Partner_Bot");
   const { t } = useLanguage();
 
@@ -288,10 +288,6 @@ export default function PartnerApp() {
     setAppState("needs-telegram-login");
   }, [loadProfile]);
 
-  const handleTelegramLogin = useCallback(() => {
-    loadProfile();
-  }, [loadProfile]);
-
   const handleLogout = useCallback(() => {
     clearPartnerSession();
     setProfile(null);
@@ -303,7 +299,7 @@ export default function PartnerApp() {
   }, [loadProfile]);
 
   if (appState === "loading") return <div className="h-full flex flex-col items-center justify-center bg-white"><Loader2 className="w-6 h-6 text-gray-400 animate-spin" /></div>;
-  if (appState === "needs-telegram-login") return <TelegramLoginScreen onLogin={handleTelegramLogin} />;
+  if (appState === "needs-telegram-login") return <TelegramLoginScreen />;
   if (appState === "error") return <ErrorScreen kind={errorKind} onRetry={handleRetry} />;
   if (appState === "needs-registration" && telegramId) return (
     <RegistrationScreen

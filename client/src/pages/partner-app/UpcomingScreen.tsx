@@ -39,6 +39,26 @@ interface PersonalInviteResult {
   event: { title: string; date: string; time: string; speaker: string };
 }
 
+interface EventPersonalInvite {
+  id: number;
+  prospectName: string;
+  guestName: string | null;
+  guestTelegram: string | null;
+  status: "sent" | "viewed" | "chatted" | "registered";
+  viewedAt: string | null;
+  registeredAt: string | null;
+  goClickedAt: string | null;
+  createdAt: string;
+  inviteCode: string;
+}
+
+interface EventPersonalInviteStats {
+  total: number;
+  sent: number;
+  viewed: number;
+  registered: number;
+}
+
 const qualifyQuestionsEn = [
   { step: 1, multiSelect: true, aiText: "To create a strong personal invitation, I need to understand this person.\n\nWho is this person to you?", options: [{ label: "Friend / warm contact", value: "friend" }, { label: "Business contact", value: "business_contact" }, { label: "MLM Leader", value: "mlm_leader" }, { label: "Investor type", value: "investor" }, { label: "Entrepreneur", value: "entrepreneur" }, { label: "Cold contact", value: "cold_contact" }] },
   { step: 2, multiSelect: true, aiText: "What motivates this person most?", options: [{ label: "Money / Results", value: "money_results" }, { label: "Business growth", value: "business_growth" }, { label: "Technology / Innovation", value: "technology_innovation" }, { label: "Community / People", value: "community_people" }, { label: "Learning / Curiosity", value: "learning_curiosity" }] },
@@ -95,6 +115,9 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
   const [personalCreating, setPersonalCreating] = useState(false);
   const [detailReport, setDetailReport] = useState<DetailReport | null>(null);
   const [detailReportLoading, setDetailReportLoading] = useState(false);
+  const [eventPersonalInvites, setEventPersonalInvites] = useState<EventPersonalInvite[]>([]);
+  const [eventPersonalInviteStats, setEventPersonalInviteStats] = useState<EventPersonalInviteStats | null>(null);
+  const [eventPersonalInvitesLoading, setEventPersonalInvitesLoading] = useState(false);
 
   const QUALIFY = language === "de" ? qualifyQuestionsDe : language === "ru" ? qualifyQuestionsRu : qualifyQuestionsEn;
 
@@ -165,6 +188,19 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
 
       setDetailReport({ guests: [...socialGuests, ...uniquePersonalGuests], funnel });
     }).finally(() => setDetailReportLoading(false));
+  }, [screen, selected]);
+
+  useEffect(() => {
+    if (screen !== "detail" || !selected) { setEventPersonalInvites([]); setEventPersonalInviteStats(null); return; }
+    setEventPersonalInvitesLoading(true);
+    fetch(`/api/partner-app/events/${selected.id}/personal-invites`, { headers: { ...getPartnerAuthHeader() } })
+      .then(r => r.json())
+      .then(data => {
+        setEventPersonalInvites(data?.invites || []);
+        setEventPersonalInviteStats(data?.stats ?? null);
+      })
+      .catch(() => { setEventPersonalInvites([]); setEventPersonalInviteStats(null); })
+      .finally(() => setEventPersonalInvitesLoading(false));
   }, [screen, selected]);
 
   const createSocialInvite = async () => {
@@ -285,6 +321,48 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
       alert(language === "de" ? "Fehler. Bitte erneut versuchen." : language === "ru" ? "Ошибка. Попробуйте снова." : "Error. Please try again.");
     }
     setPersonalCreating(false);
+  };
+
+  const getStatusLabel = (status: EventPersonalInvite["status"]) => {
+    switch (status) {
+      case "registered": return t("pa.upcoming.statusRegistered");
+      case "chatted": return t("pa.upcoming.statusChatted");
+      case "viewed": return t("pa.upcoming.statusViewed");
+      default: return t("pa.upcoming.statusSent");
+    }
+  };
+
+  const getStatusColor = (status: EventPersonalInvite["status"]) => {
+    switch (status) {
+      case "registered": return "text-emerald-600";
+      case "chatted": return "text-violet-600";
+      case "viewed": return "text-blue-600";
+      default: return "text-gray-400";
+    }
+  };
+
+  const handleFollowUp = (inv: EventPersonalInvite) => {
+    if (!selected) return;
+    const name = inv.guestName || inv.prospectName;
+    const eventDate = selected.date;
+    const eventTitle = selected.title;
+    const msg = language === "ru"
+      ? `Привет, ${name}! Хотел напомнить о вебинаре "${eventTitle}" — он состоится ${eventDate}. Ты уже зарегистрировался? 🙂`
+      : language === "de"
+      ? `Hey ${name}! Wollte dich kurz an das Webinar "${eventTitle}" am ${eventDate} erinnern. Hast du dich schon angemeldet? 🙂`
+      : `Hey ${name}! Just a reminder about the webinar "${eventTitle}" on ${eventDate}. Have you registered yet? 🙂`;
+    const tg = (window as any).Telegram?.WebApp;
+    if (inv.guestTelegram) {
+      const username = inv.guestTelegram.replace("@", "");
+      const url = `https://t.me/${username}`;
+      if (tg?.openTelegramLink) tg.openTelegramLink(url);
+      else window.open(url, "_blank");
+    } else {
+      const encoded = encodeURIComponent(msg);
+      const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.origin)}&text=${encoded}`;
+      if (tg?.openTelegramLink) tg.openTelegramLink(url);
+      else window.open(url, "_blank");
+    }
   };
 
   const goBack = () => {
@@ -684,6 +762,41 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
             <Loader2 className="w-4 h-4 text-gray-300 animate-spin" />
           </div>
         )}
+        <div className="bg-white rounded-2xl p-4 mb-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wide">{t("pa.upcoming.myInvites")}</p>
+            <span className="text-[10px] text-gray-400">
+              {eventPersonalInviteStats?.total ?? eventPersonalInvites.length} {t("pa.upcoming.personalCount")}
+              {` · ${Math.max(0, selected.invitesSent - (eventPersonalInviteStats?.total ?? eventPersonalInvites.length))} ${t("pa.upcoming.socialCount")}`}
+            </span>
+          </div>
+          {eventPersonalInvitesLoading ? (
+            <div className="flex justify-center py-3">
+              <Loader2 className="w-4 h-4 text-gray-300 animate-spin" />
+            </div>
+          ) : eventPersonalInvites.length === 0 ? (
+            <p className="text-xs text-gray-400 text-center py-2">{t("pa.upcoming.myInvitesEmpty")}</p>
+          ) : (
+            <div className="space-y-2">
+              {eventPersonalInvites.map((inv) => (
+                <div key={inv.id} className="flex items-center justify-between gap-2 py-1.5" data-testid={`personal-invite-row-${inv.id}`}>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-gray-800 truncate">{inv.guestName || inv.prospectName}</p>
+                    <p className={`text-[10px] mt-0.5 ${getStatusColor(inv.status)}`}>{getStatusLabel(inv.status)}</p>
+                  </div>
+                  <button
+                    onClick={() => handleFollowUp(inv)}
+                    className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[11px] font-semibold active:bg-blue-100"
+                    data-testid={`button-followup-${inv.id}`}
+                  >
+                    <Bell className="w-3 h-3" />
+                    {t("pa.upcoming.followUp")}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <button onClick={() => setScreen("invite-type")} className="w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white rounded-xl text-sm font-semibold mb-3 active:bg-blue-700" data-testid="button-invite">
           <Send className="w-4 h-4" /> {t("pa.upcoming.invite")}
         </button>

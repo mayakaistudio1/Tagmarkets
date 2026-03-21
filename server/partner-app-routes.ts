@@ -800,6 +800,65 @@ export function registerPartnerAppRoutes(app: Express) {
     }
   });
 
+  app.get("/api/partner-app/events/:id/personal-invites", async (req, res) => {
+    if (!partnerAppGuard(req, res)) return;
+    try {
+      const partner = await getPartnerFromRequest(req);
+      if (!partner) {
+        return res.status(401).json({ error: "Partner not found" });
+      }
+
+      const scheduleEventId = parseInt(req.params.id, 10);
+      if (isNaN(scheduleEventId)) {
+        return res.status(400).json({ error: "Invalid event id" });
+      }
+
+      const allInvites = await storage.getPersonalInvitesByPartnerId(partner.id);
+      const invites = allInvites.filter((i) => i.scheduleEventId === scheduleEventId);
+
+      const result = invites.map((inv) => {
+        let status: "sent" | "viewed" | "chatted" | "registered" = "sent";
+        if (inv.registeredAt) {
+          status = "registered";
+        } else if (inv.chatHistory && inv.chatHistory !== "[]") {
+          try {
+            const chat = JSON.parse(inv.chatHistory);
+            if (Array.isArray(chat) && chat.length > 1) status = "chatted";
+            else if (inv.viewedAt) status = "viewed";
+          } catch {
+            if (inv.viewedAt) status = "viewed";
+          }
+        } else if (inv.viewedAt) {
+          status = "viewed";
+        }
+        return {
+          id: inv.id,
+          prospectName: inv.prospectName,
+          guestName: inv.guestName,
+          guestTelegram: inv.guestTelegram,
+          status,
+          viewedAt: inv.viewedAt ?? null,
+          registeredAt: inv.registeredAt ?? null,
+          goClickedAt: inv.goClickedAt ?? null,
+          createdAt: inv.createdAt,
+          inviteCode: inv.inviteCode,
+        };
+      });
+
+      const stats = {
+        total: invites.length,
+        sent: invites.length,
+        viewed: invites.filter((i) => i.viewedAt).length,
+        registered: invites.filter((i) => i.registeredAt).length,
+      };
+
+      res.json({ invites: result, stats });
+    } catch (error: any) {
+      console.error("Partner app event personal invites error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.get("/api/partner-app/personal-invites", async (req, res) => {
     if (!partnerAppGuard(req, res)) return;
     try {

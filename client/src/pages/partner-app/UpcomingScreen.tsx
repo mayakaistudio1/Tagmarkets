@@ -14,6 +14,18 @@ interface Webinar {
   speaker: string; speakerPhoto: string | null; type: string; typeBadge: string;
   highlights: string[]; language: string;
   invitesSent: number; registeredCount: number;
+  inviteEventIds?: number[];
+}
+
+interface ReportGuest {
+  id: number; name: string; email: string;
+  goClickedAt: string | null; clickedZoom: boolean;
+  attended: boolean; registeredAt: string;
+}
+
+interface DetailReport {
+  guests: ReportGuest[];
+  funnel: { invited: number; registered: number; clickedZoom: number; attended: number };
 }
 
 interface InviteResult {
@@ -80,7 +92,7 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
   const [generatedPreview, setGeneratedPreview] = useState<{ messages: string[]; strategy: string; discType: string; prospectType: string; quickReplies: string[]; motivation: string; reaction: string } | null>(null);
   const [generatingMsgs, setGeneratingMsgs] = useState(false);
   const [personalCreating, setPersonalCreating] = useState(false);
-  const [detailReport, setDetailReport] = useState<{ guests: any[]; funnel: { invited: number; registered: number; clickedZoom: number; attended: number } } | null>(null);
+  const [detailReport, setDetailReport] = useState<DetailReport | null>(null);
   const [detailReportLoading, setDetailReportLoading] = useState(false);
 
   const QUALIFY = language === "de" ? qualifyQuestionsDe : language === "ru" ? qualifyQuestionsRu : qualifyQuestionsEn;
@@ -99,15 +111,19 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
 
   useEffect(() => {
     if (screen !== "detail" || !selected) { setDetailReport(null); return; }
-    const eventIds: number[] = (selected as any).inviteEventIds || [];
+    const eventIds: number[] = selected.inviteEventIds || [];
     if (eventIds.length === 0) return;
     setDetailReportLoading(true);
     Promise.all(
-      eventIds.map(id => fetch(`/api/partner-app/events/${id}/report`, { headers: { ...getPartnerAuthHeader() } }).then(r => r.json()).catch(() => null))
+      eventIds.map(id =>
+        fetch(`/api/partner-app/events/${id}/report`, { headers: { ...getPartnerAuthHeader() } })
+          .then(r => r.json() as Promise<{ guests: ReportGuest[]; funnel: DetailReport["funnel"] }>)
+          .catch(() => null)
+      )
     ).then(reports => {
-      const validReports = reports.filter(Boolean);
-      const allGuests = validReports.flatMap((r: any) => r.guests || []);
-      const funnel = validReports.reduce((acc: any, r: any) => {
+      const validReports = reports.filter((r): r is { guests: ReportGuest[]; funnel: DetailReport["funnel"] } => r !== null);
+      const allGuests = validReports.flatMap(r => r.guests || []);
+      const funnel = validReports.reduce<DetailReport["funnel"]>((acc, r) => {
         if (r.funnel) {
           acc.invited += r.funnel.invited || 0;
           acc.registered += r.funnel.registered || r.funnel.invited || 0;
@@ -611,7 +627,7 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
           <div className="bg-white rounded-2xl p-4 mb-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-3">{t("pa.upcoming.guestLinkStatus")}</p>
             <div className="space-y-2">
-              {detailReport.guests.map((g: any) => (
+              {detailReport.guests.map((g) => (
                 <div key={g.id} className="flex items-center justify-between" data-testid={`upcoming-guest-link-${g.id}`}>
                   <span className="text-xs text-gray-700 truncate max-w-[60%]">{g.name}</span>
                   {g.goClickedAt ? (

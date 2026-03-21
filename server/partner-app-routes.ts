@@ -787,7 +787,7 @@ export function registerPartnerAppRoutes(app: Express) {
         funnel: {
           invited: guests.length,
           registered: guests.length,
-          clickedZoom: guests.filter((g) => g.clickedZoom).length,
+          clickedZoom: guests.filter((g) => !!g.goClickedAt || g.clickedZoom).length,
           attended: partnerAttended.length,
           avgDurationMinutes,
         },

@@ -185,6 +185,8 @@ export async function checkAndSendReminders(): Promise<number> {
 
         let guestEmailSent = true;
         if (invite.guestEmail) {
+          const inviteGuestToken = invite.guestToken;
+          const emailGoLink = inviteGuestToken ? `https://jet-up.ai/go/${inviteGuestToken}` : undefined;
           guestEmailSent = await sendGuestReminderEmail({
             to: invite.guestEmail,
             name: guestName,
@@ -194,6 +196,7 @@ export async function checkAndSendReminders(): Promise<number> {
             timezone: event.timezone || "CET",
             speaker: event.speaker,
             zoomLink: event.link,
+            goLink: emailGoLink,
             language: guestLang,
           }).catch((err) => {
             console.error(`Failed to send guest reminder email to ${invite.guestEmail}:`, err);

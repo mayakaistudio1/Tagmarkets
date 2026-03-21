@@ -1042,6 +1042,30 @@ Return ONLY valid JSON in this format:
       notifyPartnerNewRegistration(event, guest).catch(err =>
         console.error("Partner notification error:", err)
       );
+
+      if (event.scheduleEventId && email) {
+        const se = await storage.getScheduleEvent(event.scheduleEventId);
+        if (se) {
+          const guestToken = guest.guestToken;
+          const goLink = guestToken ? `https://jet-up.ai/go/${guestToken}` : undefined;
+          const { sendGuestConfirmationEmail } = await import("./integrations/resend-email");
+          const guestName = (req.body.name || "").trim();
+          const lang = (req.body.language as string) || "de";
+          sendGuestConfirmationEmail({
+            to: email,
+            name: guestName,
+            eventTitle: se.title,
+            eventDate: se.date,
+            eventTime: se.time,
+            timezone: se.timezone || "CET",
+            speaker: se.speaker,
+            zoomLink: se.link,
+            goLink,
+            language: lang,
+          }).catch(err => console.error("Failed to send guest confirmation email:", err));
+        }
+      }
+
       res.json({ success: true, guestId: guest.id, guestToken: guest.guestToken });
     } catch (error: any) {
       res.status(500).json({ error: error.message });

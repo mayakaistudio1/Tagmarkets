@@ -467,6 +467,7 @@ function buildGuestWebinarEmailHtml(params: {
   timezone: string;
   speaker: string;
   zoomLink: string;
+  goLink?: string;
   language: string;
   isReminder: boolean;
 }): string {
@@ -549,7 +550,7 @@ function buildGuestWebinarEmailHtml(params: {
 
           <tr>
             <td style="padding:0 48px 32px;text-align:center;">
-              <a href="${params.zoomLink}" style="display:inline-block;background-color:#2563eb;color:#ffffff;font-size:15px;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;letter-spacing:0.3px;">
+              <a href="${params.goLink || params.zoomLink}" style="display:inline-block;background-color:#2563eb;color:#ffffff;font-size:15px;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;letter-spacing:0.3px;">
                 🎥 ${escapeHtml(t.joinButton)}
               </a>
               <p style="margin:16px 0 0;color:#94a3b8;font-size:13px;">${escapeHtml(footer)}</p>
@@ -584,6 +585,7 @@ export async function sendGuestConfirmationEmail(params: {
   timezone: string;
   speaker: string;
   zoomLink: string;
+  goLink?: string;
   language: string;
 }): Promise<boolean> {
   try {
@@ -620,6 +622,7 @@ export async function sendGuestReminderEmail(params: {
   timezone: string;
   speaker: string;
   zoomLink: string;
+  goLink?: string;
   language: string;
 }): Promise<boolean> {
   try {

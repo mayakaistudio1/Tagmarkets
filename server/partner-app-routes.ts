@@ -1401,6 +1401,8 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
       }
 
       if (scheduleEvent && email) {
+        const guestToken = updated.guestToken;
+        const goLink = guestToken ? `https://jet-up.ai/go/${guestToken}` : undefined;
         sendGuestConfirmationEmail({
           to: email,
           name,
@@ -1410,6 +1412,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
           timezone: scheduleEvent.timezone || "CET",
           speaker: scheduleEvent.speaker,
           zoomLink: scheduleEvent.link,
+          goLink,
           language: lang,
         }).catch((err) => console.error("Failed to send guest confirmation email:", err));
       }

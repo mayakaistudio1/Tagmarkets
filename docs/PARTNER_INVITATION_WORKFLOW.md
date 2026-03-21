@@ -107,18 +107,21 @@ POST /api/invite/{code}/register
     ▼
 Создаётся запись invite_guests:
     invite_event_id, name, email, phone,
-    guest_token (UUID) ← НОВОЕ (#46),
+    guest_token (UUID),
     invitation_method = "bulk_link"
     │
-    ├──► Партнёр получает Telegram-уведомление:
+    ├──► Партнёр получает Telegram-уведомление (через Partner Bot):
     │    "Новая регистрация: [Имя] на [Вебинар]"
     │
-    └──► [ПЛАНИРУЕТСЯ #45] Гость получает подтверждение
-         на выбранный канал (email/Telegram) с /go/{token}
+    └──► Гость видит экран подтверждения:
+         • "📧 Link wird per E-Mail gesendet" (по умолчанию)
+         • Кнопка "Jetzt Zoom Meeting beitreten" появляется
+           только за ≤60 минут до начала вебинара
+           и ведёт на /go/{guestToken}
 ```
 
 **Таблица:** `invite_guests`
-**Ключевые поля:** id, invite_event_id, name, email, phone, guest_token, invitation_method, clicked_zoom, clicked_at, go_clicked_at
+**Ключевые поля:** id, invite_event_id, name, email, phone, guest_token, invitation_method, clicked_zoom, go_clicked_at
 
 ---
 
@@ -166,7 +169,7 @@ POST /api/partner-app/create-personal-invite
 ```
 
 **Таблица:** `personal_invites`
-**Ключевые поля:** id, partner_id, schedule_event_id, invite_code, prospect_name, disc_type, guest_name, guest_email, guest_telegram, viewed_at, registered_at, chat_history, guest_token, go_clicked_at
+**Ключевые поля:** id, partner_id, schedule_event_id, invite_code, prospect_name, disc_type, guest_name, guest_email, guest_telegram, telegram_chat_id, viewed_at, registered_at, chat_history, guest_token, go_clicked_at
 
 ### Шаг B3: Гость открывает персональную ссылку
 
@@ -191,21 +194,22 @@ Chat фаза — AI-ассистент:
     │
     ▼
 Когда гость готов → Inline-форма регистрации:
-    name, email, канал напоминания (Telegram/WhatsApp/Email),
-    phone или @telegram_username
+    name, email, phone (опционально)
     │
     ▼
 POST /api/personal-invite/{code}/register
     • registered_at = now()
+    • Генерируется guest_token (UUID)
     • Данные синхронизируются в invite_guests
       (invitationMethod = "personal_ai")
-    • Генерируется guest_token (UUID) ← НОВОЕ (#46)
     │
-    ├──► Партнёр получает Telegram-уведомление
+    ├──► Партнёр получает Telegram-уведомление (через Partner Bot)
     │
-    └──► [ПЛАНИРУЕТСЯ #45] Гость получает:
-         • Deep link на бота (если Telegram выбран)
-         • Email с подтверждением и /go/{token}
+    └──► Гость видит экран подтверждения:
+         • "📧 Link wird per E-Mail gesendet" (по умолчанию)
+         • Кнопка "Jetzt Zoom Meeting beitreten" появляется
+           только за ≤60 минут до начала вебинара
+           и ведёт на /go/{guestToken}
 ```
 
 ---
@@ -230,7 +234,7 @@ POST /api/personal-invite/{code}/register
     └──────┬──────┘
            │
     ┌──────▼──────┐
-    │ Clicked /go │ ← go_clicked_at (НОВОЕ #46)
+    │ Clicked /go │ ← go_clicked_at
     └──────┬──────┘
            │
     ┌──────▼──────┐
@@ -246,42 +250,58 @@ POST /api/personal-invite/{code}/register
 
 ## 4. Напоминания и `/go/` ссылка
 
-### [ПЛАНИРУЕТСЯ — Задача #45 + #46]
+### Telegram-напоминание (реализовано)
 
 ```
-Гость зарегистрировался → выбрал канал Telegram
+Гость зарегистрировался → хочет напоминание в Telegram
     │
     ▼
-Экран: "Получи напоминание в Telegram"
-    → Deep link: t.me/BotName?start=remind_{CODE}
+Переходит по deep link:
+    t.me/BotName?start=remind_{inviteCode}
     │
     ▼
-Гость открывает бота → /start remind_{CODE}
-    • Бот сохраняет telegram_chat_id
-    • Бот отправляет подтверждение: "Вы зарегистрированы на..."
+Бот получает /start remind_{inviteCode}
+    • Находит personal_invite по inviteCode
+    • Сохраняет telegram_chat_id гостя
+    • Отправляет подтверждение:
+      "✅ Super! Du erhältst Erinnerungen für das Webinar.
+       📅 [Название] 🕐 [Дата] um [Время]"
     │
     ▼
-За 24 часа до вебинара:
-    Планировщик (reminder-scheduler.ts, каждые 2 мин)
-    → Отправляет через бота:
-      "Вебинар завтра в 13:00! Перейди по ссылке:"
-      → https://jet-up.ai/go/{guestToken}
+reminder-scheduler.ts (опрос каждые 2 мин):
+    Для каждого гостя с reminder_preference:
+        • "1_hour"  → отправляет за 60 мин до старта
+        • "15_min"  → отправляет за 15 мин до старта
     │
     ▼
-За 1 час до вебинара:
-    → Повторное напоминание с /go/{token}
+Канал отправки (приоритет):
+    1. telegram_chat_id (если гость нажал deep link) → прямой чат
+    2. guest_telegram (@username)                     → @username
+    3. email                                          → email
     │
     ▼
-Гость кликает /go/{token}
+Текст напоминания содержит /go/{guestToken}:
+    "🎥 Erinnerung! Das Webinar beginnt in 1 Stunde!
+     📅 28.03 | 🕐 13:00 CET
+     🔗 Jetzt teilnehmen: https://jet-up.ai/go/{token}"
+```
+
+### Переход `/go/:token`
+
+```
+Гость кликает /go/{token} (из письма, Telegram или кнопки в приложении)
     │
     ▼
-GET /go/{token}
-    • Находит гостя по token
-    • Записывает go_clicked_at = now()
-    • 302 Redirect → общая Zoom-ссылка
+GET /go/:token (server-side)
+    • Ищет token в invite_guests (social invite)
+    • Ищет token в personal_invites (personal AI invite)
     │
-    ▼
-Гость попадает в Zoom
+    ├── Найден:
+    │     • Записывает go_clicked_at = now()
+    │     • 302 Redirect → Zoom-ссылка (из invite_event или schedule_event)
+    │
+    └── Не найден:
+          • 404 HTML-страница с сообщением об ошибке
 ```
 
 ---
@@ -303,14 +323,14 @@ syncZoomDataForEvent():
     ▼
 Алгоритм матчинга (для каждого участника Zoom):
 
-    Приоритет 1: Email (текущий)
+    Приоритет 1: Email
     ┌─ invite_guests.email == participant.user_email? → MATCH ✅
     │
-    Приоритет 2: /go/ click timing (НОВОЕ #46)
+    Приоритет 2: /go/ click timing
     ├─ invite_guests.go_clicked_at ±10 мин от join_time? → MATCH ✅
     │
     Приоритет 3: Не совпал ни один критерий
-    └─ → НЕ привязан (ранее считался walk-in)
+    └─ → Не привязан к партнёру (walk-in, не отображается в статистике партнёра)
     │
     ▼
 Создаётся zoom_attendance:
@@ -322,6 +342,8 @@ syncZoomDataForEvent():
 
 **Таблица:** `zoom_attendance`
 **Ключевые поля:** id, invite_guest_id, invite_event_id, participant_email, participant_name, join_time, leave_time, duration_minutes, questions_asked
+
+> **Важно:** Walk-in гости (не совпавшие ни по email, ни по /go/ клику) не отображаются в статистике партнёра. Партнёр видит только своих гостей.
 
 ---
 
@@ -436,15 +458,18 @@ schedule_events          (админ создаёт вебинары)
 
 ---
 
-## 9. Запланированные улучшения
+## 9. Статус задач
 
-| # | Задача | Что добавляет |
-|---|--------|--------------|
-| 42 | Guest UX | Кнопка "назад", чёткая регистрация, умный экран после |
-| 43 | Invite tracking | Список контактов per-event со статусами в UpcomingScreen |
-| 44 | Stats fix | Убрать walk-in из статистики партнёра, починить InvitePage |
-| 45 | Telegram notifications | Deep link бот, подтверждение регистрации, напоминания через `/go/` |
-| 46 | /go/ tracking | `guest_token`, endpoint `/go/:token`, time-proximity матчинг |
+| # | Задача | Статус | Что реализовано |
+|---|--------|--------|----------------|
+| 38 | Auth hardening | ✅ Готово | HMAC validate-init-data, X-Telegram-ID header |
+| 40 | Remove Login Widget | ✅ Готово | Убран Telegram Login Widget |
+| 41 | invite_guests migration | ✅ Готово | Автомиграции при старте |
+| 42 | Guest UX | ✅ Готово | Умный экран после регистрации (email notice + кнопка ≤60 мин) |
+| 44 | Stats fix | ✅ Готово | Walk-in убран из партнёрского API |
+| 45 | Telegram notifications | ✅ Готово | `/start remind_CODE` бот-хэндлер, планировщик через telegram_chat_id + /go/{token} |
+| 46 | /go/ tracking | ✅ Готово | guest_token, /go/:token endpoint, go_clicked_at, time-proximity Zoom matching |
+| 43 | Invite tracking | 🔄 В работе | API + UpcomingScreen список контактов per-event со статусами |
 
 ---
 
@@ -456,7 +481,7 @@ schedule_events          (админ создаёт вебинары)
 | Partner Mini App (фронт) | `client/src/pages/partner-app/` |
 | Гостевые страницы | `client/src/pages/InvitePage.tsx`, `PersonalInvitePage.tsx` |
 | API партнёра | `server/partner-app-routes.ts` |
-| API регистрации | `server/routes.ts` (строки 941–1070) |
+| API регистрации | `server/routes.ts` |
 | Zoom-интеграция | `server/integrations/zoom-api.ts` |
 | Напоминания | `server/integrations/reminder-scheduler.ts` |
 | Partner Bot | `server/integrations/partner-bot.ts` |

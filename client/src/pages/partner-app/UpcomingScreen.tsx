@@ -27,6 +27,7 @@ interface ReportGuest {
 interface DetailReport {
   guests: ReportGuest[];
   funnel: { invited: number; registered: number; clickedZoom: number; attended: number };
+  inviteCode?: string;
 }
 
 interface InviteResult {
@@ -142,7 +143,7 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
         ? Promise.all(
             eventIds.map(id =>
               fetch(`/api/partner-app/events/${id}/report`, { headers: { ...getPartnerAuthHeader() } })
-                .then(r => r.json() as Promise<{ guests: ReportGuest[]; funnel: DetailReport["funnel"] }>)
+                .then(r => r.json() as Promise<{ event: { inviteCode: string }; guests: ReportGuest[]; funnel: DetailReport["funnel"] }>)
                 .catch(() => null)
             )
           )
@@ -151,8 +152,9 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
         .then(r => r.json() as Promise<{ invites: Array<{ id: number; prospectName: string; guestName: string | null; guestEmail: string | null; goClickedAt: string | null; registeredAt: string | null; scheduleEventId: number | null }> }>)
         .catch(() => null),
     ]).then(([eventReports, personalData]) => {
-      const validReports = (eventReports as Array<{ guests: ReportGuest[]; funnel: DetailReport["funnel"] } | null>)
-        .filter((r): r is { guests: ReportGuest[]; funnel: DetailReport["funnel"] } => r !== null);
+      const validReports = (eventReports as Array<{ event: { inviteCode: string }; guests: ReportGuest[]; funnel: DetailReport["funnel"] } | null>)
+        .filter((r): r is { event: { inviteCode: string }; guests: ReportGuest[]; funnel: DetailReport["funnel"] } => r !== null);
+      const firstInviteCode = validReports[0]?.event?.inviteCode;
       const socialGuests: ReportGuest[] = validReports.flatMap(r =>
         (r.guests || []).map(g => ({ ...g, sourceType: "social" as const }))
       );
@@ -186,7 +188,7 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
       funnel.registered += uniquePersonalGuests.filter(g => g.registeredAt).length;
       funnel.clickedZoom += uniquePersonalGuests.filter(g => g.goClickedAt).length;
 
-      setDetailReport({ guests: [...socialGuests, ...uniquePersonalGuests], funnel });
+      setDetailReport({ guests: [...socialGuests, ...uniquePersonalGuests], funnel, inviteCode: firstInviteCode });
     }).finally(() => setDetailReportLoading(false));
   }, [screen, selected]);
 
@@ -203,8 +205,8 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
       .finally(() => setEventPersonalInvitesLoading(false));
   }, [screen, selected]);
 
-  const createSocialInvite = async () => {
-    if (!selected || creating) return;
+  const createSocialInvite = async (): Promise<InviteResult | null> => {
+    if (!selected || creating) return null;
     setCreating(true);
     try {
       const res = await fetch("/api/partner-app/create-invite", {
@@ -212,9 +214,13 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
         headers: { "Content-Type": "application/json", ...getPartnerAuthHeader() },
         body: JSON.stringify({ scheduleEventId: selected.id }),
       });
-      setInviteResult(await res.json());
+      const data: InviteResult = await res.json();
+      setInviteResult(data);
+      setCreating(false);
+      return data;
     } catch {}
     setCreating(false);
+    return null;
   };
 
   const getFullUrl = () => `${window.location.origin}${inviteResult?.inviteUrl || ""}`;
@@ -700,7 +706,10 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
   }
 
   if (screen === "detail" && selected) {
-    const inviteUrl = `${window.location.origin}/invite/${selected.id}`;
+    const existingInviteCode = inviteResult?.inviteCode || detailReport?.inviteCode;
+    const inviteUrl = existingInviteCode
+      ? `${window.location.origin}/invite/${existingInviteCode}`
+      : null;
     return (
       <div className="px-5 pt-5 pb-28">
         <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 mb-4 active:opacity-60" data-testid="button-back"><ChevronLeft className="w-4 h-4" /> {t("pa.back")}</button>
@@ -801,20 +810,39 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
           <Send className="w-4 h-4" /> {t("pa.upcoming.invite")}
         </button>
         <div className="grid grid-cols-3 gap-3">
-          <button onClick={() => { const tg = (window as any).Telegram?.WebApp; if (tg?.openLink) tg.openLink(inviteUrl); else window.open(inviteUrl, "_blank"); }}
+          <button onClick={async () => {
+            let url = inviteUrl;
+            if (!url) { const r = await createSocialInvite(); url = r ? `${window.location.origin}${r.inviteUrl}` : null; }
+            if (!url) return;
+            const tg = (window as any).Telegram?.WebApp;
+            if (tg?.openLink) tg.openLink(url); else window.open(url, "_blank");
+          }}
             className="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-white border border-gray-200 text-xs font-medium text-gray-600 active:bg-gray-50"
             data-testid="button-open-event"
           >
             <Video className="w-4 h-4 text-gray-400" /> {t("pa.upcoming.open")}
           </button>
-          <button onClick={() => { navigator.clipboard.writeText(inviteUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+          <button onClick={async () => {
+            let url = inviteUrl;
+            if (!url) { const r = await createSocialInvite(); url = r ? `${window.location.origin}${r.inviteUrl}` : null; }
+            if (!url) return;
+            navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000);
+          }}
             className="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-white border border-gray-200 text-xs font-medium text-gray-600 active:bg-gray-50"
             data-testid="button-copy-event-link"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
             {t("pa.upcoming.copyLink")}
           </button>
-          <button onClick={() => { const tg = (window as any).Telegram?.WebApp; const url = encodeURIComponent(inviteUrl); if (tg?.openTelegramLink) tg.openTelegramLink(`https://t.me/share/url?url=${url}`); else window.open(`https://t.me/share/url?url=${url}`, "_blank"); }}
+          <button onClick={async () => {
+            let url = inviteUrl;
+            if (!url) { const r = await createSocialInvite(); url = r ? `${window.location.origin}${r.inviteUrl}` : null; }
+            if (!url) return;
+            const tg = (window as any).Telegram?.WebApp;
+            const encodedUrl = encodeURIComponent(url);
+            if (tg?.openTelegramLink) tg.openTelegramLink(`https://t.me/share/url?url=${encodedUrl}`);
+            else window.open(`https://t.me/share/url?url=${encodedUrl}`, "_blank");
+          }}
             className="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-white border border-gray-200 text-xs font-medium text-gray-600 active:bg-gray-50"
             data-testid="button-share-telegram"
           >

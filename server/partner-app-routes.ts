@@ -543,7 +543,8 @@ export function registerPartnerAppRoutes(app: Express) {
       for (const event of events) {
         totalInvited += event.guestCount;
         const attendance = await storage.getZoomAttendanceByEventId(event.id);
-        totalAttended += attendance.length;
+        const partnerAttended = attendance.filter((a: any) => a.inviteGuestId != null);
+        totalAttended += partnerAttended.length;
       }
 
       const personalInvites = await storage.getPersonalInvitesByPartnerId(partner.id);
@@ -649,8 +650,7 @@ export function registerPartnerAppRoutes(app: Express) {
 
         const guests = await storage.getGuestsByEventId(event.id);
         const attendance = await storage.getZoomAttendanceByEventId(event.id);
-        const attendanceEmailSet = new Set(attendance.map((a: any) => a.participantEmail.toLowerCase()));
-        const partnerAttendedCount = guests.filter((g: any) => attendanceEmailSet.has(g.email.toLowerCase())).length;
+        const partnerAttendedCount = attendance.filter((a: any) => a.inviteGuestId != null).length;
         group.totalGuests += guests.length;
         group.totalAttended += partnerAttendedCount;
         group.totalClicked += guests.filter((g: any) => g.clickedZoom).length;
@@ -695,11 +695,13 @@ export function registerPartnerAppRoutes(app: Express) {
       const attendance = await storage.getZoomAttendanceByEventId(event.id);
 
       const attendanceMap = new Map<string, typeof attendance[0]>();
+      const attendanceByGuestId = new Map<number, typeof attendance[0]>();
       for (const a of attendance) {
         attendanceMap.set(a.participantEmail.toLowerCase(), a);
+        if (a.inviteGuestId != null) {
+          attendanceByGuestId.set(a.inviteGuestId, a);
+        }
       }
-
-      const matchedEmails = new Set<string>();
 
       const personalInvitesList = await storage.getPersonalInvitesByPartnerId(partner.id);
       const personalInvitesByEmail = new Map<string, typeof personalInvitesList[0]>();
@@ -716,8 +718,7 @@ export function registerPartnerAppRoutes(app: Express) {
       }
 
       const guestsWithStatus = guests.map((g) => {
-        const att = attendanceMap.get(g.email.toLowerCase());
-        if (att) matchedEmails.add(g.email.toLowerCase());
+        const att = attendanceByGuestId.get(g.id) ?? attendanceMap.get(g.email.toLowerCase());
         const rawDuration = att ? (att.durationMinutes ?? null) : null;
         const durationMinutes = rawDuration != null && rawDuration > 480 ? null : rawDuration;
         const pi = personalInvitesByEmail.get(g.email.toLowerCase());
@@ -747,8 +748,6 @@ export function registerPartnerAppRoutes(app: Express) {
           telegramNotificationsEnabled: pi?.telegramNotificationsEnabled ?? false,
         };
       });
-
-      const walkInCount = attendance.filter((a) => !matchedEmails.has(a.participantEmail.toLowerCase())).length;
 
       const partnerAttended = guestsWithStatus.filter((g) => g.attended);
       const validDurations = partnerAttended.map((g) => g.durationMinutes).filter((d): d is number => d != null);

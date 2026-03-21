@@ -30,3 +30,9 @@ id = "cskHRJmOayopLD0QWQGIh"
 uri = "file://attached_assets/partner-app-redesign-schema.png"
 type = "image"
 title = "Partner Mini App — Redesign Schema"
+
+[[outputs]]
+id = "EB_zoqCebm2WETMloKZ32"
+uri = "file://docs/PARTNER_INVITATION_WORKFLOW.md"
+type = "text"
+title = "Partner Invitation Workflow — Полная архитектура"

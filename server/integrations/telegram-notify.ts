@@ -12,11 +12,11 @@ export async function sendTelegramNotification(message: string): Promise<boolean
   return sendTelegramMessageToChat(chatId, message);
 }
 
-export async function sendTelegramMessageToChat(chatId: string, message: string): Promise<boolean> {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+export async function sendTelegramMessageToChat(chatId: string, message: string, botToken?: string): Promise<boolean> {
+  const token = botToken || process.env.TELEGRAM_BOT_TOKEN;
 
   if (!token) {
-    console.warn("Telegram message skipped: TELEGRAM_BOT_TOKEN not set");
+    console.warn("Telegram message skipped: bot token not set");
     return false;
   }
 

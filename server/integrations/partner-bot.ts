@@ -840,7 +840,8 @@ export async function notifyPartnerPersonalInviteRegistration(invite: any, guest
     `📧 <b>E-Mail:</b> ${guestEmail}\n` +
     `${guestPhone ? `📱 <b>Tel:</b> ${guestPhone}\n` : ""}` +
     `🔗 <b>Einladungscode:</b> ${invite.inviteCode}\n` +
-    `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
+    `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`,
+    getPartnerBotToken()
   );
 }
 
@@ -857,6 +858,7 @@ export async function notifyPartnerNewRegistration(event: any, guest: any): Prom
     `👤 <b>Gast:</b> ${guest.name}\n` +
     `📧 <b>E-Mail:</b> ${guest.email}\n` +
     `${guest.phone ? `📱 <b>Tel:</b> ${guest.phone}\n` : ""}` +
-    `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
+    `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`,
+    getPartnerBotToken()
   );
 }

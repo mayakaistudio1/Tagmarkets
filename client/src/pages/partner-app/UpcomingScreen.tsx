@@ -80,6 +80,8 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
   const [generatedPreview, setGeneratedPreview] = useState<{ messages: string[]; strategy: string; discType: string; prospectType: string; quickReplies: string[]; motivation: string; reaction: string } | null>(null);
   const [generatingMsgs, setGeneratingMsgs] = useState(false);
   const [personalCreating, setPersonalCreating] = useState(false);
+  const [detailReport, setDetailReport] = useState<{ guests: any[]; funnel: { invited: number; registered: number; clickedZoom: number; attended: number } } | null>(null);
+  const [detailReportLoading, setDetailReportLoading] = useState(false);
 
   const QUALIFY = language === "de" ? qualifyQuestionsDe : language === "ru" ? qualifyQuestionsRu : qualifyQuestionsEn;
 
@@ -94,6 +96,29 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [telegramId]);
+
+  useEffect(() => {
+    if (screen !== "detail" || !selected) { setDetailReport(null); return; }
+    const eventIds: number[] = (selected as any).inviteEventIds || [];
+    if (eventIds.length === 0) return;
+    setDetailReportLoading(true);
+    Promise.all(
+      eventIds.map(id => fetch(`/api/partner-app/events/${id}/report`, { headers: { ...getPartnerAuthHeader() } }).then(r => r.json()).catch(() => null))
+    ).then(reports => {
+      const validReports = reports.filter(Boolean);
+      const allGuests = validReports.flatMap((r: any) => r.guests || []);
+      const funnel = validReports.reduce((acc: any, r: any) => {
+        if (r.funnel) {
+          acc.invited += r.funnel.invited || 0;
+          acc.registered += r.funnel.registered || r.funnel.invited || 0;
+          acc.clickedZoom += r.funnel.clickedZoom || 0;
+          acc.attended += r.funnel.attended || 0;
+        }
+        return acc;
+      }, { invited: 0, registered: 0, clickedZoom: 0, attended: 0 });
+      setDetailReport({ guests: allGuests, funnel });
+    }).finally(() => setDetailReportLoading(false));
+  }, [screen, selected]);
 
   const createSocialInvite = async () => {
     if (!selected || creating) return;
@@ -574,8 +599,39 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
               <p className="text-xl font-bold text-blue-600" data-testid="stat-registered">{selected.registeredCount}</p>
               <p className="text-[10px] text-gray-400">{t("pa.registered")}</p>
             </div>
+            {detailReport && (
+              <div className="text-center" data-testid="stat-clicked-link">
+                <p className="text-xl font-bold text-emerald-600">{detailReport.funnel.clickedZoom}</p>
+                <p className="text-[10px] text-gray-400">{t("pa.contacts.goLinkClicked")}</p>
+              </div>
+            )}
           </div>
         </div>
+        {detailReport && detailReport.guests.length > 0 && (
+          <div className="bg-white rounded-2xl p-4 mb-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-3">{t("pa.upcoming.guestLinkStatus")}</p>
+            <div className="space-y-2">
+              {detailReport.guests.map((g: any) => (
+                <div key={g.id} className="flex items-center justify-between" data-testid={`upcoming-guest-link-${g.id}`}>
+                  <span className="text-xs text-gray-700 truncate max-w-[60%]">{g.name}</span>
+                  {g.goClickedAt ? (
+                    <span className="text-[10px] text-emerald-600 flex items-center gap-0.5">
+                      <span>✅</span>
+                      <span>{new Date(g.goClickedAt).toLocaleDateString(language === "de" ? "de-DE" : language === "ru" ? "ru-RU" : "en-US", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-gray-300">⏳ {t("pa.contacts.goLinkPending")}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {detailReportLoading && (
+          <div className="flex justify-center py-2 mb-3">
+            <Loader2 className="w-4 h-4 text-gray-300 animate-spin" />
+          </div>
+        )}
         <button onClick={() => setScreen("invite-type")} className="w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white rounded-xl text-sm font-semibold mb-3 active:bg-blue-700" data-testid="button-invite">
           <Send className="w-4 h-4" /> {t("pa.upcoming.invite")}
         </button>

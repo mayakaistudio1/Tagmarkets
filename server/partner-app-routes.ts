@@ -606,7 +606,7 @@ export function registerPartnerAppRoutes(app: Express) {
           const relatedPi = pInvites.filter((pi) => pi.scheduleEventId === se.id);
           invitesSent += relatedPi.length;
           registeredCount += relatedPi.filter((pi) => pi.registeredAt).length;
-          return { ...se, invitesSent, registeredCount };
+          return { ...se, invitesSent, registeredCount, inviteEventIds: related.map((ie: any) => ie.id) };
         }));
         return res.json(enriched);
       }

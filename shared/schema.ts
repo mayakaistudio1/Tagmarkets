@@ -302,6 +302,7 @@ export const personalInvites = pgTable("personal_invites", {
   isActive: boolean("is_active").notNull().default(true),
   viewedAt: timestamp("viewed_at"),
   reminderSent: boolean("reminder_sent").notNull().default(false),
+  reminder24hSent: boolean("reminder24h_sent").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   guestToken: text("guest_token").unique(),
   goClickedAt: timestamp("go_clicked_at"),

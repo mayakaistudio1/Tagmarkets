@@ -45,7 +45,7 @@ const registerPersonalInviteSchema = z.object({
   email: z.string().email("valid email is required"),
   telegram: z.string().max(100).optional(),
   phone: z.string().max(50).optional(),
-  reminderChannel: z.enum(["telegram", "whatsapp"]).optional(),
+  reminderChannel: z.enum(["telegram", "whatsapp", "email"]).optional(),
 });
 
 function hasAny(csv: string, values: string[]): boolean {
@@ -1184,6 +1184,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         chatHistory: JSON.parse(invite.chatHistory || "[]"),
         zoomLink: invite.registeredAt ? (scheduleEvent?.link || null) : null,
         guestToken: invite.registeredAt ? ((invite as any).guestToken || null) : null,
+        reminderChannel: invite.registeredAt ? (invite.reminderChannel || null) : null,
       });
     } catch (error: any) {
       console.error("Personal invite fetch error:", error);

@@ -89,10 +89,12 @@ export interface IStorage {
   getPersonalInvitesByPartnerId(partnerId: number): Promise<PersonalInvite[]>;
   markPersonalInviteViewed(id: number): Promise<PersonalInvite>;
   getPersonalInvitesPendingReminder(): Promise<PersonalInvite[]>;
+  getPersonalInvitesPendingAutoReminder(): Promise<PersonalInvite[]>;
   getPersonalInviteByGuestToken(token: string): Promise<PersonalInvite | undefined>;
   markPersonalInviteGoClicked(id: number): Promise<PersonalInvite>;
   updatePersonalInviteTelegram(id: number, telegramChatId: string): Promise<PersonalInvite>;
   markPersonalInviteReminderSent(id: number): Promise<PersonalInvite>;
+  markPersonalInviteReminder24hSent(id: number): Promise<PersonalInvite>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -630,6 +632,24 @@ export class DatabaseStorage implements IStorage {
   async updatePersonalInviteTelegram(id: number, telegramChatId: string): Promise<PersonalInvite> {
     const [updated] = await db.update(personalInvites)
       .set({ telegramChatId, telegramNotificationsEnabled: true })
+      .where(eq(personalInvites.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getPersonalInvitesPendingAutoReminder(): Promise<PersonalInvite[]> {
+    return db.select().from(personalInvites).where(
+      and(
+        isNotNull(personalInvites.registeredAt),
+        eq(personalInvites.reminderSent, false),
+        eq(personalInvites.isActive, true),
+      )
+    );
+  }
+
+  async markPersonalInviteReminder24hSent(id: number): Promise<PersonalInvite> {
+    const [updated] = await db.update(personalInvites)
+      .set({ reminder24hSent: true })
       .where(eq(personalInvites.id, id))
       .returning();
     return updated;

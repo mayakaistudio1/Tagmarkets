@@ -104,11 +104,107 @@ function parseEventDateTime(dateStr: string, timeStr: string, timezone?: string)
   }
 }
 
+async function sendReminderForInvite(
+  invite: any,
+  event: any,
+  partner: any,
+  isAdvance: boolean,
+): Promise<boolean> {
+  const guestName = invite.guestName || invite.prospectName;
+  const guestLang = invite.guestLanguage || "de";
+  const contactLines: string[] = [];
+  if (invite.guestEmail) contactLines.push(`📧 ${invite.guestEmail}`);
+  if (invite.guestPhone) contactLines.push(`📱 ${invite.guestPhone}`);
+  if (invite.guestTelegram) contactLines.push(`💬 @${invite.guestTelegram.replace('@', '')}`);
+
+  const channelLabel = invite.reminderChannel === "whatsapp" ? "WhatsApp"
+    : invite.reminderChannel === "telegram" ? "Telegram"
+    : invite.reminderChannel === "email" ? "Email"
+    : null;
+
+  const timeLabelDe = isAdvance ? "24 Stunden" : "1 Stunde";
+  const eventTimeStr = `${event.date} ${event.time}`;
+
+  const partnerMsg =
+    `⏰ <b>Erinnerung senden!</b>\n\n` +
+    `Dein Gast <b>${guestName}</b> hat in ${timeLabelDe} ein Webinar.\n\n` +
+    `📋 <b>Event:</b> ${event.title}\n` +
+    `🕐 <b>Wann:</b> ${eventTimeStr}\n` +
+    `${channelLabel ? `📨 <b>Kanal:</b> ${channelLabel}\n` : ''}` +
+    `${contactLines.length > 0 ? `\n<b>Kontakt:</b>\n${contactLines.join('\n')}\n` : ''}` +
+    `\n💡 <i>Sende deinem Gast eine Erinnerung${channelLabel ? ` über ${channelLabel}` : ''}!</i>`;
+
+  const partnerSent = await sendPartnerBotMessage(partner.telegramChatId, partnerMsg);
+  if (!partnerSent) {
+    console.warn(`Partner reminder failed for invite ${invite.id}; will retry next cycle`);
+    return false;
+  }
+
+  const timeLabel = isAdvance ? "24 hours" : "1 hour";
+  const timeLabelRu = isAdvance ? "24 часа" : "1 час";
+  const timeLabelDeFull = isAdvance ? "24 Stunden" : "1 Stunde";
+
+  const baseUrl = process.env.NODE_ENV === "production"
+    ? (process.env.PRODUCTION_URL || "https://jet-up.ai")
+    : (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "https://jet-up.ai");
+
+  const guestToken = invite.guestToken;
+  const goLink = guestToken ? `${baseUrl}/go/${guestToken}` : event.link;
+
+  let guestEmailSent = true;
+  if (invite.guestEmail) {
+    const emailGoLink = guestToken ? `${baseUrl}/go/${guestToken}` : undefined;
+    guestEmailSent = await sendGuestReminderEmail({
+      to: invite.guestEmail,
+      name: guestName,
+      eventTitle: event.title,
+      eventDate: event.date,
+      eventTime: event.time,
+      timezone: event.timezone || "CET",
+      speaker: event.speaker,
+      zoomLink: event.link,
+      goLink: emailGoLink,
+      language: guestLang,
+    }).catch((err) => {
+      console.error(`Failed to send guest reminder email to ${invite.guestEmail}:`, err);
+      return false;
+    });
+  }
+
+  const hasTgChatId = !!invite.telegramChatId;
+  const hasTgUsername = !!invite.guestTelegram;
+
+  if (hasTgChatId || hasTgUsername) {
+    const safeTitle = event.title.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const safeSpeaker = event.speaker.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    const reminderTexts: Record<string, string> = {
+      en: `🎥 <b>Reminder!</b> The webinar "<b>${safeTitle}</b>" starts in ${timeLabel}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Join now:</b> ${goLink}`,
+      de: `🎥 <b>Erinnerung!</b> Das Webinar "<b>${safeTitle}</b>" beginnt in ${timeLabelDeFull}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Jetzt teilnehmen:</b> ${goLink}`,
+      ru: `🎥 <b>Напоминание!</b> Вебинар "<b>${safeTitle}</b>" начнётся через ${timeLabelRu}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Войти сейчас:</b> ${goLink}`,
+    };
+    const tgMsg = reminderTexts[guestLang] || reminderTexts.de;
+
+    if (hasTgChatId) {
+      sendPartnerBotMessage(invite.telegramChatId, tgMsg).catch((err) =>
+        console.error(`Telegram reminder via chat_id to ${invite.telegramChatId} failed:`, err)
+      );
+    } else if (hasTgUsername) {
+      const tgHandle = invite.guestTelegram!.replace("@", "").trim();
+      sendTelegramMessageByUsername(tgHandle, tgMsg).catch((err) =>
+        console.error(`Telegram reminder to @${tgHandle} failed:`, err)
+      );
+    }
+  }
+
+  return guestEmailSent;
+}
+
 export async function checkAndSendReminders(): Promise<number> {
   let sentCount = 0;
 
   try {
-    const pendingInvites = await storage.getPersonalInvitesPendingReminder();
+    const pendingInvites = await storage.getPersonalInvitesPendingAutoReminder();
     if (pendingInvites.length === 0) return 0;
 
     const now = new Date();
@@ -134,17 +230,9 @@ export async function checkAndSendReminders(): Promise<number> {
           continue;
         }
 
-        const oneHourMs = 60 * 60 * 1000;
-        const fifteenMinMs = 15 * 60 * 1000;
-        let shouldSend = false;
-
-        if (invite.reminderPreference === "1_hour" && msUntilEvent <= oneHourMs) {
-          shouldSend = true;
-        } else if (invite.reminderPreference === "15_min" && msUntilEvent <= fifteenMinMs) {
-          shouldSend = true;
-        }
-
-        if (!shouldSend) continue;
+        const h24Ms = 24 * 60 * 60 * 1000;
+        const h1Ms = 60 * 60 * 1000;
+        const invite24hSent = !!(invite as any).reminder24hSent;
 
         const partner = await storage.getPartnerById(invite.partnerId);
         if (!partner) {
@@ -152,97 +240,23 @@ export async function checkAndSendReminders(): Promise<number> {
           continue;
         }
 
-        const guestName = invite.guestName || invite.prospectName;
-        const contactLines: string[] = [];
-        if (invite.guestEmail) contactLines.push(`📧 ${invite.guestEmail}`);
-        if (invite.guestPhone) contactLines.push(`📱 ${invite.guestPhone}`);
-        if (invite.guestTelegram) contactLines.push(`💬 @${invite.guestTelegram.replace('@', '')}`);
-
-        const timeLabelDe = invite.reminderPreference === "1_hour" ? "1 Stunde" : "15 Minuten";
-        const eventTimeStr = `${event.date} ${event.time}`;
-        const channelLabel = invite.reminderChannel === "whatsapp" ? "WhatsApp" : invite.reminderChannel === "telegram" ? "Telegram" : null;
-
-        const partnerMsg =
-          `⏰ <b>Erinnerung senden!</b>\n\n` +
-          `Dein Gast <b>${guestName}</b> hat eine Erinnerung ${timeLabelDe} vor dem Webinar angefordert.\n\n` +
-          `📋 <b>Event:</b> ${event.title}\n` +
-          `🕐 <b>Wann:</b> ${eventTimeStr}\n` +
-          `${channelLabel ? `📨 <b>Bevorzugter Kanal:</b> ${channelLabel}\n` : ''}` +
-          `${contactLines.length > 0 ? `\n<b>Kontakt:</b>\n${contactLines.join('\n')}\n` : ''}` +
-          `\n💡 <i>Sende deinem Gast eine kurze Erinnerung${channelLabel ? ` über ${channelLabel}` : ''}!</i>`;
-
-        const partnerSent = await sendPartnerBotMessage(partner.telegramChatId, partnerMsg);
-
-        if (!partnerSent) {
-          console.warn(`Partner reminder failed for invite ${invite.id}; will retry next cycle`);
+        if (!invite24hSent && msUntilEvent <= h24Ms && msUntilEvent > h1Ms) {
+          const ok = await sendReminderForInvite(invite, event, partner, true);
+          if (ok) {
+            await storage.markPersonalInviteReminder24hSent(invite.id);
+            sentCount++;
+            console.log(`24h reminder sent for guest ${invite.guestName || invite.prospectName}`);
+          }
           continue;
         }
 
-        console.log(`Reminder notification sent to partner ${partner.name} for guest ${guestName}`);
-
-        const guestLang = invite.guestLanguage || "de";
-        const timeLabel = invite.reminderPreference === "1_hour" ? "1 hour" : "15 minutes";
-
-        let guestEmailSent = true;
-        if (invite.guestEmail) {
-          const inviteGuestToken = invite.guestToken;
-          const emailGoLink = inviteGuestToken ? `https://jet-up.ai/go/${inviteGuestToken}` : undefined;
-          guestEmailSent = await sendGuestReminderEmail({
-            to: invite.guestEmail,
-            name: guestName,
-            eventTitle: event.title,
-            eventDate: event.date,
-            eventTime: event.time,
-            timezone: event.timezone || "CET",
-            speaker: event.speaker,
-            zoomLink: event.link,
-            goLink: emailGoLink,
-            language: guestLang,
-          }).catch((err) => {
-            console.error(`Failed to send guest reminder email to ${invite.guestEmail}:`, err);
-            return false;
-          });
-        }
-
-        const hasTgChatId = !!(invite as any).telegramChatId;
-        const hasTgUsername = !!invite.guestTelegram;
-
-        if (hasTgChatId || hasTgUsername) {
-          const safeTitle = event.title.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-          const safeSpeaker = event.speaker.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-          const baseUrl = process.env.NODE_ENV === "production"
-            ? (process.env.PRODUCTION_URL || "https://jet-up.ai")
-            : (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "https://jet-up.ai");
-
-          const guestToken = (invite as any).guestToken;
-          const goLink = guestToken ? `${baseUrl}/go/${guestToken}` : event.link;
-
-          const reminderTexts: Record<string, string> = {
-            en: `🎥 <b>Reminder!</b> The webinar "<b>${safeTitle}</b>" starts in ${timeLabel}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Join now:</b> ${goLink}`,
-            de: `🎥 <b>Erinnerung!</b> Das Webinar "<b>${safeTitle}</b>" beginnt in ${invite.reminderPreference === "1_hour" ? "1 Stunde" : "15 Minuten"}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Jetzt teilnehmen:</b> ${goLink}`,
-            ru: `🎥 <b>Напоминание!</b> Вебинар "<b>${safeTitle}</b>" начнётся через ${invite.reminderPreference === "1_hour" ? "1 час" : "15 минут"}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Войти сейчас:</b> ${goLink}`,
-          };
-          const tgMsg = reminderTexts[guestLang] || reminderTexts.de;
-
-          if (hasTgChatId) {
-            sendPartnerBotMessage((invite as any).telegramChatId, tgMsg).catch((err) =>
-              console.error(`Failed to send Telegram reminder via chat_id to ${(invite as any).telegramChatId}:`, err)
-            );
-          } else if (hasTgUsername) {
-            const tgHandle = invite.guestTelegram!.replace("@", "").trim();
-            sendTelegramMessageByUsername(tgHandle, tgMsg).catch((err) =>
-              console.error(`Failed to send Telegram reminder to @${tgHandle}:`, err)
-            );
+        if (msUntilEvent <= h1Ms) {
+          const ok = await sendReminderForInvite(invite, event, partner, false);
+          if (ok) {
+            await storage.markPersonalInviteReminderSent(invite.id);
+            sentCount++;
+            console.log(`1h reminder sent for guest ${invite.guestName || invite.prospectName}`);
           }
-        }
-
-        if (guestEmailSent) {
-          await storage.markPersonalInviteReminderSent(invite.id);
-          sentCount++;
-          console.log(`All reminders sent for guest ${guestName}; marked as done`);
-        } else {
-          console.warn(`Guest email reminder failed for invite ${invite.id}; will retry next cycle`);
         }
       } catch (err) {
         console.error(`Error processing reminder for invite ${invite.id}:`, err);
@@ -250,7 +264,7 @@ export async function checkAndSendReminders(): Promise<number> {
     }
 
     if (sentCount > 0) {
-      console.log(`Sent ${sentCount} reminder notification(s) to partners`);
+      console.log(`Sent ${sentCount} reminder notification(s) this cycle`);
     }
   } catch (error) {
     console.error("Reminder scheduler error:", error);

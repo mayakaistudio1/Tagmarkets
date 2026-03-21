@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRoute } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Calendar, Clock, Mic, Star, Send, ChevronRight, Globe, MessageSquare, Phone, Video } from "lucide-react";
+import { Loader2, Calendar, Clock, Mic, Star, Send, ChevronRight, Globe, MessageSquare, Phone, Video, Mail } from "lucide-react";
 import { useLanguage, Language } from "../contexts/LanguageContext";
 
 interface InviteData {
@@ -102,7 +102,7 @@ export default function PersonalInvitePage() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [showRegForm, setShowRegForm] = useState(false);
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
-  const [regData, setRegData] = useState({ name: "", email: "", telegram: "", phone: "", reminderChannel: "whatsapp" as "whatsapp" | "telegram" });
+  const [regData, setRegData] = useState({ name: "", email: "", telegram: "", phone: "", reminderChannel: "email" as "whatsapp" | "telegram" | "email" });
   const [registering, setRegistering] = useState(false);
   const [zoomLink, setZoomLink] = useState<string | null>(null);
   const [guestToken, setGuestToken] = useState<string | null>(null);
@@ -145,6 +145,8 @@ export default function PersonalInvitePage() {
           setRegData({ name: "", email: "", telegram: "", phone: "", reminderChannel: "whatsapp" });
           if (data.zoomLink) setZoomLink(data.zoomLink);
           if (data.guestToken) setGuestToken(data.guestToken);
+          if (data.reminderChannel) setReminderChannel(data.reminderChannel);
+          setInviteCodeForBot(data.inviteCode || code || null);
           setShowSuccessScreen(true);
         }
         setLoading(false);
@@ -652,7 +654,16 @@ export default function PersonalInvitePage() {
               />
               <div>
                 <p className="text-[10px] uppercase text-gray-400 font-semibold tracking-wider mb-1">{t('pi.reminderChannel')}</p>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setRegData({ ...regData, reminderChannel: "email", phone: "", telegram: "" })}
+                    className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-semibold transition-colors border ${regData.reminderChannel === "email" ? "bg-gray-100 border-gray-400 text-gray-700" : "bg-gray-50 border-gray-200 text-gray-500"}`}
+                    data-testid="button-channel-email"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    Email
+                  </button>
                   <button
                     type="button"
                     onClick={() => setRegData({ ...regData, reminderChannel: "whatsapp", telegram: "" })}
@@ -673,7 +684,7 @@ export default function PersonalInvitePage() {
                   </button>
                 </div>
               </div>
-              {regData.reminderChannel === "whatsapp" ? (
+              {regData.reminderChannel === "whatsapp" && (
                 <input
                   placeholder={t('pi.phoneNumber')}
                   value={regData.phone}
@@ -682,7 +693,8 @@ export default function PersonalInvitePage() {
                   className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   data-testid="input-reg-phone"
                 />
-              ) : (
+              )}
+              {regData.reminderChannel === "telegram" && (
                 <input
                   placeholder={t('pi.telegramUsername')}
                   value={regData.telegram}

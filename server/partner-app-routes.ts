@@ -1404,6 +1404,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         guestTelegram: telegram,
         guestPhone: phone,
         reminderChannel: reminderChannel,
+        preferredChannel: reminderChannel,
         guestLanguage: lang,
       });
 

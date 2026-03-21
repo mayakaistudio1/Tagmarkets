@@ -320,16 +320,29 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
                       )}
                       {c.reminderChannel === "telegram" && (
                         <span
-                          className={`flex items-center gap-1 text-[10px] font-medium ${c.telegramNotificationsEnabled ? "text-emerald-600" : "text-gray-400"}`}
+                          className={`flex items-center gap-1 text-[10px] font-medium ${c.telegramNotificationsEnabled ? "text-emerald-600" : "text-amber-500"}`}
                           data-testid={`contact-tg-status-${c.id}`}
                         >
+                          <ReminderChannelIcon channel="telegram" />
                           {c.telegramNotificationsEnabled ? t("pa.contacts.tgSubscribed") : t("pa.contacts.tgNotSubscribed")}
                         </span>
                       )}
-                      {c.reminderChannel && c.reminderChannel !== "telegram" && (
-                        <span className="flex items-center gap-1 text-gray-400" data-testid={`contact-channel-${c.id}`}>
-                          <ReminderChannelIcon channel={c.reminderChannel} />
-                          <span className="text-[10px] capitalize">{c.reminderChannel}</span>
+                      {c.reminderChannel === "whatsapp" && (
+                        <span
+                          className="flex items-center gap-1 text-[10px] font-medium text-emerald-600"
+                          data-testid={`contact-channel-${c.id}`}
+                        >
+                          <ReminderChannelIcon channel="whatsapp" />
+                          {t("pa.contacts.channelWhatsapp")}
+                        </span>
+                      )}
+                      {(c.reminderChannel === "email" || !c.reminderChannel) && (
+                        <span
+                          className="flex items-center gap-1 text-[10px] font-medium text-blue-500"
+                          data-testid={`contact-channel-${c.id}`}
+                        >
+                          <Mail className="w-3 h-3" />
+                          {t("pa.contacts.channelEmail")}
                         </span>
                       )}
                     </div>

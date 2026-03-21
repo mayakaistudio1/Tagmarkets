@@ -261,6 +261,8 @@ export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl
   let synced = 0;
   let skipped = 0;
 
+  const TIME_PROXIMITY_MS = 10 * 60 * 1000;
+
   for (const participant of participants) {
     const email = participant.user_email?.toLowerCase() || "";
     if (existingEmails.has(email)) {
@@ -268,9 +270,23 @@ export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl
       continue;
     }
 
-    const matchedGuest = guests.find(
+    const joinTime = new Date(participant.join_time);
+
+    let matchedGuest = guests.find(
       (g) => g.email.toLowerCase() === email
     );
+
+    if (!matchedGuest) {
+      matchedGuest = guests.find((g) => {
+        const goClickedAt = (g as any).goClickedAt;
+        if (!goClickedAt) return false;
+        const diff = Math.abs(new Date(goClickedAt).getTime() - joinTime.getTime());
+        return diff <= TIME_PROXIMITY_MS;
+      });
+      if (matchedGuest) {
+        console.log(`[ZoomSync] Time-proximity match: ${participant.user_email} ↔ guest#${matchedGuest.id} (go_clicked_at within 10min of join_time)`);
+      }
+    }
 
     const questionsCount = qaData.filter(
       (q) => q.email.toLowerCase() === email
@@ -281,7 +297,7 @@ export async function syncZoomDataForEvent(inviteEventId: number, zoomMeetingUrl
       inviteEventId,
       participantEmail: participant.user_email || "unknown",
       participantName: participant.name,
-      joinTime: new Date(participant.join_time),
+      joinTime,
       leaveTime: new Date(participant.leave_time),
       durationMinutes: participant.duration,
       questionsAsked: questionsCount,

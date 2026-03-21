@@ -760,7 +760,6 @@ export function registerPartnerAppRoutes(app: Express) {
           inviteCode: event.inviteCode,
         },
         guests: guestsWithStatus,
-        walkInCount,
         funnel: {
           invited: guests.length,
           registered: guests.length,
@@ -1158,6 +1157,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         } : null,
         chatHistory: JSON.parse(invite.chatHistory || "[]"),
         zoomLink: invite.registeredAt ? (scheduleEvent?.link || null) : null,
+        guestToken: invite.registeredAt ? ((invite as any).guestToken || null) : null,
       });
     } catch (error: any) {
       console.error("Personal invite fetch error:", error);
@@ -1420,6 +1420,7 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         chatHistory,
         quickReplies: reminderQuickReplies[lang] || reminderQuickReplies.en,
         zoomLink: scheduleEvent?.link || null,
+        guestToken: (updated as any).guestToken || null,
       });
     } catch (error: any) {
       console.error("Personal invite register error:", error);

@@ -239,6 +239,8 @@ export const inviteGuests = pgTable("invite_guests", {
   clickedZoom: boolean("clicked_zoom").notNull().default(false),
   clickedAt: timestamp("clicked_at"),
   invitationMethod: text("invitation_method"),
+  guestToken: text("guest_token").unique(),
+  goClickedAt: timestamp("go_clicked_at"),
 });
 
 export const insertInviteGuestSchema = createInsertSchema(inviteGuests).omit({
@@ -246,6 +248,8 @@ export const insertInviteGuestSchema = createInsertSchema(inviteGuests).omit({
   registeredAt: true,
   clickedZoom: true,
   clickedAt: true,
+  guestToken: true,
+  goClickedAt: true,
 });
 
 export type InsertInviteGuest = z.infer<typeof insertInviteGuestSchema>;
@@ -299,6 +303,11 @@ export const personalInvites = pgTable("personal_invites", {
   viewedAt: timestamp("viewed_at"),
   reminderSent: boolean("reminder_sent").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  guestToken: text("guest_token").unique(),
+  goClickedAt: timestamp("go_clicked_at"),
+  telegramChatId: text("telegram_chat_id"),
+  preferredChannel: text("preferred_channel"),
+  telegramNotificationsEnabled: boolean("telegram_notifications_enabled").notNull().default(false),
 });
 
 export const insertPersonalInviteSchema = createInsertSchema(personalInvites).omit({
@@ -307,6 +316,10 @@ export const insertPersonalInviteSchema = createInsertSchema(personalInvites).om
   inviteCode: true,
   registeredAt: true,
   viewedAt: true,
+  guestToken: true,
+  goClickedAt: true,
+  telegramChatId: true,
+  telegramNotificationsEnabled: true,
 });
 
 export type InsertPersonalInvite = z.infer<typeof insertPersonalInviteSchema>;

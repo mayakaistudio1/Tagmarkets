@@ -69,6 +69,8 @@ export interface IStorage {
   addInviteGuest(data: InsertInviteGuest): Promise<InviteGuest>;
   getGuestsByEventId(eventId: number): Promise<InviteGuest[]>;
   markGuestClickedZoom(guestId: number): Promise<InviteGuest>;
+  getInviteGuestByToken(token: string): Promise<InviteGuest | undefined>;
+  markGuestGoClicked(guestId: number): Promise<InviteGuest>;
 
   createPartner(data: InsertPartner): Promise<Partner>;
   getPartnerByTelegramChatId(chatId: string): Promise<Partner | undefined>;
@@ -81,12 +83,15 @@ export interface IStorage {
 
   createPersonalInvite(data: InsertPersonalInvite): Promise<PersonalInvite>;
   getPersonalInviteByCode(code: string): Promise<PersonalInvite | undefined>;
-  updatePersonalInviteRegistration(id: number, data: { guestName: string; guestEmail: string; guestTelegram?: string; guestPhone?: string; reminderChannel?: string; guestLanguage?: string }): Promise<PersonalInvite>;
+  updatePersonalInviteRegistration(id: number, data: { guestName: string; guestEmail: string; guestTelegram?: string; guestPhone?: string; reminderChannel?: string; guestLanguage?: string; preferredChannel?: string }): Promise<PersonalInvite>;
   updatePersonalInviteChatHistory(id: number, chatHistory: string): Promise<PersonalInvite>;
   updatePersonalInviteReminder(id: number, preference: string): Promise<PersonalInvite>;
   getPersonalInvitesByPartnerId(partnerId: number): Promise<PersonalInvite[]>;
   markPersonalInviteViewed(id: number): Promise<PersonalInvite>;
   getPersonalInvitesPendingReminder(): Promise<PersonalInvite[]>;
+  getPersonalInviteByGuestToken(token: string): Promise<PersonalInvite | undefined>;
+  markPersonalInviteGoClicked(id: number): Promise<PersonalInvite>;
+  updatePersonalInviteTelegram(id: number, telegramChatId: string): Promise<PersonalInvite>;
   markPersonalInviteReminderSent(id: number): Promise<PersonalInvite>;
 }
 
@@ -443,8 +448,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addInviteGuest(data: InsertInviteGuest): Promise<InviteGuest> {
-    const [created] = await db.insert(inviteGuests).values(data).returning();
+    const token = crypto.randomUUID();
+    const [created] = await db.insert(inviteGuests).values({ ...data, guestToken: token }).returning();
     return created;
+  }
+
+  async getInviteGuestByToken(token: string): Promise<InviteGuest | undefined> {
+    const [guest] = await db.select().from(inviteGuests).where(eq(inviteGuests.guestToken, token));
+    return guest;
+  }
+
+  async markGuestGoClicked(guestId: number): Promise<InviteGuest> {
+    const [updated] = await db.update(inviteGuests)
+      .set({ goClickedAt: new Date() })
+      .where(eq(inviteGuests.id, guestId))
+      .returning();
+    return updated;
   }
 
   async getGuestsByEventId(eventId: number): Promise<InviteGuest[]> {
@@ -543,7 +562,8 @@ export class DatabaseStorage implements IStorage {
     return invite;
   }
 
-  async updatePersonalInviteRegistration(id: number, data: { guestName: string; guestEmail: string; guestTelegram?: string; guestPhone?: string; reminderChannel?: string; guestLanguage?: string }): Promise<PersonalInvite> {
+  async updatePersonalInviteRegistration(id: number, data: { guestName: string; guestEmail: string; guestTelegram?: string; guestPhone?: string; reminderChannel?: string; guestLanguage?: string; preferredChannel?: string }): Promise<PersonalInvite> {
+    const token = crypto.randomUUID();
     const [updated] = await db.update(personalInvites).set({
       guestName: data.guestName,
       guestEmail: data.guestEmail,
@@ -551,7 +571,9 @@ export class DatabaseStorage implements IStorage {
       guestPhone: data.guestPhone || null,
       reminderChannel: data.reminderChannel || null,
       guestLanguage: data.guestLanguage || null,
+      preferredChannel: data.preferredChannel || null,
       registeredAt: new Date(),
+      guestToken: token,
     }).where(eq(personalInvites.id, id)).returning();
     return updated;
   }
@@ -589,6 +611,27 @@ export class DatabaseStorage implements IStorage {
 
   async markPersonalInviteReminderSent(id: number): Promise<PersonalInvite> {
     const [updated] = await db.update(personalInvites).set({ reminderSent: true }).where(eq(personalInvites.id, id)).returning();
+    return updated;
+  }
+
+  async getPersonalInviteByGuestToken(token: string): Promise<PersonalInvite | undefined> {
+    const [invite] = await db.select().from(personalInvites).where(eq(personalInvites.guestToken, token));
+    return invite;
+  }
+
+  async markPersonalInviteGoClicked(id: number): Promise<PersonalInvite> {
+    const [updated] = await db.update(personalInvites)
+      .set({ goClickedAt: new Date() })
+      .where(eq(personalInvites.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updatePersonalInviteTelegram(id: number, telegramChatId: string): Promise<PersonalInvite> {
+    const [updated] = await db.update(personalInvites)
+      .set({ telegramChatId, telegramNotificationsEnabled: true })
+      .where(eq(personalInvites.id, id))
+      .returning();
     return updated;
   }
 }

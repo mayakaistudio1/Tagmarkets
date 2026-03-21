@@ -1042,7 +1042,7 @@ Return ONLY valid JSON in this format:
       notifyPartnerNewRegistration(event, guest).catch(err =>
         console.error("Partner notification error:", err)
       );
-      res.json({ success: true, guestId: guest.id });
+      res.json({ success: true, guestId: guest.id, guestToken: guest.guestToken });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -1070,6 +1070,54 @@ Return ONLY valid JSON in this format:
       res.json({ zoomLink });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/go/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+
+      let zoomLink: string | null = null;
+
+      const guest = await storage.getInviteGuestByToken(token);
+      if (guest) {
+        await storage.markGuestGoClicked(guest.id);
+        const event = await storage.getInviteEventById(guest.inviteEventId);
+        zoomLink = event?.zoomLink || null;
+      } else {
+        const personalInvite = await storage.getPersonalInviteByGuestToken(token);
+        if (personalInvite) {
+          await storage.markPersonalInviteGoClicked(personalInvite.id);
+          if (personalInvite.scheduleEventId) {
+            const se = await storage.getScheduleEvent(personalInvite.scheduleEventId);
+            zoomLink = se?.link || null;
+          }
+        }
+      }
+
+      if (!zoomLink) {
+        return res.status(404).send(`<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="UTF-8"><title>Link ungültig</title>
+<style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f8f9fa}
+.box{text-align:center;padding:2rem;max-width:400px}.icon{font-size:3rem;margin-bottom:1rem}
+h1{font-size:1.25rem;color:#1a1a1a;margin:0 0 .5rem}p{color:#666;font-size:.9rem}</style></head>
+<body><div class="box"><div class="icon">🔗</div>
+<h1>Link ist nicht mehr gültig</h1>
+<p>Dieser Einladungslink wurde nicht gefunden oder ist abgelaufen. Bitte wende dich an deinen Partner.</p>
+</div></body></html>`);
+      }
+
+      let cleanZoomLink = zoomLink.trim();
+      if (!cleanZoomLink.startsWith("http")) {
+        const urlMatch = cleanZoomLink.match(/https?:\/\/[^\s]+zoom\.us\/j\/\d+[^\s]*/i);
+        if (urlMatch) cleanZoomLink = urlMatch[0];
+      }
+
+      res.redirect(302, cleanZoomLink);
+    } catch (error: any) {
+      console.error("[/go] Error:", error);
+      res.status(500).send("Interner Fehler. Bitte versuche es später erneut.");
     }
   });
 

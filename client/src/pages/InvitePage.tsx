@@ -135,6 +135,87 @@ function formatDate(dateStr: string): string {
   return dateStr;
 }
 
+function isEventStartingSoon(dateStr: string, timeStr: string, withinMinutes = 60): boolean {
+  let isoDate: string | null = null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) isoDate = dateStr;
+  else if (/^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)) {
+    const [d, m, y] = dateStr.split(".");
+    isoDate = `${y}-${m}-${d}`;
+  }
+  if (!isoDate) return false;
+  const eventTime = new Date(`${isoDate}T${timeStr || "00:00"}:00`);
+  if (isNaN(eventTime.getTime())) return false;
+  const diffMs = eventTime.getTime() - Date.now();
+  return diffMs <= withinMinutes * 60 * 1000 && diffMs > -3 * 60 * 60 * 1000;
+}
+
+function RegistrationSuccessScreen({ event, guestToken, guestEmail }: {
+  event: InviteEvent;
+  guestToken: string | null;
+  guestEmail: string;
+}) {
+  const startingSoon = isEventStartingSoon(event.eventDate, event.eventTime);
+  const goLink = guestToken ? `/go/${guestToken}` : null;
+
+  return (
+    <motion.div
+      className="space-y-4"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      data-testid="registration-success"
+    >
+      <div className="bg-emerald-50 rounded-2xl p-6 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+          <span className="text-2xl">✅</span>
+        </div>
+        <p className="text-base font-bold text-gray-900 mb-1">Du bist angemeldet!</p>
+        <p className="text-xs text-gray-500">
+          {event.title}
+        </p>
+      </div>
+
+      <div className="bg-white rounded-2xl p-4 space-y-3" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <Calendar className="w-4 h-4 text-blue-500" />
+          </div>
+          <div>
+            <p className="text-[10px] text-gray-400 uppercase font-semibold">Datum</p>
+            <p className="text-sm font-semibold text-gray-900">{formatDate(event.eventDate)}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-4 h-4 text-amber-500" />
+          </div>
+          <div>
+            <p className="text-[10px] text-gray-400 uppercase font-semibold">Uhrzeit</p>
+            <p className="text-sm font-semibold text-gray-900">{event.eventTime} {event.scheduleEvent?.timezone || ""}</p>
+          </div>
+        </div>
+      </div>
+
+      {startingSoon && goLink ? (
+        <a
+          href={goLink}
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-blue-600 text-base font-bold text-white active:bg-blue-700 transition-colors"
+          data-testid="button-join-zoom"
+        >
+          Jetzt Zoom Meeting beitreten
+          <ExternalLink className="w-5 h-5" />
+        </a>
+      ) : (
+        <div className="bg-blue-50 rounded-2xl p-4 text-center">
+          <p className="text-sm font-semibold text-blue-800 mb-1">📧 Link wird per E-Mail gesendet</p>
+          <p className="text-xs text-blue-600">
+            Kurz vor dem Webinar erhältst du deinen persönlichen Zugangslink an <span className="font-medium">{guestEmail}</span>
+          </p>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 const InvitePage = () => {
   const [, params] = useRoute("/invite/:code");
   const [, setLocation] = useLocation();
@@ -147,6 +228,7 @@ const InvitePage = () => {
 
   const [registering, setRegistering] = useState(false);
   const [registeredGuestId, setRegisteredGuestId] = useState<number | null>(null);
+  const [guestToken, setGuestToken] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -184,27 +266,12 @@ const InvitePage = () => {
       }
       const data = await res.json();
       setRegisteredGuestId(data.guestId);
+      setGuestToken(data.guestToken || null);
       toast({ title: "Erfolgreich!", description: "Du bist für das Event registriert!" });
     } catch (err: any) {
       toast({ title: "Fehler", description: err.message, variant: "destructive" });
     } finally {
       setRegistering(false);
-    }
-  };
-
-  const handleJoinZoom = async () => {
-    if (!code || !registeredGuestId) return;
-    try {
-      const res = await fetch(`/api/invite/${code}/click`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ guestId: registeredGuestId }),
-      });
-      if (!res.ok) throw new Error("Failed to track click");
-      const data = await res.json();
-      if (data.zoomLink) window.open(data.zoomLink, "_blank");
-    } catch (err: any) {
-      toast({ title: "Fehler", description: "Zoom-Link konnte nicht geöffnet werden.", variant: "destructive" });
     }
   };
 
@@ -400,32 +467,13 @@ const InvitePage = () => {
                 )}
               </button>
             </motion.form>
-          ) : (
-            <motion.div
-              className="space-y-4 text-center"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-            >
-              <div className="bg-emerald-50 rounded-2xl p-5">
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-xl">✓</span>
-                </div>
-                <p className="text-sm font-bold text-gray-900">Registrierung erfolgreich!</p>
-                <p className="text-xs text-gray-500 mt-1">Du bist für das Event angemeldet.</p>
-              </div>
-              <button
-                onClick={handleJoinZoom}
-                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-blue-600 text-base font-bold text-white active:bg-blue-700 transition-colors"
-                data-testid="button-join-zoom"
-              >
-                Zoom Meeting beitreten
-                <ExternalLink className="w-5 h-5" />
-              </button>
-              <p className="text-[11px] text-gray-400">
-                Klicke auf den Button, um das Zoom-Meeting in einem neuen Tab zu öffnen.
-              </p>
-            </motion.div>
-          )}
+          ) : event ? (
+            <RegistrationSuccessScreen
+              event={event}
+              guestToken={guestToken}
+              guestEmail={formData.email}
+            />
+          ) : null}
         </motion.div>
 
         <div className="text-center pb-4">

@@ -201,19 +201,37 @@ export async function checkAndSendReminders(): Promise<number> {
           });
         }
 
-        if (invite.guestTelegram) {
-          const tgHandle = invite.guestTelegram.replace("@", "").trim();
+        const hasTgChatId = !!(invite as any).telegramChatId;
+        const hasTgUsername = !!invite.guestTelegram;
+
+        if (hasTgChatId || hasTgUsername) {
           const safeTitle = event.title.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
           const safeSpeaker = event.speaker.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+          const baseUrl = process.env.NODE_ENV === "production"
+            ? (process.env.PRODUCTION_URL || "https://jet-up.ai")
+            : (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "https://jet-up.ai");
+
+          const guestToken = (invite as any).guestToken;
+          const goLink = guestToken ? `${baseUrl}/go/${guestToken}` : event.link;
+
           const reminderTexts: Record<string, string> = {
-            en: `🎥 <b>Reminder!</b> The webinar "<b>${safeTitle}</b>" starts in ${timeLabel}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Join Zoom:</b> ${event.link}`,
-            de: `🎥 <b>Erinnerung!</b> Das Webinar "<b>${safeTitle}</b>" beginnt in ${invite.reminderPreference === "1_hour" ? "1 Stunde" : "15 Minuten"}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Zoom beitreten:</b> ${event.link}`,
-            ru: `🎥 <b>Напоминание!</b> Вебинар "<b>${safeTitle}</b>" начнётся через ${invite.reminderPreference === "1_hour" ? "1 час" : "15 минут"}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Войти в Zoom:</b> ${event.link}`,
+            en: `🎥 <b>Reminder!</b> The webinar "<b>${safeTitle}</b>" starts in ${timeLabel}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Join now:</b> ${goLink}`,
+            de: `🎥 <b>Erinnerung!</b> Das Webinar "<b>${safeTitle}</b>" beginnt in ${invite.reminderPreference === "1_hour" ? "1 Stunde" : "15 Minuten"}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Jetzt teilnehmen:</b> ${goLink}`,
+            ru: `🎥 <b>Напоминание!</b> Вебинар "<b>${safeTitle}</b>" начнётся через ${invite.reminderPreference === "1_hour" ? "1 час" : "15 минут"}!\n\n📅 ${event.date} | 🕐 ${event.time} ${event.timezone || "CET"}\n🎙 ${safeSpeaker}\n\n🔗 <b>Войти сейчас:</b> ${goLink}`,
           };
           const tgMsg = reminderTexts[guestLang] || reminderTexts.de;
-          sendTelegramMessageByUsername(tgHandle, tgMsg).catch((err) =>
-            console.error(`Failed to send Telegram reminder to @${tgHandle}:`, err)
-          );
+
+          if (hasTgChatId) {
+            sendPartnerBotMessage((invite as any).telegramChatId, tgMsg).catch((err) =>
+              console.error(`Failed to send Telegram reminder via chat_id to ${(invite as any).telegramChatId}:`, err)
+            );
+          } else if (hasTgUsername) {
+            const tgHandle = invite.guestTelegram!.replace("@", "").trim();
+            sendTelegramMessageByUsername(tgHandle, tgMsg).catch((err) =>
+              console.error(`Failed to send Telegram reminder to @${tgHandle}:`, err)
+            );
+          }
         }
 
         if (guestEmailSent) {

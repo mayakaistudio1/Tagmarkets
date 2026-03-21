@@ -105,6 +105,7 @@ export default function PersonalInvitePage() {
   const [regData, setRegData] = useState({ name: "", email: "", telegram: "", phone: "", reminderChannel: "whatsapp" as "whatsapp" | "telegram" });
   const [registering, setRegistering] = useState(false);
   const [zoomLink, setZoomLink] = useState<string | null>(null);
+  const [guestToken, setGuestToken] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [langInitialized, setLangInitialized] = useState(false);
 
@@ -133,6 +134,7 @@ export default function PersonalInvitePage() {
         if (data.isRegistered) {
           setRegData({ name: "", email: "", telegram: "", phone: "", reminderChannel: "whatsapp" });
           if (data.zoomLink) setZoomLink(data.zoomLink);
+          if (data.guestToken) setGuestToken(data.guestToken);
           setShowSuccessScreen(true);
         }
         setLoading(false);
@@ -230,6 +232,7 @@ export default function PersonalInvitePage() {
         setShowRegForm(false);
         setIsRegistered(true);
         if (data.zoomLink) setZoomLink(data.zoomLink);
+        if (data.guestToken) setGuestToken(data.guestToken);
         setShowSuccessScreen(true);
         setQuickReplies([]);
       }
@@ -410,46 +413,93 @@ export default function PersonalInvitePage() {
   }
 
   if (showSuccessScreen) {
-    const successTitle = language === "de" ? "Registrierung erfolgreich!" : language === "ru" ? "Регистрация прошла успешно!" : "Registration successful!";
-    const successSub = language === "de" ? "Du bist für das Event angemeldet." : language === "ru" ? "Ты зарегистрирован на мероприятие." : "You're registered for the event.";
-    const zoomBtnLabel = language === "de" ? "Zoom Meeting beitreten" : language === "ru" ? "Войти в Zoom Meeting" : "Join Zoom Meeting";
-    const zoomNote = language === "de" ? "Klicke auf den Button, um das Zoom-Meeting in einem neuen Tab zu öffnen." : language === "ru" ? "Нажми кнопку, чтобы открыть Zoom в новой вкладке." : "Click the button to open the Zoom meeting in a new tab.";
+    const ev = inviteData?.event;
+    const startingSoon = ev
+      ? (() => {
+          const dateStr = ev.date;
+          const timeStr = ev.time;
+          let isoDate: string | null = null;
+          if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) isoDate = dateStr;
+          else if (/^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)) {
+            const [d, m, y] = dateStr.split(".");
+            isoDate = `${y}-${m}-${d}`;
+          }
+          if (!isoDate) return false;
+          const eventTime = new Date(`${isoDate}T${timeStr || "00:00"}:00`);
+          if (isNaN(eventTime.getTime())) return false;
+          const diffMs = eventTime.getTime() - Date.now();
+          return diffMs <= 60 * 60 * 1000 && diffMs > -3 * 60 * 60 * 1000;
+        })()
+      : false;
+
+    const baseUrl = window.location.origin;
+    const goLink = guestToken ? `${baseUrl}/go/${guestToken}` : null;
+
+    const successTitle = language === "de" ? "Du bist angemeldet!" : language === "ru" ? "Ты зарегистрирован!" : "You're registered!";
+    const emailNoticeTitle = language === "de" ? "📧 Link wird per E-Mail gesendet" : language === "ru" ? "📧 Ссылка придёт на почту" : "📧 Link sent to your email";
+    const emailNoticeText = language === "de" ? `Kurz vor dem Webinar erhältst du deinen persönlichen Zugangslink.` : language === "ru" ? `Незадолго до вебинара ты получишь персональную ссылку для входа.` : `Shortly before the webinar you'll receive your personal access link.`;
+    const joinLabel = language === "de" ? "Jetzt Zoom Meeting beitreten" : language === "ru" ? "Войти в Zoom сейчас" : "Join Zoom Meeting now";
+
     return (
       <div className="min-h-screen bg-[#F5F5F7] overflow-y-auto no-scrollbar">
-        <div className="max-w-md mx-auto px-5 py-10 space-y-6 flex flex-col items-center text-center">
-          <img src="/jetup-logo.png" alt="JetUP Logo" className="h-8" />
+        <div className="max-w-md mx-auto px-5 py-10 space-y-5">
+          <div className="flex justify-center">
+            <img src="/jetup-logo.png" alt="JetUP Logo" className="h-8" />
+          </div>
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full space-y-5"
+            className="w-full space-y-4"
+            data-testid="registration-success"
           >
-            <div className="bg-emerald-50 rounded-2xl p-6">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">✓</span>
+            <div className="bg-emerald-50 rounded-2xl p-6 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">✅</span>
               </div>
-              <p className="text-base font-bold text-gray-900">{successTitle}</p>
-              <p className="text-sm text-gray-500 mt-1">{successSub}</p>
+              <p className="text-base font-bold text-gray-900 mb-1">{successTitle}</p>
+              {ev && <p className="text-xs text-gray-500">{ev.title}</p>}
             </div>
-            {zoomLink ? (
+
+            {ev && (
+              <div className="bg-white rounded-2xl p-4 space-y-3" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-4 h-4 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase font-semibold">{t('pi.date')}</p>
+                    <p className="text-sm font-semibold text-gray-900">{formatDate(ev.date)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase font-semibold">{t('pi.time')}</p>
+                    <p className="text-sm font-semibold text-gray-900">{ev.time}{ev.timezone ? ` ${ev.timezone}` : ""}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {startingSoon && goLink ? (
               <a
-                href={zoomLink}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={goLink}
                 className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-blue-600 text-base font-bold text-white active:bg-blue-700 transition-colors"
                 data-testid="link-join-zoom-success"
               >
                 <Video className="w-5 h-5" />
-                {zoomBtnLabel}
+                {joinLabel}
               </a>
             ) : (
-              <div className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-blue-200 text-base font-bold text-blue-400 cursor-not-allowed">
-                <Video className="w-5 h-5" />
-                {zoomBtnLabel}
+              <div className="bg-blue-50 rounded-2xl p-4 text-center">
+                <p className="text-sm font-semibold text-blue-800 mb-1">{emailNoticeTitle}</p>
+                <p className="text-xs text-blue-600">{emailNoticeText}</p>
               </div>
             )}
-            <p className="text-xs text-gray-400">{zoomNote}</p>
           </motion.div>
-          <div className="pt-4">
+          <div className="text-center pb-4">
             <p className="text-[10px] text-gray-400">{t('pi.poweredBy')}</p>
           </div>
         </div>
@@ -477,20 +527,32 @@ export default function PersonalInvitePage() {
             </div>
           </div>
         </div>
-        {isRegistered && zoomLink && (
-          <div className="px-4 pb-2.5">
-            <a
-              href={zoomLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600 text-sm font-bold text-white active:bg-blue-700 transition-colors"
-              data-testid="link-join-zoom"
-            >
-              <Video className="w-4 h-4" />
-              {language === "de" ? "Zoom beitreten" : language === "ru" ? "Войти в Zoom" : "Join Zoom"}
-            </a>
-          </div>
-        )}
+        {isRegistered && guestToken && (() => {
+          const ev = inviteData?.event;
+          if (!ev) return null;
+          let isoDate: string | null = null;
+          if (/^\d{4}-\d{2}-\d{2}$/.test(ev.date)) isoDate = ev.date;
+          else if (/^\d{2}\.\d{2}\.\d{4}$/.test(ev.date)) {
+            const [d, m, y] = ev.date.split(".");
+            isoDate = `${y}-${m}-${d}`;
+          }
+          if (!isoDate) return null;
+          const eventTime = new Date(`${isoDate}T${ev.time || "00:00"}:00`);
+          const diffMs = eventTime.getTime() - Date.now();
+          if (diffMs > 60 * 60 * 1000 || diffMs < -3 * 60 * 60 * 1000) return null;
+          return (
+            <div className="px-4 pb-2.5">
+              <a
+                href={`/go/${guestToken}`}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600 text-sm font-bold text-white active:bg-blue-700 transition-colors"
+                data-testid="link-join-zoom"
+              >
+                <Video className="w-4 h-4" />
+                {language === "de" ? "Zoom beitreten" : language === "ru" ? "Войти в Zoom" : "Join Zoom"}
+              </a>
+            </div>
+          );
+        })()}
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar px-4 py-4 space-y-3">

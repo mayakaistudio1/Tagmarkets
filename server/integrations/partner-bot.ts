@@ -602,6 +602,33 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
   if (await handleAIMessage(chatId, text)) return;
 
   const command = text.split(" ")[0].split("@")[0].toLowerCase();
+  const startParam = text.startsWith("/start ") ? text.slice(7).trim() : null;
+
+  if (command === "/start" && startParam?.startsWith("remind_")) {
+    const inviteCode = startParam.slice(7);
+    try {
+      const invite = await storage.getPersonalInviteByCode(inviteCode);
+      if (invite && invite.registeredAt) {
+        await storage.updatePersonalInviteTelegram(invite.id, String(chatId));
+        let eventInfo = "";
+        if (invite.scheduleEventId) {
+          const se = await storage.getScheduleEvent(invite.scheduleEventId);
+          if (se) eventInfo = `\n\n📅 <b>${se.title}</b>\n🕐 ${se.date || ""} um ${se.time || ""} ${se.timezone || ""}`;
+        }
+        await sendMessage(chatId,
+          `✅ <b>Super! Du erhältst Erinnerungen für das Webinar.</b>${eventInfo}\n\n` +
+          `Wir benachrichtigen dich kurz vor dem Start mit deinem persönlichen Zugangslink. 🔔`
+        );
+      } else if (invite) {
+        await sendMessage(chatId, `⚠️ Du bist noch nicht für dieses Webinar registriert. Bitte vervollständige zuerst die Registrierung.`);
+      } else {
+        await sendMessage(chatId, `❌ Einladungslink nicht gefunden. Bitte wende dich an deinen Partner.`);
+      }
+    } catch (e) {
+      console.error("[Bot] remind_ handler error:", e);
+    }
+    return;
+  }
 
   switch (command) {
     case "/start":

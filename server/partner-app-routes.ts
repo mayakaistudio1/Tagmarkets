@@ -701,11 +701,31 @@ export function registerPartnerAppRoutes(app: Express) {
 
       const matchedEmails = new Set<string>();
 
+      const personalInvitesList = await storage.getPersonalInvitesByPartnerId(partner.id);
+      const personalInvitesByEmail = new Map<string, typeof personalInvitesList[0]>();
+      for (const pi of personalInvitesList) {
+        if (pi.guestEmail) {
+          const key = pi.guestEmail.toLowerCase();
+          const existing = personalInvitesByEmail.get(key);
+          const sameEvent = event.scheduleEventId && pi.scheduleEventId === event.scheduleEventId;
+          const existingSameEvent = existing && event.scheduleEventId && existing.scheduleEventId === event.scheduleEventId;
+          if (!existing || (sameEvent && !existingSameEvent)) {
+            personalInvitesByEmail.set(key, pi);
+          }
+        }
+      }
+
       const guestsWithStatus = guests.map((g) => {
         const att = attendanceMap.get(g.email.toLowerCase());
         if (att) matchedEmails.add(g.email.toLowerCase());
         const rawDuration = att ? (att.durationMinutes ?? null) : null;
         const durationMinutes = rawDuration != null && rawDuration > 480 ? null : rawDuration;
+        const pi = personalInvitesByEmail.get(g.email.toLowerCase());
+        let chatHistory: any[] = [];
+        try {
+          chatHistory = pi?.chatHistory ? JSON.parse(pi.chatHistory) : [];
+        } catch {}
+        const hasChat = Array.isArray(chatHistory) && chatHistory.length > 0;
         return {
           id: g.id,
           name: g.name,
@@ -720,6 +740,9 @@ export function registerPartnerAppRoutes(app: Express) {
           joinTime: att?.joinTime ?? null,
           isWalkIn: false,
           invitationMethod: g.invitationMethod ?? null,
+          guestTelegram: pi?.guestTelegram ?? null,
+          reminderChannel: pi?.reminderChannel ?? null,
+          hasChat,
         };
       });
 

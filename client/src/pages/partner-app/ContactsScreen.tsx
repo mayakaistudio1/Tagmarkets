@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Users, Search, Loader2, UserCheck, Send, Bot, ChevronRight,
-  Calendar, Mail, Phone, Filter, Clock, Star
+  Calendar, Mail, Phone, Filter, Clock, Star, MessageCircle,
+  Copy, Check, X
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { getPartnerAuthHeader } from "./partnerAuth";
@@ -24,6 +25,9 @@ interface Contact {
   durationMinutes: number | null;
   questionsAsked: number | null;
   isWalkIn?: boolean;
+  guestTelegram?: string | null;
+  reminderChannel?: string | null;
+  hasChat?: boolean;
 }
 
 interface PartnerEvent {
@@ -38,6 +42,9 @@ interface Guest {
   registeredAt: string; clickedZoom: boolean; attended: boolean;
   durationMinutes: number | null; questionsAsked: number | null;
   isWalkIn?: boolean;
+  guestTelegram?: string | null;
+  reminderChannel?: string | null;
+  hasChat?: boolean;
 }
 
 function getContactStatus(g: Guest): ContactStatus {
@@ -55,6 +62,13 @@ const STATUS_FILTERS: { id: ContactStatus; labelKey: string; color: string; bg: 
   { id: "follow-up", labelKey: "pa.contacts.followUp", color: "text-orange-700", bg: "bg-orange-50" },
 ];
 
+function ReminderChannelIcon({ channel }: { channel: string }) {
+  if (channel === "telegram") return <span className="text-[10px]">✈️</span>;
+  if (channel === "whatsapp") return <span className="text-[10px]">💬</span>;
+  if (channel === "email") return <Mail className="w-3 h-3" />;
+  return null;
+}
+
 export default function ContactsScreen({ telegramId }: { telegramId: string }) {
   const { t, language } = useLanguage();
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -62,6 +76,12 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
   const [filter, setFilter] = useState<ContactStatus>("all");
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  const [aiSheet, setAiSheet] = useState<{ contact: Contact } | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiText, setAiText] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const aiAbortRef = React.useRef<AbortController | null>(null);
 
   useEffect(() => {
     fetch("/api/partner-app/events", { headers: { ...getPartnerAuthHeader() } })
@@ -92,6 +112,9 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
                   durationMinutes: g.durationMinutes,
                   questionsAsked: g.questionsAsked,
                   isWalkIn: g.isWalkIn,
+                  guestTelegram: g.guestTelegram,
+                  reminderChannel: g.reminderChannel,
+                  hasChat: g.hasChat,
                 });
               });
             } catch {}
@@ -129,6 +152,7 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
     if (c.attended) return <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[9px] font-semibold">✓ {t("pa.attended")}</span>;
     if (c.clickedZoom) return <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[9px] font-semibold">{t("pa.clicked")}</span>;
     if (c.registeredAt) return <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[9px] font-semibold">{t("pa.registered")}</span>;
+    if (c.hasChat) return <span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 text-[9px] font-semibold">💬 {t("pa.contacts.inChat")}</span>;
     return <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 text-[9px] font-semibold">{t("pa.invited")}</span>;
   };
 
@@ -137,6 +161,65 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
     if (c.attended && (c.questionsAsked ?? 0) > 0) return t("pa.contacts.actionEngaged");
     if (c.attended) return t("pa.contacts.actionInviteNext");
     return t("pa.contacts.actionResend");
+  };
+
+  const openAiFollowup = async (c: Contact) => {
+    if (aiAbortRef.current) {
+      aiAbortRef.current.abort();
+    }
+    const controller = new AbortController();
+    aiAbortRef.current = controller;
+
+    setAiSheet({ contact: c });
+    setAiText(null);
+    setAiLoading(true);
+    setCopied(false);
+    const promptByLang: Record<string, string> = {
+      ru: `Напиши короткое follow-up сообщение для ${c.name}. ${c.attended ? `Гость присутствовал на вебинаре ${c.durationMinutes ? `(${c.durationMinutes} мин)` : ""}` : "Гость зарегистрировался, но не пришёл"}. ${c.questionsAsked ? `Задал ${c.questionsAsked} вопроса(ов).` : ""} Напиши текст для отправки в мессенджере.`,
+      de: `Schreibe eine kurze Follow-up-Nachricht für ${c.name}. ${c.attended ? `Der Gast hat am Webinar teilgenommen ${c.durationMinutes ? `(${c.durationMinutes} min)` : ""}` : "Der Gast hat sich registriert, aber nicht teilgenommen"}. ${c.questionsAsked ? `Hat ${c.questionsAsked} Frage(n) gestellt.` : ""} Formuliere eine Messenger-Nachricht.`,
+      en: `Write a short follow-up message for ${c.name}. ${c.attended ? `Guest attended the webinar ${c.durationMinutes ? `(${c.durationMinutes} min)` : ""}` : "Guest registered but did not attend"}. ${c.questionsAsked ? `Asked ${c.questionsAsked} question(s).` : ""} Write a messenger message.`,
+    };
+    const message = promptByLang[language] || promptByLang["en"];
+    try {
+      const res = await fetch("/api/partner-app/ai-followup", {
+        method: "POST",
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json", ...getPartnerAuthHeader() },
+        body: JSON.stringify({
+          message,
+          guestContext: {
+            name: c.name,
+            attended: c.attended,
+            durationMinutes: c.durationMinutes,
+            questionsAsked: c.questionsAsked,
+          },
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        setAiText(errData.error || null);
+        return;
+      }
+      const data = await res.json();
+      setAiText(data.reply || null);
+    } catch (err: any) {
+      if (err?.name !== "AbortError") {
+        setAiText(null);
+      }
+    } finally {
+      if (aiAbortRef.current === controller) {
+        setAiLoading(false);
+      }
+    }
+  };
+
+  const handleCopy = () => {
+    if (aiText) {
+      navigator.clipboard.writeText(aiText).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
   };
 
   if (loading) return <div className="h-full flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>;
@@ -225,7 +308,23 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
                     <div className="flex flex-wrap gap-3 text-xs text-gray-500">
                       <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {c.email}</span>
                       {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {c.phone}</span>}
+                      {c.guestTelegram && (
+                        <span className="flex items-center gap-1 text-blue-500" data-testid={`contact-telegram-${c.id}`}>
+                          <span className="text-[12px]">✈️</span> @{c.guestTelegram.replace(/^@/, "")}
+                        </span>
+                      )}
+                      {c.reminderChannel && (
+                        <span className="flex items-center gap-1 text-gray-400" data-testid={`contact-channel-${c.id}`}>
+                          <ReminderChannelIcon channel={c.reminderChannel} />
+                          <span className="text-[10px] capitalize">{c.reminderChannel}</span>
+                        </span>
+                      )}
                     </div>
+                    {c.hasChat && !c.registeredAt && (
+                      <p className="text-[11px] text-purple-500 flex items-center gap-1">
+                        <MessageCircle className="w-3 h-3" /> {t("pa.contacts.chatted")}
+                      </p>
+                    )}
                     <p className="text-[11px] text-gray-400 flex items-center gap-1">
                       <Star className="w-3 h-3 text-amber-400" />
                       {t("pa.contacts.nextAction")}: <span className="font-medium text-gray-600">{nextAction(c)}</span>
@@ -243,11 +342,16 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
                         <Send className="w-3 h-3" /> {t("pa.contacts.actionResend")}
                       </button>
                       <button
-                        onClick={() => {}}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-orange-50 text-orange-600 text-xs font-semibold active:bg-orange-100"
+                        onClick={() => openAiFollowup(c)}
+                        disabled={aiLoading && aiSheet?.contact.id === c.id}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-orange-50 text-orange-600 text-xs font-semibold active:bg-orange-100 disabled:opacity-60 disabled:cursor-not-allowed"
                         data-testid={`contact-action-ai-${c.id}`}
                       >
-                        <Bot className="w-3 h-3" /> {t("pa.contacts.actionAI")}
+                        {aiLoading && aiSheet?.contact.id === c.id
+                          ? <Loader2 className="w-3 h-3 animate-spin" />
+                          : <Bot className="w-3 h-3" />
+                        }
+                        {t("pa.contacts.actionAI")}
                       </button>
                     </div>
                   </div>
@@ -255,6 +359,57 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
               )}
             </motion.div>
           ))}
+        </div>
+      )}
+
+      {aiSheet && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end" onClick={() => setAiSheet(null)}>
+          <div className="absolute inset-0 bg-black/30" />
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="relative bg-white rounded-t-2xl px-5 pt-4 pb-8 max-h-[75vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Bot className="w-4 h-4 text-orange-500" />
+                <span className="text-sm font-semibold text-gray-900">{t("pa.contacts.aiFollowupTitle")}</span>
+              </div>
+              <button onClick={() => setAiSheet(null)} className="p-1 rounded-lg hover:bg-gray-100" data-testid="button-ai-sheet-close">
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-400 mb-3">{aiSheet.contact.name}</p>
+
+            {aiLoading ? (
+              <div className="flex items-center justify-center py-10 gap-2 text-gray-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-xs">{t("pa.contacts.aiGenerating")}</span>
+              </div>
+            ) : aiText ? (
+              <>
+                <div
+                  className="bg-orange-50 border border-orange-100 rounded-xl p-4 text-sm text-gray-800 leading-relaxed whitespace-pre-wrap mb-4"
+                  data-testid="text-ai-followup-result"
+                >
+                  {aiText}
+                </div>
+                <button
+                  onClick={handleCopy}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-orange-500 text-white text-sm font-semibold active:bg-orange-600"
+                  data-testid="button-ai-followup-copy"
+                >
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {copied ? t("pa.contacts.aiCopied") : t("pa.contacts.aiCopy")}
+                </button>
+              </>
+            ) : (
+              <p className="text-xs text-red-400 text-center py-6">{t("pa.contacts.aiError")}</p>
+            )}
+          </motion.div>
         </div>
       )}
     </div>

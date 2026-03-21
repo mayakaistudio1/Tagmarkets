@@ -1,0 +1,146 @@
+[
+  {
+    "id": "9f61f7eb-1ace-47f3-b8d5-9d5413e1282a",
+    "position": 1,
+    "filepath": "src/pages/slides/TitleSlide.tsx",
+    "title": "JETUP — Новая инфраструктура",
+    "description": "Титульный слайд.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a1b2c3d4-e5f6-4789-a012-b3c4d5e6f701",
+    "position": 2,
+    "filepath": "src/pages/slides/MarketPain.tsx",
+    "title": "Рынок устал доверять",
+    "description": "Проблема: рынок устал доверять, дубликация не работает, системы нет.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "c3d4e5f6-a7b8-4901-c234-d5e6f7a8b903",
+    "position": 3,
+    "filepath": "src/pages/slides/BridgeSlide.tsx",
+    "title": "А если проблема не в тебе?",
+    "description": "Решение: JetUP помогает расти не хаотично, а устойчиво.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "b2c3d4e5-f6a7-4890-b123-c4d5e6f7a802",
+    "position": 4,
+    "filepath": "src/pages/slides/PainAmplifier.tsx",
+    "title": "Всегда приходится жертвовать",
+    "description": "Продукт: безопасность, доходность или гибкость.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "c5d6e7f8-a9b0-4111-c567-d8e9f0a1b205",
+    "position": 5,
+    "filepath": "src/pages/slides/CycleSlide.tsx",
+    "title": "Ты строишь. И снова упираешься.",
+    "description": "Давление цикла: рост есть, но всё снова зависит от тебя.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "d6e7f8a9-b0c1-4222-d678-e9f0a1b2c306",
+    "position": 6,
+    "filepath": "src/pages/slides/BreakSlide.tsx",
+    "title": "Проблема не в продукте.",
+    "description": "Осознание: без системы ничего не меняется.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "e7f8a9b0-c1d2-4333-e789-f0a1b2c3d407",
+    "position": 7,
+    "filepath": "src/pages/slides/NewModelSlide.tsx",
+    "title": "Рост должен строиться иначе.",
+    "description": "Новая модель: продукт, партнёрка и система как единое целое.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4012-d345-e6f7a8b9c004",
+    "position": 8,
+    "filepath": "src/pages/slides/DiagnosticSlide.tsx",
+    "title": "У тебя сейчас это всё есть вместе?",
+    "description": "Самодиагностика: продукт, партнёрская модель, система дубликации.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "aa11bb22-cc33-4444-dd55-ee66ff778899",
+    "position": 9,
+    "filepath": "src/pages/slides/SystemPath.tsx",
+    "title": "Ты входишь в уже работающую систему",
+    "description": "Премиальный путь: Вход → Продукт → Доход → Партнёр → Масштаб.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "ff00aa11-bb22-4cc3-dd44-ee55ff667788",
+    "position": 10,
+    "filepath": "src/pages/slides/AiTools.tsx",
+    "title": "AI Core — система работает вместе с тобой",
+    "description": "AI ассистент, Zoom-рекрутер, Personal Digital Hub, AI-аватар вокруг центрального ядра.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "11aabb22-cc33-4dd5-ee66-ff7788990011",
+    "position": 11,
+    "filepath": "src/pages/slides/RecruitingHub.tsx",
+    "title": "Ты управляешь ростом",
+    "description": "Recruiting Hub: один вход, recruiting flow, Telegram-бот, Digital Hub, обучение.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "e5f6a7b8-c9d0-4123-e456-f7a8b9c0d105",
+    "position": 12,
+    "filepath": "src/pages/slides/TagMarkets.tsx",
+    "title": "TAG Markets / CopyX",
+    "description": "Forex через CopyX, 24X Amplify, 70% прибыли клиенту.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f6a7b8c9-d0e1-4234-f567-a8b9c0d1e206",
+    "position": 13,
+    "filepath": "src/pages/slides/Bit1Exchange.tsx",
+    "title": "BIT1 Криптобиржа",
+    "description": "Полноценная криптобиржа внутри экосистемы JetUP.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "b1c2d3e4-f5a6-4b78-9012-c3d4e5f6a7b8",
+    "position": 14,
+    "filepath": "src/pages/slides/BixCard.tsx",
+    "title": "BIX.FI — Крипто Visa-карта",
+    "description": "Крипто Visa-карта BIX.FI: прямой доход → карта → оплата по всему миру.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "22bbcc33-dd44-4ee5-ff66-aa778899bb22",
+    "position": 15,
+    "filepath": "src/pages/slides/EarningPotential.tsx",
+    "title": "Сколько это может давать?",
+    "description": "Три уровня: Старт $300–$1K, Актив $1K–$5K, Лидер $5K+.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "33ccdd44-ee55-4ff6-aa77-bb889900cc33",
+    "position": 16,
+    "filepath": "src/pages/slides/IncomeStructure.tsx",
+    "title": "Из чего строится доход?",
+    "description": "4 источника: торговый объём, доход клиентов, глубина структуры, большой объём.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "44ddee55-ff66-4aa7-bb88-cc990011dd44",
+    "position": 17,
+    "filepath": "src/pages/slides/FomoSlide.tsx",
+    "title": "Первая линия лидеров",
+    "description": "FOMO: ранняя позиция, международное развитие, AI-инфраструктура.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a3b4c5d6-e7f8-4901-a234-b5c6d7e8f913",
+    "position": 18,
+    "filepath": "src/pages/slides/FinalStep.tsx",
+    "title": "Что ты выбираешь?",
+    "description": "CTA: созвон, старт по ссылке, аватар, Telegram, Digital Hub.",
+    "speakerNotes": ""
+  }
+]

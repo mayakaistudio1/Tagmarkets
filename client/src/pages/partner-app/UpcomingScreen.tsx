@@ -21,6 +21,7 @@ interface ReportGuest {
   id: number; name: string; email: string;
   goClickedAt: string | null; clickedZoom: boolean;
   attended: boolean; registeredAt: string;
+  sourceType: "social" | "personal";
 }
 
 interface DetailReport {
@@ -112,17 +113,26 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
   useEffect(() => {
     if (screen !== "detail" || !selected) { setDetailReport(null); return; }
     const eventIds: number[] = selected.inviteEventIds || [];
-    if (eventIds.length === 0) return;
     setDetailReportLoading(true);
-    Promise.all(
-      eventIds.map(id =>
-        fetch(`/api/partner-app/events/${id}/report`, { headers: { ...getPartnerAuthHeader() } })
-          .then(r => r.json() as Promise<{ guests: ReportGuest[]; funnel: DetailReport["funnel"] }>)
-          .catch(() => null)
-      )
-    ).then(reports => {
-      const validReports = reports.filter((r): r is { guests: ReportGuest[]; funnel: DetailReport["funnel"] } => r !== null);
-      const allGuests = validReports.flatMap(r => r.guests || []);
+    Promise.all([
+      eventIds.length > 0
+        ? Promise.all(
+            eventIds.map(id =>
+              fetch(`/api/partner-app/events/${id}/report`, { headers: { ...getPartnerAuthHeader() } })
+                .then(r => r.json() as Promise<{ guests: ReportGuest[]; funnel: DetailReport["funnel"] }>)
+                .catch(() => null)
+            )
+          )
+        : Promise.resolve([]),
+      fetch(`/api/partner-app/personal-invites`, { headers: { ...getPartnerAuthHeader() } })
+        .then(r => r.json() as Promise<{ invites: Array<{ id: number; prospectName: string; guestName: string | null; guestEmail: string | null; goClickedAt: string | null; registeredAt: string | null; scheduleEventId: number | null }> }>)
+        .catch(() => null),
+    ]).then(([eventReports, personalData]) => {
+      const validReports = (eventReports as Array<{ guests: ReportGuest[]; funnel: DetailReport["funnel"] } | null>)
+        .filter((r): r is { guests: ReportGuest[]; funnel: DetailReport["funnel"] } => r !== null);
+      const socialGuests: ReportGuest[] = validReports.flatMap(r =>
+        (r.guests || []).map(g => ({ ...g, sourceType: "social" as const }))
+      );
       const funnel = validReports.reduce<DetailReport["funnel"]>((acc, r) => {
         if (r.funnel) {
           acc.invited += r.funnel.invited || 0;
@@ -132,7 +142,28 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
         }
         return acc;
       }, { invited: 0, registered: 0, clickedZoom: 0, attended: 0 });
-      setDetailReport({ guests: allGuests, funnel });
+
+      const scheduleId = selected.id;
+      const personalGuests: ReportGuest[] = (personalData?.invites || [])
+        .filter(pi => pi.scheduleEventId === scheduleId && (pi.registeredAt || pi.goClickedAt))
+        .map(pi => ({
+          id: -(pi.id),
+          name: pi.guestName || pi.prospectName,
+          email: pi.guestEmail || "",
+          goClickedAt: pi.goClickedAt,
+          clickedZoom: false,
+          attended: false,
+          registeredAt: pi.registeredAt || "",
+          sourceType: "personal" as const,
+        }));
+
+      const socialEmails = new Set(socialGuests.map(g => g.email.toLowerCase()));
+      const uniquePersonalGuests = personalGuests.filter(g => !socialEmails.has(g.email.toLowerCase()));
+      funnel.invited += uniquePersonalGuests.length;
+      funnel.registered += uniquePersonalGuests.filter(g => g.registeredAt).length;
+      funnel.clickedZoom += uniquePersonalGuests.filter(g => g.goClickedAt).length;
+
+      setDetailReport({ guests: [...socialGuests, ...uniquePersonalGuests], funnel });
     }).finally(() => setDetailReportLoading(false));
   }, [screen, selected]);
 
@@ -628,8 +659,13 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
             <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-3">{t("pa.upcoming.guestLinkStatus")}</p>
             <div className="space-y-2">
               {detailReport.guests.map((g) => (
-                <div key={g.id} className="flex items-center justify-between" data-testid={`upcoming-guest-link-${g.id}`}>
-                  <span className="text-xs text-gray-700 truncate max-w-[60%]">{g.name}</span>
+                <div key={g.id} className="flex items-center justify-between gap-2" data-testid={`upcoming-guest-link-${g.id}`}>
+                  <span className="flex items-center gap-1 min-w-0">
+                    <span className="text-xs text-gray-700 truncate">{g.name}</span>
+                    {g.sourceType === "personal" && (
+                      <span className="flex-shrink-0 text-[9px] px-1 py-0.5 bg-violet-50 text-violet-500 rounded-full">{t("pa.upcoming.personal")}</span>
+                    )}
+                  </span>
                   {g.goClickedAt ? (
                     <span className="text-[10px] text-emerald-600 flex items-center gap-0.5">
                       <span>✅</span>

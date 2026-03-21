@@ -1,4 +1,4 @@
-# JetUP — Digital Hub & Smart Linktree
+# JetUP — Digital Hub & Partner Platform
 
 ## Overview
 
@@ -6,14 +6,17 @@ JetUP is a digital information hub and smart linktree for the JetUP financial ec
 
 **Key capabilities:**
 - Centralized access to JetUP financial products like Copy-X Strategies, Trading Signals, JetUP Academy, Partner Program, TAG Markets, Amplify 12x, and BIX.FI / BIT1.
-- Provides a mobile-first, multilingual experience.
-- Features an AI consultant for real-time support.
+- Mobile-first, multilingual experience (DE/RU/EN).
+- AI consultant (Maria) for real-time support.
+- Full Partner CRM: invite tracking, guest notifications, Zoom attendance attribution.
 
-**Business Vision:** To provide structure, transparency, and control ("Struktur. Transparenz. Kontrolle.") within the JetUP financial ecosystem by offering a comprehensive and user-friendly digital hub.
+**Business Vision:** "Struktur. Transparenz. Kontrolle." within the JetUP financial ecosystem.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+---
 
 ## System Architecture
 
@@ -25,11 +28,7 @@ Preferred communication style: Simple, everyday language.
 - **Animations**: Framer Motion for transitions and micro-interactions.
 - **State Management**: TanStack React Query for server state, React useState for local state.
 - **Icons**: Lucide React.
-- **UI/UX Decisions**:
-    - **Color Scheme**: Primary purple (`#7C3AED`), accent light purple (`#A855F7`), gradient effects.
-    - **Typography**: Montserrat font (400-800 weight).
-    - **Mobile-First Design**: Responsive layout for optimal mobile experience.
-    - **Multilingual Support**: German (de), Russian (ru), and English (en) languages managed via `LanguageContext.tsx`.
+- **Multilingual**: German (de), Russian (ru), English (en) managed via `LanguageContext.tsx`.
 
 ### Backend
 - **Runtime**: Node.js 20 with Express 5.
@@ -39,43 +38,332 @@ Preferred communication style: Simple, everyday language.
 
 ### Database
 - **Type**: PostgreSQL with Drizzle ORM.
-- **Schema**: Defined in `shared/schema.ts`. Key tables include `users`, `applications`, `chat_sessions`, `chat_messages`, `promotions`, `schedule_events`, `speakers`, and `promo_applications`.
-- **Data Management**: Drizzle-kit for migrations; seed data loaded on first startup.
-
-### AI Integrations
-- **Maria Text Chat**: Utilizes OpenAI API via Replit AI Integrations for streaming SSE responses. Includes system prompts tailored per language (RU/DE/EN) with integrated JetUP knowledge base. Text transcripts saved to DB.
-- **Maria Video Avatar**: HeyGen LiveAvatar integration via LiveKit WebRTC for real-time video streaming with voice. Video call transcriptions are saved to the database on session end and viewable in the admin panel.
-
-### File Storage
-- **Platform**: Replit Object Storage for persistent file uploads (e.g., speaker photos, banners).
+- **Schema**: `shared/schema.ts`. Key partner tables: `partners`, `personal_invites`, `invite_events`, `invite_guests`, `zoom_attendance`.
+- **Migrations**: Applied on server startup in `server/index.ts` via raw SQL `ALTER TABLE IF NOT EXISTS` statements.
 
 ### Build System
-- **Development**: `npm run dev` for tsx (Express) + Vite dev server.
-- **Production**: `npm run build` for client (Vite) and server (esbuild) bundling, followed by `npm start`.
+- **Development**: `npm run dev` — tsx (Express) + Vite dev server on port 5000.
+- **Production**: `npm run build` (Vite + esbuild), then `npm start`.
 
-### Core Features
-- **Partner Digital Hub**: Personalized partner pages (e.g., `/dennis`, also `/p/dennis` for backward compat) — state machine with 5 states (HERO → CHAT_OVERLAY → PRESENTATION_OVERLAY → ECOSYSTEM_OVERLAY + `/live` route). **Multilingual** (RU/DE/EN) with language selector on hero screen — all text uses `t()` from `LanguageContext` with `pdh.*` keys. Hero: "Dennis / Founder JetUP / Financial products · Partner system · AI infrastructure". Chat: first message invites to explore system, fixed exploration button always visible → AI responds → opens presentation. Dennis AI chat uses real OpenAI (`gpt-4o-mini`) with SSE streaming via `POST /api/partner/dennis/chat`. Presentation (Deck v2): Canvas/CSS animated financial background (`FinancialBackground.tsx` — 3 layers: gradient, network lines, market candles, parallax on slide change) + **cinematic AI-generated video backgrounds** (3 groups: `bg_market.mp4` for slides 1-3 [night city aerial], `bg_partner.mp4` for slides 4-7/10 [business conference silhouettes], `bg_tech.mp4` for slides 8-9 [AI digital twin concept]; HTML5 `<video>` elements with autoPlay/loop/muted, gradient overlays + vignette on top, fallback to static poster images on error) + 1 interactive ecosystem map slide (`EcosystemMapSlide.tsx` — JETUP center + 5 satellite nodes with orbital floating + zoom animations + line highlighting on selection) + glassmorphism text cards (rgba(8,6,20,0.60), blur 20px, radius 24px) + 2-3 contextual chips per slide (chip press → card micro-scale 1.02 + open chat with slide context injection). **Partner recruiting presentation**: Slides 1-2 (market/industry problem), 3-4 (JetUP solution/safety), 5-7 (partner program deep dive with Lot Commissions, Profit Share, Infinity Bonus, Global Pool, Incentives, Career Steps — each with interactive micro-cards and FactSheet bottom-sheets), 8 (AI duplication), 9 (ecosystem), 10 (CTA). Interactive sub-elements on slides 4 (security points), 5 (strategy cards for income streams), 6 (security points for bonuses/career), 8 (AI network nodes + **side-by-side AI comparison** "Без AI" vs "С AI" + "Try Dennis AI" button). **Journey Progress navigation** replaces hidden Explore Map — 5 color-coded segment groups (Market red, Solution purple, Partner green, AI blue, Ecosystem orange) with active/completed/partial states. **Other features**: (1) Enhanced progress bar showing exploration % and next slide name; (2) Dennis Insight personal quotes on slides 3, 5, 6, 8; (3) Side-by-side AI comparison on slide 8; (4) "Try Dennis AI" button opening chat directly from slide 8; (5) JetUP Engine animated assembly on final slide 10. TOC popup. Slide 10 CTAs: schedule call, start link, Telegram, view ecosystem. Ecosystem overlay renders full `HomePage` component inside Dennis hub with back-to-Dennis navigation via `EcoNavContext`. Language change resets chat messages to localized first message. See `docs/presentation_structure.md` for full details.
-- **Social Sharing**: Reusable ShareMenu component on Promotions and Schedule pages.
-- **Smart Linktree Navigation**: Multi-level navigation including Hub, Trading Hub, Partner Hub, Schedule, Tutorials, and Promotions.
-- **Dennis Fast Start Promo**: Dynamic promo system with `dennis_promos` DB table for configurable promo offers (title, shortDesc, description, rules, isActive, sortOrder). PromoCard component fetches active promos from `GET /api/dennis-promos` and renders them dynamically. Admin tab "Promo" has two sub-tabs: "Промо-акции" (CRUD for promo offers) and "Заявки" (applications management with approve/reject/CSV export). Applications stored in `promo_applications` table with `promoId` linking to specific promo. Telegram notifications sent to group chat on each new application via `TELEGRAM_BOT_TOKEN` + `TELEGRAM_NOTIFY_CHAT_ID`. API: `GET/POST /api/admin/dennis-promos`, `PUT/DELETE /api/admin/dennis-promos/:id`, `GET /api/admin/promo-applications`, `PATCH /api/admin/promo-applications/:id/status`.
-- **Personal AI Invite**: Chat-based personalized invitation flow for webinars. Partner creates a unique link for a specific prospect via DISC-based AI qualification (relationship/motivation/reaction questions), and when the prospect opens `/personal-invite/:code`, an AI assistant conducts a conversational invitation using OpenAI GPT-4o-mini. Features: personalized first message using partner name/prospect details, DISC-typed quick-reply buttons (language-aware EN/DE/RU), inline registration form within chat, reminder preference selection, visit tracking (`viewedAt` timestamp set on first open). Invite Preview screen shows partner what prospect will see (chat bubbles, webinar card, quick replies) before sharing. Data stored in `personal_invites` table (partnerId, scheduleEventId, inviteCode, prospectName/Type/Note, guestName/Email/Telegram, guestLanguage, chatHistory JSON, reminderPreference, viewedAt, discType, inviteStrategy, generatedMessages). **Guest Notifications**: After registration, guest receives branded HTML confirmation email (via Resend) in their language (EN/DE/RU) with event details + Zoom link; a prominent "Join Zoom" button appears in the chat header. Reminder scheduler also sends the guest a reminder email (and Telegram DM if handle provided) when the reminder window arrives. API: `POST /api/partner-app/create-personal-invite`, `GET /api/personal-invite/:code`, `POST /api/personal-invite/:code/init-chat`, `POST /api/personal-invite/:code/chat`, `POST /api/personal-invite/:code/register`, `POST /api/personal-invite/:code/reminder`. Partner app UI: "AI Invite" button on webinar detail screen → prospect form → AI qualification chat → preview messages → confirm → share link screen with preview button. PersonalInvitePage is fully multilingual (EN/DE/RU) with language auto-detection from browser, language selector, and language passed to AI chat endpoints.
-- **Smart Invite System**: Partner invite tracking for Zoom events. Tables: `invite_events` (partnerName, partnerCu, partnerId, scheduleEventId, zoomLink, title, eventDate, eventTime, inviteCode unique), `invite_guests` (name, email, phone, clickedZoom, clickedAt), `zoom_attendance` (participant tracking from Zoom API). Flow: partner selects webinar from schedule via bot → gets unique `/invite/:code` URL → shares link → guest registers → clicks "Join Zoom" (tracked) → redirected to Zoom. Enhanced invite landing page with countdown timer, speaker info, event highlights, branded JetUP design. Telegram notifications on registration to both admin chat and partner's personal Telegram. API: `GET/POST /api/invite/:code`, `POST /api/invite/:code/register`, `POST /api/invite/:code/click`, admin CRUD under `/api/admin/invite-events`.
-- **Partner Telegram Bot**: Bot for partners (brokers). `/start` opens the Partner Mini App via Web App button (both for new and existing partners). `/invite` opens the Mini App's webinars tab. `/events`, `/report`, `/followup` for stats, reports, and AI follow-up. Registration happens in the Mini App (not via bot commands). Bot webhook at `POST /api/telegram-bot/webhook`. Partners table: `partners` (telegramChatId unique, name, cuNumber, phone, email, status). Real-time notifications when guests register through partner's invite link.
-- **Partner App Auth**: Three auth modes: (1) Telegram WebApp SDK auto-auth when opened from Telegram, (2) Telegram Login Widget for browser access, (3) manual Telegram ID input as fallback. New partners see a registration form (name, CU number, phone, email) instead of "Access Restricted". Registration endpoint: `POST /api/partner-app/register`.
-- **Zoom API Integration**: Server-to-Server OAuth integration with Zoom Reports API. Fetches participant data (join/leave times, duration), Q&A activity. Matches participants to registered guests by email. Stores in `zoom_attendance` table. Gracefully falls back to click tracking when Zoom API is not configured. Environment variables: `ZOOM_ACCOUNT_ID`, `ZOOM_CLIENT_ID`, `ZOOM_CLIENT_SECRET`.
-- **Admin Panel**: Password-protected (`/admin`) for managing chat logs, promotions, schedule events, speakers, promo applications, and invite events with CRUD operations. Includes rate-limited login. Banner export uses html2canvas to capture the rendered React preview component.
-- **Maria AI Analysis**: GPT-4o powered analysis of chat dialogues via admin panel. Includes Maria's actual system prompt for context. Filterable by language (DE/RU/EN/All). Produces report with: top user questions, problematic answers, drop-off points, conversion analysis, and prompt improvement recommendations. Endpoint: `POST /api/admin/analyze-maria`.
+---
+
+## Partner Infrastructure — Complete Architecture
+
+### Overview Diagram
+
+```
+Partner (Telegram)
+    │
+    ├─ Partner Bot (@Jetup_partner_bot / @Jetup_partner_test_bot)
+    │       └─ /start → opens Partner Mini App (WebApp button)
+    │       └─ /start remind_CODE → guest Telegram subscription deep link
+    │
+    └─ Partner Mini App (Telegram WebApp)
+            ├─ Tab 1: Upcoming Events (webinars + funnels + per-contact invites)
+            ├─ Tab 2: Contacts (all registered guests + channel status + AI follow-up)
+            ├─ Tab 3: Statistics (lifetime totals)
+            └─ Tab 4: Profile (partner info)
+
+Guest Flow:
+    Partner creates invite → Guest opens /personal-invite/:code
+        → AI chat (GPT-4o-mini) → Registration form
+        → Confirmation email (Resend)
+        → Telegram CTA (if channel=telegram)
+        → /go/{guestToken} tracking link (in email, reminders)
+        → Zoom event (attendance tracked via Zoom API)
+        → Partner sees attendance + channel status in Mini App
+```
+
+---
+
+### 1. Partner Telegram Bot
+
+**Files**: `server/integrations/partner-bot.ts`, `server/partner-app-routes.ts`
+
+**Two bot tokens** (selected at runtime):
+- `TELEGRAM_PARTNER_BOT_TOKEN_DEV` — dev bot (@Jetup_partner_test_bot)
+- `TELEGRAM_PARTNER_BOT_TOKEN` — production bot
+- Helper: `getPartnerBotToken()` always picks DEV in development, PROD in production.
+
+**Webhook**: `POST /api/telegram-bot/webhook`
+
+**Bot commands**:
+| Command | Action |
+|---|---|
+| `/start` | Opens Partner Mini App via WebApp button |
+| `/start remind_CODE` | Guest Telegram deep link: links `telegramChatId` to `personal_invites` row identified by `inviteCode=CODE`, enables `telegramNotificationsEnabled=true`, sends confirmation with webinar details |
+| `/invite` | Opens Mini App on Upcoming tab |
+| `/events` | Text summary of partner's upcoming events |
+| `/report` | Partner stats summary |
+
+**Registration**: New partners register via the Mini App registration form, not via bot. Bot detects unknown `telegramChatId` → sends "open Mini App to register" message.
+
+**Notifications to partner** (triggered server-side):
+- Guest registers via personal invite link → partner gets Telegram DM with guest name + contact details.
+- Reminder windows (24h, 1h before event) → partner gets reminder prompt to contact guest.
+
+---
+
+### 2. Partner Mini App Auth
+
+**File**: `client/src/pages/partner-app/partnerAuth.ts`, `server/partner-app-routes.ts`
+
+**Auth flow**:
+1. **Primary**: Telegram WebApp `initData` sent in `x-partner-auth: tg:<initData>` header. Server verifies HMAC signature using `TELEGRAM_PARTNER_BOT_TOKEN` (prod/dev selected automatically). Extracts `telegramChatId` from verified data. Looks up partner in DB.
+2. **Fallback (dev/browser)**: `x-partner-auth: id:<telegramChatId>` for direct testing.
+3. **New partner**: If `telegramChatId` not found → returns `{ needsRegistration: true }` → frontend shows registration form.
+
+**Registration**: `POST /api/partner-app/register` — creates partner record with name, CU number, phone, email, telegramChatId.
+
+**All partner API routes** require valid `x-partner-auth` header and resolved `partner.id`.
+
+---
+
+### 3. Partner Mini App — 4 Tabs
+
+**File**: `client/src/pages/partner-app/PartnerApp.tsx`
+
+#### Tab 1: Upcoming Events (`UpcomingScreen.tsx`)
+- Lists all future `schedule_events` with partner-specific stats pulled from `GET /api/partner-app/events`.
+- Stats per event: registered count, attended count (walk-ins excluded — only guests with `inviteGuestId != null`).
+- **Event detail screen** (tapping an event):
+  - Funnel card: Views → Registered → Clicked join link → Attended.
+  - Guest list from `GET /api/partner-app/events/:id/report`.
+  - **"My Invitations" section**: fetches `GET /api/partner-app/events/:id/personal-invites` — shows all personal invites for that event with status badges: Sent / Viewed / Chatted / Registered.
+  - Follow-up button per contact: opens Telegram direct chat (if `guestTelegram` set) or Telegram share link with pre-filled personalized reminder text.
+  - **Social share**: "Share invite link" button creates/reuses a `invite_events` record and shares `/invite/:code` URL.
+  - AI Personal Invite creation: prospect form → DISC qualification → preview → share `/personal-invite/:code`.
+
+#### Tab 2: Contacts (`ContactsScreen.tsx`)
+- Fetches all registered guests across all events from `GET /api/partner-app/events/:id/report` (per event), aggregated.
+- Per contact card shows:
+  - Name, email, phone, Telegram handle.
+  - **Reminder channel + subscription status**:
+    - `reminderChannel=telegram`: 🔔 Subscribed / ⏺ Not subscribed (based on `telegramNotificationsEnabled`).
+    - `reminderChannel=whatsapp`: 📲 WhatsApp reminder badge.
+    - `reminderChannel=email` or unset: ✉️ Email reminder badge.
+  - `/go/` link click status: green "clicked" or amber "not yet".
+  - Attendance status from Zoom.
+- **AI Follow-up**: generates personalized outreach message via `POST /api/partner-app/contacts/:guestId/ai-followup`.
+- Filter tabs: All / Invited / Registered / Attended / No-show / Follow-up.
+
+#### Tab 3: Statistics (`StatisticsScreen.tsx`)
+- Lifetime totals: total invites sent, total registered, total attended (walk-ins excluded).
+- From `GET /api/partner-app/profile`.
+
+#### Tab 4: Profile (`PartnerApp.tsx` profile section)
+- Displays partner name, CU number, email, phone.
+- Editable via `PUT /api/partner-app/profile`.
+
+---
+
+### 4. Personal Invite Pipeline (Full Flow)
+
+**Tables**: `personal_invites`
+
+**Schema fields** (key ones):
+```
+id, partnerId, scheduleEventId
+inviteCode (unique slug)
+prospectName, prospectType, prospectNote
+discType, inviteStrategy
+guestName, guestEmail, guestTelegram, guestPhone
+guestLanguage, chatHistory (JSON)
+reminderChannel ("email" | "whatsapp" | "telegram")
+preferredChannel (mirrors reminderChannel, persisted on registration)
+reminderSent (bool) — 1h reminder sent
+reminder24hSent (bool) — 24h reminder sent
+reminderPreference (legacy, kept for UX quick replies)
+viewedAt, registeredAt, isActive
+guestToken (unique UUID) — used in /go/ links
+goClickedAt — timestamp when guest clicked /go/ link
+telegramChatId — set when guest subscribes via bot /start remind_CODE
+telegramNotificationsEnabled (bool)
+```
+
+**Step-by-step flow**:
+
+1. **Partner creates invite** in Mini App:
+   - Fills prospect name, type, note → optional DISC qualification chat → AI generates personalized opening messages → preview → confirm.
+   - API: `POST /api/partner-app/create-personal-invite`
+   - Unique `inviteCode` generated, `guestToken` UUID generated, stored in DB.
+   - Partner gets share link: `https://jet-up.ai/personal-invite/:code`
+
+2. **Guest opens invite** (`/personal-invite/:code`):
+   - `GET /api/personal-invite/:code` marks `viewedAt`, returns event info + chat history + `reminderChannel` + `inviteCode` (for already-registered guests).
+   - AI chat starts using `POST /api/personal-invite/:code/chat` (GPT-4o-mini, DISC-aware system prompt).
+   - DISC quick-reply buttons offered based on `discType`.
+
+3. **Guest registers** via inline form:
+   - Fields: Name, Email, + reminder channel toggle (Email / WhatsApp / Telegram).
+   - WhatsApp: phone number field. Telegram: @username field. Email: no extra field.
+   - API: `POST /api/personal-invite/:code/register`
+   - Persists: `guestName`, `guestEmail`, `guestTelegram`, `guestPhone`, `reminderChannel`, `preferredChannel`, `registeredAt`.
+   - Triggers:
+     - Branded confirmation email sent to guest via Resend (EN/DE/RU, `/go/{guestToken}` join link).
+     - Telegram DM to partner with guest contact details.
+
+4. **Success screen** (post-registration):
+   - Shows event details + "We'll remind you" message.
+   - If `reminderChannel === "telegram"`: shows CTA button "Subscribe in Telegram" — deep link `t.me/<botUsername>?start=remind_<inviteCode>`.
+   - Join link shown only when event is ≤60 min away (or up to 3h after start).
+
+5. **Guest subscribes on Telegram** (optional):
+   - Guest taps CTA → opens bot → sends `/start remind_CODE`.
+   - Bot webhook: parses `remind_CODE`, finds invite by `inviteCode`, stores `telegramChatId`, sets `telegramNotificationsEnabled=true`, sends confirmation with webinar details.
+
+6. **Reminder scheduler** (`server/integrations/reminder-scheduler.ts`):
+   - Polls every 2 minutes.
+   - Fetches all registered invites where `reminderSent=false` (`getPersonalInvitesPendingAutoReminder()`).
+   - **24h window** (event is 1h–24h away, `reminder24hSent=false`):
+     - Sends partner Telegram DM: "Your guest X has a webinar in 24 hours — remind them via [channel]".
+     - Sends guest notification on their chosen channel (email or Telegram).
+     - Sets `reminder24hSent=true`.
+   - **1h window** (event ≤1h away):
+     - Same pattern. Sets `reminderSent=true` (marks as done).
+   - **Channel routing**:
+     - `reminderChannel=email` → sends Resend email with `/go/{guestToken}` link.
+     - `reminderChannel=telegram` → sends Telegram DM via partner bot (prefers `telegramChatId`, falls back to `@username`).
+     - `reminderChannel=whatsapp` → partner notified only (partner must contact manually).
+   - If no `guestToken`: skips guest notification, logs warning, partner still notified.
+
+7. **Guest joins via `/go/{guestToken}`** (`GoPage.tsx`):
+   - Records `goClickedAt` on invite record.
+   - Redirects to Zoom link.
+   - Zoom attendance later matched by `inviteGuestId` for accurate attribution.
+
+---
+
+### 5. Social Invite System (Group Invite)
+
+**Tables**: `invite_events`, `invite_guests`
+
+**Flow**: Partner shares a single invite link for an event with many guests.
+- `GET /invite/:code` — landing page with event info + registration form.
+- `POST /invite/:code/register` — creates `invite_guests` record, Telegram notification to partner + admin.
+- `POST /invite/:code/click` — marks `clickedZoom=true`, redirects to Zoom.
+- Partner creates invite from UpcomingScreen detail → `invite_events` record with `inviteCode`.
+- Walk-ins (Zoom participants without `inviteGuestId`) are **excluded** from partner stats.
+
+---
+
+### 6. Guest Attendance Attribution
+
+**Table**: `zoom_attendance`
+
+- Server-to-Server Zoom OAuth (`ZOOM_ACCOUNT_ID`, `ZOOM_CLIENT_ID`, `ZOOM_CLIENT_SECRET`).
+- Fetches participants from Zoom Reports API after each webinar.
+- Matches by `inviteGuestId` (preferred) or email.
+- Stores: `durationMinutes`, `questionsAsked`, `joinTime`, `leaveTime`.
+- Partner stats: `attendedCount` = guests where `inviteGuestId != null` (excludes walk-ins).
+
+---
+
+### 7. Key API Endpoints (Partner)
+
+**Partner-auth required** (`x-partner-auth` header):
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/partner-app/profile` | Partner profile + lifetime stats |
+| PUT | `/api/partner-app/profile` | Update partner info |
+| GET | `/api/partner-app/events` | Upcoming events with per-event stats |
+| GET | `/api/partner-app/events/:id/report` | Full funnel report + guest list |
+| GET | `/api/partner-app/events/:id/personal-invites` | Personal invites for event (My Invitations) |
+| POST | `/api/partner-app/create-personal-invite` | Create new personal invite |
+| POST | `/api/partner-app/create-social-invite` | Create/get social invite for event |
+| POST | `/api/partner-app/contacts/:id/ai-followup` | Generate AI follow-up message |
+| POST | `/api/partner-app/register` | Register new partner |
+
+**Public (guest-facing)**:
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/personal-invite/:code` | Load invite (marks viewed, returns reminderChannel) |
+| POST | `/api/personal-invite/:code/chat` | AI chat message |
+| POST | `/api/personal-invite/:code/register` | Guest registration |
+| GET | `/api/go/:token` | Record goClickedAt, redirect to Zoom |
+| GET | `/invite/:code` | Social invite landing |
+| POST | `/invite/:code/register` | Social invite registration |
+
+**Bot**:
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/telegram-bot/webhook` | Partner bot webhook (all commands incl. `/start remind_CODE`) |
+
+---
+
+### 8. Environment Variables (Partner-related)
+
+| Variable | Purpose |
+|---|---|
+| `TELEGRAM_PARTNER_BOT_TOKEN` | Production partner bot token |
+| `TELEGRAM_PARTNER_BOT_TOKEN_DEV` | Dev partner bot token |
+| `TELEGRAM_PARTNER_BOT_USERNAME` | Bot @username for deep links (prod) |
+| `TELEGRAM_PARTNER_BOT_USERNAME_DEV` | Bot @username for deep links (dev) |
+| `RESEND_API_KEY` | Transactional email sending |
+| `ZOOM_ACCOUNT_ID` | Zoom Server-to-Server OAuth |
+| `ZOOM_CLIENT_ID` | Zoom API access |
+| `ZOOM_CLIENT_SECRET` | Zoom API access |
+| `PRODUCTION_URL` | Base URL for /go/ links in production |
+
+---
+
+## Other Core Features
+
+- **Partner Digital Hub**: Personalized partner pages (`/dennis`, `/p/dennis`). State machine: HERO → CHAT_OVERLAY → PRESENTATION_OVERLAY → ECOSYSTEM_OVERLAY + `/live` route. Multilingual (RU/DE/EN). AI chat via `POST /api/partner/dennis/chat` (GPT-4o-mini, SSE). 10-slide presentation with cinematic video backgrounds (`bg_market.mp4`, `bg_partner.mp4`, `bg_tech.mp4`), glassmorphism cards, interactive ecosystem map (`EcosystemMapSlide.tsx`), context-injected chip→chat interactions.
+
+- **Dennis Fast Start Promo**: `dennis_promos` DB table. PromoCard fetches from `GET /api/dennis-promos`. Admin CRUD + applications management with approve/reject/CSV export. Telegram notifications on each new application.
+
+- **Smart Linktree Navigation**: Hub, Trading Hub, Partner Hub, Schedule, Tutorials, Promotions pages.
+
+- **Zoom API Integration**: Server-to-Server OAuth. Fetches participants after each webinar, stores in `zoom_attendance`, matches to guests by `inviteGuestId` or email.
+
+- **Admin Panel**: Password-protected (`/admin`). Manages chat logs, promotions, schedule events, speakers, promo applications, invite events, partners. Rate-limited login.
+
+- **Maria AI**: Text chat (GPT-4o-mini, SSE, system prompt per language). Video avatar (HeyGen LiveAvatar via LiveKit WebRTC). GPT-4o analysis of chat logs via admin panel.
+
+- **Promo Verification Poller**: Checks pending promo applications every 3 minutes, notifies admin on status changes.
+
+---
 
 ## External Dependencies
 
-- **PostgreSQL**: For database persistence, managed by Drizzle ORM.
-- **OpenAI API**: Used for Maria's text chat capabilities (via Replit AI Integrations).
-- **HeyGen**: Provides the LiveAvatar service for Maria's video avatar functionality, integrating with LiveKit WebRTC.
-- **Replit Object Storage**: For persistent file storage of uploaded assets.
-- **Telegram WebApp SDK**: For integration as a Telegram Mini App.
-- **Google Sheets API**: Auto-sync of chat logs to a "JetUP Chat Logs" spreadsheet and promo applications to a "JetUP Promo Applications" spreadsheet via `server/googleSheets.ts`. Uses Replit Google Sheets connector (OAuth). New messages/applications auto-append on creation; full sync available via admin panel buttons. Promo applications sync endpoint: `POST /api/admin/sync-promo-sheets`.
-- **Google Drive**: Linked for presentations.
-- **Telegram (External)**: Linked for the JetUPDach channel.
-- **Instagram**: Linked for jetup.official.
-- **TAG Markets**: Licensed broker integrated into the ecosystem.
-- **BIX.FI / BIT1**: Crypto debit card and exchange services.
+| Service | Purpose |
+|---|---|
+| PostgreSQL | Main database (Drizzle ORM) |
+| OpenAI API | Maria chat, AI follow-ups, invite AI, partner chat (via Replit AI Integrations) |
+| HeyGen / LiveKit | Maria video avatar (WebRTC) |
+| Replit Object Storage | Speaker photos, banners |
+| Telegram Bot API | Partner bot + guest notifications |
+| Resend | Transactional emails (confirmation, reminders) |
+| Zoom API | Attendance tracking (Server-to-Server OAuth) |
+| Google Sheets | Chat logs + promo applications auto-sync (Replit connector) |
+| Google Drive | Presentations |
+
+## File Structure (Key Partner Files)
+
+```
+server/
+  partner-app-routes.ts       — All /api/partner-app/* and /api/personal-invite/* routes
+  integrations/
+    partner-bot.ts            — Telegram bot webhook handler
+    reminder-scheduler.ts     — 24h + 1h automatic reminder scheduler
+    resend-email.ts           — Transactional email templates + sending
+    telegram-notify.ts        — Low-level Telegram message helpers
+
+client/src/pages/
+  partner-app/
+    PartnerApp.tsx            — Main 4-tab container + auth + registration
+    UpcomingScreen.tsx        — Events list + detail + My Invitations
+    ContactsScreen.tsx        — All guests + channel status + AI follow-up
+    StatisticsScreen.tsx      — Lifetime partner stats
+    partnerAuth.ts            — HMAC auth header helper
+  PersonalInvitePage.tsx      — /personal-invite/:code guest-facing page
+  GoPage.tsx                  — /go/:token attendance tracking redirect
+  InvitePage.tsx              — /invite/:code social invite landing
+
+shared/
+  schema.ts                   — All DB table definitions (personalInvites, partners, etc.)
+```

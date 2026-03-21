@@ -21,6 +21,7 @@ interface Contact {
   sourceType: "personal" | "social";
   attended: boolean;
   clickedZoom: boolean;
+  goClickedAt?: string | null;
   registeredAt: string;
   durationMinutes: number | null;
   questionsAsked: number | null;
@@ -39,7 +40,7 @@ interface PartnerEvent {
 
 interface Guest {
   id: number; name: string; email: string; phone: string | null;
-  registeredAt: string; clickedZoom: boolean; attended: boolean;
+  registeredAt: string; clickedZoom: boolean; goClickedAt?: string | null; attended: boolean;
   durationMinutes: number | null; questionsAsked: number | null;
   isWalkIn?: boolean;
   guestTelegram?: string | null;
@@ -108,6 +109,7 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
                   sourceType: "social",
                   attended: g.attended,
                   clickedZoom: g.clickedZoom,
+                  goClickedAt: g.goClickedAt,
                   registeredAt: g.registeredAt,
                   durationMinutes: g.durationMinutes,
                   questionsAsked: g.questionsAsked,
@@ -320,6 +322,19 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
                         </span>
                       )}
                     </div>
+                    <p className="text-[11px] flex items-center gap-1" data-testid={`contact-go-link-${c.id}`}>
+                      {c.goClickedAt ? (
+                        <span className="text-emerald-600 flex items-center gap-1">
+                          <span>✅</span>
+                          <span>{t("pa.contacts.goLinkClicked")} {new Date(c.goClickedAt).toLocaleDateString(language === "de" ? "de-DE" : language === "ru" ? "ru-RU" : "en-US", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+                        </span>
+                      ) : (
+                        <span className="text-gray-300 flex items-center gap-1">
+                          <span>⏳</span>
+                          <span>{t("pa.contacts.goLinkPending")}</span>
+                        </span>
+                      )}
+                    </p>
                     {c.hasChat && !c.registeredAt && (
                       <p className="text-[11px] text-purple-500 flex items-center gap-1">
                         <MessageCircle className="w-3 h-3" /> {t("pa.contacts.chatted")}

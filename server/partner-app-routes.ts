@@ -733,6 +733,7 @@ export function registerPartnerAppRoutes(app: Express) {
           phone: g.phone,
           registeredAt: g.registeredAt,
           clickedZoom: g.clickedZoom,
+          goClickedAt: g.goClickedAt ?? null,
           attended: !!att,
           durationMinutes,
           questionsAsked: att ? (att.questionsAsked ?? null) : null,

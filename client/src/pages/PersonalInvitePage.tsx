@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRoute } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Calendar, Clock, Mic, Star, Send, ChevronRight, Globe, MessageSquare, Phone, Video, Mail } from "lucide-react";
+import { Loader2, Calendar, Clock, Mic, Star, Send, ChevronRight, Globe, MessageSquare, Phone, Video, Mail, ArrowLeft } from "lucide-react";
 import { useLanguage, Language } from "../contexts/LanguageContext";
 
 interface InviteData {
@@ -452,13 +452,24 @@ export default function PersonalInvitePage() {
     const successTitle = language === "de" ? "Du bist angemeldet!" : language === "ru" ? "Ты зарегистрирован!" : "You're registered!";
     const emailNoticeTitle = language === "de" ? "📧 Link wird per E-Mail gesendet" : language === "ru" ? "📧 Ссылка придёт на почту" : "📧 Link sent to your email";
     const emailNoticeText = language === "de" ? `Kurz vor dem Webinar erhältst du deinen persönlichen Zugangslink.` : language === "ru" ? `Незадолго до вебинара ты получишь персональную ссылку для входа.` : `Shortly before the webinar you'll receive your personal access link.`;
+    const reminderText = language === "de" ? "Wir erinnern Sie vor Beginn" : language === "ru" ? "Мы напомним вам перед началом" : "We'll remind you before it starts";
     const joinLabel = language === "de" ? "Jetzt Zoom Meeting beitreten" : language === "ru" ? "Войти в Zoom сейчас" : "Join Zoom Meeting now";
+    const backLabel = language === "de" ? "Zurück" : language === "ru" ? "Назад" : "Back";
 
     return (
       <div className="min-h-screen bg-[#F5F5F7] overflow-y-auto no-scrollbar">
-        <div className="max-w-md mx-auto px-5 py-10 space-y-5">
-          <div className="flex justify-center">
+        <div className="max-w-md mx-auto px-5 py-6 space-y-5">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => { setShowSuccessScreen(false); setPhase("landing"); }}
+              className="flex items-center gap-1 text-sm text-blue-600 font-medium py-1"
+              data-testid="button-back-from-success"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {backLabel}
+            </button>
             <img src="/jetup-logo.png" alt="JetUP Logo" className="h-8" />
+            <div className="w-16" />
           </div>
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -507,9 +518,10 @@ export default function PersonalInvitePage() {
                 {joinLabel}
               </a>
             ) : (
-              <div className="bg-blue-50 rounded-2xl p-4 text-center">
-                <p className="text-sm font-semibold text-blue-800 mb-1">{emailNoticeTitle}</p>
+              <div className="bg-blue-50 rounded-2xl p-4 text-center space-y-1">
+                <p className="text-sm font-semibold text-blue-800">{emailNoticeTitle}</p>
                 <p className="text-xs text-blue-600">{emailNoticeText}</p>
+                <p className="text-xs text-blue-500 font-medium">{reminderText}</p>
               </div>
             )}
 
@@ -540,10 +552,20 @@ export default function PersonalInvitePage() {
     );
   }
 
+  const registerStickyLabel = language === "de" ? "Registrieren" : language === "ru" ? "Зарегистрироваться" : "Register";
+
   return (
     <div className="h-[100dvh] flex flex-col bg-[#F5F5F7] overflow-hidden">
       <div className="flex-shrink-0 bg-white border-b border-gray-100">
-        <div className="px-4 py-2.5 flex items-center gap-3">
+        <div className="px-4 py-2.5 flex items-center gap-2">
+          <button
+            onClick={() => setPhase("landing")}
+            className="flex items-center gap-1 px-2 py-1.5 rounded-xl hover:bg-gray-100 active:bg-gray-200 transition-colors flex-shrink-0"
+            data-testid="button-back-from-chat"
+          >
+            <ArrowLeft className="w-4 h-4 text-gray-600" />
+            <span className="text-xs font-medium text-gray-600">{language === "ru" ? "Назад" : language === "de" ? "Zurück" : "Back"}</span>
+          </button>
           {ev?.speakerPhoto ? (
             <img src={ev.speakerPhoto} alt={ev?.speaker || ""} className="w-9 h-9 rounded-xl object-cover flex-shrink-0" />
           ) : (
@@ -726,6 +748,28 @@ export default function PersonalInvitePage() {
           </div>
         )}
       </div>
+
+      {!isRegistered && !showRegForm && (
+        <div className="flex-shrink-0 px-4 pb-1 pt-1">
+          <motion.button
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => {
+              setShowRegForm(true);
+              setQuickReplies([]);
+              if (inviteData?.prospectName) {
+                setRegData((prev) => ({ ...prev, name: inviteData.prospectName }));
+              }
+            }}
+            className="w-full py-3 rounded-2xl bg-blue-600 text-sm font-bold text-white active:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            data-testid="button-sticky-register"
+          >
+            {registerStickyLabel}
+            <ChevronRight className="w-4 h-4" />
+          </motion.button>
+        </div>
+      )}
 
       {quickReplies.length > 0 && !showRegForm && (
         <div className="flex-shrink-0 px-4 pb-2">

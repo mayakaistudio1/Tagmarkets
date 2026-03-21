@@ -29,6 +29,7 @@ interface Contact {
   guestTelegram?: string | null;
   reminderChannel?: string | null;
   hasChat?: boolean;
+  telegramNotificationsEnabled?: boolean;
 }
 
 interface PartnerEvent {
@@ -46,6 +47,7 @@ interface Guest {
   guestTelegram?: string | null;
   reminderChannel?: string | null;
   hasChat?: boolean;
+  telegramNotificationsEnabled?: boolean;
 }
 
 function getContactStatus(g: Guest): ContactStatus {
@@ -117,6 +119,7 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
                   guestTelegram: g.guestTelegram,
                   reminderChannel: g.reminderChannel,
                   hasChat: g.hasChat,
+                  telegramNotificationsEnabled: g.telegramNotificationsEnabled,
                 });
               });
             } catch {}
@@ -315,7 +318,15 @@ export default function ContactsScreen({ telegramId }: { telegramId: string }) {
                           <span className="text-[12px]">✈️</span> @{c.guestTelegram.replace(/^@/, "")}
                         </span>
                       )}
-                      {c.reminderChannel && (
+                      {c.reminderChannel === "telegram" && (
+                        <span
+                          className={`flex items-center gap-1 text-[10px] font-medium ${c.telegramNotificationsEnabled ? "text-emerald-600" : "text-gray-400"}`}
+                          data-testid={`contact-tg-status-${c.id}`}
+                        >
+                          {c.telegramNotificationsEnabled ? t("pa.contacts.tgSubscribed") : t("pa.contacts.tgNotSubscribed")}
+                        </span>
+                      )}
+                      {c.reminderChannel && c.reminderChannel !== "telegram" && (
                         <span className="flex items-center gap-1 text-gray-400" data-testid={`contact-channel-${c.id}`}>
                           <ReminderChannelIcon channel={c.reminderChannel} />
                           <span className="text-[10px] capitalize">{c.reminderChannel}</span>

@@ -744,6 +744,7 @@ export function registerPartnerAppRoutes(app: Express) {
           guestTelegram: pi?.guestTelegram ?? null,
           reminderChannel: pi?.reminderChannel ?? null,
           hasChat,
+          telegramNotificationsEnabled: pi?.telegramNotificationsEnabled ?? false,
         };
       });
 
@@ -1449,6 +1450,8 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         quickReplies: reminderQuickReplies[lang] || reminderQuickReplies.en,
         zoomLink: scheduleEvent?.link || null,
         guestToken: (updated as any).guestToken || null,
+        reminderChannel: reminderChannel || null,
+        inviteCode: invite.inviteCode,
       });
     } catch (error: any) {
       console.error("Personal invite register error:", error);

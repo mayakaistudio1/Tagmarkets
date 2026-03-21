@@ -106,8 +106,18 @@ export default function PersonalInvitePage() {
   const [registering, setRegistering] = useState(false);
   const [zoomLink, setZoomLink] = useState<string | null>(null);
   const [guestToken, setGuestToken] = useState<string | null>(null);
+  const [reminderChannel, setReminderChannel] = useState<string | null>(null);
+  const [inviteCodeForBot, setInviteCodeForBot] = useState<string | null>(null);
+  const [botUsername, setBotUsername] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [langInitialized, setLangInitialized] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/partner-app/bot-config")
+      .then(r => r.json())
+      .then(d => { if (d.botUsername) setBotUsername(d.botUsername); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!code) return;
@@ -233,6 +243,8 @@ export default function PersonalInvitePage() {
         setIsRegistered(true);
         if (data.zoomLink) setZoomLink(data.zoomLink);
         if (data.guestToken) setGuestToken(data.guestToken);
+        if (data.reminderChannel) setReminderChannel(data.reminderChannel);
+        if (data.inviteCode) setInviteCodeForBot(data.inviteCode);
         setShowSuccessScreen(true);
         setQuickReplies([]);
       }
@@ -496,6 +508,25 @@ export default function PersonalInvitePage() {
               <div className="bg-blue-50 rounded-2xl p-4 text-center">
                 <p className="text-sm font-semibold text-blue-800 mb-1">{emailNoticeTitle}</p>
                 <p className="text-xs text-blue-600">{emailNoticeText}</p>
+              </div>
+            )}
+
+            {reminderChannel === "telegram" && botUsername && inviteCodeForBot && (
+              <div className="bg-[#EFF8FF] rounded-2xl p-4 space-y-3">
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-blue-800 mb-0.5">{t("pi.tgSubscribeCta")}</p>
+                  <p className="text-xs text-blue-600">{t("pi.tgSubscribeHint")}</p>
+                </div>
+                <a
+                  href={`https://t.me/${botUsername}?start=remind_${inviteCodeForBot}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-500 text-white text-sm font-bold active:bg-blue-600 transition-colors"
+                  data-testid="link-tg-subscribe"
+                >
+                  <span className="text-base">✈️</span>
+                  {t("pi.tgSubscribeCta")}
+                </a>
               </div>
             )}
           </motion.div>

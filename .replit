@@ -46,10 +46,6 @@ author = "agent"
 task = "workflow.run"
 args = "Start application"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Recruiting Slides"
-
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -58,18 +54,6 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
-
-[[workflows.workflow]]
-name = "Recruiting Slides"
-author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd jetup-recruiting && npm install && npm run dev"
-waitForPort = 5173
 
 [agent]
 mockupState = "FULLSTACK"

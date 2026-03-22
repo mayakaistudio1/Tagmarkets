@@ -1,443 +1,581 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
-const scenes = [
+const SCENES = [
   {
     id: 1,
+    chapter: "ГЛАВА I",
     phase: "СОМНЕНИЕ",
-    phaseEn: "DOUBT",
-    color: "#1a1a2e",
-    accent: "#e74c3c",
-    emoji: "😟",
-    character: "👤",
-    title: "Это вообще работает?",
-    subtitle: "Максим, 34 года. Наёмный сотрудник.",
-    thought: "«Сетевой маркетинг? Я слышал это раньше. Скорее всего, очередная пирамида...»",
-    details: [
-      "Нестабильный доход",
-      "Нет свободы времени",
-      "Боится потерять деньги",
-      "Не доверяет финансовым партнёрствам",
+    accent: "#ef4444",
+    glow: "rgba(239,68,68,0.15)",
+    orb: "rgba(239,68,68,0.08)",
+    headline: "«Это не для меня»",
+    subline: "Максим. 34 года. Финансовый аналитик.",
+    quote: "Сетевой маркетинг? Пирамида? Я слышал это раньше. Лучше останусь там, где стабильно.",
+    stats: [
+      { label: "Свободного времени", value: "0 ч/нед" },
+      { label: "Пассивного дохода", value: "$0" },
+      { label: "Контроль над жизнью", value: "Минимальный" },
     ],
-    bg: "from-red-950 to-slate-950",
-    visual: "doubt",
+    symbol: "?",
+    symbolSize: "18rem",
+    bg: ["#0a0008", "#1a0010", "#0d000a"],
   },
   {
     id: 2,
+    chapter: "ГЛАВА II",
     phase: "ПЕРВЫЙ КОНТАКТ",
-    phaseEn: "FIRST CONTACT",
-    color: "#0f2027",
-    accent: "#3498db",
-    emoji: "🎯",
-    character: "🧑‍💻",
-    title: "JetUP — это другое",
-    subtitle: "Вебинар. Партнёр показывает результаты.",
-    thought: "«TAG Markets. Регулируемый брокер. Стратегия Sonic — 80% прибыльных месяцев. Это не просто слова...»",
-    details: [
-      "Стратегия Sonic — 24x Amplify модель",
-      "Myfxbook — прозрачная история сделок",
-      "Регуляция LFSA (Labuan)",
-      "AI-ассистент объясняет каждый шаг",
+    accent: "#3b82f6",
+    glow: "rgba(59,130,246,0.15)",
+    orb: "rgba(59,130,246,0.08)",
+    headline: "«Подожди. Это другое.»",
+    subline: "Вебинар JetUP. TAG Markets. Стратегия Sonic.",
+    quote: "Myfxbook не врёт. 80% прибыльных месяцев. Регулируемый брокер. AI-ассистент. Это не просто слова.",
+    stats: [
+      { label: "Стратегия Sonic", value: "80%+ мес." },
+      { label: "Регуляция", value: "LFSA" },
+      { label: "Прозрачность", value: "Myfxbook" },
     ],
-    bg: "from-blue-950 to-slate-950",
-    visual: "contact",
+    symbol: "◎",
+    symbolSize: "14rem",
+    bg: ["#00080a", "#001525", "#000d1a"],
   },
   {
     id: 3,
+    chapter: "ГЛАВА III",
     phase: "РЕШЕНИЕ",
-    phaseEn: "DECISION",
-    color: "#0d1b2a",
-    accent: "#f39c12",
-    emoji: "⚡",
-    character: "🙋",
-    title: "Я попробую",
-    subtitle: "Dennis Fast Start Promo — вход без барьеров",
-    thought: "«100 USD → и я получаю +100 USD бонус. Итого 200 USD — это 4 800 USD на счёте MT5. Риск понятен, логика прозрачна.»",
-    details: [
-      "Депозит 100 USD → бонус +100 USD",
-      "4 800 USD аккаунт на стратегии Sonic",
-      "Прибыль можно выводить в любое время",
-      "Partner App — всё в телефоне",
+    accent: "#f59e0b",
+    glow: "rgba(245,158,11,0.15)",
+    orb: "rgba(245,158,11,0.08)",
+    headline: "«Я войду»",
+    subline: "Dennis Fast Start Promo. Вход без барьеров.",
+    quote: "100 USD депозит. +100 USD бонус. Итого — 4 800 USD на счёте MT5. Риск понятен. Логика прозрачна. Я начинаю.",
+    stats: [
+      { label: "Депозит", value: "$100" },
+      { label: "Бонус", value: "+$100" },
+      { label: "Аккаунт MT5", value: "$4 800" },
     ],
-    bg: "from-amber-950 to-slate-950",
-    visual: "decision",
+    symbol: "→",
+    symbolSize: "16rem",
+    bg: ["#0a0700", "#1a1000", "#0d0900"],
   },
   {
     id: 4,
+    chapter: "ГЛАВА IV",
     phase: "ПЕРВЫЙ ДОХОД",
-    phaseEn: "FIRST INCOME",
-    color: "#0a1628",
-    accent: "#27ae60",
-    emoji: "💸",
-    character: "😊",
-    title: "Деньги пришли",
-    subtitle: "Месяц 1-3. Lot Commissions + Profit Share",
-    thought: "«Я пригласил 3 человек. Они активны. Пошли сделки — и я вижу комиссии. Это не разовое — это продолжается.»",
-    details: [
-      "Lot Commissions — с каждой сделки",
-      "Profit Share — доля от прибыли клиента",
-      "Доход продолжается пока клиент активен",
-      "Первое осознание residual income",
+    accent: "#22c55e",
+    glow: "rgba(34,197,94,0.15)",
+    orb: "rgba(34,197,94,0.08)",
+    headline: "«Деньги пришли.»",
+    subline: "Lot Commissions. Profit Share. Месяц 1–3.",
+    quote: "Я пригласил троих. Они активны. Пошли сделки — и я вижу комиссии. Доход не закончился. Он продолжается.",
+    stats: [
+      { label: "Lot Commissions", value: "С каждой сделки" },
+      { label: "Profit Share", value: "Доля от прибыли" },
+      { label: "Характер дохода", value: "Residual" },
     ],
-    bg: "from-green-950 to-slate-950",
-    visual: "income",
+    symbol: "↑",
+    symbolSize: "16rem",
+    bg: ["#000a02", "#001505", "#000d03"],
   },
   {
     id: 5,
+    chapter: "ГЛАВА V",
     phase: "РОСТ СТРУКТУРЫ",
-    phaseEn: "TEAM GROWTH",
-    color: "#0a0a2e",
-    accent: "#9b59b6",
-    emoji: "🚀",
-    character: "👨‍👩‍👧‍👦",
-    title: "Структура ожила",
-    subtitle: "Месяц 4-8. Infinity Bonus включается",
-    thought: "«У меня 3 ветки. Каждый лидер строит свою команду. Доход идёт уже глубже меня — я зарабатываю на том, что выстроил.»",
-    details: [
-      "Infinity Bonus — доход с глубины организации",
-      "Команда дублирует действия",
-      "AI-аватар работает за меня на вебинарах",
-      "Доход не зависит только от личных действий",
+    accent: "#a855f7",
+    glow: "rgba(168,85,247,0.15)",
+    orb: "rgba(168,85,247,0.08)",
+    headline: "«Система ожила.»",
+    subline: "3 ветки. Infinity Bonus. AI работает за меня.",
+    quote: "Я больше не работаю только сам. Структура дублирует действия. Доход идёт глубже меня. Это уже другое ощущение.",
+    stats: [
+      { label: "Infinity Bonus", value: "Глубина без лимита" },
+      { label: "AI-аватар", value: "Вебинары за меня" },
+      { label: "Тип дохода", value: "Organizational" },
     ],
-    bg: "from-purple-950 to-slate-950",
-    visual: "growth",
+    symbol: "⬡",
+    symbolSize: "14rem",
+    bg: ["#05000a", "#0d0018", "#07000f"],
   },
   {
     id: 6,
+    chapter: "ГЛАВА VI",
     phase: "ПРОЦВЕТАНИЕ",
-    phaseEn: "PROSPERITY",
-    color: "#0a1a0a",
-    accent: "#f1c40f",
-    emoji: "🏆",
-    character: "😎",
-    title: "Система работает на меня",
-    subtitle: "Год+. Global Pool. Свобода.",
-    thought: "«Global Pool. Incentives. Путешествия за счёт компании. Я создал остаточный доход — теперь система живёт своей жизнью.»",
-    details: [
-      "Global Pool — доля от оборота всей компании",
-      "Incentives — путешествия, бонусы",
-      "Зрелая partner economy",
-      "Свобода времени и финансовая независимость",
+    accent: "#eab308",
+    glow: "rgba(234,179,8,0.2)",
+    orb: "rgba(234,179,8,0.1)",
+    headline: "«Система работает на меня.»",
+    subline: "Global Pool. Incentives. Финансовая свобода.",
+    quote: "Я создал остаточный доход. Global Pool. Путешествия от компании. Теперь система живёт своей жизнью.",
+    stats: [
+      { label: "Global Pool", value: "Оборот компании" },
+      { label: "Incentives", value: "Путешествия + бонусы" },
+      { label: "Статус", value: "Финансовая свобода" },
     ],
-    bg: "from-yellow-950 to-slate-950",
-    visual: "prosperity",
+    symbol: "✦",
+    symbolSize: "14rem",
+    bg: ["#0a0800", "#1a1200", "#0d0a00"],
   },
 ];
 
-const VisualDot = ({ visual, accent }: { visual: string; accent: string }) => {
-  const visuals: Record<string, JSX.Element> = {
-    doubt: (
-      <div className="relative w-48 h-48 mx-auto">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-32 h-32 rounded-full bg-red-900/40 flex items-center justify-center border border-red-700/30 animate-pulse">
-            <span className="text-6xl">😟</span>
-          </div>
-        </div>
-        {["?", "?", "?"].map((q, i) => (
-          <div
-            key={i}
-            className="absolute text-red-400/60 text-2xl font-bold animate-bounce"
-            style={{
-              top: `${[10, 20, 5][i]}%`,
-              left: `${[5, 75, 45][i]}%`,
-              animationDelay: `${i * 0.3}s`,
-            }}
-          >
-            {q}
-          </div>
-        ))}
+function Particles({ color }: { color: string }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {Array.from({ length: 24 }).map((_, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: `${Math.random() * 3 + 1}px`,
+            height: `${Math.random() * 3 + 1}px`,
+            backgroundColor: color,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            opacity: Math.random() * 0.5 + 0.1,
+            animation: `float-${i % 3} ${4 + Math.random() * 8}s ease-in-out infinite`,
+            animationDelay: `${Math.random() * 4}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function GlowOrb({
+  accent,
+  glow,
+  symbol,
+  symbolSize,
+}: {
+  accent: string;
+  glow: string;
+  symbol: string;
+  symbolSize: string;
+}) {
+  return (
+    <div className="relative flex items-center justify-center" style={{ height: "200px" }}>
+      <div
+        className="absolute rounded-full"
+        style={{
+          width: "320px",
+          height: "320px",
+          background: `radial-gradient(circle, ${glow} 0%, transparent 70%)`,
+          animation: "pulse-glow 3s ease-in-out infinite",
+        }}
+      />
+      <div
+        className="absolute rounded-full"
+        style={{
+          width: "180px",
+          height: "180px",
+          background: `radial-gradient(circle, ${glow} 0%, transparent 60%)`,
+          animation: "pulse-glow 2s ease-in-out infinite reverse",
+        }}
+      />
+      <div
+        style={{
+          fontSize: symbolSize,
+          color: accent,
+          opacity: 0.12,
+          position: "absolute",
+          fontWeight: 900,
+          lineHeight: 1,
+          userSelect: "none",
+          filter: `drop-shadow(0 0 40px ${accent})`,
+          animation: "symbol-breathe 4s ease-in-out infinite",
+        }}
+      >
+        {symbol}
       </div>
-    ),
-    contact: (
-      <div className="relative w-48 h-48 mx-auto">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-32 h-32 rounded-full bg-blue-900/40 flex items-center justify-center border border-blue-500/30">
-            <span className="text-6xl">💻</span>
-          </div>
-        </div>
-        <div className="absolute top-2 right-4 bg-blue-600/80 text-white text-xs px-2 py-1 rounded animate-pulse">
-          LIVE
-        </div>
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-          {["📊", "📈", "🔒"].map((e, i) => (
-            <span key={i} className="text-lg animate-bounce" style={{ animationDelay: `${i * 0.2}s` }}>
-              {e}
-            </span>
-          ))}
-        </div>
-      </div>
-    ),
-    decision: (
-      <div className="relative w-48 h-48 mx-auto">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-32 h-32 rounded-full bg-amber-900/40 flex items-center justify-center border border-amber-500/30">
-            <span className="text-6xl">✅</span>
-          </div>
-        </div>
-        <div className="absolute top-0 left-8 text-amber-400 text-sm font-bold animate-pulse">$100</div>
-        <div className="absolute top-0 right-8 text-green-400 text-sm font-bold animate-pulse" style={{ animationDelay: "0.5s" }}>+$100</div>
-        <div className="absolute bottom-2 left-0 right-0 text-center text-amber-300 text-xs font-bold">
-          = $4,800 MT5
-        </div>
-      </div>
-    ),
-    income: (
-      <div className="relative w-48 h-48 mx-auto">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-32 h-32 rounded-full bg-green-900/40 flex items-center justify-center border border-green-500/30">
-            <span className="text-6xl">📈</span>
-          </div>
-        </div>
-        {["$", "$", "$"].map((s, i) => (
-          <div
-            key={i}
-            className="absolute text-green-400 font-bold text-xl animate-bounce"
-            style={{
-              top: `${[60, 40, 70][i]}%`,
-              left: `${[10, 80, 50][i]}%`,
-              animationDelay: `${i * 0.4}s`,
-            }}
-          >
-            {s}
-          </div>
-        ))}
-      </div>
-    ),
-    growth: (
-      <div className="relative w-48 h-48 mx-auto">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-20 h-20 rounded-full bg-purple-900/40 flex items-center justify-center border border-purple-500/30 z-10">
-            <span className="text-4xl">👤</span>
-          </div>
-        </div>
-        {[
-          { top: "5%", left: "5%" },
-          { top: "5%", right: "5%" },
-          { bottom: "5%", left: "5%" },
-          { bottom: "5%", right: "5%" },
-        ].map((pos, i) => (
-          <div
-            key={i}
-            className="absolute w-12 h-12 rounded-full bg-purple-800/30 flex items-center justify-center border border-purple-400/20 animate-pulse"
-            style={{ ...pos, animationDelay: `${i * 0.2}s` }}
-          >
-            <span className="text-xl">👤</span>
-          </div>
-        ))}
-        <div className="absolute inset-0 flex items-center justify-center">
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="absolute w-24 border-t border-purple-500/30"
-              style={{ transform: `rotate(${i * 45}deg)` }}
-            />
-          ))}
-        </div>
-      </div>
-    ),
-    prosperity: (
-      <div className="relative w-48 h-48 mx-auto">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-32 h-32 rounded-full bg-yellow-900/40 flex items-center justify-center border border-yellow-500/30 animate-pulse">
-            <span className="text-6xl">🏆</span>
-          </div>
-        </div>
-        {["⭐", "✨", "🌟", "💫"].map((s, i) => (
-          <div
-            key={i}
-            className="absolute animate-spin text-xl"
-            style={{
-              top: `${[5, 5, 75, 75][i]}%`,
-              left: `${[5, 75, 5, 75][i]}%`,
-              animationDuration: `${3 + i}s`,
-            }}
-          >
-            {s}
-          </div>
-        ))}
-      </div>
-    ),
-  };
-  return visuals[visual] || <div />;
-};
+    </div>
+  );
+}
 
 export function PartnerJourney() {
   const [current, setCurrent] = useState(0);
-  const [animating, setAnimating] = useState(false);
-  const [visible, setVisible] = useState(true);
+  const [phase, setPhase] = useState<"in" | "out">("in");
   const [autoPlay, setAutoPlay] = useState(false);
   const [progress, setProgress] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const scene = SCENES[current];
 
-  const scene = scenes[current];
-
-  const goTo = (index: number) => {
-    if (animating || index === current) return;
-    setAnimating(true);
-    setVisible(false);
+  const navigate = (next: number) => {
+    if (phase === "out") return;
+    setPhase("out");
     setTimeout(() => {
-      setCurrent(index);
-      setVisible(true);
-      setAnimating(false);
+      setCurrent(next);
       setProgress(0);
-    }, 400);
+      setPhase("in");
+    }, 600);
   };
 
-  const next = () => goTo(Math.min(current + 1, scenes.length - 1));
-  const prev = () => goTo(Math.max(current - 1, 0));
+  const handleNext = () => {
+    if (current < SCENES.length - 1) navigate(current + 1);
+    else navigate(0);
+  };
+  const handlePrev = () => {
+    if (current > 0) navigate(current - 1);
+  };
 
   useEffect(() => {
-    if (!autoPlay) return;
-    const interval = setInterval(() => {
+    if (!autoPlay) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
+    timerRef.current = setInterval(() => {
       setProgress((p) => {
         if (p >= 100) {
-          if (current < scenes.length - 1) {
-            next();
-            return 0;
-          } else {
-            setAutoPlay(false);
-            return 100;
-          }
+          handleNext();
+          return 0;
         }
-        return p + 2;
+        return p + 1;
       });
-    }, 100);
-    return () => clearInterval(interval);
+    }, 60);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [autoPlay, current]);
 
+  const isIn = phase === "in";
+
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="text-xs tracking-widest text-slate-500 uppercase mb-1">JetUP Partner Story</div>
-          <h1 className="text-white text-xl font-bold">Путь Партнёра</h1>
-          <p className="text-slate-400 text-xs mt-1">от сомнения до процветания</p>
-        </div>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap');
 
-        {/* Scene dots */}
-        <div className="flex justify-center gap-2 mb-6">
-          {scenes.map((s, i) => (
-            <button
-              key={s.id}
-              onClick={() => goTo(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === current ? "w-8 opacity-100" : "w-1.5 opacity-30"
-              }`}
-              style={{ backgroundColor: i === current ? scene.accent : "#64748b" }}
-            />
-          ))}
-        </div>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        {/* Main card */}
+        @keyframes pulse-glow {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.15); opacity: 0.7; }
+        }
+        @keyframes symbol-breathe {
+          0%, 100% { transform: scale(1) rotate(0deg); }
+          50% { transform: scale(1.05) rotate(3deg); }
+        }
+        @keyframes float-0 {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        @keyframes float-1 {
+          0%, 100% { transform: translateY(0px) translateX(0px); }
+          50% { transform: translateY(-15px) translateX(10px); }
+        }
+        @keyframes float-2 {
+          0%, 100% { transform: translateY(0px) translateX(0px); }
+          33% { transform: translateY(-10px) translateX(-8px); }
+          66% { transform: translateY(-20px) translateX(5px); }
+        }
+        @keyframes scan-line {
+          0% { top: -2px; }
+          100% { top: 100%; }
+        }
+        @keyframes noise {
+          0% { background-position: 0 0; }
+          10% { background-position: -5% -10%; }
+          20% { background-position: -15% 5%; }
+          30% { background-position: 7% -25%; }
+          40% { background-position: 20% 25%; }
+          50% { background-position: -25% 10%; }
+          60% { background-position: 15% 5%; }
+          70% { background-position: 0 15%; }
+          80% { background-position: 25% 35%; }
+          90% { background-position: -10% 10%; }
+          100% { background-position: 0 0; }
+        }
+        @keyframes stat-in {
+          from { opacity: 0; transform: translateX(-12px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes quote-in {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes headline-in {
+          from { opacity: 0; transform: translateY(16px) scale(0.97); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
+
+      <div
+        style={{
+          minHeight: "100vh",
+          width: "100%",
+          fontFamily: "'Inter', sans-serif",
+          background: `radial-gradient(ellipse at 30% 20%, ${scene.bg[1]} 0%, ${scene.bg[0]} 50%, ${scene.bg[2]} 100%)`,
+          position: "relative",
+          overflow: "hidden",
+          transition: "background 0.8s ease",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {/* Film grain overlay */}
         <div
-          className={`rounded-2xl overflow-hidden border transition-all duration-400 ${
-            visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
           style={{
-            borderColor: `${scene.accent}33`,
-            background: `linear-gradient(135deg, ${scene.color}ee, #0f172aee)`,
-            transition: "opacity 0.4s, transform 0.4s",
+            position: "absolute",
+            inset: 0,
+            opacity: 0.03,
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",
+            animation: "noise 0.5s steps(2) infinite",
+            pointerEvents: "none",
+            zIndex: 1,
+          }}
+        />
+
+        {/* Scan line */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            height: "1px",
+            background: `linear-gradient(90deg, transparent, ${scene.accent}22, transparent)`,
+            animation: "scan-line 8s linear infinite",
+            zIndex: 2,
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Particles */}
+        <Particles color={scene.accent} />
+
+        {/* Progress bar top */}
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: "rgba(255,255,255,0.05)", zIndex: 10 }}>
+          <div
+            style={{
+              height: "100%",
+              width: `${((current) / (SCENES.length - 1)) * 100}%`,
+              background: `linear-gradient(90deg, ${scene.accent}88, ${scene.accent})`,
+              transition: "width 0.6s ease, background 0.6s ease",
+              boxShadow: `0 0 8px ${scene.accent}`,
+            }}
+          />
+          {autoPlay && (
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: `${(current / (SCENES.length - 1)) * 100}%`,
+                width: `${(1 / (SCENES.length - 1)) * progress}%`,
+                height: "100%",
+                background: scene.accent,
+                opacity: 0.5,
+              }}
+            />
+          )}
+        </div>
+
+        {/* Main content */}
+        <div
+          style={{
+            position: "relative",
+            zIndex: 5,
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            padding: "36px 28px 24px",
+            opacity: isIn ? 1 : 0,
+            transform: isIn ? "translateY(0)" : "translateY(20px)",
+            transition: "opacity 0.6s ease, transform 0.6s ease",
           }}
         >
-          {/* Phase badge */}
-          <div
-            className="px-4 py-2 flex items-center justify-between"
-            style={{ backgroundColor: `${scene.accent}22`, borderBottom: `1px solid ${scene.accent}33` }}
-          >
-            <span className="text-xs font-bold tracking-widest" style={{ color: scene.accent }}>
-              {String(scene.id).padStart(2, "0")} / {String(scenes.length).padStart(2, "0")} — {scene.phase}
-            </span>
-            <span className="text-lg">{scene.emoji}</span>
-          </div>
-
-          <div className="p-6">
-            {/* Visual */}
-            <div className="mb-6">
-              <VisualDot visual={scene.visual} accent={scene.accent} />
+          {/* Chapter + scene dots */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+            <div>
+              <div style={{ color: scene.accent, fontSize: "10px", letterSpacing: "0.25em", fontWeight: 700, opacity: 0.9 }}>
+                {scene.chapter}
+              </div>
+              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "9px", letterSpacing: "0.2em", marginTop: "2px" }}>
+                {scene.phase}
+              </div>
             </div>
-
-            {/* Title */}
-            <h2 className="text-white text-2xl font-bold text-center mb-1">{scene.title}</h2>
-            <p className="text-slate-400 text-xs text-center mb-4">{scene.subtitle}</p>
-
-            {/* Thought bubble */}
-            <div
-              className="rounded-xl p-4 mb-5 text-sm italic leading-relaxed"
-              style={{
-                backgroundColor: `${scene.accent}11`,
-                borderLeft: `3px solid ${scene.accent}88`,
-                color: "#cbd5e1",
-              }}
-            >
-              {scene.thought}
-            </div>
-
-            {/* Details */}
-            <div className="space-y-2">
-              {scene.details.map((d, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: scene.accent }} />
-                  <span className="text-slate-300 text-sm">{d}</span>
-                </div>
+            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+              {SCENES.map((s, i) => (
+                <button
+                  key={s.id}
+                  onClick={() => navigate(i)}
+                  style={{
+                    width: i === current ? "24px" : "6px",
+                    height: "6px",
+                    borderRadius: "3px",
+                    background: i === current ? scene.accent : "rgba(255,255,255,0.2)",
+                    border: "none",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    boxShadow: i === current ? `0 0 8px ${scene.accent}` : "none",
+                    padding: 0,
+                  }}
+                />
               ))}
             </div>
           </div>
-        </div>
 
-        {/* Auto-play progress bar */}
-        {autoPlay && (
-          <div className="mt-3 h-0.5 bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-none"
-              style={{ width: `${progress}%`, backgroundColor: scene.accent }}
-            />
+          {/* Glow orb visual */}
+          <GlowOrb accent={scene.accent} glow={scene.glow} symbol={scene.symbol} symbolSize={scene.symbolSize} />
+
+          {/* Headline */}
+          <div style={{ marginTop: "8px" }}>
+            <h1
+              style={{
+                fontSize: "2.2rem",
+                fontWeight: 900,
+                color: "#ffffff",
+                lineHeight: 1.1,
+                letterSpacing: "-0.02em",
+                animation: isIn ? "headline-in 0.7s ease forwards" : "none",
+                marginBottom: "6px",
+              }}
+            >
+              {scene.headline}
+            </h1>
+            <p
+              style={{
+                color: scene.accent,
+                fontSize: "12px",
+                fontWeight: 500,
+                letterSpacing: "0.05em",
+                opacity: 0.85,
+                animation: isIn ? "headline-in 0.7s 0.1s ease both" : "none",
+              }}
+            >
+              {scene.subline}
+            </p>
           </div>
-        )}
 
-        {/* Controls */}
-        <div className="flex items-center justify-between mt-5 gap-3">
-          <button
-            onClick={prev}
-            disabled={current === 0 || animating}
-            className="flex-1 py-3 rounded-xl text-sm font-medium transition-all disabled:opacity-20"
-            style={{ backgroundColor: "#1e293b", color: "#94a3b8" }}
-          >
-            ← Назад
-          </button>
-
-          <button
-            onClick={() => {
-              setAutoPlay((a) => !a);
-              setProgress(0);
-            }}
-            className="px-4 py-3 rounded-xl text-sm font-bold transition-all"
+          {/* Divider */}
+          <div
             style={{
-              backgroundColor: autoPlay ? `${scene.accent}33` : scene.accent,
-              color: autoPlay ? scene.accent : "#000",
+              margin: "20px 0",
+              height: "1px",
+              background: `linear-gradient(90deg, ${scene.accent}60, transparent)`,
+            }}
+          />
+
+          {/* Quote */}
+          <p
+            style={{
+              color: "rgba(255,255,255,0.7)",
+              fontSize: "14px",
+              lineHeight: 1.7,
+              fontStyle: "italic",
+              fontWeight: 300,
+              animation: isIn ? "quote-in 0.8s 0.2s ease both" : "none",
+              borderLeft: `2px solid ${scene.accent}60`,
+              paddingLeft: "14px",
             }}
           >
-            {autoPlay ? "⏸" : "▶ Авто"}
-          </button>
+            {scene.quote}
+          </p>
 
-          <button
-            onClick={next}
-            disabled={current === scenes.length - 1 || animating}
-            className="flex-1 py-3 rounded-xl text-sm font-medium transition-all disabled:opacity-20"
-            style={{ backgroundColor: "#1e293b", color: "#94a3b8" }}
-          >
-            Далее →
-          </button>
+          {/* Stats */}
+          <div style={{ marginTop: "24px", display: "flex", flexDirection: "column", gap: "10px" }}>
+            {scene.stats.map((stat, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  background: `linear-gradient(135deg, ${scene.orb}, rgba(255,255,255,0.02))`,
+                  border: `1px solid ${scene.accent}20`,
+                  animation: isIn ? `stat-in 0.5s ${0.3 + i * 0.1}s ease both` : "none",
+                }}
+              >
+                <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "11px", fontWeight: 500 }}>
+                  {stat.label}
+                </span>
+                <span
+                  style={{
+                    color: scene.accent,
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    letterSpacing: "0.03em",
+                  }}
+                >
+                  {stat.value}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Spacer */}
+          <div style={{ flex: 1 }} />
+
+          {/* Controls */}
+          <div style={{ marginTop: "28px", display: "flex", gap: "10px", alignItems: "center" }}>
+            <button
+              onClick={handlePrev}
+              disabled={phase === "out"}
+              style={{
+                flex: 1,
+                padding: "14px",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "rgba(255,255,255,0.4)",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                transition: "all 0.2s ease",
+              }}
+            >
+              ←
+            </button>
+
+            <button
+              onClick={() => { setAutoPlay((a) => !a); setProgress(0); }}
+              style={{
+                padding: "14px 20px",
+                borderRadius: "12px",
+                background: autoPlay ? `${scene.accent}22` : scene.accent,
+                border: `1px solid ${scene.accent}`,
+                color: autoPlay ? scene.accent : "#000",
+                fontSize: "12px",
+                fontWeight: 800,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                letterSpacing: "0.05em",
+                transition: "all 0.3s ease",
+                boxShadow: autoPlay ? "none" : `0 0 20px ${scene.accent}44`,
+              }}
+            >
+              {autoPlay ? "ПАУЗА" : "▶ СТАРТ"}
+            </button>
+
+            <button
+              onClick={handleNext}
+              disabled={phase === "out"}
+              style={{
+                flex: 1,
+                padding: "14px",
+                borderRadius: "12px",
+                background: `${scene.accent}15`,
+                border: `1px solid ${scene.accent}30`,
+                color: scene.accent,
+                fontSize: "13px",
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                transition: "all 0.2s ease",
+                boxShadow: `0 0 12px ${scene.accent}22`,
+              }}
+            >
+              →
+            </button>
+          </div>
+
+          {/* Scene counter */}
+          <div style={{ textAlign: "center", marginTop: "16px" }}>
+            <span style={{ color: "rgba(255,255,255,0.15)", fontSize: "10px", letterSpacing: "0.2em" }}>
+              {String(current + 1).padStart(2, "0")} / {String(SCENES.length).padStart(2, "0")}
+            </span>
+          </div>
         </div>
-
-        {/* Restart on last scene */}
-        {current === scenes.length - 1 && (
-          <button
-            onClick={() => goTo(0)}
-            className="w-full mt-3 py-3 rounded-xl text-sm font-bold text-slate-400 border border-slate-700 hover:border-slate-500 transition-all"
-          >
-            🔄 Начать сначала
-          </button>
-        )}
       </div>
-    </div>
+    </>
   );
 }

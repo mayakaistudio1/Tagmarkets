@@ -36,3 +36,9 @@ id = "EB_zoqCebm2WETMloKZ32"
 uri = "file://docs/PARTNER_INVITATION_WORKFLOW.md"
 type = "text"
 title = "Partner Invitation Workflow — Полная архитектура"
+
+[[outputs]]
+id = "7CD5x232pLBwQHT9IhVIA"
+uri = "file://content/banners/jetup-mission-telegram.png"
+type = "image"
+title = "JetUP Mission — Telegram Banner 1280×360"

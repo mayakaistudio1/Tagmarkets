@@ -1,0 +1,111 @@
+Fix Visual Studio image generation & storybook
+Visual Studio has three broken features that make it look non-functional:
+
+Image generation always returns 400 — frontend sends invalid format values (story, webinar_promo, telegram_visual, instagram_visual) that the backend Zod schema rejects. Only banner, instagram_post, instagram_story, thumbnail, square are valid.
+Gallery is always empty — media items are fetched from /api/media/files (the static file server path), but the correct list endpoint is /api/media/items.
+Storybook does nothing — the Create button only fires a toast and closes the dialog; no API call is made, nothing is saved.
+Video Concepts tab currently shows "coming soon" — as a bonus, make it useful by letting users generate a video brief via the AI agent.
+
+Смотри исходя из нашего из нашей базы знаний то есть у нас есть торговые стратегии да соник и NOFX то есть первое что нужно сделать нужно дать задачу чтобы допустим каждый понедельник выходила с статистика есть ссылки на мои Facebook вот как создать такого агента которые будет собирать статистику сделок и каждый понедельник предоставляет для контент плана что происходило за прошлую неделю
+
+это логотип Jet Up
+это jet-up.ai хаб
+
+Я говорю для артефактов, чтобы агенты знали, когда они мне создают картинки. Чтобы они это использовали. Что тебе еще нужно? Агентов в креатив студии, что еще тебе нужно?
+
+Так, я хочу, чтобы ты описал полностью что у нас есть, задача, как ты это понимаешь? Задачи нашего проекта, для чего он создан? Какая у тебя есть информация? Потому что предыдущее сообщение, которое написал описание продуктов Что такое чат-ап и так далее? В базе знаний, которую я загрузил
+
+Давай посмотрю что у нас есть в базе знаний и в проекте целиком.
+
+Отлично, вижу всё что загружено. Давай дам тебе полную картину.
+
+Что такое JetUP Creative Studio — как я это понимаю
+Это внутренний инструмент-рабочее пространство для команды JetUP. Не публичный сайт — именно рабочая студия, где AI-агенты помогают создавать контент, картинки, кампании и публиковать их.
+
+Что уже загружено в базу знаний (13 файлов)
+Категория	Что внутри
+mission	Миссия JetUP, Core V1 — ценности, позиционирование
+audience	DISC-профили аудитории — психотипы, портреты клиентов
+product	Forex-кластер, BitOne/BixFi — описание продуктов и платформ
+partner	Программа партнёрства, механики, сценарии заработка
+ai	JetUP AI — описание AI-кластера, психотипы для AI
+scenario	Интерактивные сценарии и task map
+general	Мастер-карта знаний, технические параметры студии
+Это уже хорошая база — агенты знают кто такой JetUP, кто аудитория, какие продукты.
+
+Что есть в самом приложении
+5 AI-агентов:
+
+Копирайтер — посты, скрипты, подписи
+Стратег — кампании, углы подачи
+Prompt Engineer — промпты для картинок и видео
+Переводчик — RU/EN/DE
+Campaign Advisor — полные брифы
+8 рабочих разделов: Agents, Knowledge Base, Content Studio, Visual Studio, Campaign Studio, Calendar, Publishing, Library
+
+Чего пока нет но ты упоминал
+Стратегии Sonic и NOFX — в базе знаний я их не вижу. Если есть документы — загрузи, агенты будут знать о них
+Торговая статистика — система для еженедельных отчётов (мы её планировали как Task #3)
+Facebook — пока только Telegram настроен для публикации
+Чего не хватает для полноценной работы агентов
+Brand Visual Style — нет файла со стилем картинок: цвета (#hex), настроение, примеры. Это нужно Prompt Engineer-агенту
+Стратегии Sonic/NOFX — если есть описание, загрузи в KB
+Facebook-ссылка — можно добавить в Settings
+Что хочешь сделать следующим?
+
+Time worked
+59 seconds
+Work done
+4 actions
+Items read
+127 lines
+Agent Usage
+$0.15
+attached_assets/Pasted--Tag-Markets-Forex-Master-Cluster--1774154717525_1774154717525.txt
+
+вот здесь есть информация о sonic и neo-fx
+
+Time worked
+35 seconds
+Work done
+3 actions
+Items read
+240 lines
+Agent Usage
+$0.16
+https://www.figma.com/design/2Rq5lGLePGhGyn7lVbmsQv/JEtUP?node-id=1260-31&t=37rjhXWR59Z3wwMy-4
+
+https://www.figma.com/design/2Rq5lGLePGhGyn7lVbmsQv/JEtUP?node-id=1260-31&t=37rjhXWR59Z3wwMy-4
+
+https://www.figma.com/design/2Rq5lGLePGhGyn7lVbmsQv/JEtUP?node-id=1260-31&t=37rjhXWR59Z3wwMy-4
+
+Отлично, получил CSS из Figma! Дай посмотрю сколько слайдов и что в них.
+
+Теперь вижу всё — это полный питч-дек JetUP из 26+ слайдов в Figma:
+
+#	Тема
+01	Обложка: "Your clear entry into the financial markets"
+02	Проблема рынка
+03	Решение
+04	Funded Account
+05	JetUP Ecosystem
+06	Шаги регистрации
+07	Старт в экосистеме
+08	About JetUP
+09	Key Metrics
+10	TAG Markets — почему
+11	Copy-X Стратегии (Sonic, NeoFX)
+12	Торговые сигналы
+13	Программа обучения
+14	Pool Tiers / Global Pool
+15	Infinity Bonus
+16	Profit Share
+17	Партнёрская программа
+18	Risk Warning
+19	Thank You
+...	+ ещё слайды
+Что хочешь с этим сделать?
+
+Построить как презентацию — создам отдельный slide deck прямо в приложении, с навигацией, который можно показывать партнёрам
+Использовать как визуальный стиль — возьму цвета, шрифты и логику layout чтобы обновить дизайн Creative Studio
+И то и другое — презентация + обновление стиля студии

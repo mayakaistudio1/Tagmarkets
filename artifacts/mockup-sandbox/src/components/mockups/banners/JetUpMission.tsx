@@ -23,7 +23,7 @@ export function JetUpMission() {
         .bg {
           position: absolute;
           inset: 0;
-          background-image: url('/jetup-mission-bg.png');
+          background-image: url('/__mockup/jetup-mission-bg.png');
           background-size: cover;
           background-position: center 30%;
         }
@@ -156,9 +156,6 @@ export function JetUpMission() {
             <span className="mission-word">Mission</span>
             <div className="accent-line" />
           </div>
-          <p className="sub">
-            Структура. Прозрачность. Масштаб.
-          </p>
         </div>
         <div className="logo-mark">
           <div className="logo-dot" />

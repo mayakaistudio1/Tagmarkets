@@ -1,0 +1,99 @@
+Create a cinematic JetUP brand story video generator.
+
+Goal:
+Generate a downloadable premium MP4 video (not HTML UI) that visually tells the JetUP story in a cinematic way.
+
+Format:
+- vertical 9:16
+- 15–25 seconds
+- high-end fintech aesthetic
+- smooth transitions
+- motion graphics + text overlays
+- export as MP4 file
+
+Style:
+- dark premium background
+- purple and magenta gradients (JetUP colors)
+- soft glowing lines and particles
+- minimal, clean, Apple/Stripe-level design
+- calm, confident, cinematic
+
+Structure of the video:
+
+SCENE 1 — CHAOS
+Visual:
+abstract chaotic light particles, scattered signals, noise
+Text:
+"The market is overloaded"
+
+SCENE 2 — PROBLEM
+Visual:
+fast moving fragmented data, unstable motion
+Text:
+"Too much noise. No structure."
+
+SCENE 3 — CYCLE
+Visual:
+looping motion / circular animation
+Text:
+"Entry → Expectation → Pressure → Disappointment"
+
+SCENE 4 — SHIFT
+Visual:
+motion slows down, chaos aligns
+Text:
+"JetUP changes this"
+
+SCENE 5 — SYSTEM
+Visual:
+clean structured lines forming a system
+Text:
+"Not an opportunity"
+" A system"
+
+SCENE 6 — CHOICE
+Visual:
+split screen or two glowing paths
+Text:
+"Who are you?"
+Buttons visually implied:
+Client / Partner
+
+SCENE 7A — CLIENT
+Visual:
+stable clean flow
+Text:
+"Structured access to financial products"
+"Transparency. Control. Security."
+
+SCENE 7B — PARTNER
+Visual:
+expanding network / nodes
+Text:
+"Income in the moment"
+"And long-term growth"
+
+SCENE 8 — AI
+Visual:
+light flows connecting nodes, intelligent system
+Text:
+"AI to explain, engage, duplicate, scale"
+
+SCENE 9 — FINAL
+Visual:
+central glowing system + JetUP logo
+Text:
+"JetUP = Growth System"
+"From chaos to structure"
+
+Technical:
+- Use a video rendering library (e.g. Remotion or similar)
+- Render scenes programmatically
+- Smooth fade transitions
+- Light motion, no aggressive animation
+- Export final video as MP4
+
+Important:
+- Do NOT build a website
+- Do NOT output HTML UI
+- Output a downloadable cinematic video file

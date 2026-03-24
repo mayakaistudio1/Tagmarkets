@@ -72,7 +72,7 @@ const HomePage: React.FC = () => {
     {
       icon: Send,
       label: "Telegram",
-      href: "https://t.me/JetUpDach",
+      href: "https://t.me/jet_up_official",
       color: "text-blue-500",
       bg: "bg-blue-50",
     },

@@ -7,6 +7,7 @@ import {
   FolderOpen,
   Send,
   Instagram,
+  Youtube,
   Video,
   MessageCircle,
   Calendar,
@@ -56,18 +57,35 @@ const HomePage: React.FC = () => {
       bg: "bg-green-50",
     },
     {
+      icon: Youtube,
+      label: t("home.webinarRecordings"),
+      href: "https://www.youtube.com/@JetUP_official",
+      color: "text-red-600",
+      bg: "bg-red-50",
+    },
+  ];
+
+  const socialLinks = [
+    {
       icon: Send,
-      label: t("home.telegram"),
+      label: "Telegram",
       href: "https://t.me/JetUpDach",
       color: "text-blue-500",
       bg: "bg-blue-50",
     },
     {
       icon: Instagram,
-      label: t("home.instagram"),
+      label: "Instagram",
       href: "https://www.instagram.com/jetup.official?igsh=MjZwdXJpd2JsYmw1&utm_source=qr",
       color: "text-pink-500",
       bg: "bg-pink-50",
+    },
+    {
+      icon: Youtube,
+      label: "YouTube",
+      href: "https://www.youtube.com/@JetUP_official",
+      color: "text-red-600",
+      bg: "bg-red-50",
     },
   ];
 
@@ -270,6 +288,29 @@ const HomePage: React.FC = () => {
                   <ArrowRight size={16} className="text-gray-300 flex-shrink-0" />
                 </a>
               ))}
+
+              <div className="bg-white rounded-xl px-4 py-3.5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]" data-testid="social-subscribe-card">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+                  {t("home.subscribe")}
+                </p>
+                <div className="flex items-center gap-3">
+                  {socialLinks.map((s, i) => (
+                    <a
+                      key={i}
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex flex-col items-center gap-1.5 active:scale-[0.95] transition-transform"
+                      data-testid={`social-link-${s.label.toLowerCase()}`}
+                    >
+                      <div className={`w-12 h-12 rounded-2xl ${s.bg} flex items-center justify-center`}>
+                        <s.icon size={22} className={s.color} />
+                      </div>
+                      <span className="text-[10px] font-semibold text-gray-500">{s.label}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
 

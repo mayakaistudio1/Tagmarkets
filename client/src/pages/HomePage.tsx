@@ -45,6 +45,7 @@ const HomePage: React.FC = () => {
     {
       icon: Youtube,
       label: t("home.webinarRecordings"),
+      subtitle: t("home.webinarRecordingsSubtitle"),
       href: "https://www.youtube.com/@JetUP_official",
       color: "text-red-600",
       bg: "bg-red-50",
@@ -52,6 +53,7 @@ const HomePage: React.FC = () => {
     {
       icon: FolderOpen,
       label: t("home.presentations"),
+      subtitle: t("home.presentationsSubtitle"),
       href: "https://drive.google.com/drive/folders/156BMU0t-hniBTd13rQ_wofvV81ETE04R?usp=sharing",
       color: "text-yellow-600",
       bg: "bg-yellow-50",
@@ -59,6 +61,7 @@ const HomePage: React.FC = () => {
     {
       icon: FolderOpen,
       label: t("home.instructions"),
+      subtitle: t("home.instructionsSubtitle"),
       href: "https://drive.google.com/drive/u/3/folders/1rBkMYhyJpY-8V0yPFm4wP20faPSyAWWM",
       color: "text-green-600",
       bg: "bg-green-50",
@@ -188,9 +191,12 @@ const HomePage: React.FC = () => {
                 <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
                   <TrendingUp size={18} className="text-white" />
                 </div>
-                <h3 className="text-[14px] font-bold text-white leading-tight flex-1">
-                  {t("home.trading")}
-                </h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[14px] font-bold text-white leading-tight">
+                    {t("home.trading")}
+                  </h3>
+                  <p className="text-[11px] font-normal text-white/70 mt-1 leading-snug">{t("home.tradingSubtitle")}</p>
+                </div>
                 <ChevronRight size={18} className="text-white/80 flex-shrink-0" />
               </div>
             </button>
@@ -204,9 +210,12 @@ const HomePage: React.FC = () => {
                 <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
                   <Users size={18} className="text-white" />
                 </div>
-                <h3 className="text-[14px] font-bold text-white leading-tight flex-1">
-                  {t("home.partner")}
-                </h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[14px] font-bold text-white leading-tight">
+                    {t("home.partner")}
+                  </h3>
+                  <p className="text-[11px] font-normal text-white/70 mt-1 leading-snug">{t("home.partnerSubtitle")}</p>
+                </div>
                 <ChevronRight size={18} className="text-white/80 flex-shrink-0" />
               </div>
             </button>
@@ -230,7 +239,10 @@ const HomePage: React.FC = () => {
               <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
                 <Megaphone size={18} className="text-purple-600" />
               </div>
-              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">{t("home.promo")}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-bold text-gray-900 leading-tight">{t("home.promo")}</p>
+                <p className="text-[11px] font-normal text-gray-500 mt-1 leading-snug">{t("home.promoSubtitle")}</p>
+              </div>
               <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />
             </button>
 
@@ -242,7 +254,10 @@ const HomePage: React.FC = () => {
               <div className="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
                 <Calendar size={18} className="text-orange-600" />
               </div>
-              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">{t("home.schedule")}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-bold text-gray-900 leading-tight">{t("home.scheduleNext")}</p>
+                <p className="text-[11px] font-normal text-gray-500 mt-1 leading-snug">{t("home.scheduleSubtitle")}</p>
+              </div>
               <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />
             </button>
 
@@ -279,9 +294,10 @@ const HomePage: React.FC = () => {
                   <div className={`w-10 h-10 rounded-xl ${link.bg} flex items-center justify-center flex-shrink-0`}>
                     <link.icon size={19} className={link.color} />
                   </div>
-                  <span className="text-[13px] font-semibold text-gray-800 flex-1">
-                    {link.label}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-gray-800 leading-tight">{link.label}</p>
+                    <p className="text-[11px] font-normal text-gray-500 mt-1 leading-snug">{link.subtitle}</p>
+                  </div>
                   <ArrowRight size={16} className="text-gray-300 flex-shrink-0" />
                 </a>
               ))}

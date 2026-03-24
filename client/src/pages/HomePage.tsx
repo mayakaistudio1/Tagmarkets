@@ -43,6 +43,13 @@ const HomePage: React.FC = () => {
 
   const directLinks = [
     {
+      icon: Youtube,
+      label: t("home.webinarRecordings"),
+      href: "https://www.youtube.com/@JetUP_official",
+      color: "text-red-600",
+      bg: "bg-red-50",
+    },
+    {
       icon: FolderOpen,
       label: t("home.presentations"),
       href: "https://drive.google.com/drive/folders/156BMU0t-hniBTd13rQ_wofvV81ETE04R?usp=sharing",
@@ -55,13 +62,6 @@ const HomePage: React.FC = () => {
       href: "https://drive.google.com/drive/u/3/folders/1rBkMYhyJpY-8V0yPFm4wP20faPSyAWWM",
       color: "text-green-600",
       bg: "bg-green-50",
-    },
-    {
-      icon: Youtube,
-      label: t("home.webinarRecordings"),
-      href: "https://www.youtube.com/@JetUP_official",
-      color: "text-red-600",
-      bg: "bg-red-50",
     },
   ];
 
@@ -266,9 +266,6 @@ const HomePage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
           >
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5 px-1">
-              {t("home.directLinks")}
-            </p>
             <div className="space-y-2">
               {directLinks.map((link, i) => (
                 <a

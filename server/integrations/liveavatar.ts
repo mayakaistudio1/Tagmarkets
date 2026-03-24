@@ -134,13 +134,19 @@ export async function getSessionToken(language: string = "ru", persona?: string)
       break;
   }
 
-  const payload = {
+  const videoSystemPromptOverride = !isDennis
+    ? await storage.getSetting("maria_prompt_video").catch(() => null)
+    : null;
+  const activeSystemPrompt = videoSystemPromptOverride ?? LIVEAVATAR_SYSTEM_PROMPT;
+
+  const payload: Record<string, any> = {
     mode: "FULL",
     avatar_id: baseAvatarId,
     avatar_persona: {
       voice_id: voiceId,
       context_id: contextId,
-      language: heygenLanguage
+      language: heygenLanguage,
+      ...(videoSystemPromptOverride ? { system_prompt: activeSystemPrompt } : {}),
     }
   };
 

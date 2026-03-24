@@ -888,6 +888,12 @@ function ChatLogsTab({
   const [analysisReport, setAnalysisReport] = useState<AnalysisReport | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<number, boolean>>({});
+  const [promptExpanded, setPromptExpanded] = useState(false);
+  const [currentPrompt, setCurrentPrompt] = useState<string>("");
+  const [promptIsOverride, setPromptIsOverride] = useState(false);
+  const [promptLoading, setPromptLoading] = useState(false);
+  const [promptSaving, setPromptSaving] = useState(false);
+  const [promptSaveOk, setPromptSaveOk] = useState(false);
 
   const handleSyncSheets = async () => {
     setSheetsSyncing(true);
@@ -935,6 +941,81 @@ function ChatLogsTab({
     } finally {
       setAnalysisRunning(false);
     }
+  };
+
+  const handleExportDialogues = () => {
+    const params = new URLSearchParams({ language: analysisLang, chatType: analysisChatType });
+    const url = `/api/admin/export-dialogues?${params.toString()}`;
+    fetch(url, { headers: headers() })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Export failed");
+        const blob = await res.blob();
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `dialogues-${analysisChatType}-${analysisLang}.txt`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      })
+      .catch(() => {});
+  };
+
+  const loadPrompt = async () => {
+    setPromptLoading(true);
+    try {
+      const mode = analysisChatType === "video" ? "video" : "text";
+      const lang = analysisLang === "all" ? "de" : analysisLang;
+      const res = await fetch(`/api/admin/maria-prompt?mode=${mode}&language=${lang}`, {
+        headers: headers(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentPrompt(data.prompt || "");
+        setPromptIsOverride(data.isOverride || false);
+      }
+    } catch {}
+    setPromptLoading(false);
+  };
+
+  const handlePromptExpand = () => {
+    setPromptExpanded((prev) => !prev);
+  };
+
+  useEffect(() => {
+    if (promptExpanded) {
+      setPromptLoading(true);
+      const mode = analysisChatType === "video" ? "video" : "text";
+      const lang = analysisLang === "all" ? "de" : analysisLang;
+      fetch(`/api/admin/maria-prompt?mode=${mode}&language=${lang}`, { headers: headers() })
+        .then(async (res) => {
+          if (res.ok) {
+            const data = await res.json();
+            setCurrentPrompt(data.prompt || "");
+            setPromptIsOverride(data.isOverride || false);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setPromptLoading(false));
+    }
+  }, [analysisChatType, analysisLang, promptExpanded]);
+
+  const handleSavePrompt = async () => {
+    setPromptSaving(true);
+    setPromptSaveOk(false);
+    try {
+      const mode = analysisChatType === "video" ? "video" : "text";
+      const lang = analysisLang === "all" ? "de" : analysisLang;
+      const res = await fetch("/api/admin/maria-prompt", {
+        method: "POST",
+        headers: headers(),
+        body: JSON.stringify({ mode, language: lang, prompt: currentPrompt }),
+      });
+      if (res.ok) {
+        setPromptSaveOk(true);
+        setPromptIsOverride(true);
+        setTimeout(() => setPromptSaveOk(false), 3000);
+      }
+    } catch {}
+    setPromptSaving(false);
   };
 
   const toggleSection = (idx: number) => {
@@ -1053,11 +1134,16 @@ function ChatLogsTab({
                 <option value="ru">Russisch</option>
               </select>
             </div>
-            <div className="pt-5">
+            <div className="pt-5 flex items-center gap-2">
               <button data-testid="button-analyze-maria" onClick={handleAnalyze} disabled={analysisRunning}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 {analysisRunning ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
                 {analysisRunning ? "Analyse läuft..." : "Analyse Марии"}
+              </button>
+              <button data-testid="button-export-dialogues" onClick={handleExportDialogues}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                <Download size={16} />
+                Dialoge laden
               </button>
             </div>
           </div>
@@ -1066,6 +1152,40 @@ function ChatLogsTab({
               {analysisError}
             </div>
           )}
+
+          <div className="mt-4 border-t border-gray-100 pt-4">
+            <button data-testid="button-toggle-prompt" onClick={handlePromptExpand}
+              className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+              {promptExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              Aktueller Prompt
+              {promptIsOverride && <span className="ml-1 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">geändert</span>}
+            </button>
+            {promptExpanded && (
+              <div className="mt-3">
+                {promptLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-500"><Loader2 size={14} className="animate-spin" /> Lade Prompt...</div>
+                ) : (
+                  <>
+                    <textarea
+                      data-testid="textarea-maria-prompt"
+                      value={currentPrompt}
+                      onChange={(e) => setCurrentPrompt(e.target.value)}
+                      rows={14}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-y"
+                    />
+                    <div className="flex items-center gap-3 mt-2">
+                      <button data-testid="button-save-prompt" onClick={handleSavePrompt} disabled={promptSaving}
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                        {promptSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                        Speichern
+                      </button>
+                      {promptSaveOk && <span className="text-sm text-green-600">Gespeichert!</span>}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

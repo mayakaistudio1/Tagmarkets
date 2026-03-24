@@ -95,6 +95,9 @@ export interface IStorage {
   updatePersonalInviteTelegram(id: number, telegramChatId: string): Promise<PersonalInvite>;
   markPersonalInviteReminderSent(id: number): Promise<PersonalInvite>;
   markPersonalInviteReminder24hSent(id: number): Promise<PersonalInvite>;
+
+  getSetting(key: string): Promise<string | null>;
+  setSetting(key: string, value: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -531,14 +534,14 @@ export class DatabaseStorage implements IStorage {
 
   async getSetting(key: string): Promise<string | null> {
     const [row] = await db.select().from(appSettings).where(eq(appSettings.key, key));
-    return row?.value ?? null;
+    return row ? row.value : null;
   }
 
   async setSetting(key: string, value: string): Promise<void> {
-    await db.insert(appSettings).values({ key, value }).onConflictDoUpdate({
-      target: appSettings.key,
-      set: { value },
-    });
+    await db
+      .insert(appSettings)
+      .values({ key, value })
+      .onConflictDoUpdate({ target: appSettings.key, set: { value } });
   }
 
   async getZoomAttendanceCounts(): Promise<Record<number, number>> {

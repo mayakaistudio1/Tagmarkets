@@ -829,15 +829,14 @@ export async function registerRoutes(
       let mariaPrompt: string;
       let modeLabel: string;
       if (typeFilter === "video") {
-        mariaPrompt = LIVEAVATAR_SYSTEM_PROMPT;
+        const videoPromptOverride = await storage.getSetting("maria_prompt_video");
+        mariaPrompt = videoPromptOverride ?? LIVEAVATAR_SYSTEM_PROMPT;
         modeLabel = "Live Avatar (Video Call)";
       } else {
-        mariaPrompt =
-          langFilter === "en"
-            ? MARIA_SYSTEM_PROMPT_EN
-            : langFilter === "ru"
-            ? MARIA_SYSTEM_PROMPT_RU
-            : MARIA_SYSTEM_PROMPT_DE;
+        const textLang = langFilter === "en" ? "en" : langFilter === "ru" ? "ru" : "de";
+        const textPromptOverride = await storage.getSetting(`maria_prompt_text_${textLang}`);
+        const defaultTextPrompt = langFilter === "en" ? MARIA_SYSTEM_PROMPT_EN : langFilter === "ru" ? MARIA_SYSTEM_PROMPT_RU : MARIA_SYSTEM_PROMPT_DE;
+        mariaPrompt = textPromptOverride ?? defaultTextPrompt;
         modeLabel = "Text Chat";
       }
 
@@ -848,19 +847,21 @@ Below is Maria's current system prompt for ${modeLabel} (her instructions):
 ${mariaPrompt}
 === MARIA SYSTEM PROMPT END ===
 
-Analyze ALL the dialogues below and produce a detailed report IN ${reportLang} language with exactly these 5 sections:
+CRITICAL INSTRUCTION: You MUST write the ENTIRE report exclusively in ${reportLang}. Every word of the output — including section titles, summaries, bullet points, and all text — must be in ${reportLang}. Do NOT use any other language. Do NOT default to English.
 
-1. **Top user questions** — The most frequent topics/questions users ask (list each with approximate count)
-2. **Problematic answers** — Cases where Maria answered poorly: too long, inaccurate, off-topic, violated her prompt rules (cite specific examples with session IDs)
-3. **Drop-off points** — Topics or moments where users leave the conversation or Maria cannot help (patterns)
-4. **Conversion analysis** — How many dialogues lead to a registration/application/next step vs. users leaving without action
-5. **Prompt improvement recommendations** — Specific, actionable suggestions for improving Maria's system prompt (with exact wording changes where possible)
+Analyze ALL the dialogues below and produce a detailed report IN ${reportLang} language with exactly these 5 sections (write section titles also in ${reportLang}):
 
-Return ONLY valid JSON in this format:
+1. Top user questions — The most frequent topics/questions users ask (list each with approximate count)
+2. Problematic answers — Cases where Maria answered poorly: too long, inaccurate, off-topic, violated her prompt rules (cite specific examples with session IDs)
+3. Drop-off points — Topics or moments where users leave the conversation or Maria cannot help (patterns)
+4. Conversion analysis — How many dialogues lead to a registration/application/next step vs. users leaving without action
+5. Prompt improvement recommendations — Specific, actionable suggestions for improving Maria's system prompt (with exact wording changes where possible)
+
+Return ONLY valid JSON in this format (all text values must be in ${reportLang}):
 {
-  "summary": "Brief 2-3 sentence executive summary",
+  "summary": "Brief 2-3 sentence executive summary IN ${reportLang}",
   "sections": [
-    { "title": "Section title", "items": ["item 1", "item 2", ...] }
+    { "title": "Section title IN ${reportLang}", "items": ["item 1 in ${reportLang}", "item 2 in ${reportLang}", ...] }
   ]
 }`;
 
@@ -891,6 +892,84 @@ Return ONLY valid JSON in this format:
     } catch (error: any) {
       console.error("Maria analysis error:", error);
       res.status(500).json({ error: error.message || "Analysis failed" });
+    }
+  });
+
+  app.get("/api/admin/export-dialogues", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const language = req.query.language as string | undefined;
+      const chatType = req.query.chatType as string | undefined;
+      const langFilter = language && language !== "all" ? language : undefined;
+      const typeFilter = chatType === "video" ? "video" : "text";
+
+      const allSessions = await storage.getChatSessions({});
+      const filtered = allSessions.filter((s: any) => {
+        if (s.type !== typeFilter) return false;
+        if (langFilter && s.language !== langFilter) return false;
+        return true;
+      });
+      const limitedSessions = filtered.slice(0, 50);
+
+      const lines: string[] = [];
+      for (const session of limitedSessions) {
+        const msgs = await db
+          .select()
+          .from(chatMessages)
+          .where(eq(chatMessages.sessionId, session.sessionId))
+          .orderBy(chatMessages.timestamp);
+        if (msgs.length === 0) continue;
+        lines.push(`=== Session ${session.sessionId.substring(0, 8)} | lang:${session.language} | type:${session.type} ===`);
+        for (const m of msgs) {
+          lines.push(`${m.role === "user" ? "User" : "Maria"}: ${m.content}`);
+        }
+        lines.push("");
+      }
+
+      const content = lines.join("\n");
+      res.setHeader("Content-Type", "text/plain; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="dialogues-${typeFilter}-${langFilter || "all"}.txt"`);
+      res.send(content);
+    } catch (error: any) {
+      console.error("Export dialogues error:", error);
+      res.status(500).json({ error: error.message || "Export failed" });
+    }
+  });
+
+  app.get("/api/admin/maria-prompt", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const mode = (req.query.mode as string) || "text";
+      const language = (req.query.language as string) || "de";
+      const key = mode === "video" ? "maria_prompt_video" : `maria_prompt_text_${language}`;
+      const override = await storage.getSetting(key);
+      let defaultPrompt: string;
+      if (mode === "video") {
+        defaultPrompt = LIVEAVATAR_SYSTEM_PROMPT;
+      } else {
+        defaultPrompt = language === "en" ? MARIA_SYSTEM_PROMPT_EN : language === "ru" ? MARIA_SYSTEM_PROMPT_RU : MARIA_SYSTEM_PROMPT_DE;
+      }
+      res.json({ prompt: override ?? defaultPrompt, isOverride: override !== null });
+    } catch (error: any) {
+      console.error("Get maria prompt error:", error);
+      res.status(500).json({ error: error.message || "Failed to get prompt" });
+    }
+  });
+
+  app.post("/api/admin/maria-prompt", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { mode, language, prompt } = req.body || {};
+      if (!prompt || typeof prompt !== "string") {
+        return res.status(400).json({ error: "prompt is required" });
+      }
+      const resolvedMode = mode || "text";
+      const key = resolvedMode === "video" ? "maria_prompt_video" : `maria_prompt_text_${language || "de"}`;
+      await storage.setSetting(key, prompt);
+      res.json({ ok: true });
+    } catch (error: any) {
+      console.error("Save maria prompt error:", error);
+      res.status(500).json({ error: error.message || "Failed to save prompt" });
     }
   });
 

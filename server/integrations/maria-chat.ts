@@ -546,7 +546,10 @@ export function registerMariaChatRoutes(app: Express): void {
         }
       }
 
-      const systemPrompt = language === 'en' ? MARIA_SYSTEM_PROMPT_EN : language === 'de' ? MARIA_SYSTEM_PROMPT_DE : MARIA_SYSTEM_PROMPT_RU;
+      const promptKey = `maria_prompt_text_${language === 'en' ? 'en' : language === 'de' ? 'de' : 'ru'}`;
+      const overridePrompt = await storage.getSetting(promptKey).catch(() => null);
+      const defaultPrompt = language === 'en' ? MARIA_SYSTEM_PROMPT_EN : language === 'de' ? MARIA_SYSTEM_PROMPT_DE : MARIA_SYSTEM_PROMPT_RU;
+      const systemPrompt = overridePrompt ?? defaultPrompt;
 
       const chatMessages = [
         { role: "system" as const, content: systemPrompt },

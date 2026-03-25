@@ -243,8 +243,10 @@ export async function registerRoutes(
           }
 
           const { sendTelegramNotification } = await import("./integrations/telegram-notify");
+          const isRetryApp = application.status === "retry";
           sendTelegramNotification(
-            `✅ <b>Promo Approved (Main Admin)</b>\n\n` +
+            `✅ <b>Promo Approved (Main Admin)</b>${isRetryApp ? ` ↩️` : ``}\n\n` +
+            (isRetryApp ? `🔄 <i>Retry nach Aufladung — Antrag wurde nach No-Money-Schritt bestätigt.</i>\n\n` : ``) +
             `👤 ${application.name}\n` +
             `📧 ${application.email}\n` +
             `🔢 ${application.cuNumber}\n` +
@@ -365,8 +367,10 @@ export async function registerRoutes(
       }
 
       const { sendTelegramNotification } = await import("./integrations/telegram-notify");
+      const isRetry = application.status === "retry";
       sendTelegramNotification(
-        `✅ <b>Promo Verified (Admin Panel)</b>\n\n` +
+        `✅ <b>Promo Verified (Admin Panel)</b>${isRetry ? ` ↩️` : ``}\n\n` +
+        (isRetry ? `🔄 <i>Retry nach Aufladung — Antrag wurde nach No-Money-Schritt bestätigt.</i>\n\n` : ``) +
         `👤 ${application.name}\n` +
         `📧 ${application.email}\n` +
         `🔢 ${application.cuNumber}\n` +

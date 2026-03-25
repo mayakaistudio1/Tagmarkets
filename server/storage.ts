@@ -343,7 +343,7 @@ export class DatabaseStorage implements IStorage {
     const results = await db.select().from(promoApplications)
       .where(conditions!)
       .orderBy(desc(promoApplications.createdAt));
-    return results.find(app => !app.verifiedAt && app.status !== 'duplicate');
+    return results.find(app => !app.verifiedAt && app.status !== 'duplicate' && app.status !== 'no_money');
   }
 
   async markPromoApplicationVerified(id: number): Promise<PromoApplication> {

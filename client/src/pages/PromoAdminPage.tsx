@@ -265,7 +265,7 @@ export default function PromoAdminPage() {
           <div>
             <h1 className="text-lg font-bold text-gray-900">Promo Verification</h1>
             <p className="text-xs text-gray-500">
-              {applications.length} application{applications.length !== 1 ? "s" : ""}
+              {groupedApplications.length} Antrag{groupedApplications.length !== 1 ? "anträge" : ""}
               {aktivCount > 0 && <span className="text-orange-500 font-medium"> · {aktivCount} aktiv</span>}
             </p>
           </div>

@@ -723,7 +723,14 @@ async function getOrCreatePromoSpreadsheet(): Promise<string> {
           {
             updateDimensionProperties: {
               range: { sheetId, dimension: 'COLUMNS', startIndex: 8, endIndex: 9 },
-              properties: { pixelSize: 160 },
+              properties: { pixelSize: 130 },
+              fields: 'pixelSize',
+            }
+          },
+          {
+            updateDimensionProperties: {
+              range: { sheetId, dimension: 'COLUMNS', startIndex: 9, endIndex: 10 },
+              properties: { pixelSize: 130 },
               fields: 'pixelSize',
             }
           },
@@ -752,16 +759,35 @@ export async function appendPromoApplicationToSheet(app: {
       spreadsheetId,
       range: `'${PROMO_SHEET_NAME}'!A:A`,
     });
-    const rowCount = (existing.data.values || []).length;
+    const totalRows = (existing.data.values || []).length;
+    const nr = Math.max(totalRows, 1);
 
-    await sheets.spreadsheets.values.append({
+    const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+    const sheetId = spreadsheet.data.sheets?.find(
+      (s) => s.properties?.title === PROMO_SHEET_NAME
+    )?.properties?.sheetId;
+
+    if (sheetId !== undefined) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests: [{
+            insertDimension: {
+              range: { sheetId, dimension: 'ROWS', startIndex: 1, endIndex: 2 },
+              inheritFromBefore: false,
+            }
+          }]
+        }
+      });
+    }
+
+    await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `'${PROMO_SHEET_NAME}'!A:I`,
+      range: `'${PROMO_SHEET_NAME}'!A2:J2`,
       valueInputOption: 'RAW',
-      insertDataOption: 'INSERT_ROWS',
       requestBody: {
         values: [[
-          rowCount,
+          nr,
           app.name,
           app.email,
           app.cuNumber,
@@ -770,6 +796,7 @@ export async function appendPromoApplicationToSheet(app: {
           formatDate(typeof app.createdAt === 'string' ? new Date(app.createdAt) : app.createdAt),
           '',
           app.emailSentAt ? formatDate(typeof app.emailSentAt === 'string' ? new Date(app.emailSentAt) : app.emailSentAt) : '',
+          '',
         ]],
       },
     });
@@ -789,7 +816,7 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
     promoMap.set(p.id, p.title);
   }
 
-  const rows: any[][] = [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum', 'Verified', 'Email Sent']];
+  const rows: any[][] = [['Nr', 'Name', 'E-Mail', 'CU-Nummer', 'Aktion', 'Status', 'Datum', 'Verified', 'Email Sent', 'No Money']];
   for (let i = 0; i < applications.length; i++) {
     const app = applications[i];
     rows.push([
@@ -801,7 +828,8 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
       app.status,
       formatDate(app.createdAt),
       app.verifiedAt ? 'YES' : '',
-      app.noMoneyEmailSentAt ? 'no money - sent' : (app.emailSentAt ? formatDate(app.emailSentAt) : ''),
+      app.emailSentAt ? formatDate(app.emailSentAt) : '',
+      app.noMoneyEmailSentAt ? 'sent ' + formatDate(app.noMoneyEmailSentAt) : '',
     ]);
   }
 
@@ -876,8 +904,8 @@ export async function pollPromoSheetForVerifications(): Promise<{
       if (verifiedCol === 'YES' || verifiedCol === 'Y' || verifiedCol === '1' || verifiedCol === 'TRUE' || verifiedCol === 'X') {
         verified.push({ email, cuNumber, name });
       } else if (
-        (emailSentCol.includes('no money') && !emailSentCol.includes('sent')) ||
-        (colJ.includes('no money') && !colJ.includes('sent'))
+        (colJ.includes('no money') && !colJ.includes('sent')) ||
+        (emailSentCol.includes('no money') && !emailSentCol.includes('sent'))
       ) {
         noMoney.push({ email, cuNumber, name });
       }

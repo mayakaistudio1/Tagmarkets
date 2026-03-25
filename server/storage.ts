@@ -299,24 +299,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async findDuplicatePromoApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined> {
-    // Load ALL records for this email/CU sorted newest first.
-    // If the most recent record is no_money (i.e. the user was told to top-up), we treat the
-    // new submission as a legitimate retry — NOT a duplicate — even if older approved/rejected
-    // records exist. Only when a non-no_money record is the most recent do we block as duplicate.
-    const all = await db.select().from(promoApplications)
-      .where(or(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)))
+    // Step 1: Check ONLY by email whether this person's most recent record is no_money.
+    // If it is, this new submission is a retry-after-topup — allow it regardless of CU matches
+    // from other users who may share the same CU number in test data.
+    const emailRecords = await db.select().from(promoApplications)
+      .where(eq(promoApplications.email, email))
       .orderBy(desc(promoApplications.createdAt));
 
-    // Find the most recent no_money record and the most recent non-no_money record.
-    const latestNoMoney = all.find(a => a.status === "no_money");
-    const latestNonNoMoney = all.find(a => a.status !== "no_money");
-
-    // If the freshest record for this user is no_money → it's a retry opportunity, not a duplicate.
-    if (latestNoMoney && (!latestNonNoMoney || new Date(latestNoMoney.createdAt) > new Date(latestNonNoMoney.createdAt))) {
-      return undefined;
+    const mostRecentByEmail = emailRecords[0];
+    if (mostRecentByEmail && mostRecentByEmail.status === "no_money") {
+      return undefined; // Retry after top-up — not a duplicate
     }
 
-    return latestNonNoMoney;
+    // Step 2: Block as duplicate if any non-no_money record exists for this email OR CU.
+    const [found] = await db.select().from(promoApplications)
+      .where(and(
+        or(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)),
+        ne(promoApplications.status, "no_money")
+      ))
+      .limit(1);
+
+    return found;
   }
 
   async findNoMoneyApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined> {

@@ -299,16 +299,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async findDuplicatePromoApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined> {
-    // Exclude no_money records: they are an invitation to retry after topping up, not blockers.
-    // Only pending, verified, rejected, or duplicate records count as true duplicates.
-    // Transition: pending → no_money → [user tops up] → new pending (retry) → verified
-    const [found] = await db.select().from(promoApplications)
-      .where(and(
-        or(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)),
-        ne(promoApplications.status, "no_money")
-      ))
-      .limit(1);
-    return found;
+    // Load ALL records for this email/CU sorted newest first.
+    // If the most recent record is no_money (i.e. the user was told to top-up), we treat the
+    // new submission as a legitimate retry — NOT a duplicate — even if older approved/rejected
+    // records exist. Only when a non-no_money record is the most recent do we block as duplicate.
+    const all = await db.select().from(promoApplications)
+      .where(or(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)))
+      .orderBy(desc(promoApplications.createdAt));
+
+    // Find the most recent no_money record and the most recent non-no_money record.
+    const latestNoMoney = all.find(a => a.status === "no_money");
+    const latestNonNoMoney = all.find(a => a.status !== "no_money");
+
+    // If the freshest record for this user is no_money → it's a retry opportunity, not a duplicate.
+    if (latestNoMoney && (!latestNonNoMoney || new Date(latestNoMoney.createdAt) > new Date(latestNonNoMoney.createdAt))) {
+      return undefined;
+    }
+
+    return latestNonNoMoney;
   }
 
   async findNoMoneyApplication(email: string, cuNumber: string): Promise<PromoApplication | undefined> {

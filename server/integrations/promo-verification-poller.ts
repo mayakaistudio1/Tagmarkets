@@ -54,6 +54,14 @@ export async function checkAndProcessVerifications(): Promise<number> {
           await storage.markPromoApplicationNoMoney(app.id);
           processedCount++;
           console.log(`No-money email sent and recorded for ${entry.email}`);
+          sendTelegramNotification(
+            `💸 <b>No Money Email (Sheet Poller)</b>\n\n` +
+            `👤 ${app.name}\n` +
+            `📧 ${app.email}\n` +
+            `🔢 ${app.cuNumber}\n` +
+            `📨 Email: Sent\n` +
+            `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
+          ).catch(err => console.error("TG no-money poller notify error:", err));
         } else {
           console.error(`Failed to send no-money email for ${entry.email}`);
         }

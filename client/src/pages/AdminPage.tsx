@@ -2525,11 +2525,13 @@ function PromoApplicationsSubTab({
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
                     a.status === "approved" ? "bg-green-100 text-green-700" :
                     a.status === "rejected" ? "bg-red-100 text-red-700" :
-                    a.status === "duplicate" || a.status === "retry" ? "bg-orange-100 text-orange-700" :
+                    a.status === "duplicate" ? "bg-orange-100 text-orange-700" :
+                    a.status === "retry" ? "bg-blue-100 text-blue-700" :
                     a.status === "no_money" ? "bg-amber-100 text-amber-700" :
                     "bg-yellow-100 text-yellow-700"
                   }`} data-testid={`badge-status-${a.id}`}>
-                    {a.status === "duplicate" || a.status === "retry" ? "повторная" :
+                    {a.status === "duplicate" ? "дубликат" :
+                     a.status === "retry" ? "↩ retry" :
                      a.status === "no_money" ? "no money" : a.status}
                   </span>
                 );
@@ -2569,13 +2571,13 @@ function PromoApplicationsSubTab({
                       <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
-                          {app.status !== "approved" && app.status !== "duplicate" && app.status !== "retry" && !app.emailSentAt && (
+                          {app.status !== "approved" && app.status !== "duplicate" && !app.emailSentAt && (
                             <button onClick={() => updatePromoAppStatus(app.id, "approved")} className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200" title="Verify & Send Email" data-testid={`btn-approve-${app.id}`}><Check size={14} /></button>
                           )}
-                          {!app.noMoneyEmailSentAt && !app.emailSentAt && app.status !== "approved" && app.status !== "rejected" && app.status !== "duplicate" && app.status !== "retry" && (
+                          {!app.noMoneyEmailSentAt && !app.emailSentAt && app.status !== "approved" && app.status !== "rejected" && app.status !== "duplicate" && (
                             <button onClick={() => sendNoMoneyAdmin(app.id)} className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-semibold hover:bg-amber-200" title="No Money — Send Email" data-testid={`btn-no-money-${app.id}`}>💰</button>
                           )}
-                          {app.status !== "rejected" && app.status !== "approved" && app.status !== "duplicate" && app.status !== "retry" && (
+                          {app.status !== "rejected" && app.status !== "approved" && app.status !== "duplicate" && (
                             <button onClick={() => updatePromoAppStatus(app.id, "rejected")} className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200" title="Reject" data-testid={`btn-reject-${app.id}`}><X size={14} /></button>
                           )}
                         </div>

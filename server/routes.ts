@@ -166,7 +166,7 @@ export async function registerRoutes(
 
       const application = await storage.createPromoApplication({
         ...validatedData,
-        ...(isDuplicate ? { status: "duplicate" } : {}),
+        ...(isDuplicate ? { status: "duplicate" } : isRetryAfterTopup ? { status: "retry" } : {}),
       });
 
       let promoTitle: string | undefined;

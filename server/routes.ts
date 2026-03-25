@@ -228,10 +228,13 @@ export async function registerRoutes(
       }
       let updated;
       if (status === "verified") {
-        updated = await storage.markPromoApplicationVerified(id);
-
         const allApps = await storage.getPromoApplications();
         const application = allApps.find(a => a.id === id);
+        if (!application) return res.status(404).json({ error: "Application not found" });
+        if (application.emailSentAt) return res.status(400).json({ error: "Verification email already sent" });
+
+        updated = await storage.markPromoApplicationVerified(id);
+
         if (application) {
           const { sendPromoVerificationEmail } = await import("./integrations/resend-email");
           const emailSent = await sendPromoVerificationEmail(application.email, application.name);
@@ -348,7 +351,7 @@ export async function registerRoutes(
       if (!application) {
         return res.status(404).json({ error: "Application not found" });
       }
-      if (application.status === "verified") {
+      if (application.status === "verified" || application.emailSentAt) {
         return res.status(400).json({ error: "Already verified" });
       }
 

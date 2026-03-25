@@ -274,7 +274,13 @@ export default function PromoAdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {applications.map((app) => (
+                  {[...applications].sort((a, b) => {
+                    const priority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, verified: 5, rejected: 6 };
+                    const pa = priority[a.status] ?? 3;
+                    const pb = priority[b.status] ?? 3;
+                    if (pa !== pb) return pa - pb;
+                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                  }).map((app) => (
                     <tr key={app.id} className="hover:bg-gray-50" data-testid={`row-application-${app.id}`}>
                       <td className="px-4 py-3 text-sm text-gray-600">#{app.id}</td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{app.name}</td>
@@ -296,7 +302,7 @@ export default function PromoAdminPage() {
                       <td className="px-4 py-3 text-sm text-gray-500">{formatDate(app.createdAt)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-2">
-                          {app.status !== "verified" && app.status !== "rejected" && (
+                          {app.status !== "verified" && app.status !== "rejected" && !app.emailSentAt && (
                             <>
                               <button
                                 onClick={() => handleVerify(app.id)}
@@ -316,7 +322,7 @@ export default function PromoAdminPage() {
                                   </svg>
                                 )}
                               </button>
-                              {!app.noMoneyEmailSentAt && (
+                              {!app.noMoneyEmailSentAt && !app.emailSentAt && (
                                 <button
                                   onClick={() => handleNoMoney(app.id)}
                                   disabled={actionLoading === app.id}
@@ -372,7 +378,13 @@ export default function PromoAdminPage() {
             </div>
 
             <div className="md:hidden space-y-3">
-              {applications.map((app) => (
+              {[...applications].sort((a, b) => {
+                const priority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, verified: 5, rejected: 6 };
+                const pa = priority[a.status] ?? 3;
+                const pb = priority[b.status] ?? 3;
+                if (pa !== pb) return pa - pb;
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+              }).map((app) => (
                 <div key={app.id} className="bg-white rounded-xl shadow-sm p-4" data-testid={`card-application-${app.id}`}>
                   <div className="flex items-start justify-between mb-2">
                     <div>
@@ -398,7 +410,7 @@ export default function PromoAdminPage() {
                       </span>
                     )}
                   </div>
-                  {app.status !== "verified" && app.status !== "rejected" && app.status !== "no_money" && (
+                  {app.status !== "verified" && app.status !== "rejected" && app.status !== "no_money" && !app.emailSentAt && (
                     <div className="flex gap-2 pt-2 border-t border-gray-100">
                       <button
                         onClick={() => handleVerify(app.id)}
@@ -408,7 +420,7 @@ export default function PromoAdminPage() {
                       >
                         {actionLoading === app.id ? "Processing..." : "Verify & Send Email"}
                       </button>
-                      {!app.noMoneyEmailSentAt && (
+                      {!app.noMoneyEmailSentAt && !app.emailSentAt && (
                         <button
                           onClick={() => handleNoMoney(app.id)}
                           disabled={actionLoading === app.id}

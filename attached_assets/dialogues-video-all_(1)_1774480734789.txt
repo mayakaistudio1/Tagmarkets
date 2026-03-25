@@ -1,0 +1,219 @@
+=== Session 7f44364d | lang:de | type:video ===
+Maria: Hallo, ich bin Maria von Jet Up. Schön, dich kennenzulernen. Wie heißt du? 
+User: Jakov, I should—
+Maria: Oh, hey Jakov! Was möchtest du wissen? Ich bin hier, um dir zu helfen. 
+User: Was ist—
+Maria: Ähm, ich habe das nicht ganz verstanden, kannst du das wiederholen? Was möchtest du genau wissen? 
+User: Yep.
+Maria: Super! Was genau interessiert dich? Ich bin hier, um deine Fragen zu beantworten. 
+
+=== Session 3bc2015e | lang:de | type:video ===
+Maria: Hallo, ich bin Maria von Jet Up. Schön, dich kennenzulernen. Wie heißt du? 
+User: Jakob—
+Maria: Hey Jakob! Super, dass du hier bist. Was interessiert dich am meisten über JetUp? Möchtest du mehr über die Registrierung oder vielleicht über das Trading erfahren? 
+
+=== Session ae685cf7 | lang:de | type:video ===
+Maria: Hallo, ich bin Maria von Jet Up. Schön, dich kennenzulernen. Wie heißt du? 
+User: Shall I say—
+Maria: Oh, kein Problem! Du kannst einfach sagen, was dir angenehm ist. Wie kann ich dir heute helfen? 
+
+=== Session ea8a46b8 | lang:en | type:video ===
+Maria: Hi, I am Maria from Jet Up. Nice to meet you. Whats your name? 
+User: And you—
+Maria: Oh, I’m Maria! Just here to help you navigate the JetUp ecosystem. What’s on your mind? 
+User: Kannst du auf Deutsch—
+Maria: Эм, не совсем поняла, можешь повторить? Я говорю только по-русски и по-английски. Чем могу помочь? 
+
+=== Session 29596c08 | lang:de | type:video ===
+Maria: Hallo, ich bin Maria von Jet Up. Schön, dich kennenzulernen. Wie heißt du? 
+User: Hallo, ich bin—
+Maria: Hey! Schön, dich zu treffen! Wie kann ich dir heute helfen? Gibt es etwas Bestimmtes, worüber du mehr wissen möchtest? 
+User: 9.
+Maria: Ähm, ich habe nicht ganz verstanden, kannst du das wiederholen? Was meinst du mit neun? 
+User: —geht um einen—
+Maria: Oh, ich verstehe! Du sprichst von einem Betrag? Was genau interessiert dich dazu? Möchtest du wissen, wie man anfängt oder mehr über die Investitionen erfahren? 
+User: Ich glaub—
+Maria: Kein Problem! Wenn du dir unsicher bist, frag einfach. Ich bin hier, um dir zu helfen. Was beschäftigt dich? 
+User: Ein Technik—
+Maria: Oh, Technik kann manchmal verwirrend sein! Geht es um die Plattform oder um das Trading selbst? Lass mich wissen, was du genau wissen möchtest! 
+
+=== Session 678487be | lang:de | type:video ===
+Maria: Hallo, ich bin Maria von Jet Up. Schön, dich kennenzulernen. Wie heißt du? 
+User: Alors, Maria, merci—
+Maria: Oh, kein Problem! Ich bin hier, um zu helfen. Was möchtest du über das JetUp-Ökosystem wissen? 
+User: Um—
+Maria: Ja, ich höre! Was beschäftigt dich? Frag einfach drauflos! 
+User: Äh, ich bin—
+Maria: Alles gut! Nimm dir Zeit. Was möchtest du mir erzählen oder fragen? Ich bin hier, um zu helfen! 
+User: Maria—
+Maria: Ja, genau hier bin ich! Was kann ich für dich tun? 
+
+=== Session b6116354 | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+User: Папа!
+User: Алло.
+User: Привет.
+Maria: Привет! Как дела? Чем могу помочь? 
+
+=== Session ccbd367c | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+User: Привет, я
+Maria: Привет! Как здорово, что ты здесь. Чем могу помочь? 
+User: Говоришь,
+Maria: Эм, не совсем поняла, можешь повторить? 
+User: Может ли
+Maria: Эм, не совсем поняла, можешь повторить? 
+User: Как проверить
+Maria: О, точно! Ты можешь проверить свою стратегию, посмотрев на результаты трейдеров. Хочешь, я помогу с этим? 
+
+=== Session 92cdf2cf | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+
+=== Session a9816f9e | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+User: Меня зовут
+User: зовут
+User: Меня зовут
+Maria: О, классно, приятно познакомиться! Чем могу помочь тебе сегодня? 
+User: Дмитрий.
+Maria: Привет, Дмитрий! Как дела? Чем могу помочь тебе в JetUp? 
+User: Смотри,
+Maria: Эм, не совсем поняла, можешь повторить? 
+
+=== Session 4b2efcd3 | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+User: Меня зовут Дмитрий.
+Maria: Привет, Дмитрий! Как здорово тебя видеть здесь! Чем могу помочь? Есть вопросы про JetUp или что-то конкретное? 
+
+=== Session d210915d | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+User: Меня зовут
+Maria: Привет, приятно познакомиться! Как могу помочь тебе сегодня? 
+User: Русский
+Maria: О, круто! Какой вопрос у тебя по Jet Up? Чем могу помочь? 
+User: На каком
+Maria: Эм, не совсем поняла, можешь повторить? На каком что? 
+User: На какую
+Maria: О, точно! На какую сумму ты хочешь начать? Это поможет мне лучше понять, как помочь. 
+
+=== Session 841bb4ec | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+
+=== Session 58387ec7 | lang:de | type:video ===
+User: Kann ich für den 20—
+
+=== Session a4989b55 | lang:de | type:video ===
+Maria: Hallo, ich bin Maria von Jet Up. Schön, dich kennenzulernen. Wie heißt du? 
+User: Jakob—
+
+=== Session e58bec5b | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+User: Я как?
+
+=== Session 3c72d622 | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+User: Я
+Maria: О, классно! Чем могу помочь? Есть вопросы про JetUp или что-то другое? 
+User: Расскажи мне,
+Maria: Эм, не совсем поняла, можешь повторить? О чем именно ты хочешь узнать? 
+User: Про пассивный доход
+
+=== Session ce060b24 | lang:ru | type:video ===
+Maria: "Привет, я Деннис, основатель здесь. Добро пожаловать в Цифровой Хаб. Быстрый вопрос перед тем, как мы начнем — как тебя зовут, и ты исследуешь пассивный доход или думаешь о создании серьезной структуры?" 
+
+=== Session 7495566b | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+User: Яков,
+
+=== Session 669b2e60 | lang:en | type:video ===
+Maria: Hi, I am Maria from Jet Up. Nice to meet you. Whats your name? 
+
+=== Session 17e4c787 | lang:de | type:video ===
+Maria: Hallo, ich bin Maria von Jet Up. Schön, dich kennenzulernen. Wie heißt du? 
+User: Jakob.
+Maria: Hey Jakob! Super, dass du hier bist. Was interessiert dich am meisten am JetUp-Ökosystem? 
+
+=== Session 0da5679c | lang:en | type:video ===
+Maria: Hi, I am Maria from Jet Up. Nice to meet you. Whats your name? 
+User: Avez pas—
+Maria: Эм, не совсем поняла, можешь повторить? 
+User: Wait, wait.
+Maria: О, конечно! Не спеши. Я здесь, когда будешь готов. 
+User: I imagine—
+Maria: Ага, понимаю. Что именно ты представляешь? Давай обсудим! 
+User: Can you speak—
+Maria: Эм, не совсем поняла, можешь уточнить, что именно ты хотел сказать? 
+User: And it's—
+Maria: Ой, прости, не совсем поняла. Можешь продолжить? 
+User: The—
+
+=== Session f5c5cc30 | lang:en | type:video ===
+Maria: Hi, I am Maria from Jet Up. Nice to meet you. Whats your name? 
+
+=== Session e6bb0eec | lang:en | type:video ===
+Maria: Hi, I am Maria from Jet Up. Nice to meet you. Whats your name? 
+
+=== Session e916c250 | lang:de | type:video ===
+Maria: "Hey, ich bin Dennis, der Gründer hier. Willkommen im Digital Hub. Eine kurze Frage, bevor wir anfangen – wie heißt du und erkundest du passives Einkommen oder denkst du darüber nach, eine ernsthafte Struktur aufzubauen?" 
+User: Ich will—
+Maria: "Verstehe. Was genau möchtest du aufbauen — ein passives Einkommen oder eine ernsthafte Struktur für langfristigen Erfolg?" 
+User: By this—
+Maria: "Kannst du das näher erläutern? Was genau meinst du mit 'by this'?" 
+User: Ein—
+Maria: "Ein? Könntest du das bitte weiter ausführen? Was genau meinst du?" 
+User: Strukturaufbau.
+Maria: "Das ist großartig. Denkst du an ein regionales Team oder ein globales Netzwerk für den Aufbau?" 
+User: Global—
+Maria: "Perfekt. Globales Denken eröffnet viele Möglichkeiten. Hast du bereits Erfahrung im Teamaufbau oder ist das dein erstes Mal mit Netzwerkmodellen?" 
+
+=== Session e7367770 | lang:de | type:video ===
+Maria: Hallo, ich bin Maria von Jet Up. Schön, dich kennenzulernen. Wie heißt du? 
+User: Jakob.
+Maria: Hey Jakob, schön, dass du hier bist! Was interessiert dich am meisten über das JetUp-Ökosystem? 
+User: Um, was geht es—
+Maria: Oh, genau! JetUp ist ein globales Ökosystem für Copy-Trading. Du kannst Strategien nutzen, um dein Geld selbst zu verwalten. Hast du schon Erfahrung mit Trading oder möchtest du mehr über die ersten Schritte erfahren? 
+User: I shall bang—
+Maria: Ähm, ich habe das nicht ganz verstanden. Kannst du das wiederholen? 
+
+=== Session 8f088b09 | lang:de | type:video ===
+Maria: Hallo, ich bin Maria von Jet Up. Schön, dich kennenzulernen. Wie heißt du? 
+User: Scheiße, Jakob!
+Maria: Oh, hey Jakob! Kein Stress, alles gut. Was kann ich für dich tun? Hast du Fragen zum JetUp-Ökosystem? 
+User: We can—
+Maria: Ähm, ich habe das nicht ganz verstanden, kannst du das wiederholen? Was möchtest du genau wissen? 
+User: We should get—
+Maria: Oh, ich verstehe. Was möchtest du gerne besprechen? Lass es mich wissen, ich bin hier, um zu helfen! 
+User: Eclaire-moi—
+Maria: Oh, klar! Was möchtest du genauer wissen? Ich helfe dir gerne, das JetUp-Ökosystem besser zu verstehen. 
+User: Was ist JetUp?
+Maria: JetUp ist ein globales Ökosystem für Copy-Trading. Es bietet dir Zugang zu verschiedenen Handelsstrategien, aber du verwaltest dein Geld selbst. Möchtest du mehr über die einzelnen Strategien erfahren? 
+User: Ja, bitte.
+Maria: Super! Es gibt NeoFX für Forex Copy-Trading mit erfahrenen Tradern, Sonic und CopyX für andere Strategien. NeoFX hat ein konservatives Risiko von null Komma drei Prozent pro Trade. Interessiert dich eine spezielle Strategie? 
+User: On te vit fonctionner.
+Maria: Ähm, ich habe das nicht ganz verstanden, kannst du das wiederholen? Was möchtest du genau wissen? 
+User: Article—
+Maria: Oh, ich verstehe nicht ganz, was du meinst. Möchtest du mehr Informationen über Artikel oder etwas Bestimmtes im JetUp-Ökosystem? Lass es mich wissen! 
+User: Be fo—
+Maria: Ähm, ich habe das nicht ganz verstanden, kannst du das wiederholen? Was möchtest du gerne wissen? 
+
+=== Session c7b2e274 | lang:de | type:video ===
+Maria: "Hey, ich bin Dennis, der Gründer hier. Willkommen im Digital Hub. Eine kurze Frage, bevor wir anfangen – wie heißt du und erkundest du passives Einkommen oder denkst du darüber nach, eine ernsthafte Struktur aufzubauen?" 
+
+=== Session f6879756 | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+User: Каждый день меня зовут Антон. Расскажите
+Maria: Привет, Антон! Рад тебя видеть. Что именно тебя интересует в JetUp? Хочешь узнать о регистрации, стратегиях или, может, о рисках? 
+User: Да,
+Maria: О, точно! Давай начнем с регистрации. Это просто: нажимаешь на кнопку внизу страницы, заполняешь форму и всё. Хочешь, помогу с этим? 
+
+=== Session 9f822b03 | lang:ru | type:video ===
+Maria: Привет, я Мария из Jet Up. Приятно познакомиться. Как тебя зовут? 
+User: Привет,
+Maria: Привет! Как дела? Чем могу помочь? 
+User: Скажи мне,
+Maria: Эм, не совсем поняла, можешь повторить? Что именно тебя интересует? 
+
+=== Session 64439544 | lang:de | type:video ===
+Maria: Hallo, ich bin Maria von Jet Up.  Schön, dich kennenzulernen.  Wie heißt du? 
+User: scheiße jako
+Maria: Oh je, das klingt nicht so gut.  Was beschäftigt dich?  Vielleicht kann ich dir helfen oder etwas klarstellen? 

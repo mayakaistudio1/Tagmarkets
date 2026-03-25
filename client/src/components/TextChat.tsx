@@ -17,6 +17,29 @@ interface ChatMessage {
 const STORAGE_KEY = 'maria-chat-history';
 const SESSION_KEY = 'maria-session-id';
 
+function renderWithLinks(text: string) {
+  const parts = text.split(/(https?:\/\/[^\s]+)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('http://') || part.startsWith('https://')) {
+      const display = part.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+      const label = display.length > 32 ? display.slice(0, 32) + '…' : display;
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline font-medium text-blue-600"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {label}
+        </a>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 function getOrCreateSessionId(): string {
   let sid = localStorage.getItem(SESSION_KEY);
   if (!sid) {
@@ -417,7 +440,7 @@ export default function TextChat() {
                     : "bg-gray-100 text-gray-800 rounded-tl-sm"
                 )}
               >
-                {msg.content}
+                {renderWithLinks(msg.content)}
               </div>
             </motion.div>
           ))}
@@ -431,7 +454,7 @@ export default function TextChat() {
             className="flex justify-start"
           >
             <div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tl-sm bg-gray-100 text-gray-800 text-[15px] leading-relaxed">
-              {streamingContent}
+              {renderWithLinks(streamingContent)}
               <span className="inline-block w-1 h-4 ml-1 bg-gray-400 animate-pulse" />
             </div>
           </motion.div>

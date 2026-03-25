@@ -22,6 +22,7 @@ export default function PromoAdminPage() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [loginError, setLoginError] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<"aktiv" | "bestaetigt" | "archiv">("aktiv");
 
   const toggleGroup = (key: string) => {
     setExpandedGroups(prev => {
@@ -52,6 +53,17 @@ export default function PromoAdminPage() {
       return new Date(b.primary.createdAt).getTime() - new Date(a.primary.createdAt).getTime();
     });
   })();
+
+  const AKTIV_STATUSES = ["pending", "retry", "no_money"];
+  const BESTAETIGT_STATUSES = ["approved"];
+  const ARCHIV_STATUSES = ["rejected", "duplicate"];
+
+  const tabGroups = {
+    aktiv: groupedApplications.filter(g => AKTIV_STATUSES.includes(g.primary.status)),
+    bestaetigt: groupedApplications.filter(g => BESTAETIGT_STATUSES.includes(g.primary.status)),
+    archiv: groupedApplications.filter(g => ARCHIV_STATUSES.includes(g.primary.status)),
+  };
+  const tabApplications = tabGroups[activeTab];
 
   const storedPassword = authenticated ? sessionStorage.getItem("promo_admin_pw") || "" : "";
 
@@ -239,7 +251,7 @@ export default function PromoAdminPage() {
     );
   }
 
-  const pendingCount = applications.filter(a => a.status === "pending" || a.status === "approved").length;
+  const aktivCount = tabGroups.aktiv.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -254,7 +266,7 @@ export default function PromoAdminPage() {
             <h1 className="text-lg font-bold text-gray-900">Promo Verification</h1>
             <p className="text-xs text-gray-500">
               {applications.length} application{applications.length !== 1 ? "s" : ""}
-              {pendingCount > 0 && <span className="text-orange-500 font-medium"> · {pendingCount} pending</span>}
+              {aktivCount > 0 && <span className="text-orange-500 font-medium"> · {aktivCount} aktiv</span>}
             </p>
           </div>
         </div>
@@ -290,6 +302,68 @@ export default function PromoAdminPage() {
           <div className="text-center py-12 text-gray-500">No applications found</div>
         ) : (
           <>
+            <div className="grid grid-cols-3 gap-3 mb-4" data-testid="stats-bar">
+              <div className="bg-white rounded-xl shadow-sm px-4 py-3 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-gray-500 uppercase font-medium">Aktiv</div>
+                  <div className="text-2xl font-bold text-orange-500" data-testid="stat-count-aktiv">{tabGroups.aktiv.length}</div>
+                </div>
+                <div className="text-orange-200">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm px-4 py-3 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-gray-500 uppercase font-medium">Bestätigt</div>
+                  <div className="text-2xl font-bold text-green-600" data-testid="stat-count-bestaetigt">{tabGroups.bestaetigt.length}</div>
+                </div>
+                <div className="text-green-200">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm px-4 py-3 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-gray-500 uppercase font-medium">Archiv</div>
+                  <div className="text-2xl font-bold text-gray-400" data-testid="stat-count-archiv">{tabGroups.archiv.length}</div>
+                </div>
+                <div className="text-gray-200">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l1 12a2 2 0 002 2h8a2 2 0 002-2L19 8" /></svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-1 mb-4 bg-white rounded-xl shadow-sm p-1" data-testid="tabs-bar">
+              {(["aktiv", "bestaetigt", "archiv"] as const).map(tab => {
+                const labels = { aktiv: "Aktiv", bestaetigt: "Bestätigt", archiv: "Archiv" };
+                const counts = { aktiv: tabGroups.aktiv.length, bestaetigt: tabGroups.bestaetigt.length, archiv: tabGroups.archiv.length };
+                const activeStyles = {
+                  aktiv: "bg-orange-500 text-white shadow-sm",
+                  bestaetigt: "bg-green-600 text-white shadow-sm",
+                  archiv: "bg-gray-500 text-white shadow-sm",
+                };
+                const isActive = activeTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${isActive ? activeStyles[tab] : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}
+                    data-testid={`tab-${tab}`}
+                  >
+                    {labels[tab]}
+                    <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${isActive ? "bg-white/25" : "bg-gray-100 text-gray-600"}`}>
+                      {counts[tab]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {tabApplications.length === 0 ? (
+              <div className="text-center py-12 text-gray-400 bg-white rounded-xl shadow-sm" data-testid="empty-tab">
+                Keine Anträge in dieser Kategorie
+              </div>
+            ) : (
+            <>
             <div className="hidden md:block bg-white rounded-xl shadow-sm overflow-hidden">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
@@ -305,7 +379,7 @@ export default function PromoAdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {groupedApplications.map(({ primary: app, history }) => {
+                  {tabApplications.map(({ primary: app, history }) => {
                     const groupKey = app.email.toLowerCase();
                     const isExpanded = expandedGroups.has(groupKey);
                     const hadNoMoney = history.some(h => h.noMoneyEmailSentAt || h.status === "no_money");
@@ -434,7 +508,7 @@ export default function PromoAdminPage() {
             </div>
 
             <div className="md:hidden space-y-3">
-              {groupedApplications.map(({ primary: app, history }) => {
+              {tabApplications.map(({ primary: app, history }) => {
                 const groupKey = app.email.toLowerCase();
                 const isExpanded = expandedGroups.has(groupKey);
                 const hadNoMoney = history.some(h => h.noMoneyEmailSentAt || h.status === "no_money");
@@ -514,6 +588,8 @@ export default function PromoAdminPage() {
                 );
               })}
             </div>
+            </>
+            )}
           </>
         )}
       </div>

@@ -32,7 +32,7 @@ export default function PromoAdminPage() {
     });
   };
 
-  const statusPriority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, approved: 3, rejected: 4, duplicate: 99 };
+  const primaryPriority: Record<string, number> = { approved: 0, retry: 1, no_money: 2, pending: 3, rejected: 4, duplicate: 5 };
 
   const groupedApplications = (() => {
     const map: Record<string, PromoApplication[]> = {};
@@ -42,16 +42,16 @@ export default function PromoAdminPage() {
       map[key].push(app);
     }
     return Object.values(map).map(group => {
-      const sorted = [...group].sort((a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      const sorted = [...group].sort((a, b) => {
+        const pa = primaryPriority[a.status] ?? 3;
+        const pb = primaryPriority[b.status] ?? 3;
+        if (pa !== pb) return pa - pb;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
       return { primary: sorted[0], history: sorted.slice(1) };
-    }).sort((a, b) => {
-      const pa = statusPriority[a.primary.status] ?? 3;
-      const pb = statusPriority[b.primary.status] ?? 3;
-      if (pa !== pb) return pa - pb;
-      return new Date(b.primary.createdAt).getTime() - new Date(a.primary.createdAt).getTime();
-    });
+    }).sort((a, b) =>
+      new Date(b.primary.createdAt).getTime() - new Date(a.primary.createdAt).getTime()
+    );
   })();
 
   const AKTIV_STATUSES = ["pending", "retry", "no_money"];

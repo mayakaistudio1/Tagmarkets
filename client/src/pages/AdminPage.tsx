@@ -2537,7 +2537,7 @@ function PromoApplicationsSubTab({
                           title="No Money — Send Email"
                           data-testid={`btn-no-money-${app.id}`}
                         >
-                          $
+                          💰
                         </button>
                       )}
                       {app.status !== "rejected" && (

@@ -266,6 +266,46 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/admin/promo-applications/:id/no-money", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      const allApps = await storage.getPromoApplications();
+      const application = allApps.find(a => a.id === id);
+      if (!application) return res.status(404).json({ error: "Application not found" });
+      if (application.noMoneyEmailSentAt) return res.status(400).json({ error: "No-money email already sent" });
+
+      const { sendPromoNoMoneyEmail } = await import("./integrations/resend-email");
+      const emailSent = await sendPromoNoMoneyEmail(application.email, application.name);
+
+      if (emailSent) {
+        await storage.markPromoApplicationNoMoney(id);
+      }
+
+      const { sendTelegramNotification } = await import("./integrations/telegram-notify");
+      sendTelegramNotification(
+        `💸 <b>No Money Email (Main Admin)</b>\n\n` +
+        `👤 ${application.name}\n` +
+        `📧 ${application.email}\n` +
+        `🔢 ${application.cuNumber}\n` +
+        `📨 Email: ${emailSent ? "Sent" : "Failed"}\n` +
+        `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
+      ).catch(err => console.error("TG notify error:", err));
+
+      try {
+        const { syncAllPromoApplications } = await import("./googleSheets");
+        await syncAllPromoApplications();
+      } catch (err) {
+        console.error("Google Sheet sync error after no-money:", err);
+      }
+
+      res.json({ success: true, emailSent });
+    } catch (error) {
+      console.error("Error sending no-money email:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   function requirePromoAdmin(req: any, res: any): boolean {
     const password = req.headers['x-promo-password'] || req.body?.password;
     if (!password || password !== (process.env.PROMO_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD)) {

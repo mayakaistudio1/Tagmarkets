@@ -347,6 +347,24 @@ function AdminPage() {
     }
   }, [headers]);
 
+  const sendNoMoneyAdmin = async (id: number) => {
+    if (!confirm("Send 'No Money' email to this applicant?")) return;
+    try {
+      const res = await fetch(`/api/admin/promo-applications/${id}/no-money`, {
+        method: "PATCH",
+        headers: headers(),
+      });
+      if (handleAuthError(res)) return;
+      if (res.ok) fetchPromoApps();
+      else {
+        const data = await res.json();
+        setErrorMsg(data.error || "Failed to send no-money email");
+      }
+    } catch {
+      setErrorMsg("Connection error");
+    }
+  };
+
   const updatePromoAppStatus = async (id: number, status: string) => {
     try {
       const res = await fetch(`/api/admin/promo-applications/${id}/status`, {
@@ -832,6 +850,7 @@ function AdminPage() {
             promoApps={promoApps}
             promoAppsLoading={promoAppsLoading}
             updatePromoAppStatus={updatePromoAppStatus}
+            sendNoMoneyAdmin={sendNoMoneyAdmin}
             exportPromoAppsCSV={exportPromoAppsCSV}
             promoSubTab={promoSubTab}
             setPromoSubTab={setPromoSubTab}
@@ -2070,7 +2089,7 @@ function ToggleField({ label, value, onChange, testId }: {
 
 function DennisPromoTab({
   dennisPromos, dennisPromosLoading, formOpen, setFormOpen, editing, setEditing, onSave, onDelete,
-  promoApps, promoAppsLoading, updatePromoAppStatus, exportPromoAppsCSV, promoSubTab, setPromoSubTab, adminPassword,
+  promoApps, promoAppsLoading, updatePromoAppStatus, sendNoMoneyAdmin, exportPromoAppsCSV, promoSubTab, setPromoSubTab, adminPassword,
 }: {
   dennisPromos: any[]; dennisPromosLoading: boolean;
   formOpen: boolean; setFormOpen: (v: boolean) => void;
@@ -2078,6 +2097,7 @@ function DennisPromoTab({
   onSave: (promo: any) => void; onDelete: (id: number) => void;
   promoApps: any[]; promoAppsLoading: boolean;
   updatePromoAppStatus: (id: number, status: string) => void;
+  sendNoMoneyAdmin: (id: number) => void;
   exportPromoAppsCSV: () => void;
   promoSubTab: "offers" | "applications";
   setPromoSubTab: (v: "offers" | "applications") => void;
@@ -2322,6 +2342,7 @@ function DennisPromoTab({
           promoApps={promoApps}
           promoAppsLoading={promoAppsLoading}
           updatePromoAppStatus={updatePromoAppStatus}
+          sendNoMoneyAdmin={sendNoMoneyAdmin}
           exportPromoAppsCSV={exportPromoAppsCSV}
           adminPassword={adminPassword}
         />
@@ -2331,10 +2352,11 @@ function DennisPromoTab({
 }
 
 function PromoApplicationsSubTab({
-  promoApps, promoAppsLoading, updatePromoAppStatus, exportPromoAppsCSV, adminPassword,
+  promoApps, promoAppsLoading, updatePromoAppStatus, sendNoMoneyAdmin, exportPromoAppsCSV, adminPassword,
 }: {
   promoApps: any[]; promoAppsLoading: boolean;
   updatePromoAppStatus: (id: number, status: string) => void;
+  sendNoMoneyAdmin: (id: number) => void;
   exportPromoAppsCSV: () => void;
   adminPassword: string;
 }) {
@@ -2472,10 +2494,12 @@ function PromoApplicationsSubTab({
                       app.status === "verified" ? "bg-blue-100 text-blue-700" :
                       app.status === "approved" ? "bg-green-100 text-green-700" :
                       app.status === "rejected" ? "bg-red-100 text-red-700" :
-                      app.status === "duplicate" ? "bg-orange-100 text-orange-700" :
+                      app.status === "duplicate" || app.status === "retry" ? "bg-orange-100 text-orange-700" :
+                      app.status === "no_money" ? "bg-amber-100 text-amber-700" :
                       "bg-yellow-100 text-yellow-700"
                     }`} data-testid={`badge-status-${app.id}`}>
-                      {app.status === "duplicate" ? "повторная" : app.status}
+                      {app.status === "duplicate" || app.status === "retry" ? "повторная" :
+                       app.status === "no_money" ? "no money" : app.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-xs">
@@ -2484,6 +2508,11 @@ function PromoApplicationsSubTab({
                         <span className="text-blue-600 font-medium" data-testid={`verified-date-${app.id}`}>{new Date(app.verifiedAt).toLocaleString()}</span>
                         {app.emailSentAt && <span className="block text-green-600 mt-0.5" data-testid={`email-sent-${app.id}`}>Email sent</span>}
                       </div>
+                    ) : app.noMoneyEmailSentAt ? (
+                      <div>
+                        <span className="text-amber-600 font-medium" data-testid={`no-money-date-${app.id}`}>No money email</span>
+                        <span className="block text-amber-500 mt-0.5">{new Date(app.noMoneyEmailSentAt).toLocaleString()}</span>
+                      </div>
                     ) : (
                       <span className="text-gray-400">—</span>
                     )}
@@ -2491,19 +2520,31 @@ function PromoApplicationsSubTab({
                   <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
-                      {app.status !== "approved" && (
+                      {app.status !== "verified" && (
                         <button
-                          onClick={() => updatePromoAppStatus(app.id, "approved")}
+                          onClick={() => updatePromoAppStatus(app.id, "verified")}
                           className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200"
+                          title="Verify & Send Email"
                           data-testid={`btn-approve-${app.id}`}
                         >
                           <Check size={14} />
+                        </button>
+                      )}
+                      {!app.noMoneyEmailSentAt && app.status !== "verified" && app.status !== "rejected" && (
+                        <button
+                          onClick={() => sendNoMoneyAdmin(app.id)}
+                          className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-semibold hover:bg-amber-200"
+                          title="No Money — Send Email"
+                          data-testid={`btn-no-money-${app.id}`}
+                        >
+                          $
                         </button>
                       )}
                       {app.status !== "rejected" && (
                         <button
                           onClick={() => updatePromoAppStatus(app.id, "rejected")}
                           className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200"
+                          title="Reject"
                           data-testid={`btn-reject-${app.id}`}
                         >
                           <X size={14} />

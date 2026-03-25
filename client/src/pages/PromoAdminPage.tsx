@@ -31,7 +31,7 @@ export default function PromoAdminPage() {
     });
   };
 
-  const statusPriority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, rejected: 5 };
+  const statusPriority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, approved: 3, rejected: 4, duplicate: 99 };
 
   const groupedApplications = (() => {
     const map: Record<string, PromoApplication[]> = {};
@@ -343,7 +343,7 @@ export default function PromoAdminPage() {
                       <td className="px-4 py-3 text-sm text-gray-500">{formatDate(app.createdAt)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-2">
-                          {app.status !== "approved" && app.status !== "rejected" && !app.emailSentAt && (
+                          {app.status !== "approved" && app.status !== "rejected" && app.status !== "duplicate" && app.status !== "retry" && !app.emailSentAt && (
                             <>
                               <button
                                 onClick={() => handleVerify(app.id)}
@@ -467,7 +467,7 @@ export default function PromoAdminPage() {
                       </span>
                     )}
                   </div>
-                  {app.status !== "approved" && app.status !== "rejected" && app.status !== "no_money" && !app.emailSentAt && (
+                  {app.status !== "approved" && app.status !== "rejected" && app.status !== "no_money" && app.status !== "duplicate" && app.status !== "retry" && !app.emailSentAt && (
                     <div className="flex gap-2 pt-2 border-t border-gray-100">
                       <button
                         onClick={() => handleVerify(app.id)}

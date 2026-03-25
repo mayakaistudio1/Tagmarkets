@@ -2375,7 +2375,7 @@ function PromoApplicationsSubTab({
     });
   };
 
-  const statusPriority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, rejected: 5 };
+  const statusPriority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, approved: 3, rejected: 4, duplicate: 99 };
 
   const groupedPromoApps = (() => {
     const map: Record<string, any[]> = {};
@@ -2569,13 +2569,13 @@ function PromoApplicationsSubTab({
                       <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
-                          {app.status !== "approved" && !app.emailSentAt && (
+                          {app.status !== "approved" && app.status !== "duplicate" && app.status !== "retry" && !app.emailSentAt && (
                             <button onClick={() => updatePromoAppStatus(app.id, "approved")} className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200" title="Verify & Send Email" data-testid={`btn-approve-${app.id}`}><Check size={14} /></button>
                           )}
-                          {!app.noMoneyEmailSentAt && !app.emailSentAt && app.status !== "approved" && app.status !== "rejected" && (
+                          {!app.noMoneyEmailSentAt && !app.emailSentAt && app.status !== "approved" && app.status !== "rejected" && app.status !== "duplicate" && app.status !== "retry" && (
                             <button onClick={() => sendNoMoneyAdmin(app.id)} className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-semibold hover:bg-amber-200" title="No Money — Send Email" data-testid={`btn-no-money-${app.id}`}>💰</button>
                           )}
-                          {app.status !== "rejected" && app.status !== "approved" && (
+                          {app.status !== "rejected" && app.status !== "approved" && app.status !== "duplicate" && app.status !== "retry" && (
                             <button onClick={() => updatePromoAppStatus(app.id, "rejected")} className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200" title="Reject" data-testid={`btn-reject-${app.id}`}><X size={14} /></button>
                           )}
                         </div>

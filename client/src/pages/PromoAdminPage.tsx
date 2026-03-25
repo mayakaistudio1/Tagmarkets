@@ -21,6 +21,40 @@ export default function PromoAdminPage() {
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [loginError, setLoginError] = useState("");
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = (key: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
+  const statusPriority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, rejected: 5 };
+
+  const groupedApplications = (() => {
+    const map: Record<string, PromoApplication[]> = {};
+    for (const app of applications) {
+      const key = app.email.toLowerCase();
+      if (!map[key]) map[key] = [];
+      map[key].push(app);
+    }
+    return Object.values(map).map(group => {
+      const sorted = [...group].sort((a, b) => {
+        const pa = statusPriority[a.status] ?? 3;
+        const pb = statusPriority[b.status] ?? 3;
+        if (pa !== pb) return pa - pb;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      return { primary: sorted[0], history: sorted.slice(1) };
+    }).sort((a, b) => {
+      const pa = statusPriority[a.primary.status] ?? 3;
+      const pb = statusPriority[b.primary.status] ?? 3;
+      if (pa !== pb) return pa - pb;
+      return new Date(b.primary.createdAt).getTime() - new Date(a.primary.createdAt).getTime();
+    });
+  })();
 
   const storedPassword = authenticated ? sessionStorage.getItem("promo_admin_pw") || "" : "";
 
@@ -274,16 +308,23 @@ export default function PromoAdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {[...applications].sort((a, b) => {
-                    const priority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, rejected: 5 };
-                    const pa = priority[a.status] ?? 3;
-                    const pb = priority[b.status] ?? 3;
-                    if (pa !== pb) return pa - pb;
-                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                  }).map((app) => (
-                    <tr key={app.id} className="hover:bg-gray-50" data-testid={`row-application-${app.id}`}>
-                      <td className="px-4 py-3 text-sm text-gray-600">#{app.id}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{app.name}</td>
+                  {groupedApplications.map(({ primary: app, history }) => {
+                    const groupKey = app.email.toLowerCase();
+                    const isExpanded = expandedGroups.has(groupKey);
+                    const hadNoMoney = history.some(h => h.noMoneyEmailSentAt || h.status === "no_money");
+                    return (
+                    <React.Fragment key={app.id}>
+                    <tr className="hover:bg-gray-50" data-testid={`row-application-${app.id}`}>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        #{app.id}
+                        {history.length > 0 && (
+                          <button onClick={() => toggleGroup(groupKey)} className="ml-1 text-xs text-purple-500 hover:text-purple-700 font-medium">{isExpanded ? "▲" : "▼"} {history.length}</button>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                        {app.name}
+                        {hadNoMoney && <span className="ml-1 text-xs text-amber-500" title="Previously sent no money email">⚠</span>}
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-600">{app.email}</td>
                       <td className="px-4 py-3 text-sm text-gray-600 font-mono">{app.cuNumber}</td>
                       <td className="px-4 py-3">{getStatusBadge(app.status)}</td>
@@ -372,19 +413,35 @@ export default function PromoAdminPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    {isExpanded && history.map(h => (
+                      <tr key={h.id} className="bg-gray-50/60 text-xs border-t border-gray-100" data-testid={`row-history-${h.id}`}>
+                        <td className="px-4 py-2 text-gray-400 pl-8">#{h.id}</td>
+                        <td className="px-4 py-2 text-gray-500">{h.name}</td>
+                        <td className="px-4 py-2 text-gray-400">{h.email}</td>
+                        <td className="px-4 py-2 text-gray-400 font-mono">{h.cuNumber}</td>
+                        <td className="px-4 py-2">{getStatusBadge(h.status)}</td>
+                        <td className="px-4 py-2 text-gray-400">
+                          {h.emailSentAt ? <span className="text-green-600">Email sent {formatDate(h.emailSentAt)}</span>
+                           : h.noMoneyEmailSentAt ? <span className="text-amber-600">No money {formatDate(h.noMoneyEmailSentAt)}</span>
+                           : "—"}
+                        </td>
+                        <td className="px-4 py-2 text-gray-400">{formatDate(h.createdAt)}</td>
+                        <td className="px-4 py-2 text-gray-400">—</td>
+                      </tr>
+                    ))}
+                    </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             <div className="md:hidden space-y-3">
-              {[...applications].sort((a, b) => {
-                const priority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, verified: 5, rejected: 6 };
-                const pa = priority[a.status] ?? 3;
-                const pb = priority[b.status] ?? 3;
-                if (pa !== pb) return pa - pb;
-                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-              }).map((app) => (
+              {groupedApplications.map(({ primary: app, history }) => {
+                const groupKey = app.email.toLowerCase();
+                const isExpanded = expandedGroups.has(groupKey);
+                const hadNoMoney = history.some(h => h.noMoneyEmailSentAt || h.status === "no_money");
+                return (
                 <div key={app.id} className="bg-white rounded-xl shadow-sm p-4" data-testid={`card-application-${app.id}`}>
                   <div className="flex items-start justify-between mb-2">
                     <div>
@@ -440,8 +497,25 @@ export default function PromoAdminPage() {
                       </button>
                     </div>
                   )}
+                  {history.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <button onClick={() => toggleGroup(groupKey)} className="text-xs text-purple-500 hover:text-purple-700 font-medium">
+                        {isExpanded ? "▲ Скрыть историю" : `▼ История (${history.length})`}
+                      </button>
+                      {isExpanded && history.map(h => (
+                        <div key={h.id} className="mt-2 pl-3 border-l-2 border-gray-200 text-xs text-gray-500">
+                          <span className="font-mono mr-2">#{h.id}</span>
+                          {getStatusBadge(h.status)}
+                          {h.emailSentAt && <span className="ml-2 text-green-600">email отправлен</span>}
+                          {h.noMoneyEmailSentAt && <span className="ml-2 text-amber-600">no money email</span>}
+                          <span className="ml-2 text-gray-400">{formatDate(h.createdAt)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </>
         )}

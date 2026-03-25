@@ -2365,6 +2365,40 @@ function PromoApplicationsSubTab({
   const [verificationResult, setVerificationResult] = useState<string | null>(null);
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = (key: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
+  const statusPriority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, rejected: 5 };
+
+  const groupedPromoApps = (() => {
+    const map: Record<string, any[]> = {};
+    for (const app of promoApps) {
+      const key = app.email.toLowerCase();
+      if (!map[key]) map[key] = [];
+      map[key].push(app);
+    }
+    return Object.values(map).map(group => {
+      const sorted = [...group].sort((a, b) => {
+        const pa = statusPriority[a.status] ?? 3;
+        const pb = statusPriority[b.status] ?? 3;
+        if (pa !== pb) return pa - pb;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      return { primary: sorted[0], history: sorted.slice(1) };
+    }).sort((a, b) => {
+      const pa = statusPriority[a.primary.status] ?? 3;
+      const pb = statusPriority[b.primary.status] ?? 3;
+      if (pa !== pb) return pa - pb;
+      return new Date(b.primary.createdAt).getTime() - new Date(a.primary.createdAt).getTime();
+    });
+  })();
 
   const checkVerifications = async () => {
     setCheckingVerifications(true);
@@ -2483,82 +2517,89 @@ function PromoApplicationsSubTab({
               </tr>
             </thead>
             <tbody>
-              {[...promoApps].sort((a, b) => {
-                const priority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, rejected: 5 };
-                const pa = priority[a.status] ?? 3;
-                const pb = priority[b.status] ?? 3;
-                if (pa !== pb) return pa - pb;
-                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-              }).map((app: any) => (
-                <tr key={app.id} className="border-b last:border-0 hover:bg-gray-50" data-testid={`row-promo-app-${app.id}`}>
-                  <td className="px-4 py-3 text-gray-500">#{app.id}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{app.name}</td>
-                  <td className="px-4 py-3 text-gray-700">{app.email}</td>
-                  <td className="px-4 py-3 text-gray-700 font-mono">{app.cuNumber}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                      app.status === "approved" ? "bg-green-100 text-green-700" :
-                      app.status === "rejected" ? "bg-red-100 text-red-700" :
-                      app.status === "duplicate" || app.status === "retry" ? "bg-orange-100 text-orange-700" :
-                      app.status === "no_money" ? "bg-amber-100 text-amber-700" :
-                      "bg-yellow-100 text-yellow-700"
-                    }`} data-testid={`badge-status-${app.id}`}>
-                      {app.status === "duplicate" || app.status === "retry" ? "повторная" :
-                       app.status === "no_money" ? "no money" : app.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-xs">
-                    {app.verifiedAt ? (
-                      <div>
-                        <span className="text-blue-600 font-medium" data-testid={`verified-date-${app.id}`}>{new Date(app.verifiedAt).toLocaleString()}</span>
-                        {app.emailSentAt && <span className="block text-green-600 mt-0.5" data-testid={`email-sent-${app.id}`}>Email sent</span>}
-                      </div>
-                    ) : app.noMoneyEmailSentAt ? (
-                      <div>
-                        <span className="text-amber-600 font-medium" data-testid={`no-money-date-${app.id}`}>No money email</span>
-                        <span className="block text-amber-500 mt-0.5">{new Date(app.noMoneyEmailSentAt).toLocaleString()}</span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      {app.status !== "approved" && !app.emailSentAt && (
-                        <button
-                          onClick={() => updatePromoAppStatus(app.id, "approved")}
-                          className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200"
-                          title="Verify & Send Email"
-                          data-testid={`btn-approve-${app.id}`}
-                        >
-                          <Check size={14} />
-                        </button>
-                      )}
-                      {!app.noMoneyEmailSentAt && !app.emailSentAt && app.status !== "approved" && app.status !== "rejected" && (
-                        <button
-                          onClick={() => sendNoMoneyAdmin(app.id)}
-                          className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-semibold hover:bg-amber-200"
-                          title="No Money — Send Email"
-                          data-testid={`btn-no-money-${app.id}`}
-                        >
-                          💰
-                        </button>
-                      )}
-                      {app.status !== "rejected" && app.status !== "approved" && (
-                        <button
-                          onClick={() => updatePromoAppStatus(app.id, "rejected")}
-                          className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200"
-                          title="Reject"
-                          data-testid={`btn-reject-${app.id}`}
-                        >
-                          <X size={14} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {groupedPromoApps.map(({ primary: app, history }) => {
+                const groupKey = app.email.toLowerCase();
+                const isExpanded = expandedGroups.has(groupKey);
+                const hadNoMoney = history.some((h: any) => h.noMoneyEmailSentAt || h.status === "no_money");
+                const statusBadge = (a: any) => (
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
+                    a.status === "approved" ? "bg-green-100 text-green-700" :
+                    a.status === "rejected" ? "bg-red-100 text-red-700" :
+                    a.status === "duplicate" || a.status === "retry" ? "bg-orange-100 text-orange-700" :
+                    a.status === "no_money" ? "bg-amber-100 text-amber-700" :
+                    "bg-yellow-100 text-yellow-700"
+                  }`} data-testid={`badge-status-${a.id}`}>
+                    {a.status === "duplicate" || a.status === "retry" ? "повторная" :
+                     a.status === "no_money" ? "no money" : a.status}
+                  </span>
+                );
+                return (
+                  <React.Fragment key={app.id}>
+                    <tr className="border-b hover:bg-gray-50" data-testid={`row-promo-app-${app.id}`}>
+                      <td className="px-4 py-3 text-gray-500">
+                        #{app.id}
+                        {history.length > 0 && (
+                          <button onClick={() => toggleGroup(groupKey)} className="ml-1 text-xs text-purple-500 hover:text-purple-700 font-medium" title="Show history">
+                            {isExpanded ? "▲" : "▼"} {history.length}
+                          </button>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-gray-900">
+                        {app.name}
+                        {hadNoMoney && <span className="ml-1 text-xs text-amber-500" title="Previously sent no money email">⚠</span>}
+                      </td>
+                      <td className="px-4 py-3 text-gray-700">{app.email}</td>
+                      <td className="px-4 py-3 text-gray-700 font-mono">{app.cuNumber}</td>
+                      <td className="px-4 py-3">{statusBadge(app)}</td>
+                      <td className="px-4 py-3 text-xs">
+                        {app.verifiedAt ? (
+                          <div>
+                            <span className="text-blue-600 font-medium" data-testid={`verified-date-${app.id}`}>{new Date(app.verifiedAt).toLocaleString()}</span>
+                            {app.emailSentAt && <span className="block text-green-600 mt-0.5" data-testid={`email-sent-${app.id}`}>Email sent</span>}
+                          </div>
+                        ) : app.noMoneyEmailSentAt ? (
+                          <div>
+                            <span className="text-amber-600 font-medium" data-testid={`no-money-date-${app.id}`}>No money email</span>
+                            <span className="block text-amber-500 mt-0.5">{new Date(app.noMoneyEmailSentAt).toLocaleString()}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1">
+                          {app.status !== "approved" && !app.emailSentAt && (
+                            <button onClick={() => updatePromoAppStatus(app.id, "approved")} className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200" title="Verify & Send Email" data-testid={`btn-approve-${app.id}`}><Check size={14} /></button>
+                          )}
+                          {!app.noMoneyEmailSentAt && !app.emailSentAt && app.status !== "approved" && app.status !== "rejected" && (
+                            <button onClick={() => sendNoMoneyAdmin(app.id)} className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-semibold hover:bg-amber-200" title="No Money — Send Email" data-testid={`btn-no-money-${app.id}`}>💰</button>
+                          )}
+                          {app.status !== "rejected" && app.status !== "approved" && (
+                            <button onClick={() => updatePromoAppStatus(app.id, "rejected")} className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200" title="Reject" data-testid={`btn-reject-${app.id}`}><X size={14} /></button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                    {isExpanded && history.map((h: any) => (
+                      <tr key={h.id} className="border-b bg-gray-50/60 text-xs" data-testid={`row-history-${h.id}`}>
+                        <td className="px-4 py-2 text-gray-400 pl-8">#{h.id}</td>
+                        <td className="px-4 py-2 text-gray-500">{h.name}</td>
+                        <td className="px-4 py-2 text-gray-400">{h.email}</td>
+                        <td className="px-4 py-2 text-gray-400 font-mono">{h.cuNumber}</td>
+                        <td className="px-4 py-2">{statusBadge(h)}</td>
+                        <td className="px-4 py-2 text-gray-400">
+                          {h.emailSentAt ? <span className="text-green-600">Email sent {new Date(h.emailSentAt).toLocaleString()}</span>
+                           : h.noMoneyEmailSentAt ? <span className="text-amber-600">No money email {new Date(h.noMoneyEmailSentAt).toLocaleString()}</span>
+                           : "—"}
+                        </td>
+                        <td className="px-4 py-2 text-gray-400">{new Date(h.createdAt).toLocaleString()}</td>
+                        <td className="px-4 py-2 text-gray-400">—</td>
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>

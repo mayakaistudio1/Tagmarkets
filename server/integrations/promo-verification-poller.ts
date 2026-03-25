@@ -73,12 +73,12 @@ export async function checkAndProcessVerifications(): Promise<number> {
 
     if (processedCount > 0) {
       console.log(`Processed ${processedCount} new promo action(s)`);
-      try {
-        await syncAllPromoApplications();
-        console.log("Google Sheet synced after poller actions");
-      } catch (syncErr) {
-        console.error("Failed to sync Google Sheet after poller:", syncErr);
-      }
+    }
+    try {
+      await syncAllPromoApplications();
+      console.log("Google Sheet synced");
+    } catch (syncErr) {
+      console.error("Failed to sync Google Sheet after poller:", syncErr);
     }
   } catch (error) {
     console.error("Verification polling error:", error);

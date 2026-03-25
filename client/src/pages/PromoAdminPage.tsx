@@ -41,12 +41,9 @@ export default function PromoAdminPage() {
       map[key].push(app);
     }
     return Object.values(map).map(group => {
-      const sorted = [...group].sort((a, b) => {
-        const pa = statusPriority[a.status] ?? 3;
-        const pb = statusPriority[b.status] ?? 3;
-        if (pa !== pb) return pa - pb;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
+      const sorted = [...group].sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
       return { primary: sorted[0], history: sorted.slice(1) };
     }).sort((a, b) => {
       const pa = statusPriority[a.primary.status] ?? 3;

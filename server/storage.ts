@@ -337,7 +337,7 @@ export class DatabaseStorage implements IStorage {
 
   async markPromoApplicationVerified(id: number): Promise<PromoApplication> {
     const [updated] = await db.update(promoApplications)
-      .set({ status: 'verified', verifiedAt: new Date() })
+      .set({ status: 'approved', verifiedAt: new Date() })
       .where(eq(promoApplications.id, id))
       .returning();
     return updated;
@@ -363,7 +363,7 @@ export class DatabaseStorage implements IStorage {
     const results = await db.select().from(promoApplications)
       .where(and(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)))
       .orderBy(desc(promoApplications.createdAt));
-    return results.find(app => !app.noMoneyEmailSentAt && app.status !== "verified");
+    return results.find(app => !app.noMoneyEmailSentAt && app.status !== "approved");
   }
 
   async getSpeakers(activeOnly?: boolean): Promise<any[]> {

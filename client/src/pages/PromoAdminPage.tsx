@@ -150,10 +150,10 @@ export default function PromoAdminPage() {
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
       pending: "bg-yellow-100 text-yellow-800",
-      approved: "bg-blue-100 text-blue-800",
-      verified: "bg-green-100 text-green-800",
+      approved: "bg-green-100 text-green-800",
       rejected: "bg-red-100 text-red-800",
       duplicate: "bg-gray-100 text-gray-600",
+      retry: "bg-orange-100 text-orange-700",
       no_money: "bg-amber-100 text-amber-800",
     };
     return (
@@ -275,7 +275,7 @@ export default function PromoAdminPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[...applications].sort((a, b) => {
-                    const priority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, verified: 5, rejected: 6 };
+                    const priority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, rejected: 5 };
                     const pa = priority[a.status] ?? 3;
                     const pb = priority[b.status] ?? 3;
                     if (pa !== pb) return pa - pb;
@@ -302,7 +302,7 @@ export default function PromoAdminPage() {
                       <td className="px-4 py-3 text-sm text-gray-500">{formatDate(app.createdAt)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-2">
-                          {app.status !== "verified" && app.status !== "rejected" && !app.emailSentAt && (
+                          {app.status !== "approved" && app.status !== "rejected" && !app.emailSentAt && (
                             <>
                               <button
                                 onClick={() => handleVerify(app.id)}
@@ -348,7 +348,7 @@ export default function PromoAdminPage() {
                               </button>
                             </>
                           )}
-                          {app.status === "verified" && (
+                          {app.status === "approved" && (
                             <span className="text-green-500">
                               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -410,7 +410,7 @@ export default function PromoAdminPage() {
                       </span>
                     )}
                   </div>
-                  {app.status !== "verified" && app.status !== "rejected" && app.status !== "no_money" && !app.emailSentAt && (
+                  {app.status !== "approved" && app.status !== "rejected" && app.status !== "no_money" && !app.emailSentAt && (
                     <div className="flex gap-2 pt-2 border-t border-gray-100">
                       <button
                         onClick={() => handleVerify(app.id)}

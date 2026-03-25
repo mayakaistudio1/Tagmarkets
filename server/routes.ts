@@ -223,11 +223,11 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id);
       const { status } = req.body;
-      if (!["pending", "approved", "rejected", "verified"].includes(status)) {
+      if (!["pending", "approved", "rejected"].includes(status)) {
         return res.status(400).json({ error: "Invalid status" });
       }
       let updated;
-      if (status === "verified") {
+      if (status === "approved") {
         const allApps = await storage.getPromoApplications();
         const application = allApps.find(a => a.id === id);
         if (!application) return res.status(404).json({ error: "Application not found" });
@@ -244,7 +244,7 @@ export async function registerRoutes(
 
           const { sendTelegramNotification } = await import("./integrations/telegram-notify");
           sendTelegramNotification(
-            `✅ <b>Promo Verified (Main Admin)</b>\n\n` +
+            `✅ <b>Promo Approved (Main Admin)</b>\n\n` +
             `👤 ${application.name}\n` +
             `📧 ${application.email}\n` +
             `🔢 ${application.cuNumber}\n` +
@@ -351,8 +351,8 @@ export async function registerRoutes(
       if (!application) {
         return res.status(404).json({ error: "Application not found" });
       }
-      if (application.status === "verified" || application.emailSentAt) {
-        return res.status(400).json({ error: "Already verified" });
+      if (application.status === "approved" || application.emailSentAt) {
+        return res.status(400).json({ error: "Already approved" });
       }
 
       const updated = await storage.markPromoApplicationVerified(id);

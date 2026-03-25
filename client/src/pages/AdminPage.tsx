@@ -2484,7 +2484,7 @@ function PromoApplicationsSubTab({
             </thead>
             <tbody>
               {[...promoApps].sort((a, b) => {
-                const priority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, verified: 5, rejected: 6 };
+                const priority: Record<string, number> = { pending: 0, no_money: 1, retry: 2, duplicate: 3, approved: 4, rejected: 5 };
                 const pa = priority[a.status] ?? 3;
                 const pb = priority[b.status] ?? 3;
                 if (pa !== pb) return pa - pb;
@@ -2497,7 +2497,6 @@ function PromoApplicationsSubTab({
                   <td className="px-4 py-3 text-gray-700 font-mono">{app.cuNumber}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                      app.status === "verified" ? "bg-blue-100 text-blue-700" :
                       app.status === "approved" ? "bg-green-100 text-green-700" :
                       app.status === "rejected" ? "bg-red-100 text-red-700" :
                       app.status === "duplicate" || app.status === "retry" ? "bg-orange-100 text-orange-700" :
@@ -2526,9 +2525,9 @@ function PromoApplicationsSubTab({
                   <td className="px-4 py-3 text-gray-500 text-xs">{new Date(app.createdAt).toLocaleString()}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
-                      {app.status !== "verified" && app.status !== "approved" && !app.emailSentAt && (
+                      {app.status !== "approved" && !app.emailSentAt && (
                         <button
-                          onClick={() => updatePromoAppStatus(app.id, "verified")}
+                          onClick={() => updatePromoAppStatus(app.id, "approved")}
                           className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200"
                           title="Verify & Send Email"
                           data-testid={`btn-approve-${app.id}`}
@@ -2536,7 +2535,7 @@ function PromoApplicationsSubTab({
                           <Check size={14} />
                         </button>
                       )}
-                      {!app.noMoneyEmailSentAt && !app.emailSentAt && app.status !== "verified" && app.status !== "approved" && app.status !== "rejected" && (
+                      {!app.noMoneyEmailSentAt && !app.emailSentAt && app.status !== "approved" && app.status !== "rejected" && (
                         <button
                           onClick={() => sendNoMoneyAdmin(app.id)}
                           className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-semibold hover:bg-amber-200"
@@ -2546,7 +2545,7 @@ function PromoApplicationsSubTab({
                           💰
                         </button>
                       )}
-                      {app.status !== "rejected" && app.status !== "verified" && app.status !== "approved" && (
+                      {app.status !== "rejected" && app.status !== "approved" && (
                         <button
                           onClick={() => updatePromoAppStatus(app.id, "rejected")}
                           className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold hover:bg-red-200"

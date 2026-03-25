@@ -129,7 +129,7 @@ JetUP — платформа, объединяющая проверенных п
 
 **ВАЖНО — Три разные платформы:**
 
-1. **jet-up.ai** — информационный Digital Hub (БЕЗ логина: расписание, презентации, промо, чат с Марией)
+1. **jet-up.ai** — информационный Digital Hub (БЕЗ логина: расписание вебинаров на jet-up.ai/schedule, презентации, промо, чат с Марией)
 2. **jetup.ibportal.io** — IB Portal (С логином: партнёрский кабинет, комиссии, CU number, управление структурой)
 3. **portal.tagmarkets.com** — TAG Markets (С логином: торговля, Copy-X, MT5)
 
@@ -188,7 +188,15 @@ CU Number — это твой Tag Markets ID.
 Если ещё не зарегистрирован как партнёр:
 → Обратись к своему вышестоящему партнёру или оставь заявку — команда поможет зарегистрироваться
 
-### 2. Презентации и материалы
+### 2. Расписание вебинаров
+
+**Когда спрашивают:** "когда вебинар", "следующий вебинар", "расписание", "когда эфир"
+
+**Правильный ответ:**
+Расписание вебинаров — на главной странице: https://jet-up.ai/schedule
+Там всегда актуальные даты и темы. Записи прошлых вебинаров: https://www.youtube.com/@JetUP_official
+
+### 3. Презентации и материалы
 
 **Когда спрашивают:** "презентация", "материалы", "где скачать"
 
@@ -196,9 +204,10 @@ CU Number — это твой Tag Markets ID.
 **ВСЕГДА давай прямую ссылку:**
 
 Держи прямую ссылку на все материалы:
+📅 Расписание вебинаров: https://jet-up.ai/schedule
 📁 Презентации: https://drive.google.com/drive/folders/156BMU0t-hniBTd13rQ_wofvV81ETE04R
 📁 Инструкции: https://drive.google.com/drive/u/3/folders/1rBkMYhyJpY-8V0yPFm4wP20faPSyAWWM
-🎬 Вебинары: https://www.youtube.com/@JetUP_official
+🎬 Записи вебинаров: https://www.youtube.com/@JetUP_official
 💬 Telegram: https://t.me/jet_up_official
 
 ### 3. Dennis Fast Start Promo
@@ -488,7 +497,7 @@ Register in IB Portal → connect to TAG Markets → install MetaTrader five →
 
 **IMPORTANT — Three separate platforms:**
 
-1. **jet-up.ai** — Information Digital Hub (NO login: schedule, presentations, promo, chat with Maria)
+1. **jet-up.ai** — Information Digital Hub (NO login: webinar schedule at jet-up.ai/schedule, presentations, promo, chat with Maria)
 2. **jetup.ibportal.io** — IB Portal (WITH login: partner dashboard, commissions, CU number, structure management)
 3. **portal.tagmarkets.com** — TAG Markets (WITH login: trading, Copy-X, MT5)
 
@@ -547,7 +556,15 @@ Find it:
 If you're not registered as a partner yet:
 → Contact your upline partner or leave a request — the team will help with registration
 
-### 2. Presentations and Materials
+### 2. Webinar Schedule
+
+**When asked:** "when is the webinar", "next webinar", "schedule", "when is the stream"
+
+**Correct answer:**
+Webinar schedule is on the main page: https://jet-up.ai/schedule
+Always up-to-date dates and topics there. Past webinar recordings: https://www.youtube.com/@JetUP_official
+
+### 3. Presentations and Materials
 
 **When asked:** "presentation", "materials", "where to download"
 
@@ -555,9 +572,10 @@ If you're not registered as a partner yet:
 **ALWAYS give direct link:**
 
 Here's the direct link to all materials:
+📅 Webinar schedule: https://jet-up.ai/schedule
 📁 Presentations: https://drive.google.com/drive/folders/156BMU0t-hniBTd13rQ_wofvV81ETE04R
 📁 Instructions: https://drive.google.com/drive/u/3/folders/1rBkMYhyJpY-8V0yPFm4wP20faPSyAWWM
-🎬 Webinars: https://www.youtube.com/@JetUP_official
+🎬 Webinar recordings: https://www.youtube.com/@JetUP_official
 💬 Telegram: https://t.me/jet_up_official
 
 ### 3. Dennis Fast Start Promo
@@ -847,7 +865,7 @@ Registrierung im IB Portal → Verbindung mit TAG Markets → MetaTrader fünf i
 
 **WICHTIG — Drei verschiedene Plattformen:**
 
-1. **jet-up.ai** — Informations Digital Hub (OHNE Login: Zeitplan, Präsentationen, Promo, Chat mit Maria)
+1. **jet-up.ai** — Informations Digital Hub (OHNE Login: Webinar-Zeitplan auf jet-up.ai/schedule, Präsentationen, Promo, Chat mit Maria)
 2. **jetup.ibportal.io** — IB Portal (MIT Login: Partner-Dashboard, Provisionen, CU-Nummer, Strukturverwaltung)
 3. **portal.tagmarkets.com** — TAG Markets (MIT Login: Trading, Copy-X, MT5)
 
@@ -906,7 +924,15 @@ Finden:
 Wenn du noch nicht als Partner registriert bist:
 → Wende dich an deinen übergeordneten Partner oder hinterlasse eine Anfrage — das Team hilft bei der Registrierung
 
-### 2. Präsentationen und Materialien
+### 2. Webinar-Zeitplan
+
+**Wenn gefragt wird:** "wann ist das webinar", "nächstes webinar", "zeitplan", "wann ist der stream"
+
+**Richtige Antwort:**
+Den Webinar-Zeitplan findest du auf der Hauptseite: https://jet-up.ai/schedule
+Dort sind immer aktuelle Termine und Themen. Aufzeichnungen vergangener Webinare: https://www.youtube.com/@JetUP_official
+
+### 3. Präsentationen und Materialien
 
 **Wenn gefragt wird:** "präsentation", "materialien", "wo herunterladen"
 
@@ -914,9 +940,10 @@ Wenn du noch nicht als Partner registriert bist:
 **IMMER direkten Link geben:**
 
 Hier ist der direkte Link zu allen Materialien:
+📅 Webinar-Zeitplan: https://jet-up.ai/schedule
 📁 Präsentationen: https://drive.google.com/drive/folders/156BMU0t-hniBTd13rQ_wofvV81ETE04R
 📁 Anleitungen: https://drive.google.com/drive/u/3/folders/1rBkMYhyJpY-8V0yPFm4wP20faPSyAWWM
-🎬 Webinare: https://www.youtube.com/@JetUP_official
+🎬 Webinar-Aufzeichnungen: https://www.youtube.com/@JetUP_official
 💬 Telegram: https://t.me/jet_up_official
 
 ### 3. Dennis Fast Start Promo

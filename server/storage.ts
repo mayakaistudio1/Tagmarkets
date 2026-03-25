@@ -374,7 +374,7 @@ export class DatabaseStorage implements IStorage {
     const results = await db.select().from(promoApplications)
       .where(and(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)))
       .orderBy(desc(promoApplications.createdAt));
-    return results.find(app => !app.noMoneyEmailSentAt && app.status !== "approved");
+    return results.find(app => !app.noMoneyEmailSentAt && app.status !== "approved" && app.status !== "verified");
   }
 
   async getSpeakers(activeOnly?: boolean): Promise<any[]> {

@@ -353,7 +353,7 @@ export async function registerRoutes(
       if (!application) {
         return res.status(404).json({ error: "Application not found" });
       }
-      if (application.status === "approved" || application.emailSentAt) {
+      if (application.status === "approved" || application.status === "verified" || application.emailSentAt) {
         return res.status(400).json({ error: "Already approved" });
       }
 

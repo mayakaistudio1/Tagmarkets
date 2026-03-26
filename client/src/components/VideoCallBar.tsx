@@ -29,10 +29,13 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
   const [status, setStatus] = useState<'idle' | 'connecting' | 'active' | 'finished'>('idle');
   const [isMuted, setIsMuted] = useState(true);
   const [isAvatarTalking, setIsAvatarTalking] = useState(false);
+  const isAvatarTalkingRef = useRef(false);
+  useEffect(() => { isAvatarTalkingRef.current = isAvatarTalking; }, [isAvatarTalking]);
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [isPushToTalkActive, setIsPushToTalkActive] = useState(false);
+  const ttsInjectingRef = useRef(false);
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
   const [showButtons, setShowButtons] = useState(false);
   const [isGuidedComplete, setIsGuidedComplete] = useState(false);
@@ -156,6 +159,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
   }, []);
 
   const disableUserMic = useCallback(() => {
+    if (ttsInjectingRef.current) return;
     console.log("Disabling user microphone");
     if (roomRef.current) {
       roomRef.current.localParticipant.setMicrophoneEnabled(false);
@@ -371,6 +375,66 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
     typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)
   );
 
+  const injectTtsIntoRoom = async (text: string): Promise<boolean> => {
+    const room = roomRef.current;
+    if (!room) return false;
+
+    ttsInjectingRef.current = true;
+    try {
+      const resp = await fetch('/api/liveavatar/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, language }),
+      });
+      if (!resp.ok) {
+        console.error("TTS API failed:", resp.status);
+        return false;
+      }
+
+      const arrayBuffer = await resp.arrayBuffer();
+      const audioCtx = new AudioContext();
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+      const source = audioCtx.createBufferSource();
+      source.buffer = audioBuffer;
+      const dest = audioCtx.createMediaStreamDestination();
+      source.connect(dest);
+
+      const ttsTrack = dest.stream.getAudioTracks()[0];
+
+      await room.localParticipant.setMicrophoneEnabled(true);
+
+      const micPub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
+      const origTrack = micPub?.track?.mediaStreamTrack;
+
+      if (micPub?.track) {
+        await (micPub.track as any).setMediaStreamTrack(ttsTrack);
+      }
+
+      source.start();
+
+      await new Promise<void>((resolve) => {
+        source.onended = () => resolve();
+        setTimeout(resolve, (audioBuffer.duration + 1) * 1000);
+      });
+
+      if (micPub?.track && origTrack) {
+        await (micPub.track as any).setMediaStreamTrack(origTrack);
+      }
+      await room.localParticipant.setMicrophoneEnabled(false);
+
+      ttsTrack.stop();
+      await audioCtx.close();
+      ttsInjectingRef.current = false;
+      return true;
+    } catch (e) {
+      console.error("TTS inject failed:", e);
+      ttsInjectingRef.current = false;
+      try { await room.localParticipant.setMicrophoneEnabled(false); } catch {}
+      return false;
+    }
+  };
+
   const handleGuidedButtonClick = async (userText: string, nextNodeId: string | null) => {
     setShowButtons(false);
     setGuidedLoading(true);
@@ -378,82 +442,28 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
     
     transcriptRef.current.push({ sender: 'user', text: userText, timestamp: Date.now() });
 
-    try {
-      const guidedHistory = transcriptRef.current
-        .filter(t => t.sender === 'user' || t.sender === 'avatar')
-        .map(t => ({
-          role: t.sender === 'user' ? 'user' : 'assistant',
-          content: t.text,
-        }));
-      if (!guidedHistory.find(m => m.role === 'user' && m.content === userText)) {
-        guidedHistory.push({ role: 'user', content: userText });
-      }
-
-      const resp = await fetch('/api/maria/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: guidedHistory,
-          language,
-          sessionId: guidedSessionIdRef.current,
-        }),
-      });
-      if (resp.ok && resp.body) {
-        const reader = resp.body.getReader();
-        const decoder = new TextDecoder();
-        let fullReply = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const parsed = JSON.parse(line.slice(6));
-                if (parsed.content) {
-                  fullReply += parsed.content;
-                  setGuidedResponse(fullReply);
-                }
-              } catch {}
-            }
-          }
-        }
-        if (fullReply) {
-          transcriptRef.current.push({ sender: 'avatar', text: fullReply, timestamp: Date.now() });
-          
-          setGuidedLoading(false);
-
-          await new Promise<void>((resolve) => {
-            if ('speechSynthesis' in window) {
-              window.speechSynthesis.cancel();
-              const utterance = new SpeechSynthesisUtterance(fullReply);
-              utterance.lang = language === 'ru' ? 'ru-RU' : language === 'de' ? 'de-DE' : 'en-US';
-              utterance.rate = 1.05;
-              utterance.pitch = 1.1;
-              utterance.volume = 1;
-              
-              const voices = window.speechSynthesis.getVoices();
-              const langCode = language === 'ru' ? 'ru' : language === 'de' ? 'de' : 'en';
-              const femaleVoice = voices.find(v => v.lang.startsWith(langCode) && /female|woman|zira|milena|anna|katja/i.test(v.name))
-                || voices.find(v => v.lang.startsWith(langCode));
-              if (femaleVoice) utterance.voice = femaleVoice;
-              
-              utterance.onend = () => resolve();
-              utterance.onerror = () => resolve();
-              window.speechSynthesis.speak(utterance);
-              setTimeout(resolve, 30000);
-            } else {
-              resolve();
-            }
-          });
-        }
-      }
-    } catch (e) {
-      console.error("Maria chat failed:", e);
-    }
-    
+    const injected = await injectTtsIntoRoom(userText);
     setGuidedLoading(false);
+
+    if (injected) {
+      setGuidedResponse(userText);
+      
+      await new Promise<void>((resolve) => {
+        const maxWait = setTimeout(resolve, 30000);
+        let started = false;
+        const checkInterval = setInterval(() => {
+          if (isAvatarTalkingRef.current && !started) {
+            started = true;
+          }
+          if (started && !isAvatarTalkingRef.current) {
+            clearInterval(checkInterval);
+            clearTimeout(maxWait);
+            resolve();
+          }
+        }, 300);
+      });
+      setGuidedResponse(null);
+    }
 
     if (nextNodeId) {
       setCurrentNodeId(nextNodeId);
@@ -467,7 +477,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
 
     setTimeout(() => {
       setShowButtons(true);
-    }, 1500);
+    }, 1000);
   };
 
   const pttRecoveryRef = useRef<NodeJS.Timeout | null>(null);
@@ -679,7 +689,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
                   </div>
                 )}
 
-                {guided && (guidedLoading || guidedResponse) && !isGuidedComplete && (
+                {guided && guidedLoading && !isGuidedComplete && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -687,17 +697,11 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
                     className="w-full px-4 mb-3"
                   >
                     <div className="max-w-sm mx-auto bg-black/60 backdrop-blur-md rounded-2xl border border-white/15 p-4">
-                      {guidedLoading ? (
-                        <div className="flex items-center gap-2 text-white/60 text-sm">
-                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                        </div>
-                      ) : (
-                        <p className="text-white text-sm leading-relaxed whitespace-pre-line" data-testid="text-guided-response">
-                          {guidedResponse}
-                        </p>
-                      )}
+                      <div className="flex items-center gap-2 text-white/60 text-sm">
+                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
                     </div>
                   </motion.div>
                 )}

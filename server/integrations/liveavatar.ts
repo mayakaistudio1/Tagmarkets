@@ -10,6 +10,7 @@
 
 import type { Express, Request, Response } from "express";
 import { storage } from "../storage";
+import { textToSpeech } from "../replit_integrations/audio/client";
 
 export const LIVEAVATAR_SYSTEM_PROMPT = `PERSONA
 You are Maria, the warm, friendly, and supportive assistant in JetUp mini-app.
@@ -407,6 +408,26 @@ export function registerLiveAvatarRoutes(app: Express): void {
       res.status(500).json({
         error: "End session failed",
         details: error?.message || String(error)
+      });
+    }
+  });
+
+  app.post("/api/liveavatar/tts", async (req: Request, res: Response) => {
+    try {
+      const { text, language = "ru" } = req.body || {};
+      if (!text) {
+        return res.status(400).json({ error: "Missing text" });
+      }
+
+      const buffer = await textToSpeech(text, "nova", "wav");
+      res.setHeader("Content-Type", "audio/wav");
+      res.setHeader("Content-Length", buffer.length.toString());
+      res.send(buffer);
+    } catch (error: any) {
+      console.error("TTS error:", error);
+      res.status(500).json({
+        error: "TTS failed",
+        details: error?.message || String(error),
       });
     }
   });

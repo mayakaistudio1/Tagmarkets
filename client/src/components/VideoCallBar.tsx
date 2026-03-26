@@ -365,57 +365,69 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
     }
   };
 
-  const sendTextToAvatar = async (text: string): Promise<boolean> => {
-    if (!roomRef.current) return false;
-    
-    const encoder = new TextEncoder();
-    const formats = [
-      JSON.stringify({ type: "user.text", text }),
-      JSON.stringify({ type: "user_input", text }),
-      JSON.stringify({ type: "chat", message: text }),
-    ];
-
-    for (const msg of formats) {
-      try {
-        await roomRef.current.localParticipant.publishData(encoder.encode(msg), { reliable: true });
-        console.log("Sent via data channel:", msg);
-      } catch (e) {
-        console.warn("Data channel format failed:", e);
-      }
-    }
-
-    try {
-      await roomRef.current.localParticipant.setMicrophoneEnabled(true);
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = language === 'ru' ? 'ru-RU' : language === 'de' ? 'de-DE' : 'en-US';
-      utterance.volume = 0.9;
-      
-      await new Promise<void>((resolve) => {
-        utterance.onend = () => resolve();
-        utterance.onerror = () => resolve();
-        window.speechSynthesis.speak(utterance);
-        setTimeout(resolve, 8000);
-      });
-      
-      await roomRef.current.localParticipant.setMicrophoneEnabled(false);
-      console.log("Sent text via TTS->mic:", text);
-      return true;
-    } catch (e) {
-      console.error("TTS approach failed:", e);
-      if (roomRef.current) {
-        await roomRef.current.localParticipant.setMicrophoneEnabled(false);
-      }
-    }
-
-    return true;
-  };
+  const [guidedResponse, setGuidedResponse] = useState<string | null>(null);
+  const [guidedLoading, setGuidedLoading] = useState(false);
+  const guidedSessionIdRef = useRef(
+    typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)
+  );
 
   const handleGuidedButtonClick = async (userText: string, nextNodeId: string | null) => {
     setShowButtons(false);
+    setGuidedLoading(true);
+    setGuidedResponse(null);
     
     transcriptRef.current.push({ sender: 'user', text: userText, timestamp: Date.now() });
 
-    const messageSent = await sendTextToAvatar(userText);
+    try {
+      const guidedHistory = transcriptRef.current
+        .filter(t => t.sender === 'user' || t.sender === 'avatar')
+        .map(t => ({
+          role: t.sender === 'user' ? 'user' : 'assistant',
+          content: t.text,
+        }));
+      if (!guidedHistory.find(m => m.role === 'user' && m.content === userText)) {
+        guidedHistory.push({ role: 'user', content: userText });
+      }
+
+      const resp = await fetch('/api/maria/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: guidedHistory,
+          language,
+          sessionId: guidedSessionIdRef.current,
+        }),
+      });
+      if (resp.ok && resp.body) {
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let fullReply = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const parsed = JSON.parse(line.slice(6));
+                if (parsed.content) {
+                  fullReply += parsed.content;
+                  setGuidedResponse(fullReply);
+                }
+              } catch {}
+            }
+          }
+        }
+        if (fullReply) {
+          transcriptRef.current.push({ sender: 'avatar', text: fullReply, timestamp: Date.now() });
+        }
+      }
+    } catch (e) {
+      console.error("Maria chat failed:", e);
+    }
+    
+    setGuidedLoading(false);
 
     if (nextNodeId) {
       setCurrentNodeId(nextNodeId);
@@ -423,12 +435,13 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
       if (nextNode?.isTerminal) {
         setIsGuidedComplete(true);
         setShowButtons(false);
+        return;
       }
     }
 
-    if (!messageSent) {
-      setTimeout(() => setShowButtons(true), 2000);
-    }
+    setTimeout(() => {
+      setShowButtons(true);
+    }, 4000);
   };
 
   const pttRecoveryRef = useRef<NodeJS.Timeout | null>(null);
@@ -638,6 +651,29 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
                       <span>{texts.mariaSpeaking}</span>
                     </span>
                   </div>
+                )}
+
+                {guided && (guidedLoading || guidedResponse) && !isGuidedComplete && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="w-full px-4 mb-3"
+                  >
+                    <div className="max-w-sm mx-auto bg-black/60 backdrop-blur-md rounded-2xl border border-white/15 p-4">
+                      {guidedLoading ? (
+                        <div className="flex items-center gap-2 text-white/60 text-sm">
+                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                      ) : (
+                        <p className="text-white text-sm leading-relaxed whitespace-pre-line" data-testid="text-guided-response">
+                          {guidedResponse}
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
                 )}
 
                 {guided && showButtons && currentNode && !isGuidedComplete && (

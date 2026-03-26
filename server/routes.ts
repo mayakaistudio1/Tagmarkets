@@ -397,10 +397,18 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id);
       const updated = await storage.updatePromoApplicationStatus(id, "rejected");
+
+      try {
+        const { syncAllPromoApplications } = await import("./googleSheets");
+        await syncAllPromoApplications();
+      } catch (err) {
+        console.error("Google Sheet sync error after reject:", err);
+      }
+
       res.json(updated);
     } catch (error) {
       console.error("Error rejecting promo application:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ error: "Interner Serverfehler" });
     }
   });
 

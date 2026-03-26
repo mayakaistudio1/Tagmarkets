@@ -52,6 +52,7 @@ function getOrCreateSessionId(): string {
 export default function TextChat() {
   const { language, t } = useLanguage();
   const sessionIdRef = useRef(getOrCreateSessionId());
+  const isGuided = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('guided');
   
   const getInitialGreeting = (): ChatMessage => ({
     id: 'greeting',
@@ -416,6 +417,8 @@ export default function TextChat() {
         isActive={isVideoActive}
         onStart={() => setIsVideoActive(true)}
         onEnd={() => setIsVideoActive(false)}
+        guided={isGuided}
+        onSwitchToChat={() => setIsVideoActive(false)}
       />
 
       {/* Messages */}

@@ -9,18 +9,21 @@ import {
   RemoteParticipant, 
   ConnectionState 
 } from 'livekit-client';
-import { Video, VideoOff, Mic, MicOff, PhoneOff, Loader2, X, Volume2 } from 'lucide-react';
+import { Video, VideoOff, Mic, MicOff, PhoneOff, Loader2, X, Volume2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getConversationTree, getNode, type ConversationNode } from './GuidedConversationTree';
 
 interface VideoCallBarProps {
   isActive: boolean;
   onStart: () => void;
   onEnd: () => void;
+  guided?: boolean;
+  onSwitchToChat?: () => void;
 }
 
-export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarProps) {
+export default function VideoCallBar({ isActive, onStart, onEnd, guided = false, onSwitchToChat }: VideoCallBarProps) {
   const { language } = useLanguage();
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'active' | 'finished'>('idle');
@@ -29,6 +32,11 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [isPushToTalkActive, setIsPushToTalkActive] = useState(false);
+  const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
+  const [showButtons, setShowButtons] = useState(false);
+  const [guidedStarted, setGuidedStarted] = useState(false);
+  const [waitingForGreeting, setWaitingForGreeting] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioContainerRef = useRef<HTMLDivElement>(null);
@@ -36,6 +44,9 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
   const roomRef = useRef<Room | null>(null);
   const speakerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const transcriptRef = useRef<{ sender: string; text: string; timestamp: number }[]>([]);
+  const greetingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const tree = guided ? getConversationTree(language) : null;
 
   const allTexts = {
     en: {
@@ -48,10 +59,14 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       connectingToMaria: 'Connecting to Maria...',
       mariaSpeaking: 'Maria is speaking...',
       micEnabled: 'Your microphone is on',
+      holdToSpeak: 'Hold to speak',
       endCall: 'End call',
       connectionError: 'Connection error',
       close: 'Close',
       tryAgain: 'Try again',
+      continueInChat: 'Continue in text chat',
+      guidedLabel: 'GUIDED',
+      guidedDesc: 'Interactive guided experience',
     },
     de: {
       liveVideo: 'LIVE',
@@ -63,10 +78,14 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       connectingToMaria: 'Verbindung zu Maria wird hergestellt …',
       mariaSpeaking: 'Maria spricht …',
       micEnabled: 'Dein Mikrofon ist an',
+      holdToSpeak: 'Halten zum Sprechen',
       endCall: 'Anruf beenden',
       connectionError: 'Verbindungsfehler',
       close: 'Schließen',
       tryAgain: 'Erneut versuchen',
+      continueInChat: 'Weiter im Text-Chat',
+      guidedLabel: 'GUIDED',
+      guidedDesc: 'Interaktives geführtes Erlebnis',
     },
     ru: {
       liveVideo: 'LIVE',
@@ -78,13 +97,17 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       connectingToMaria: 'Подключение к Марии...',
       mariaSpeaking: 'Мария говорит...',
       micEnabled: 'Ваш микрофон включён',
+      holdToSpeak: 'Удерживайте для речи',
       endCall: 'Завершить звонок',
       connectionError: 'Ошибка подключения',
       close: 'Закрыть',
       tryAgain: 'Попробовать снова',
+      continueInChat: 'Продолжить в чате',
+      guidedLabel: 'GUIDED',
+      guidedDesc: 'Интерактивный гид',
     },
   };
-  const texts = allTexts[language] || allTexts.de;
+  const texts = allTexts[language as keyof typeof allTexts] || allTexts.de;
 
   const handleTrackSubscribed = useCallback(
     (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
@@ -157,14 +180,36 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
     }
 
     if (avatarIsSpeaking) {
+      setShowButtons(false);
       disableUserMic();
+      if (pttRecoveryRef.current) {
+        clearTimeout(pttRecoveryRef.current);
+        pttRecoveryRef.current = null;
+      }
     } else {
       speakerTimeoutRef.current = setTimeout(() => {
-        console.log("Speaker timeout - enabling user mic after 1s silence");
-        enableUserMic();
+        console.log("Speaker timeout - avatar finished");
+        if (!guided) {
+          enableUserMic();
+        } else {
+          setIsAvatarTalking(false);
+          setIsMuted(true);
+          if (roomRef.current) {
+            roomRef.current.localParticipant.setMicrophoneEnabled(false);
+          }
+          setShowButtons(true);
+          if (waitingForGreeting) {
+            setWaitingForGreeting(false);
+            setCurrentNodeId(tree?.rootNodeId || null);
+            if (greetingTimerRef.current) {
+              clearTimeout(greetingTimerRef.current);
+              greetingTimerRef.current = null;
+            }
+          }
+        }
       }, 1000);
     }
-  }, [enableUserMic, disableUserMic]);
+  }, [enableUserMic, disableUserMic, guided, tree, waitingForGreeting]);
 
   const handleDataReceived = useCallback((payload: Uint8Array) => {
     try {
@@ -194,29 +239,50 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
           clearTimeout(speakerTimeoutRef.current);
           speakerTimeoutRef.current = null;
         }
+        setShowButtons(false);
         disableUserMic();
       } else if (eventType === "avatar_stop_talking" || eventType === "agent_stop_talking" ||
                  eventType === "stop_talking" || eventType === "speaking_ended") {
         console.log("Avatar stopped talking (data event)");
         speakerTimeoutRef.current = setTimeout(() => {
-          enableUserMic();
+          if (!guided) {
+            enableUserMic();
+          } else {
+            setIsAvatarTalking(false);
+            setIsMuted(true);
+            if (roomRef.current) {
+              roomRef.current.localParticipant.setMicrophoneEnabled(false);
+            }
+            setShowButtons(true);
+            if (waitingForGreeting) {
+              setWaitingForGreeting(false);
+              setCurrentNodeId(tree?.rootNodeId || null);
+              if (greetingTimerRef.current) {
+                clearTimeout(greetingTimerRef.current);
+                greetingTimerRef.current = null;
+              }
+            }
+          }
         }, 500);
       }
     } catch (e) {
       console.log("Error processing data message:", e);
     }
-  }, [enableUserMic, disableUserMic]);
+  }, [enableUserMic, disableUserMic, guided, tree, waitingForGreeting]);
 
   const startSession = async () => {
     try {
       setStatus('connecting');
       setError(null);
       transcriptRef.current = [];
+      setShowButtons(false);
+      setCurrentNodeId(null);
+      setGuidedStarted(false);
 
       const tokenResponse = await fetch('/api/liveavatar/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ language }),
+        body: JSON.stringify({ language, guided }),
       });
 
       if (!tokenResponse.ok) {
@@ -274,9 +340,22 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
 
       await room.connect(url, accessToken);
       
-      await room.localParticipant.setMicrophoneEnabled(true);
-      setIsMuted(false);
-      setIsAvatarTalking(false);
+      if (guided) {
+        await room.localParticipant.setMicrophoneEnabled(false);
+        setIsMuted(true);
+        setIsAvatarTalking(false);
+        setWaitingForGreeting(true);
+        setGuidedStarted(true);
+        greetingTimerRef.current = setTimeout(() => {
+          setWaitingForGreeting(false);
+          setCurrentNodeId(tree?.rootNodeId || null);
+          setShowButtons(true);
+        }, 12000);
+      } else {
+        await room.localParticipant.setMicrophoneEnabled(true);
+        setIsMuted(false);
+        setIsAvatarTalking(false);
+      }
 
       setStatus('active');
       onStart();
@@ -287,11 +366,91 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
     }
   };
 
+  const handleGuidedButtonClick = async (userText: string, nextNodeId: string | null) => {
+    setShowButtons(false);
+    
+    transcriptRef.current.push({ sender: 'user', text: userText, timestamp: Date.now() });
+
+    let messageSent = false;
+    if (sessionToken) {
+      try {
+        const resp = await fetch('/api/liveavatar/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_token: sessionToken,
+            text: userText,
+          }),
+        });
+        if (!resp.ok) throw new Error(`Chat API ${resp.status}`);
+        console.log("Sent guided message via chat API:", userText);
+        messageSent = true;
+      } catch (e) {
+        console.error("Chat API send failed, trying event API:", e);
+        try {
+          const resp2 = await fetch('/api/liveavatar/event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_token: sessionToken,
+              event_type: 'user_input',
+              data: { text: userText },
+            }),
+          });
+          if (!resp2.ok) throw new Error(`Event API ${resp2.status}`);
+          messageSent = true;
+        } catch (e2) {
+          console.error("Event API also failed:", e2);
+        }
+      }
+    }
+
+    if (nextNodeId) {
+      setCurrentNodeId(nextNodeId);
+    }
+
+    if (!messageSent) {
+      setTimeout(() => setShowButtons(true), 2000);
+    }
+  };
+
+  const pttRecoveryRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handlePushToTalkStart = async () => {
+    if (isAvatarTalking || !roomRef.current) return;
+    setIsPushToTalkActive(true);
+    setShowButtons(false);
+    if (pttRecoveryRef.current) {
+      clearTimeout(pttRecoveryRef.current);
+      pttRecoveryRef.current = null;
+    }
+    await roomRef.current.localParticipant.setMicrophoneEnabled(true);
+    setIsMuted(false);
+  };
+
+  const handlePushToTalkEnd = async () => {
+    if (!roomRef.current) return;
+    setIsPushToTalkActive(false);
+    await roomRef.current.localParticipant.setMicrophoneEnabled(false);
+    setIsMuted(true);
+    pttRecoveryRef.current = setTimeout(() => {
+      setShowButtons(true);
+    }, 15000);
+  };
+
   const endSession = async () => {
     try {
       if (speakerTimeoutRef.current) {
         clearTimeout(speakerTimeoutRef.current);
         speakerTimeoutRef.current = null;
+      }
+      if (greetingTimerRef.current) {
+        clearTimeout(greetingTimerRef.current);
+        greetingTimerRef.current = null;
+      }
+      if (pttRecoveryRef.current) {
+        clearTimeout(pttRecoveryRef.current);
+        pttRecoveryRef.current = null;
       }
       if (roomRef.current) {
         roomRef.current.disconnect();
@@ -327,6 +486,10 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       setStatus('idle');
       setSessionId(null);
       setSessionToken(null);
+      setShowButtons(false);
+      setCurrentNodeId(null);
+      setGuidedStarted(false);
+      setWaitingForGreeting(false);
       onEnd();
     }
   };
@@ -337,11 +500,21 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
       if (speakerTimeoutRef.current) {
         clearTimeout(speakerTimeoutRef.current);
       }
+      if (greetingTimerRef.current) {
+        clearTimeout(greetingTimerRef.current);
+      }
+      if (pttRecoveryRef.current) {
+        clearTimeout(pttRecoveryRef.current);
+      }
       if (roomRef.current) {
         roomRef.current.disconnect();
       }
     };
   }, []);
+
+  const currentNode: ConversationNode | null = (guided && tree && currentNodeId) 
+    ? getNode(tree, currentNodeId) 
+    : null;
 
   if (!isActive && status === 'idle') {
     return (
@@ -362,9 +535,16 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
             <div className="flex-1 text-left">
               <div className="flex items-center gap-2">
                 <span className="text-white font-bold text-[14px]">{texts.startVideoCall}</span>
-                <span className="px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-md animate-pulse">{texts.liveVideo}</span>
+                <span className={cn(
+                  "px-1.5 py-0.5 text-white text-[9px] font-bold rounded-md",
+                  guided ? "bg-emerald-500 animate-pulse" : "bg-red-500 animate-pulse"
+                )}>
+                  {guided ? texts.guidedLabel : texts.liveVideo}
+                </span>
               </div>
-              <p className="text-white/70 text-[11px] mt-0.5">{texts.startVideoCallDesc}</p>
+              <p className="text-white/70 text-[11px] mt-0.5">
+                {guided ? texts.guidedDesc : texts.startVideoCallDesc}
+              </p>
             </div>
           </button>
         </motion.div>
@@ -433,34 +613,102 @@ export default function VideoCallBar({ isActive, onStart, onEnd }: VideoCallBarP
             <div ref={audioContainerRef} className="hidden" />
             
             {status === 'active' && (
-              <div className="absolute bottom-10 left-0 right-0 flex flex-col items-center gap-4 z-20">
-                <div className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md text-sm font-medium transition-all",
-                  isAvatarTalking 
-                    ? "bg-primary/20 text-primary border border-primary/30" 
-                    : "bg-green-500/20 text-green-400 border border-green-500/30"
-                )}>
-                  {isAvatarTalking ? (
-                    <>
+              <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center z-20 pb-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-20">
+                {isAvatarTalking && (
+                  <div className="mb-3">
+                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md bg-primary/20 text-primary border border-primary/30 text-sm font-medium">
                       <Volume2 size={18} className="animate-pulse" />
                       <span>{texts.mariaSpeaking}</span>
-                    </>
-                  ) : (
-                    <>
+                    </span>
+                  </div>
+                )}
+
+                {guided && showButtons && currentNode && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="w-full px-4 mb-4"
+                  >
+                    <div className="flex flex-col gap-2 max-w-sm mx-auto">
+                      {currentNode.buttons.map((btn, idx) => (
+                        <motion.button
+                          key={`${currentNode.id}-${idx}`}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                          onClick={() => handleGuidedButtonClick(btn.userText, btn.nextNodeId)}
+                          className="w-full px-5 py-3 bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl text-white text-sm font-medium text-left hover:bg-white/25 active:scale-[0.97] transition-all"
+                          data-testid={`guided-btn-${btn.label.slice(0, 15)}`}
+                        >
+                          {btn.label}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {!isAvatarTalking && !guided && (
+                  <div className="mb-3">
+                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md bg-green-500/20 text-green-400 border border-green-500/30 text-sm font-medium">
                       <Mic size={18} />
                       <span>{texts.micEnabled}</span>
-                    </>
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-center gap-5">
+                  {guided ? (
+                    <button
+                      onPointerDown={handlePushToTalkStart}
+                      onPointerUp={handlePushToTalkEnd}
+                      onPointerLeave={handlePushToTalkEnd}
+                      onContextMenu={(e) => e.preventDefault()}
+                      disabled={isAvatarTalking}
+                      className={cn(
+                        "w-16 h-16 rounded-full flex items-center justify-center transition-all relative",
+                        isPushToTalkActive 
+                          ? "bg-primary text-black scale-110" 
+                          : "bg-white/20 text-white",
+                        isAvatarTalking && "opacity-40 cursor-not-allowed"
+                      )}
+                      data-testid="button-push-to-talk"
+                    >
+                      {isPushToTalkActive && (
+                        <>
+                          <span className="absolute inset-0 rounded-full bg-primary/50 animate-ping" />
+                          <span className="absolute inset-[-4px] rounded-full border-2 border-primary/60 animate-pulse" />
+                        </>
+                      )}
+                      <Mic size={26} className="relative z-10" />
+                    </button>
+                  ) : null}
+                  
+                  <button
+                    onClick={endSession}
+                    className="w-16 h-16 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-xl shadow-red-900/30"
+                    data-testid="button-end-call"
+                  >
+                    <PhoneOff size={26} />
+                  </button>
+
+                  {guided && onSwitchToChat && (
+                    <button
+                      onClick={() => {
+                        endSession();
+                        onSwitchToChat();
+                      }}
+                      className="w-16 h-16 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition-colors"
+                      data-testid="button-switch-to-chat"
+                    >
+                      <MessageCircle size={26} />
+                    </button>
                   )}
                 </div>
-                
-                <Button
-                  variant="destructive"
-                  onClick={endSession}
-                  className="rounded-full h-14 px-8 bg-red-600 hover:bg-red-700 text-white font-bold text-lg shadow-xl shadow-red-900/20 gap-2"
-                >
-                  <PhoneOff size={24} />
-                  {texts.endCall}
-                </Button>
+
+                {guided && (
+                  <p className="text-white/40 text-xs mt-3">{texts.holdToSpeak}</p>
+                )}
               </div>
             )}
 

@@ -87,8 +87,9 @@ const LIVEAVATAR_BASE_URL = "https://api.liveavatar.com/v1";
 const DENNIS_AVATAR_ID = process.env.DENNIS_AVATAR_ID || LIVEAVATAR_AVATAR_ID;
 const DENNIS_VOICE_ID = process.env.DENNIS_VOICE_ID || LIVEAVATAR_VOICE_ID;
 const DENNIS_CONTEXT_ID = process.env.DENNIS_CONTEXT_ID || LIVEAVATAR_CONTEXT_ID;
+const LIVEAVATAR_CONTEXT_ID_TEST = process.env.LIVEAVATAR_CONTEXT_ID_TEST;
 
-export async function getSessionToken(language: string = "ru", persona?: string): Promise<any> {
+export async function getSessionToken(language: string = "ru", persona?: string, guided?: boolean): Promise<any> {
   if (!LIVEAVATAR_API_KEY) {
     throw new Error("Missing LIVEAVATAR_API_KEY in environment");
   }
@@ -132,6 +133,11 @@ export async function getSessionToken(language: string = "ru", persona?: string)
       voiceId = baseVoiceId;
       contextId = baseContextId;
       break;
+  }
+
+  if (guided && LIVEAVATAR_CONTEXT_ID_TEST) {
+    contextId = LIVEAVATAR_CONTEXT_ID_TEST;
+    console.log("Using guided test context ID:", contextId);
   }
 
   const videoSystemPromptOverride = !isDennis
@@ -253,11 +259,30 @@ export async function sendEvent(sessionToken: string, eventType: string, data?: 
   return JSON.parse(text);
 }
 
+export async function sendChatMessage(sessionToken: string, text: string): Promise<any> {
+  const response = await fetch(`${LIVEAVATAR_BASE_URL}/sessions/chat`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "accept": "application/json",
+      "authorization": `Bearer ${sessionToken}`
+    },
+    body: JSON.stringify({ text })
+  });
+
+  const responseText = await response.text();
+  if (!response.ok) {
+    throw new Error(`Chat message failed: ${response.status} - ${responseText}`);
+  }
+
+  return JSON.parse(responseText);
+}
+
 export function registerLiveAvatarRoutes(app: Express): void {
   app.post("/api/liveavatar/token", async (req: Request, res: Response) => {
     try {
-      const { language = "ru", persona } = req.body || {};
-      const result = await getSessionToken(language, persona);
+      const { language = "ru", persona, guided } = req.body || {};
+      const result = await getSessionToken(language, persona, !!guided);
       res.status(200).json(result);
     } catch (error: any) {
       console.error("Token generation error:", error);
@@ -320,6 +345,26 @@ export function registerLiveAvatarRoutes(app: Express): void {
       console.error("Send event error:", error);
       res.status(500).json({
         error: "Send event failed",
+        details: error?.message || String(error)
+      });
+    }
+  });
+
+  app.post("/api/liveavatar/chat", async (req: Request, res: Response) => {
+    try {
+      const { session_token, text } = req.body || {};
+      if (!session_token) {
+        return res.status(400).json({ error: "Missing session_token" });
+      }
+      if (!text) {
+        return res.status(400).json({ error: "Missing text" });
+      }
+      const result = await sendChatMessage(session_token, text);
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error("Chat message error:", error);
+      res.status(500).json({
+        error: "Chat message failed",
         details: error?.message || String(error)
       });
     }

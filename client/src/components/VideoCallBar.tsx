@@ -35,7 +35,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
   const [isPushToTalkActive, setIsPushToTalkActive] = useState(false);
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
   const [showButtons, setShowButtons] = useState(false);
-  const [guidedStarted, setGuidedStarted] = useState(false);
+  const [isGuidedComplete, setIsGuidedComplete] = useState(false);
   const [waitingForGreeting, setWaitingForGreeting] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -277,7 +277,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
       transcriptRef.current = [];
       setShowButtons(false);
       setCurrentNodeId(null);
-      setGuidedStarted(false);
+      setIsGuidedComplete(false);
 
       const tokenResponse = await fetch('/api/liveavatar/token', {
         method: 'POST',
@@ -345,7 +345,6 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
         setIsMuted(true);
         setIsAvatarTalking(false);
         setWaitingForGreeting(true);
-        setGuidedStarted(true);
         greetingTimerRef.current = setTimeout(() => {
           setWaitingForGreeting(false);
           setCurrentNodeId(tree?.rootNodeId || null);
@@ -407,6 +406,11 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
 
     if (nextNodeId) {
       setCurrentNodeId(nextNodeId);
+      const nextNode = tree ? getNode(tree, nextNodeId) : null;
+      if (nextNode?.isTerminal) {
+        setIsGuidedComplete(true);
+        setShowButtons(false);
+      }
     }
 
     if (!messageSent) {
@@ -488,7 +492,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
       setSessionToken(null);
       setShowButtons(false);
       setCurrentNodeId(null);
-      setGuidedStarted(false);
+      setIsGuidedComplete(false);
       setWaitingForGreeting(false);
       onEnd();
     }
@@ -623,7 +627,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
                   </div>
                 )}
 
-                {guided && showButtons && currentNode && (
+                {guided && showButtons && currentNode && !isGuidedComplete && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -648,6 +652,37 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
                   </motion.div>
                 )}
 
+                {guided && isGuidedComplete && !isAvatarTalking && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full px-4 mb-4"
+                  >
+                    <div className="flex flex-col gap-3 max-w-sm mx-auto">
+                      {onSwitchToChat && (
+                        <button
+                          onClick={() => {
+                            endSession();
+                            onSwitchToChat();
+                          }}
+                          className="w-full px-5 py-4 bg-primary/90 backdrop-blur-md border border-primary/50 rounded-2xl text-white text-sm font-bold text-center hover:bg-primary active:scale-[0.97] transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/30"
+                          data-testid="button-guided-continue-chat"
+                        >
+                          <MessageCircle size={20} />
+                          <span>{texts.continueInChat}</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={endSession}
+                        className="w-full px-5 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white/70 text-sm font-medium text-center hover:bg-white/20 active:scale-[0.97] transition-all"
+                        data-testid="button-guided-end-call"
+                      >
+                        {texts.endCall}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
                 {!isAvatarTalking && !guided && (
                   <div className="mb-3">
                     <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md bg-green-500/20 text-green-400 border border-green-500/30 text-sm font-medium">
@@ -657,56 +692,45 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
                   </div>
                 )}
 
-                <div className="flex items-center justify-center gap-5">
-                  {guided ? (
+                {!isGuidedComplete && (
+                  <div className="flex items-center justify-center gap-5">
+                    {guided ? (
+                      <button
+                        onPointerDown={handlePushToTalkStart}
+                        onPointerUp={handlePushToTalkEnd}
+                        onPointerLeave={handlePushToTalkEnd}
+                        onContextMenu={(e) => e.preventDefault()}
+                        disabled={isAvatarTalking}
+                        className={cn(
+                          "w-16 h-16 rounded-full flex items-center justify-center transition-all relative",
+                          isPushToTalkActive 
+                            ? "bg-primary text-black scale-110" 
+                            : "bg-white/20 text-white",
+                          isAvatarTalking && "opacity-40 cursor-not-allowed"
+                        )}
+                        data-testid="button-push-to-talk"
+                      >
+                        {isPushToTalkActive && (
+                          <>
+                            <span className="absolute inset-0 rounded-full bg-primary/50 animate-ping" />
+                            <span className="absolute inset-[-4px] rounded-full border-2 border-primary/60 animate-pulse" />
+                          </>
+                        )}
+                        <Mic size={26} className="relative z-10" />
+                      </button>
+                    ) : null}
+                    
                     <button
-                      onPointerDown={handlePushToTalkStart}
-                      onPointerUp={handlePushToTalkEnd}
-                      onPointerLeave={handlePushToTalkEnd}
-                      onContextMenu={(e) => e.preventDefault()}
-                      disabled={isAvatarTalking}
-                      className={cn(
-                        "w-16 h-16 rounded-full flex items-center justify-center transition-all relative",
-                        isPushToTalkActive 
-                          ? "bg-primary text-black scale-110" 
-                          : "bg-white/20 text-white",
-                        isAvatarTalking && "opacity-40 cursor-not-allowed"
-                      )}
-                      data-testid="button-push-to-talk"
+                      onClick={endSession}
+                      className="w-16 h-16 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-xl shadow-red-900/30"
+                      data-testid="button-end-call"
                     >
-                      {isPushToTalkActive && (
-                        <>
-                          <span className="absolute inset-0 rounded-full bg-primary/50 animate-ping" />
-                          <span className="absolute inset-[-4px] rounded-full border-2 border-primary/60 animate-pulse" />
-                        </>
-                      )}
-                      <Mic size={26} className="relative z-10" />
+                      <PhoneOff size={26} />
                     </button>
-                  ) : null}
-                  
-                  <button
-                    onClick={endSession}
-                    className="w-16 h-16 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-xl shadow-red-900/30"
-                    data-testid="button-end-call"
-                  >
-                    <PhoneOff size={26} />
-                  </button>
+                  </div>
+                )}
 
-                  {guided && onSwitchToChat && (
-                    <button
-                      onClick={() => {
-                        endSession();
-                        onSwitchToChat();
-                      }}
-                      className="w-16 h-16 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition-colors"
-                      data-testid="button-switch-to-chat"
-                    >
-                      <MessageCircle size={26} />
-                    </button>
-                  )}
-                </div>
-
-                {guided && (
+                {guided && !isGuidedComplete && (
                   <p className="text-white/40 text-xs mt-3">{texts.holdToSpeak}</p>
                 )}
               </div>

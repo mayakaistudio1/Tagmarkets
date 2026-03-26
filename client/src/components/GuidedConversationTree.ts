@@ -1,5 +1,6 @@
 export interface ConversationNode {
   id: string;
+  isTerminal?: boolean;
   buttons: {
     label: string;
     userText: string;
@@ -36,7 +37,7 @@ const trees: Record<string, ConversationTree> = {
         buttons: [
           { label: "Про безопасность", userText: "А как насчёт безопасности?", nextNodeId: "invest_safety" },
           { label: "Стратегии", userText: "Расскажи про стратегии", nextNodeId: "invest_strategies" },
-          { label: "Стать партнёром", userText: "А как стать партнёром?", nextNodeId: "partner_what" },
+          { label: "Готово, спасибо!", userText: "Спасибо, у меня больше нет вопросов по инвестициям", nextNodeId: "complete" },
         ],
       },
       invest_safety: {
@@ -80,7 +81,13 @@ const trees: Record<string, ConversationTree> = {
         id: "partner_start",
         buttons: [
           { label: "Хочу инвестировать", userText: "А расскажи про инвестиции", nextNodeId: "invest_what" },
+          { label: "Готово, спасибо!", userText: "Спасибо, у меня больше нет вопросов", nextNodeId: "complete" },
         ],
+      },
+      complete: {
+        id: "complete",
+        isTerminal: true,
+        buttons: [],
       },
     },
   },
@@ -107,7 +114,7 @@ const trees: Record<string, ConversationTree> = {
         buttons: [
           { label: "Sicherheit", userText: "Wie steht es um die Sicherheit?", nextNodeId: "invest_safety" },
           { label: "Strategien", userText: "Erzähl mir über Strategien", nextNodeId: "invest_strategies" },
-          { label: "Partner werden", userText: "Wie werde ich Partner?", nextNodeId: "partner_what" },
+          { label: "Fertig, danke!", userText: "Danke, ich habe keine weiteren Fragen zu Investitionen", nextNodeId: "complete" },
         ],
       },
       invest_safety: {
@@ -151,7 +158,13 @@ const trees: Record<string, ConversationTree> = {
         id: "partner_start",
         buttons: [
           { label: "Investieren", userText: "Erzähl mir über Investitionen", nextNodeId: "invest_what" },
+          { label: "Fertig, danke!", userText: "Danke, ich habe keine weiteren Fragen", nextNodeId: "complete" },
         ],
+      },
+      complete: {
+        id: "complete",
+        isTerminal: true,
+        buttons: [],
       },
     },
   },
@@ -178,7 +191,7 @@ const trees: Record<string, ConversationTree> = {
         buttons: [
           { label: "Safety", userText: "What about safety?", nextNodeId: "invest_safety" },
           { label: "Strategies", userText: "Tell me about strategies", nextNodeId: "invest_strategies" },
-          { label: "Become a partner", userText: "How do I become a partner?", nextNodeId: "partner_what" },
+          { label: "Done, thank you!", userText: "Thanks, I have no more questions about investing", nextNodeId: "complete" },
         ],
       },
       invest_safety: {
@@ -222,7 +235,13 @@ const trees: Record<string, ConversationTree> = {
         id: "partner_start",
         buttons: [
           { label: "I want to invest", userText: "Tell me about investing", nextNodeId: "invest_what" },
+          { label: "Done, thank you!", userText: "Thanks, I have no more questions", nextNodeId: "complete" },
         ],
+      },
+      complete: {
+        id: "complete",
+        isTerminal: true,
+        buttons: [],
       },
     },
   },

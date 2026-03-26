@@ -421,6 +421,32 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
         }
         if (fullReply) {
           transcriptRef.current.push({ sender: 'avatar', text: fullReply, timestamp: Date.now() });
+          
+          setGuidedLoading(false);
+
+          await new Promise<void>((resolve) => {
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+              const utterance = new SpeechSynthesisUtterance(fullReply);
+              utterance.lang = language === 'ru' ? 'ru-RU' : language === 'de' ? 'de-DE' : 'en-US';
+              utterance.rate = 1.05;
+              utterance.pitch = 1.1;
+              utterance.volume = 1;
+              
+              const voices = window.speechSynthesis.getVoices();
+              const langCode = language === 'ru' ? 'ru' : language === 'de' ? 'de' : 'en';
+              const femaleVoice = voices.find(v => v.lang.startsWith(langCode) && /female|woman|zira|milena|anna|katja/i.test(v.name))
+                || voices.find(v => v.lang.startsWith(langCode));
+              if (femaleVoice) utterance.voice = femaleVoice;
+              
+              utterance.onend = () => resolve();
+              utterance.onerror = () => resolve();
+              window.speechSynthesis.speak(utterance);
+              setTimeout(resolve, 30000);
+            } else {
+              resolve();
+            }
+          });
         }
       }
     } catch (e) {
@@ -441,7 +467,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
 
     setTimeout(() => {
       setShowButtons(true);
-    }, 4000);
+    }, 1500);
   };
 
   const pttRecoveryRef = useRef<NodeJS.Timeout | null>(null);

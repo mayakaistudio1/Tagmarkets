@@ -404,6 +404,32 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/promo-admin/applications/:id", async (req, res) => {
+    if (!requirePromoAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      const apps = await storage.getPromoApplications();
+      const application = apps.find(a => a.id === id);
+      if (!application) {
+        return res.status(404).json({ error: "Antrag nicht gefunden" });
+      }
+
+      await storage.deletePromoApplication(id);
+
+      try {
+        const { syncAllPromoApplications } = await import("./googleSheets");
+        await syncAllPromoApplications();
+      } catch (err) {
+        console.error("Google Sheet sync error after delete:", err);
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting promo application:", error);
+      res.status(500).json({ error: "Interner Serverfehler" });
+    }
+  });
+
   app.patch("/api/promo-admin/applications/:id/no-money", async (req, res) => {
     if (!requirePromoAdmin(req, res)) return;
     try {

@@ -848,6 +848,30 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
   const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
   const sheetId = spreadsheet.data.sheets?.[0]?.properties?.sheetId;
   if (sheetId !== undefined) {
+    const statusColors: Record<string, { red: number; green: number; blue: number }> = {
+      approved: { red: 0.85, green: 0.95, blue: 0.85 },
+      verified: { red: 0.85, green: 0.95, blue: 0.85 },
+      pending: { red: 1.0, green: 0.98, blue: 0.8 },
+      retry: { red: 1.0, green: 0.92, blue: 0.8 },
+      no_money: { red: 1.0, green: 0.92, blue: 0.8 },
+      rejected: { red: 0.98, green: 0.85, blue: 0.85 },
+      duplicate: { red: 0.93, green: 0.93, blue: 0.93 },
+    };
+
+    const colorRequests: any[] = [];
+    for (let i = 0; i < applications.length; i++) {
+      const bg = statusColors[applications[i].status];
+      if (bg) {
+        colorRequests.push({
+          repeatCell: {
+            range: { sheetId, startRowIndex: i + 1, endRowIndex: i + 2, startColumnIndex: 0, endColumnIndex: 10 },
+            cell: { userEnteredFormat: { backgroundColor: bg } },
+            fields: 'userEnteredFormat.backgroundColor',
+          }
+        });
+      }
+    }
+
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
       requestBody: {
@@ -865,6 +889,7 @@ export async function syncAllPromoApplications(): Promise<{ spreadsheetId: strin
               fields: 'gridProperties.frozenRowCount',
             }
           },
+          ...colorRequests,
         ]
       },
     });

@@ -365,44 +365,57 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
     }
   };
 
+  const sendTextToAvatar = async (text: string): Promise<boolean> => {
+    if (!roomRef.current) return false;
+    
+    const encoder = new TextEncoder();
+    const formats = [
+      JSON.stringify({ type: "user.text", text }),
+      JSON.stringify({ type: "user_input", text }),
+      JSON.stringify({ type: "chat", message: text }),
+    ];
+
+    for (const msg of formats) {
+      try {
+        await roomRef.current.localParticipant.publishData(encoder.encode(msg), { reliable: true });
+        console.log("Sent via data channel:", msg);
+      } catch (e) {
+        console.warn("Data channel format failed:", e);
+      }
+    }
+
+    try {
+      await roomRef.current.localParticipant.setMicrophoneEnabled(true);
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = language === 'ru' ? 'ru-RU' : language === 'de' ? 'de-DE' : 'en-US';
+      utterance.volume = 0.9;
+      
+      await new Promise<void>((resolve) => {
+        utterance.onend = () => resolve();
+        utterance.onerror = () => resolve();
+        window.speechSynthesis.speak(utterance);
+        setTimeout(resolve, 8000);
+      });
+      
+      await roomRef.current.localParticipant.setMicrophoneEnabled(false);
+      console.log("Sent text via TTS->mic:", text);
+      return true;
+    } catch (e) {
+      console.error("TTS approach failed:", e);
+      if (roomRef.current) {
+        await roomRef.current.localParticipant.setMicrophoneEnabled(false);
+      }
+    }
+
+    return true;
+  };
+
   const handleGuidedButtonClick = async (userText: string, nextNodeId: string | null) => {
     setShowButtons(false);
     
     transcriptRef.current.push({ sender: 'user', text: userText, timestamp: Date.now() });
 
-    let messageSent = false;
-    if (sessionToken) {
-      try {
-        const resp = await fetch('/api/liveavatar/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            session_token: sessionToken,
-            text: userText,
-          }),
-        });
-        if (!resp.ok) throw new Error(`Chat API ${resp.status}`);
-        console.log("Sent guided message via chat API:", userText);
-        messageSent = true;
-      } catch (e) {
-        console.error("Chat API send failed, trying event API:", e);
-        try {
-          const resp2 = await fetch('/api/liveavatar/event', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              session_token: sessionToken,
-              event_type: 'user_input',
-              data: { text: userText },
-            }),
-          });
-          if (!resp2.ok) throw new Error(`Event API ${resp2.status}`);
-          messageSent = true;
-        } catch (e2) {
-          console.error("Event API also failed:", e2);
-        }
-      }
-    }
+    const messageSent = await sendTextToAvatar(userText);
 
     if (nextNodeId) {
       setCurrentNodeId(nextNodeId);

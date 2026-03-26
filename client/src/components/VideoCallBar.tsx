@@ -381,10 +381,6 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
 
   const [guidedResponse, setGuidedResponse] = useState<string | null>(null);
   const [guidedLoading, setGuidedLoading] = useState(false);
-  const guidedSessionIdRef = useRef(
-    typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)
-  );
-
   const injectTtsIntoRoom = async (text: string): Promise<boolean> => {
     const room = roomRef.current;
     if (!room) return false;
@@ -462,27 +458,33 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
     guidedAvatarTranscriptRef.current = '';
 
     const injected = await injectTtsIntoRoom(userText);
-    setGuidedLoading(false);
 
-    if (injected) {
-      await new Promise<void>((resolve) => {
-        let started = false;
-        const checkInterval = setInterval(() => {
-          if (isAvatarTalkingRef.current && !started) {
-            started = true;
-          }
-          if (started && !isAvatarTalkingRef.current) {
-            clearInterval(checkInterval);
-            clearTimeout(maxWait);
-            resolve();
-          }
-        }, 300);
-        const maxWait = setTimeout(() => {
-          clearInterval(checkInterval);
-          resolve();
-        }, 30000);
-      });
+    if (!injected) {
+      setGuidedLoading(false);
+      setGuidedResponse(null);
+      setShowButtons(true);
+      return;
     }
+
+    await new Promise<void>((resolve) => {
+      let started = false;
+      const checkInterval = setInterval(() => {
+        if (isAvatarTalkingRef.current && !started) {
+          started = true;
+          setGuidedLoading(false);
+        }
+        if (started && !isAvatarTalkingRef.current) {
+          clearInterval(checkInterval);
+          clearTimeout(maxWait);
+          resolve();
+        }
+      }, 300);
+      const maxWait = setTimeout(() => {
+        clearInterval(checkInterval);
+        setGuidedLoading(false);
+        resolve();
+      }, 30000);
+    });
 
     if (nextNodeId) {
       setCurrentNodeId(nextNodeId);

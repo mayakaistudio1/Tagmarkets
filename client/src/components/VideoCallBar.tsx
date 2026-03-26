@@ -417,11 +417,17 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
 
       const micPub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
       const localTrack = micPub?.track instanceof LocalAudioTrack ? micPub.track : null;
-      const origTrack = localTrack?.mediaStreamTrack;
 
-      if (localTrack) {
-        await localTrack.setMediaStreamTrack(ttsTrack);
+      if (!localTrack) {
+        console.error("TTS inject: no local mic track available");
+        ttsTrack.stop();
+        await audioCtx.close();
+        ttsInjectingRef.current = false;
+        return false;
       }
+
+      const origTrack = localTrack.mediaStreamTrack;
+      await localTrack.setMediaStreamTrack(ttsTrack);
 
       source.start();
 

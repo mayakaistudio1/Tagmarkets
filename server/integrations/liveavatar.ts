@@ -419,7 +419,9 @@ export function registerLiveAvatarRoutes(app: Express): void {
         return res.status(400).json({ error: "Missing text" });
       }
 
-      const buffer = await textToSpeech(text, "nova", "wav");
+      const voiceMap: Record<string, string> = { ru: "nova", de: "nova", en: "nova" };
+      const voice = voiceMap[language] || "nova";
+      const buffer = await textToSpeech(text, voice, "wav");
       res.setHeader("Content-Type", "audio/wav");
       res.setHeader("Content-Length", buffer.length.toString());
       res.send(buffer);

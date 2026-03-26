@@ -461,8 +461,14 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
 
     if (!injected) {
       setGuidedLoading(false);
-      setGuidedResponse(null);
-      setShowButtons(true);
+      const errorMsg = language === 'ru' ? 'Ошибка. Попробуйте ещё раз.' :
+                       language === 'de' ? 'Fehler. Bitte versuchen Sie es erneut.' :
+                       'Error. Please try again.';
+      setGuidedResponse(errorMsg);
+      setTimeout(() => {
+        setGuidedResponse(null);
+        setShowButtons(true);
+      }, 2500);
       return;
     }
 

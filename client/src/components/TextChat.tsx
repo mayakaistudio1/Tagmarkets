@@ -52,7 +52,23 @@ function getOrCreateSessionId(): string {
 export default function TextChat() {
   const { language, t } = useLanguage();
   const sessionIdRef = useRef(getOrCreateSessionId());
-  const isGuided = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('guided');
+  const isGuided = (() => {
+    if (typeof window === 'undefined') return false;
+    const search = window.location.search;
+    if (new URLSearchParams(search).has('guided')) return true;
+    const initialPath = new URLSearchParams(search).get('initialPath') || '';
+    if (initialPath.includes('guided=true') || initialPath.includes('guided')) return true;
+    if (window.location.hash.includes('guided')) return true;
+    try {
+      const stored = sessionStorage.getItem('jetup_guided');
+      if (stored === 'true') return true;
+    } catch {}
+    return false;
+  })();
+
+  if (isGuided && typeof window !== 'undefined') {
+    try { sessionStorage.setItem('jetup_guided', 'true'); } catch {}
+  }
   
   const getInitialGreeting = (): ChatMessage => ({
     id: 'greeting',

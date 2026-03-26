@@ -7,7 +7,8 @@ import {
   RemoteTrack, 
   RemoteTrackPublication, 
   RemoteParticipant, 
-  ConnectionState 
+  ConnectionState,
+  LocalAudioTrack,
 } from 'livekit-client';
 import { Video, VideoOff, Mic, MicOff, PhoneOff, Loader2, X, Volume2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [isPushToTalkActive, setIsPushToTalkActive] = useState(false);
   const ttsInjectingRef = useRef(false);
+  const guidedAvatarTranscriptRef = useRef<string>('');
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
   const [showButtons, setShowButtons] = useState(false);
   const [isGuidedComplete, setIsGuidedComplete] = useState(false);
@@ -232,6 +234,14 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
 
       if (data.event_type === 'avatar.transcription' && data.text) {
         transcriptRef.current.push({ sender: 'avatar', text: data.text, timestamp: Date.now() });
+        if (guided && ttsInjectingRef.current === false) {
+          const cleaned = data.text.replace(/^[""]|[""]$/g, '').trim();
+          guidedAvatarTranscriptRef.current = cleaned;
+          setGuidedResponse(cleaned);
+        }
+      } else if (data.event_type === 'avatar.transcription.chunk' && data.text && guided) {
+        guidedAvatarTranscriptRef.current += data.text;
+        setGuidedResponse(guidedAvatarTranscriptRef.current.replace(/^[""]|[""]$/g, '').trim());
       } else if (data.event_type === 'user.transcription' && data.text) {
         transcriptRef.current.push({ sender: 'user', text: data.text, timestamp: Date.now() });
       }
@@ -257,6 +267,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
             if (roomRef.current) {
               roomRef.current.localParticipant.setMicrophoneEnabled(false);
             }
+            setGuidedResponse(null);
             setShowButtons(true);
             if (waitingForGreeting) {
               setWaitingForGreeting(false);
@@ -405,10 +416,11 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
       await room.localParticipant.setMicrophoneEnabled(true);
 
       const micPub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
-      const origTrack = micPub?.track?.mediaStreamTrack;
+      const localTrack = micPub?.track instanceof LocalAudioTrack ? micPub.track : null;
+      const origTrack = localTrack?.mediaStreamTrack;
 
-      if (micPub?.track) {
-        await (micPub.track as any).setMediaStreamTrack(ttsTrack);
+      if (localTrack) {
+        await localTrack.setMediaStreamTrack(ttsTrack);
       }
 
       source.start();
@@ -418,8 +430,8 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
         setTimeout(resolve, (audioBuffer.duration + 1) * 1000);
       });
 
-      if (micPub?.track && origTrack) {
-        await (micPub.track as any).setMediaStreamTrack(origTrack);
+      if (localTrack && origTrack) {
+        await localTrack.setMediaStreamTrack(origTrack);
       }
       await room.localParticipant.setMicrophoneEnabled(false);
 
@@ -441,13 +453,12 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
     setGuidedResponse(null);
     
     transcriptRef.current.push({ sender: 'user', text: userText, timestamp: Date.now() });
+    guidedAvatarTranscriptRef.current = '';
 
     const injected = await injectTtsIntoRoom(userText);
     setGuidedLoading(false);
 
     if (injected) {
-      setGuidedResponse(userText);
-      
       await new Promise<void>((resolve) => {
         const maxWait = setTimeout(resolve, 30000);
         let started = false;
@@ -462,7 +473,6 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
           }
         }, 300);
       });
-      setGuidedResponse(null);
     }
 
     if (nextNodeId) {
@@ -689,7 +699,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
                   </div>
                 )}
 
-                {guided && guidedLoading && !isGuidedComplete && (
+                {guided && (guidedLoading || guidedResponse) && !isGuidedComplete && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -697,11 +707,18 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
                     className="w-full px-4 mb-3"
                   >
                     <div className="max-w-sm mx-auto bg-black/60 backdrop-blur-md rounded-2xl border border-white/15 p-4">
-                      <div className="flex items-center gap-2 text-white/60 text-sm">
-                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
+                      {guidedLoading && !guidedResponse && (
+                        <div className="flex items-center gap-2 text-white/60 text-sm" data-testid="guided-loading">
+                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                      )}
+                      {guidedResponse && (
+                        <p className="text-white/90 text-sm leading-relaxed" data-testid="guided-response-text">
+                          {guidedResponse}
+                        </p>
+                      )}
                     </div>
                   </motion.div>
                 )}

@@ -351,10 +351,10 @@ export async function registerRoutes(
       const app = await storage.getPromoApplications();
       const application = app.find(a => a.id === id);
       if (!application) {
-        return res.status(404).json({ error: "Application not found" });
+        return res.status(404).json({ error: "Antrag nicht gefunden" });
       }
       if (application.status === "approved" || application.status === "verified" || application.emailSentAt) {
-        return res.status(400).json({ error: "Already approved" });
+        return res.status(400).json({ error: "Bereits genehmigt" });
       }
 
       const updated = await storage.markPromoApplicationVerified(id);
@@ -388,7 +388,7 @@ export async function registerRoutes(
       res.json({ ...updated, emailSent });
     } catch (error) {
       console.error("Error verifying promo application:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ error: "Interner Serverfehler" });
     }
   });
 
@@ -445,10 +445,10 @@ export async function registerRoutes(
       const apps = await storage.getPromoApplications();
       const application = apps.find(a => a.id === id);
       if (!application) {
-        return res.status(404).json({ error: "Application not found" });
+        return res.status(404).json({ error: "Antrag nicht gefunden" });
       }
       if (application.noMoneyEmailSentAt) {
-        return res.status(400).json({ error: "No-money email already sent" });
+        return res.status(400).json({ error: "No-Money-E-Mail wurde bereits gesendet" });
       }
 
       const { sendPromoNoMoneyEmail } = await import("./integrations/resend-email");
@@ -469,7 +469,7 @@ export async function registerRoutes(
       res.json({ ...updated, noMoneyEmailSent: emailSent });
     } catch (error) {
       console.error("Error sending no-money email:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ error: "Interner Serverfehler" });
     }
   });
 

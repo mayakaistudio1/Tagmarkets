@@ -267,7 +267,6 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
             if (roomRef.current) {
               roomRef.current.localParticipant.setMicrophoneEnabled(false);
             }
-            setGuidedResponse(null);
             setShowButtons(true);
             if (waitingForGreeting) {
               setWaitingForGreeting(false);
@@ -399,6 +398,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
       });
       if (!resp.ok) {
         console.error("TTS API failed:", resp.status);
+        ttsInjectingRef.current = false;
         return false;
       }
 
@@ -460,7 +460,6 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
 
     if (injected) {
       await new Promise<void>((resolve) => {
-        const maxWait = setTimeout(resolve, 30000);
         let started = false;
         const checkInterval = setInterval(() => {
           if (isAvatarTalkingRef.current && !started) {
@@ -472,6 +471,10 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
             resolve();
           }
         }, 300);
+        const maxWait = setTimeout(() => {
+          clearInterval(checkInterval);
+          resolve();
+        }, 30000);
       });
     }
 

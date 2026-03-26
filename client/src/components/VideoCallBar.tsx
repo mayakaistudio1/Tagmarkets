@@ -423,7 +423,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
       }
 
       const origTrack = localTrack.mediaStreamTrack;
-      await localTrack.setMediaStreamTrack(ttsTrack);
+      await localTrack.replaceTrack(ttsTrack);
 
       source.start();
 
@@ -433,7 +433,7 @@ export default function VideoCallBar({ isActive, onStart, onEnd, guided = false,
       });
 
       if (localTrack && origTrack) {
-        await localTrack.setMediaStreamTrack(origTrack);
+        await localTrack.replaceTrack(origTrack);
       }
       await room.localParticipant.setMicrophoneEnabled(false);
 

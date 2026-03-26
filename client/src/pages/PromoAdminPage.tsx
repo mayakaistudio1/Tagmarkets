@@ -80,10 +80,10 @@ export default function PromoAdminPage() {
         sessionStorage.setItem("promo_admin_pw", password);
         setAuthenticated(true);
       } else {
-        setLoginError("Falsches Passwort");
+        setLoginError("Invalid password");
       }
     } catch {
-      setLoginError("Verbindungsfehler");
+      setLoginError("Connection error");
     }
   };
 
@@ -103,7 +103,7 @@ export default function PromoAdminPage() {
       setApplications(data);
       setError("");
     } catch {
-      setError("Fehler beim Laden der Anträge");
+      setError("Failed to load applications");
     } finally {
       setLoading(false);
     }
@@ -133,17 +133,17 @@ export default function PromoAdminPage() {
         await fetchApplications();
       } else {
         const data = await res.json();
-        alert(data.error || "Verifizierung fehlgeschlagen");
+        alert(data.error || "Verification failed");
       }
     } catch {
-      alert("Verbindungsfehler");
+      alert("Connection error");
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleNoMoney = async (id: number) => {
-    if (!confirm("E-Mail 'Guthaben nicht ausreichend' an diesen Antragsteller senden?")) return;
+    if (!confirm("Send 'insufficient balance' email to this applicant?")) return;
     setActionLoading(id);
     try {
       const pw = sessionStorage.getItem("promo_admin_pw") || "";
@@ -155,17 +155,17 @@ export default function PromoAdminPage() {
         await fetchApplications();
       } else {
         const data = await res.json();
-        alert(data.error || "Fehler beim Senden der No-Money-E-Mail");
+        alert(data.error || "Failed to send no-money email");
       }
     } catch {
-      alert("Verbindungsfehler");
+      alert("Connection error");
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleReject = async (id: number) => {
-    if (!confirm("Möchtest du diesen Antrag wirklich ablehnen?")) return;
+    if (!confirm("Are you sure you want to reject this application?")) return;
     setActionLoading(id);
     try {
       const pw = sessionStorage.getItem("promo_admin_pw") || "";
@@ -177,29 +177,7 @@ export default function PromoAdminPage() {
         await fetchApplications();
       }
     } catch {
-      alert("Verbindungsfehler");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm("Möchtest du diesen Antrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.")) return;
-    setActionLoading(id);
-    try {
-      const pw = sessionStorage.getItem("promo_admin_pw") || "";
-      const res = await fetch(`/api/promo-admin/applications/${id}`, {
-        method: "DELETE",
-        headers: { "x-promo-password": pw },
-      });
-      if (res.ok) {
-        await fetchApplications();
-      } else {
-        const data = await res.json();
-        alert(data.error || "Fehler beim Löschen");
-      }
-    } catch {
-      alert("Verbindungsfehler");
+      alert("Connection error");
     } finally {
       setActionLoading(null);
     }
@@ -210,16 +188,6 @@ export default function PromoAdminPage() {
     setAuthenticated(false);
     setPassword("");
     setApplications([]);
-  };
-
-  const statusLabels: Record<string, string> = {
-    pending: "Ausstehend",
-    approved: "Genehmigt",
-    verified: "Genehmigt",
-    rejected: "Abgelehnt",
-    duplicate: "Duplikat",
-    retry: "Wiederholung",
-    no_money: "Kein Geld",
   };
 
   const getStatusBadge = (status: string) => {
@@ -234,15 +202,15 @@ export default function PromoAdminPage() {
     };
     return (
       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${styles[status] || "bg-gray-100 text-gray-600"}`} data-testid={`status-badge-${status}`}>
-        {statusLabels[status] || status}
+        {status === "no_money" ? "No Money" : status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   };
 
   const formatDate = (d: string | null) => {
-    if (!d) return "\u2014";
-    return new Date(d).toLocaleString("de-DE", {
-      day: "2-digit", month: "2-digit", year: "numeric",
+    if (!d) return "—";
+    return new Date(d).toLocaleString("en-US", {
+      month: "short", day: "numeric", year: "numeric",
       hour: "2-digit", minute: "2-digit",
     });
   };
@@ -257,15 +225,15 @@ export default function PromoAdminPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Promo-Verifizierung</h1>
-            <p className="text-sm text-gray-500 mt-1">JetUP Partner-Anträge</p>
+            <h1 className="text-xl font-bold text-gray-900">Promo Verification</h1>
+            <p className="text-sm text-gray-500 mt-1">JetUP Partner Applications</p>
           </div>
           <form onSubmit={handleLogin}>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Passwort eingeben"
+              placeholder="Enter password"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
               data-testid="input-promo-admin-password"
               autoFocus
@@ -276,7 +244,7 @@ export default function PromoAdminPage() {
               className="w-full mt-4 bg-orange-500 text-white py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors"
               data-testid="button-promo-admin-login"
             >
-              Anmelden
+              Log In
             </button>
           </form>
         </div>
@@ -296,9 +264,9 @@ export default function PromoAdminPage() {
             </svg>
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">Promo-Verifizierung</h1>
+            <h1 className="text-lg font-bold text-gray-900">Promo Verification</h1>
             <p className="text-xs text-gray-500">
-              {groupedApplications.length} {groupedApplications.length === 1 ? "Antrag" : "Anträge"}
+              {groupedApplications.length} Antrag{groupedApplications.length !== 1 ? "anträge" : ""}
               {aktivCount > 0 && <span className="text-orange-500 font-medium"> · {aktivCount} aktiv</span>}
             </p>
           </div>
@@ -307,7 +275,7 @@ export default function PromoAdminPage() {
           <button
             onClick={fetchApplications}
             className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Aktualisieren"
+            title="Refresh"
             data-testid="button-refresh-applications"
           >
             <svg className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -319,7 +287,7 @@ export default function PromoAdminPage() {
             className="text-sm text-gray-500 hover:text-gray-700 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors"
             data-testid="button-promo-admin-logout"
           >
-            Abmelden
+            Logout
           </button>
         </div>
       </header>
@@ -330,9 +298,9 @@ export default function PromoAdminPage() {
         )}
 
         {loading && applications.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">Anträge werden geladen...</div>
+          <div className="text-center py-12 text-gray-500">Loading applications...</div>
         ) : applications.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">Keine Anträge gefunden</div>
+          <div className="text-center py-12 text-gray-500">No applications found</div>
         ) : (
           <>
             <div className="grid grid-cols-3 gap-3 mb-4" data-testid="stats-bar">
@@ -403,12 +371,12 @@ export default function PromoAdminPage() {
                   <tr>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">ID</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">E-Mail</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">CU-Nummer</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">CU Number</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Verifiziert</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Datum</th>
-                    <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Verified</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
+                    <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -422,12 +390,12 @@ export default function PromoAdminPage() {
                       <td className="px-4 py-3 text-sm text-gray-600">
                         #{app.id}
                         {history.length > 0 && (
-                          <button onClick={() => toggleGroup(groupKey)} className="ml-1 text-xs text-purple-500 hover:text-purple-700 font-medium">{isExpanded ? "\u25B2" : "\u25BC"} {history.length}</button>
+                          <button onClick={() => toggleGroup(groupKey)} className="ml-1 text-xs text-purple-500 hover:text-purple-700 font-medium">{isExpanded ? "▲" : "▼"} {history.length}</button>
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">
                         {app.name}
-                        {hadNoMoney && <span className="ml-1 text-xs text-amber-500" title="Zuvor No-Money-E-Mail gesendet">{"\u26A0"}</span>}
+                        {hadNoMoney && <span className="ml-1 text-xs text-amber-500" title="Previously sent no money email">⚠</span>}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">{app.email}</td>
                       <td className="px-4 py-3 text-sm text-gray-600 font-mono">{app.cuNumber}</td>
@@ -436,12 +404,12 @@ export default function PromoAdminPage() {
                         {app.verifiedAt ? (
                           <div>
                             <div className="text-green-600 text-xs">{formatDate(app.verifiedAt)}</div>
-                            {app.emailSentAt && <div className="text-green-500 text-xs">E-Mail gesendet</div>}
+                            {app.emailSentAt && <div className="text-green-500 text-xs">Email sent</div>}
                           </div>
                         ) : app.noMoneyEmailSentAt ? (
-                          <div className="text-amber-600 text-xs">No-Money-E-Mail gesendet<br />{formatDate(app.noMoneyEmailSentAt)}</div>
+                          <div className="text-amber-600 text-xs">No Money email sent<br />{formatDate(app.noMoneyEmailSentAt)}</div>
                         ) : (
-                          <span className="text-gray-400">{"\u2014"}</span>
+                          <span className="text-gray-400">—</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">{formatDate(app.createdAt)}</td>
@@ -453,7 +421,7 @@ export default function PromoAdminPage() {
                                 onClick={() => handleVerify(app.id)}
                                 disabled={actionLoading === app.id}
                                 className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
-                                title="Verifizieren & E-Mail senden"
+                                title="Verify & Send Email"
                                 data-testid={`button-verify-${app.id}`}
                               >
                                 {actionLoading === app.id ? (
@@ -472,7 +440,7 @@ export default function PromoAdminPage() {
                                   onClick={() => handleNoMoney(app.id)}
                                   disabled={actionLoading === app.id}
                                   className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-50"
-                                  title="Kein Geld — E-Mail senden"
+                                  title="No Money — Send Insufficient Balance Email"
                                   data-testid={`button-no-money-${app.id}`}
                                 >
                                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -484,7 +452,7 @@ export default function PromoAdminPage() {
                                 onClick={() => handleReject(app.id)}
                                 disabled={actionLoading === app.id}
                                 className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                                title="Ablehnen"
+                                title="Reject"
                                 data-testid={`button-reject-${app.id}`}
                               >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -508,50 +476,29 @@ export default function PromoAdminPage() {
                             </span>
                           )}
                           {app.status === "no_money" && (
-                            <span className="text-amber-500" title="No-Money-E-Mail gesendet">
+                            <span className="text-amber-500" title="No Money email sent">
                               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
                             </span>
                           )}
-                          <button
-                            onClick={() => handleDelete(app.id)}
-                            disabled={actionLoading === app.id}
-                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                            title="Löschen"
-                            data-testid={`button-delete-${app.id}`}
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
                         </div>
                       </td>
                     </tr>
                     {isExpanded && history.map(h => (
-                      <tr key={h.id} className="bg-purple-50/30" data-testid={`row-history-${h.id}`}>
-                        <td className="px-4 py-2 text-xs text-gray-400 pl-8">#{h.id}</td>
-                        <td className="px-4 py-2 text-xs text-gray-400">{h.name}</td>
-                        <td className="px-4 py-2 text-xs text-gray-400">{h.email}</td>
-                        <td className="px-4 py-2 text-xs text-gray-400 font-mono">{h.cuNumber}</td>
+                      <tr key={h.id} className="bg-gray-50/60 text-xs border-t border-gray-100" data-testid={`row-history-${h.id}`}>
+                        <td className="px-4 py-2 text-gray-400 pl-8">#{h.id}</td>
+                        <td className="px-4 py-2 text-gray-500">{h.name}</td>
+                        <td className="px-4 py-2 text-gray-400">{h.email}</td>
+                        <td className="px-4 py-2 text-gray-400 font-mono">{h.cuNumber}</td>
                         <td className="px-4 py-2">{getStatusBadge(h.status)}</td>
-                        <td className="px-4 py-2 text-xs text-gray-400">
-                          {h.emailSentAt ? <span className="text-green-600">E-Mail gesendet</span> : h.noMoneyEmailSentAt ? <span className="text-amber-500">No-Money gesendet</span> : "\u2014"}
+                        <td className="px-4 py-2 text-gray-400">
+                          {h.emailSentAt ? <span className="text-green-600">Email sent {formatDate(h.emailSentAt)}</span>
+                           : h.noMoneyEmailSentAt ? <span className="text-amber-600">No money {formatDate(h.noMoneyEmailSentAt)}</span>
+                           : "—"}
                         </td>
                         <td className="px-4 py-2 text-gray-400">{formatDate(h.createdAt)}</td>
-                        <td className="px-4 py-2 text-center">
-                          <button
-                            onClick={() => handleDelete(h.id)}
-                            disabled={actionLoading === h.id}
-                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                            title="Löschen"
-                            data-testid={`button-delete-${h.id}`}
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </td>
+                        <td className="px-4 py-2 text-gray-400">—</td>
                       </tr>
                     ))}
                     </React.Fragment>
@@ -579,16 +526,16 @@ export default function PromoAdminPage() {
                     <span className="font-mono">{app.cuNumber}</span>
                   </div>
                   <div className="text-xs text-gray-400 mb-3">
-                    Eingereicht: {formatDate(app.createdAt)}
+                    Applied: {formatDate(app.createdAt)}
                     {app.verifiedAt && (
                       <span className="text-green-600 ml-2">
-                        Verifiziert: {formatDate(app.verifiedAt)}
-                        {app.emailSentAt && " · E-Mail gesendet"}
+                        Verified: {formatDate(app.verifiedAt)}
+                        {app.emailSentAt && " · Email sent"}
                       </span>
                     )}
                     {app.noMoneyEmailSentAt && (
                       <span className="text-amber-600 ml-2">
-                        No-Money-E-Mail gesendet · {formatDate(app.noMoneyEmailSentAt)}
+                        No Money email sent · {formatDate(app.noMoneyEmailSentAt)}
                       </span>
                     )}
                   </div>
@@ -600,7 +547,7 @@ export default function PromoAdminPage() {
                         className="flex-1 flex items-center justify-center gap-2 bg-green-50 text-green-700 py-2 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors disabled:opacity-50"
                         data-testid={`button-verify-mobile-${app.id}`}
                       >
-                        {actionLoading === app.id ? "Wird verarbeitet..." : "Verifizieren & E-Mail senden"}
+                        {actionLoading === app.id ? "Processing..." : "Verify & Send Email"}
                       </button>
                       {!app.noMoneyEmailSentAt && !app.emailSentAt && (
                         <button
@@ -609,7 +556,7 @@ export default function PromoAdminPage() {
                           className="px-3 flex items-center justify-center bg-amber-50 text-amber-700 py-2 rounded-lg text-sm font-medium hover:bg-amber-100 transition-colors disabled:opacity-50"
                           data-testid={`button-no-money-mobile-${app.id}`}
                         >
-                          Kein Geld
+                          No Money
                         </button>
                       )}
                       <button
@@ -618,52 +565,26 @@ export default function PromoAdminPage() {
                         className="px-3 flex items-center justify-center bg-red-50 text-red-600 py-2 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
                         data-testid={`button-reject-mobile-${app.id}`}
                       >
-                        Ablehnen
+                        Reject
                       </button>
                     </div>
                   )}
-                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
-                    <div className="flex items-center gap-2">
-                      {history.length > 0 && (
-                        <button onClick={() => toggleGroup(groupKey)} className="text-xs text-purple-500 hover:text-purple-700 font-medium">
-                          {isExpanded ? "\u25B2 Verlauf ausblenden" : `\u25BC Verlauf (${history.length})`}
-                        </button>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleDelete(app.id)}
-                      disabled={actionLoading === app.id}
-                      className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1 transition-colors disabled:opacity-50"
-                      data-testid={`button-delete-mobile-${app.id}`}
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Löschen
-                    </button>
-                  </div>
-                  {isExpanded && history.map(h => (
-                    <div key={h.id} className="mt-2 pl-3 border-l-2 border-gray-200 text-xs text-gray-500 flex items-center justify-between">
-                      <div>
-                        <span className="font-mono mr-2">#{h.id}</span>
-                        {getStatusBadge(h.status)}
-                        {h.emailSentAt && <span className="ml-2 text-green-600">E-Mail gesendet</span>}
-                        {h.noMoneyEmailSentAt && <span className="ml-2 text-amber-600">No-Money gesendet</span>}
-                        <span className="ml-2 text-gray-400">{formatDate(h.createdAt)}</span>
-                      </div>
-                      <button
-                        onClick={() => handleDelete(h.id)}
-                        disabled={actionLoading === h.id}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
-                        title="Löschen"
-                        data-testid={`button-delete-mobile-${h.id}`}
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                  {history.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <button onClick={() => toggleGroup(groupKey)} className="text-xs text-purple-500 hover:text-purple-700 font-medium">
+                        {isExpanded ? "▲ Скрыть историю" : `▼ История (${history.length})`}
                       </button>
+                      {isExpanded && history.map(h => (
+                        <div key={h.id} className="mt-2 pl-3 border-l-2 border-gray-200 text-xs text-gray-500">
+                          <span className="font-mono mr-2">#{h.id}</span>
+                          {getStatusBadge(h.status)}
+                          {h.emailSentAt && <span className="ml-2 text-green-600">email отправлен</span>}
+                          {h.noMoneyEmailSentAt && <span className="ml-2 text-amber-600">no money email</span>}
+                          <span className="ml-2 text-gray-400">{formatDate(h.createdAt)}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
                 );
               })}

@@ -48,7 +48,6 @@ export interface IStorage {
   markPromoApplicationEmailSent(id: number): Promise<PromoApplication>;
   markPromoApplicationNoMoney(id: number): Promise<PromoApplication>;
   getApplicationByEmailForNoMoney(email: string, cuNumber: string): Promise<PromoApplication | undefined>;
-  deletePromoApplication(id: number): Promise<void>;
 
   getDennisPromos(activeOnly?: boolean, language?: string): Promise<DennisPromo[]>;
   getDennisPromo(id: number): Promise<DennisPromo | undefined>;
@@ -376,10 +375,6 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(promoApplications.email, email), eq(promoApplications.cuNumber, cuNumber)))
       .orderBy(desc(promoApplications.createdAt));
     return results.find(app => !app.noMoneyEmailSentAt && app.status !== "approved" && app.status !== "verified");
-  }
-
-  async deletePromoApplication(id: number): Promise<void> {
-    await db.delete(promoApplications).where(eq(promoApplications.id, id));
   }
 
   async getSpeakers(activeOnly?: boolean): Promise<any[]> {

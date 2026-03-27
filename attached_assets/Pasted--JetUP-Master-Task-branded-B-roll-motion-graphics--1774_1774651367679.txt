@@ -1,0 +1,593 @@
+# JetUP — Master Task для branded B-roll / motion graphics по бонусам
+
+## Задача
+
+Подготовить набор branded motion graphic scenes / B-roll assets для 4 бонусов партнёрской программы JetUP, чтобы потом использовать их внутри Video Agent, HeyGen, монтажных шаблонов и коротких вертикальных роликов.
+
+Бонусы:
+
+1. Lot Commissions
+2. Profit Share
+3. Infinity Bonus
+4. Global Pool
+
+Главная идея:
+не пытаться заставить Video Agent самому придумывать графику,
+а заранее произвести controlled visual assets в стиле JetUP,
+которые потом можно миксовать с A-roll аватара.
+
+---
+
+## Общий визуальный принцип
+
+Все графические сцены должны быть выполнены в едином стиле JetUP.
+
+Источник стилистики:
+
+* существующая презентация JetUP
+* текущий дизайн-системный стиль
+* Figma / брендовые экраны / тёмная premium fintech подача
+
+### Визуальный стиль
+
+* dark premium fintech background
+* deep black / dark navy base
+* purple and magenta light accents
+* white / soft light typography where needed
+* thin elegant lines
+* glow accents only very controlled
+* premium minimalism
+* no cheap 3D look
+* no random stock imagery
+* no crypto-hype style
+* no clutter
+* no cartoon feeling
+
+### Motion style
+
+* smooth
+* elegant
+* premium
+* diagram-driven
+* clean line reveals
+* node connections
+* soft data-flow movement
+* minimal parallax if needed
+* subtle light pulses
+* cinematic but not flashy
+
+### Format requirements
+
+* vertical 9:16 first priority
+* each scene should also be adaptable to crop / reframe
+* duration per B-roll asset: 4 to 8 seconds loop-friendly
+* every scene should work both with and without text overlays
+
+### Important rule
+
+These assets are not full finished videos.
+They are branded visual modules that can later be inserted into avatar videos.
+
+---
+
+## Deliverable structure
+
+For each bonus create 3–4 different branded visual modules.
+
+Each module should include:
+
+* name of the module
+* what it visually represents
+* motion logic
+* optional highlight text zone
+* how it can be used in video editing
+
+---
+
+# BONUS 1 — LOT COMMISSIONS
+
+## Core meaning
+
+Доход с торговой активности и объёма внутри структуры.
+
+## Visual module 1 — Deal to Volume to Commission Flow
+
+### Purpose
+
+Показать механику: сделка → объём → комиссия → распределение.
+
+### Visual concept
+
+Темный фон. На экране возникают минималистичные точки / импульсы как отдельные сделки. Они проходят через элегантную flow-line систему, собираются в общий volume stream, после чего часть потока отделяется и уходит вверх / в стороны как commission distribution.
+
+### Motion
+
+* small trade pulses appear
+* pulses join into one volume line
+* line intensifies softly
+* one layer separates into commission branch
+* branch distributes across a structure map
+
+### Usage
+
+Идеально для сцены “как работает бонус”.
+
+### Optional highlight text
+
+* Торговая активность
+* Объём
+* Комиссия
+
+---
+
+## Visual module 2 — Expanding Team Depth Map
+
+### Purpose
+
+Показать, что бонус усиливается по мере роста структуры.
+
+### Visual concept
+
+Минималистичная схема структуры. Верхний узел = партнёр. Ниже постепенно открываются уровни. Линии и узлы загораются последовательно, создавая ощущение раскрытия глубины.
+
+### Motion
+
+* first node active
+* next layer softly appears
+* deeper levels reveal one by one
+* active flow moves through the full depth
+
+### Usage
+
+Идеально для сцены про открытие глубины и рост первой линии.
+
+### Optional highlight text
+
+* Рост структуры
+* Глубина команды
+
+---
+
+## Visual module 3 — Recurring Income Pulse
+
+### Purpose
+
+Показать повторяющийся характер бонуса.
+
+### Visual concept
+
+На темном фоне циклический поток световых импульсов проходит по сети снова и снова. Не разовая вспышка, а постоянное движение. Визуально это должно ощущаться как recurring flow.
+
+### Motion
+
+* pulses repeat in cycles
+* flow never stops completely
+* subtle recurring rhythm
+* premium repeating light movement
+
+### Usage
+
+Идеально для сцены “не разовая выплата, а повторяющийся доход”.
+
+### Optional highlight text
+
+* Повторяющийся доход
+
+---
+
+## Visual module 4 — Structured Activity Economy
+
+### Purpose
+
+Показать, что доход строится на живой активности всей команды.
+
+### Visual concept
+
+Абстрактная network-economy сцена: несколько веток структуры активны одновременно, по ним идёт движение данных / объёма / сигналов. Это должно ощущаться как coordinated internal activity.
+
+### Motion
+
+* several branches pulse simultaneously
+* different volume streams move through the structure
+* one central layer receives value from all branches
+
+### Usage
+
+Для closing или wide-meaning сцены.
+
+### Optional highlight text
+
+* Активность команды
+* Живая структура
+
+---
+
+# BONUS 2 — PROFIT SHARE
+
+## Core meaning
+
+Доход с результата. Доход от реального дохода команды.
+
+## Visual module 1 — Result Flow Through Structure
+
+### Purpose
+
+Показать, что доход идёт не просто с активности, а с прибыли.
+
+### Visual concept
+
+На экране появляется базовый поток активности, но затем он трансформируется в более яркий, более ценный поток результата. Этот поток проходит через структуру вверх, показывая participation in profit.
+
+### Motion
+
+* base line appears
+* line evolves into brighter result-flow
+* result nodes light up
+* share moves upward elegantly
+
+### Usage
+
+Для сцены “что такое Profit Share”.
+
+### Optional highlight text
+
+* Реальный результат
+* Profit Share
+
+---
+
+## Visual module 2 — Activity vs Result Split Screen
+
+### Purpose
+
+Визуально отделить “активность” от “результата”.
+
+### Visual concept
+
+Экран делится на две чистые зоны. Слева — обычный flow activity. Справа — confirmed result flow с более выраженной ценностью и завершённостью. Затем правая часть становится доминирующей.
+
+### Motion
+
+* left side shows active motion
+* right side shows completed result state
+* transition emphasizes result superiority
+
+### Usage
+
+Для сцены “не просто активность, а результат”.
+
+### Optional highlight text
+
+* Активность
+* Результат
+
+---
+
+## Visual module 3 — Profitable Team Growth
+
+### Purpose
+
+Показать, что чем больше внутри структуры результатов, тем сильнее растёт доход.
+
+### Visual concept
+
+Структура команды растет, и некоторые узлы начинают светиться как profitable nodes. От них идут потоки результата, усиливающие центральную архитектуру.
+
+### Motion
+
+* team expands
+* result nodes activate one by one
+* each active node sends value into the system
+* overall structure becomes brighter and stronger
+
+### Usage
+
+Для сцены про рост команды и усиление дохода.
+
+### Optional highlight text
+
+* Рост результатов
+* Реальный доход команды
+
+---
+
+## Visual module 4 — Residual Income Architecture
+
+### Purpose
+
+Показать долгосрочную и устойчивую модель.
+
+### Visual concept
+
+Не просто сеть, а более зрелая архитектура: layered frames, clean premium structure, flowing result lines. Должно ощущаться как high-level financial system.
+
+### Motion
+
+* layered architecture builds gradually
+* result flows continue through stable structure
+* calm, premium, residual feel
+
+### Usage
+
+Для финальной сцены / leader angle.
+
+### Optional highlight text
+
+* Долгосрочная модель
+* Остаточный доход
+
+---
+
+# BONUS 3 — INFINITY BONUS
+
+## Core meaning
+
+Доход с глубины структуры и масштабируемой дупликации.
+
+## Visual module 1 — Deep Network Expansion
+
+### Purpose
+
+Показать, что структура растёт дальше первых уровней.
+
+### Visual concept
+
+Один верхний узел запускает каскадную экспансию вниз и в стороны. Сеть растёт всё глубже, выходя за рамки начальных уровней.
+
+### Motion
+
+* root node appears
+* network grows downward layer by layer
+* depth keeps expanding beyond visible expectation
+
+### Usage
+
+Для сцены “что такое Infinity Bonus”.
+
+### Optional highlight text
+
+* Глубина структуры
+* Масштаб команды
+
+---
+
+## Visual module 2 — Duplication Engine
+
+### Purpose
+
+Показать механику дупликации.
+
+### Visual concept
+
+Один активный элемент создаёт два, затем четыре, затем больше. Но всё это выглядит не как MLM-схема, а как premium system duplication: clean nodes, elegant replication, controlled geometry.
+
+### Motion
+
+* one becomes two
+* two become multiple branches
+* branch logic remains clean and premium
+
+### Usage
+
+Для сцены про сильную дупликацию команды.
+
+### Optional highlight text
+
+* Дупликация
+* Рост в глубину
+
+---
+
+## Visual module 3 — Scale Beyond First Levels
+
+### Purpose
+
+Показать, что доход уже не ограничен первыми линиями.
+
+### Visual concept
+
+Видим сначала только верх структуры, затем камера / композиция открывает гораздо большую глубину ниже. Возникает эффект: система больше, чем кажется на первом уровне.
+
+### Motion
+
+* focus on first layers
+* reveal deeper layers gradually
+* full architecture emerges
+
+### Usage
+
+Для сцены “не только первые уровни”.
+
+### Optional highlight text
+
+* Больше, чем первые уровни
+
+---
+
+## Visual module 4 — Scalable Organization Architecture
+
+### Purpose
+
+Показать Infinity Bonus как системный масштаб, а не случайный бонус.
+
+### Visual concept
+
+Крупная, элегантная, глубинная структура с постоянным движением. Не хаос, а организованная масштабируемая система.
+
+### Motion
+
+* wide structure breathes with light
+* depth lines pulse subtly
+* one central logic connects the whole organization
+
+### Usage
+
+Для closing / leader positioning.
+
+### Optional highlight text
+
+* Масштабируемая система
+* Глубина команды
+
+---
+
+# BONUS 4 — GLOBAL POOL
+
+## Core meaning
+
+Более зрелый бонусный слой. Участие в более широкой бонусной экономике компании.
+
+## Visual module 1 — Broad Company-Wide Pool Layer
+
+### Purpose
+
+Показать, что речь идёт уже не о локальной динамике, а о более широкой системе.
+
+### Visual concept
+
+На экране сначала локальная структура, затем поверх неё появляется более крупный глобальный слой — как macro-level field of participation.
+
+### Motion
+
+* local structure appears first
+* broader global layer expands around it
+* local becomes part of larger economy
+
+### Usage
+
+Для сцены “что такое Global Pool”.
+
+### Optional highlight text
+
+* Более широкий уровень
+* Global Pool
+
+---
+
+## Visual module 2 — Maturity Layer Activation
+
+### Purpose
+
+Показать Global Pool как следующий зрелый уровень программы.
+
+### Visual concept
+
+Система выглядит как многоуровневая архитектура, и верхний / более сложный слой активируется только после базовых слоёв. Это создаёт ощущение maturity and progression.
+
+### Motion
+
+* base layers visible
+* upper mature layer activates
+* premium glow accent reveals final bonus layer
+
+### Usage
+
+Для сцены про зрелость и progression.
+
+### Optional highlight text
+
+* Зрелый бонусный слой
+* Следующий уровень
+
+---
+
+## Visual module 3 — Larger Bonus Economy Visualization
+
+### Purpose
+
+Показать участие в общей бонусной экономике.
+
+### Visual concept
+
+Абстрактная economy-map: множество потоков, но всё это организовано. В центре — общий pool layer, к которому подключены разные зоны системы.
+
+### Motion
+
+* multiple value streams move into one larger pool
+* the pool redistributes elegantly
+* the whole system feels large-scale and premium
+
+### Usage
+
+Для сцены “более широкая бонусная экономика компании”.
+
+### Optional highlight text
+
+* Бонусная экономика
+* Широкая система
+
+---
+
+## Visual module 4 — Long-Term Leader System
+
+### Purpose
+
+Показать, что это бонус для лидеров, которые думают в долгую.
+
+### Visual concept
+
+Спокойная, зрелая, большая архитектура. Не быстрый старт, а long-term, stable, high-level system feeling.
+
+### Motion
+
+* slow premium motion
+* stable large-scale network
+* subtle long-range value circulation
+
+### Usage
+
+Для финальной сцены и позиционирования на лидеров.
+
+### Optional highlight text
+
+* Долгосрочная модель
+* Лидерский уровень
+
+---
+
+## Общая задача для дизайнера / motion designer / AI visual tool
+
+Create a branded visual asset pack for JetUP covering 4 bonus concepts:
+Lot Commissions, Profit Share, Infinity Bonus, and Global Pool.
+
+For each concept, create 3–4 short motion graphic modules in one consistent premium fintech visual system.
+
+The assets must feel like they belong to the same JetUP presentation universe.
+
+Use:
+
+* dark premium backgrounds
+* elegant line diagrams
+* network maps
+* flow-based logic
+* structure growth visuals
+* result-flow visuals
+* subtle premium glow
+* minimal typography zones
+
+Avoid:
+
+* generic stock visuals
+* clutter
+* noisy compositions
+* cheap 3D
+* flashy crypto style
+* cliché finance imagery
+
+The output should be a reusable B-roll library for vertical JetUP partner-program videos.
+
+---
+
+## Как это использовать дальше
+
+После создания этих модулей их можно:
+
+* вставлять между A-roll сценами аватара
+* отдавать как reference в Video Agent
+* использовать как branded overlays
+* анимировать отдельно в Premiere / CapCut / After Effects
+* собирать из них разные версии роликов под русский, немецкий и английский языки
+
+Главная цель:
+чтобы визуальная часть бонусных роликов перестала зависеть от случайной генерации,
+а строилась на заранее подготовленной JetUP visual library.

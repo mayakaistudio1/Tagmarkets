@@ -313,27 +313,70 @@ const infographics = [
     render: (theme) => {
       const c = COLORS[theme];
       const steps = [
-        { icon: '📊', label: 'Сделка', desc: 'Клиент торгует' },
-        { icon: '📈', label: 'Объём', desc: 'Генерируется лоты' },
-        { icon: '💰', label: 'Комиссия', desc: 'Выплата за каждый лот' },
-        { icon: '🔄', label: 'Повтор', desc: 'Каждая сделка = доход' },
+        { icon: '$', label: 'Сделка', desc: 'Клиент торгует' },
+        { icon: 'V', label: 'Объём', desc: 'Генерируется лоты' },
+        { icon: '%', label: 'Комиссия', desc: 'Выплата за каждый лот' },
+        { icon: '↻', label: 'Повтор', desc: 'Каждая сделка = доход' },
       ];
-      const stepsHtml = steps.map((s, i) => `
-        <div class="flow-step" style="margin-bottom:${i < steps.length - 1 ? '8px' : '0'};">
-          <div class="flow-icon">${s.icon}</div>
-          <div style="flex:1;">
-            <div style="font-size:28px;font-weight:700;margin-bottom:4px;">${s.label}</div>
-            <div style="font-size:18px;color:${c.textSecondary};">${s.desc}</div>
+      const cx = 480;
+      const cy = 400;
+      const r = 220;
+      const nodeR = 60;
+      const positions = [
+        { x: cx, y: cy - r, labelX: cx - 100, labelY: cy - r - 100, align: 'center', lw: 200 },
+        { x: cx + r, y: cy, labelX: cx + r + 80, labelY: cy - 30, align: 'left', lw: 200 },
+        { x: cx, y: cy + r, labelX: cx - 100, labelY: cy + r + 80, align: 'center', lw: 200 },
+        { x: cx - r, y: cy, labelX: cx - r - 280, labelY: cy - 30, align: 'right', lw: 200 },
+      ];
+      const nodesHtml = steps.map((s, i) => {
+        const p = positions[i];
+        return `
+          <div style="position:absolute;left:${p.x - nodeR}px;top:${p.y - nodeR}px;width:${nodeR*2}px;height:${nodeR*2}px;border-radius:50%;background:${c.gradient};display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:900;color:#fff;box-shadow:0 0 40px rgba(124,58,237,0.5);z-index:2;">
+            ${s.icon}
           </div>
-        </div>
-        ${i < steps.length - 1 ? `<div class="flow-arrow">▼</div>` : ''}
-      `).join('');
+          <div style="position:absolute;left:${p.labelX}px;top:${p.labelY}px;width:${p.lw}px;text-align:${p.align};z-index:2;">
+            <div style="font-size:24px;font-weight:800;margin-bottom:4px;">${s.label}</div>
+            <div style="font-size:15px;color:${c.textSecondary};">${s.desc}</div>
+          </div>
+        `;
+      }).join('');
+
+      const arrowColor = c.accent;
+      const arcR = r + 30;
+      const svgW = cx * 2;
+      const svgH = cy * 2;
+      const svgArrows = `
+        <svg style="position:absolute;left:0;top:0;width:${svgW}px;height:${svgH}px;z-index:1;" viewBox="0 0 ${svgW} ${svgH}">
+          <defs>
+            <marker id="ah-${theme}" markerWidth="14" markerHeight="10" refX="12" refY="5" orient="auto" fill="${arrowColor}">
+              <polygon points="0 0, 14 5, 0 10" />
+            </marker>
+          </defs>
+          <circle cx="${cx}" cy="${cy}" r="${arcR}" stroke="${arrowColor}" stroke-width="2" fill="none" opacity="0.15" stroke-dasharray="6,10" />
+          <path d="M ${cx + 45} ${cy - arcR + 5} A ${arcR} ${arcR} 0 0 1 ${cx + arcR - 5} ${cy - 45}"
+                stroke="${arrowColor}" stroke-width="3" fill="none" stroke-dasharray="8,6"
+                marker-end="url(#ah-${theme})" opacity="0.6" />
+          <path d="M ${cx + arcR - 5} ${cy + 45} A ${arcR} ${arcR} 0 0 1 ${cx + 45} ${cy + arcR - 5}"
+                stroke="${arrowColor}" stroke-width="3" fill="none" stroke-dasharray="8,6"
+                marker-end="url(#ah-${theme})" opacity="0.6" />
+          <path d="M ${cx - 45} ${cy + arcR - 5} A ${arcR} ${arcR} 0 0 1 ${cx - arcR + 5} ${cy + 45}"
+                stroke="${arrowColor}" stroke-width="3" fill="none" stroke-dasharray="8,6"
+                marker-end="url(#ah-${theme})" opacity="0.6" />
+          <path d="M ${cx - arcR + 5} ${cy - 45} A ${arcR} ${arcR} 0 0 1 ${cx - 45} ${cy - arcR + 5}"
+                stroke="${arrowColor}" stroke-width="3" fill="none" stroke-dasharray="8,6"
+                marker-end="url(#ah-${theme})" opacity="0.6" />
+        </svg>
+      `;
+
       return wrapHTML(`
         <div class="video-badge">Video 1 • Scene 3</div>
         <div class="title">Повторяющийся<br>доход</div>
         <div class="subtitle">Цикл: сделка → объём → комиссия</div>
-        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-          <div class="card" style="padding:48px 40px;">${stepsHtml}</div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="position:relative;width:${cx*2}px;height:${cy*2}px;">
+            ${svgArrows}
+            ${nodesHtml}
+          </div>
         </div>
         <div style="text-align:center;padding:16px 0;">
           <div style="font-size:20px;font-weight:700;color:${c.accent};">Пока клиент торгует — вы зарабатываете</div>

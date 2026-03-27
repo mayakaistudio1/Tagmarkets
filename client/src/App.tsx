@@ -23,6 +23,7 @@ import InvitePage from "@/pages/InvitePage";
 import PersonalInvitePage from "@/pages/PersonalInvitePage";
 import PromoAdminPage from "@/pages/PromoAdminPage";
 import PartnerApp from "@/pages/partner-app/PartnerApp";
+import BrollGalleryPage from "@/pages/BrollGalleryPage";
 
 const PresentationPage = React.lazy(() => import("@/pages/PresentationPage"));
 
@@ -41,6 +42,10 @@ function AppContent() {
 
   if (basePath === "/promo-admin") {
     return <PromoAdminPage />;
+  }
+
+  if (basePath === "/broll-gallery") {
+    return <BrollGalleryPage />;
   }
 
   if (basePath.startsWith("/partner-app")) {

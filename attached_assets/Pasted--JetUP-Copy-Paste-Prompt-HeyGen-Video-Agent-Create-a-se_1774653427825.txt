@@ -1,0 +1,350 @@
+# JetUP — Copy-Paste Prompt для HeyGen Video Agent
+
+Create a series of 5 short vertical videos in Russian for the JetUP Partner Program.
+
+The videos must feel like one unified premium fintech content series.
+
+## General Requirements
+
+* Create 5 separate videos, not one combined video
+* Language: Russian
+* Format: 9:16 vertical
+* Duration of each video: 40–60 seconds
+* Presenter: professional female avatar
+* Use both A-roll and B-roll
+* A-roll = avatar explains clearly and confidently
+* B-roll = controlled abstract finance visuals, clean motion graphics, structure diagrams, flow diagrams, growth visuals, elegant UI-style overlays
+
+## Style Requirements
+
+The whole series must look premium, modern, minimal, and trustworthy.
+
+Visual style:
+
+* premium fintech aesthetic
+* dark background
+* purple and magenta accents
+* white typography
+* elegant motion graphics
+* smooth premium transitions
+* high contrast readability
+* clean composition
+* cinematic but minimal
+
+Tone of voice:
+
+* clear
+* structured
+* confident
+* calm
+* premium
+* easy to understand
+* suitable for leaders, partners, and financially-oriented audience
+
+## Strict Visual Restrictions
+
+Do NOT use:
+
+* generic office footage
+* random business people in offices
+* handshake clichés
+* overdramatic stock footage
+* flashy crypto visuals
+* noisy or chaotic motion graphics
+* cheap-looking animations
+* too many numbers on screen at once
+* unrealistic wealth visuals
+* luxury clichés like sports cars, watches, mansions, private jets
+
+Prefer instead:
+
+* abstract finance-themed visuals
+* structure growth diagrams
+* commission flow diagrams
+* profit flow diagrams
+* elegant network maps
+* layered architecture visuals
+* premium motion overlays
+* minimal text emphasis
+* high-end branded explainer style
+
+## Graphic System Requirements
+
+All 5 videos must use one consistent graphic system.
+
+Use the same structure in every video:
+
+* intro title card
+* key phrase overlays
+* diagram-based explanation visuals
+* clean lower-third style if needed
+* closing statement card
+* final branded end screen
+
+Use unified visual language across the series:
+
+* same line thickness
+* same arrow logic
+* same block shapes
+* same spacing logic
+* same animation style
+* same caption style
+* same transition rhythm
+
+## Opening Structure for Every Video
+
+Each video should begin with:
+
+* small top line: JetUP Partner Program
+* main title: bonus name or overview title
+* short subtitle explaining the meaning
+
+Use these subtitles:
+
+* Lot Commissions — доход с торговой активности
+* Profit Share — доход с реального результата
+* Infinity Bonus — доход с глубины структуры
+* Global Pool — зрелый бонусный слой
+* Partner Program — многоуровневая система дохода
+
+## Caption Rules
+
+Captions and on-screen key phrases must be short.
+
+Rules:
+
+* 2 to 5 words when possible
+* one idea per phrase
+* no long sentences on screen
+* support the voiceover, do not repeat everything fully
+
+Examples of acceptable key phrases:
+
+* Торговая активность
+* Повторяющийся доход
+* Реальный результат
+* Рост структуры
+* Глубина команды
+* Долгосрочная модель
+* Зрелый бонусный слой
+
+---
+
+# VIDEO 1 — LOT COMMISSIONS
+
+Create video 1 with this exact script and structure.
+
+Opening subtitle:
+Lot Commissions — доход с торговой активности
+
+Scene 1 — Hook
+Voiceover:
+Сегодня коротко разберём бонус Lot Commissions.
+
+Scene 2 — What it is
+Voiceover:
+Это бонус, который позволяет зарабатывать с реальной торговой активности внутри твоей структуры.
+
+Scene 3 — How it works
+Voiceover:
+С каждой сделки, в зависимости от стратегии и торгового объёма, формируется лот-комиссия. И часть этой комиссии распределяется по структуре.
+
+Scene 4 — Structure growth
+Voiceover:
+Первый уровень открыт сразу. Дальше глубина открывается по мере роста первой линии: чем сильнее развивается команда, тем глубже раскрывается этот бонус.
+
+Scene 5 — Why it matters
+Voiceover:
+То есть ты зарабатываешь не один раз за рекомендацию, а подключаешься к повторяющемуся доходу с торгового объёма всей структуры.
+
+Scene 6 — Closing
+Voiceover:
+Lot Commissions — это доход с реальной активности команды, который усиливается по мере её роста.
+
+Preferred B-roll direction:
+
+* trading flow visuals
+* deal to volume to commission diagrams
+* layered structure expansion
+* elegant recurring flow animations
+
+---
+
+# VIDEO 2 — PROFIT SHARE
+
+Create video 2 with this exact script and structure.
+
+Opening subtitle:
+Profit Share — доход с реального результата
+
+Scene 1 — Hook
+Voiceover:
+Сегодня коротко разберём бонус Profit Share.
+
+Scene 2 — What it is
+Voiceover:
+Это бонус, который позволяет тебе зарабатывать с реального дохода внутри твоей структуры.
+
+Scene 3 — How it works
+Voiceover:
+Если клиент или партнёр подключается к продукту, использует стратегию и получает прибыль, ты получаешь свою долю через Profit Share.
+
+Scene 4 — Core meaning
+Voiceover:
+То есть это уже не просто доход с активности, а доход с результата. Доход от реального дохода команды.
+
+Scene 5 — Why it matters
+Voiceover:
+И чем больше растёт команда, чем больше внутри неё людей, которые зарабатывают, тем сильнее становится и твой доход.
+
+Scene 6 — Closing
+Voiceover:
+Profit Share — это база для долгосрочного остаточного дохода в сильной финансовой системе.
+
+Preferred B-roll direction:
+
+* profit flow through structure
+* activity versus result comparison
+* growing profitable team visuals
+* premium result-based diagrams
+
+---
+
+# VIDEO 3 — INFINITY BONUS
+
+Create video 3 with this exact script and structure.
+
+Opening subtitle:
+Infinity Bonus — доход с глубины структуры
+
+Scene 1 — Hook
+Voiceover:
+Сегодня коротко разберём бонус Infinity Bonus.
+
+Scene 2 — What it is
+Voiceover:
+Это бонус, который показывает силу не только твоей личной команды, но уже глубины всей структуры.
+
+Scene 3 — How it works
+Voiceover:
+Ты строишь команду, она растёт дальше, появляются новые линии, новые партнёры, новая активность — и с этого движения начинает формироваться твой доход через Infinity Bonus.
+
+Scene 4 — Core meaning
+Voiceover:
+То есть это уже не просто доход с первых уровней, а доход с роста структуры в глубину.
+
+Scene 5 — Why it matters
+Voiceover:
+Чем шире и глубже становится команда, чем сильнее она дублицируется, тем сильнее начинает работать этот бонус.
+
+Scene 6 — Closing
+Voiceover:
+Infinity Bonus — это бонус, который связывает твой доход с масштабом и глубиной всей команды.
+
+Preferred B-roll direction:
+
+* team duplication visuals
+* deep structure maps
+* layered network expansion
+* scalable system architecture
+
+---
+
+# VIDEO 4 — GLOBAL POOL
+
+Create video 4 with this exact script and structure.
+
+Opening subtitle:
+Global Pool — зрелый бонусный слой
+
+Scene 1 — Hook
+Voiceover:
+Сегодня коротко разберём бонус Global Pool.
+
+Scene 2 — What it is
+Voiceover:
+Это дополнительный слой дохода для партнёров, которые выходят на более серьёзный уровень активности и структуры.
+
+Scene 3 — Meaning
+Voiceover:
+Здесь ты участвуешь уже не только в своей локальной динамике, а в более широкой бонусной экономике компании.
+
+Scene 4 — Why it matters
+Voiceover:
+Global Pool показывает, что программа не заканчивается на первых бонусах, а открывает более зрелые уровни дохода по мере роста команды и квалификации.
+
+Scene 5 — Leader angle
+Voiceover:
+Это особенно важно для лидеров, которые смотрят не только на быстрый старт, а на долгосрочную и масштабируемую модель.
+
+Scene 6 — Closing
+Voiceover:
+Global Pool — это дополнительный бонусный слой, который усиливает общую доходную архитектуру JetUP.
+
+Preferred B-roll direction:
+
+* larger ecosystem visuals
+* broad pool participation diagrams
+* advanced leader-level structure motion
+* mature architecture graphics
+
+---
+
+# VIDEO 5 — JETUP PARTNER PROGRAM OVERVIEW
+
+Create video 5 with this exact script and structure.
+
+Opening subtitle:
+Partner Program — многоуровневая система дохода
+
+Scene 1 — Hook
+Voiceover:
+Сегодня коротко разберём, в чём сила партнёрской программы JetUP.
+
+Scene 2 — Core concept
+Voiceover:
+JetUP Partner Program — это не один бонус и не одна комиссия. Это многоуровневая система дохода, которая раскрывается по мере роста активности и структуры.
+
+Scene 3 — Layer 1
+Voiceover:
+Первый слой — Lot Commissions. Это доход с реальной торговой активности клиентов и команды.
+
+Scene 4 — Layer 2
+Voiceover:
+Второй слой — Profit Share. Это доход с результата, с реального дохода структуры.
+
+Scene 5 — Layer 3
+Voiceover:
+Третий слой — Infinity Bonus. Это доход, который усиливается по мере роста глубины команды.
+
+Scene 6 — Layer 4
+Voiceover:
+Дальше подключаются более зрелые уровни, такие как Global Pool и другие дополнительные бонусные слои.
+
+Scene 7 — Closing
+Voiceover:
+Именно поэтому JetUP — это не история про разовую комиссию, а система, где можно строить долгосрочный партнёрский доход.
+
+Preferred B-roll direction:
+
+* layered income system visuals
+* multiple bonus layers appearing one by one
+* integrated structure + result + depth + pool diagrams
+* final unified premium ecosystem animation
+
+---
+
+## Final Instruction
+
+Generate all 5 videos as one consistent branded series in Russian.
+
+The output must feel like:
+
+* one visual family
+* one graphic system
+* one tone of voice
+* one premium JetUP explainer series
+
+Prioritize clarity, structure, and premium style over flashy creativity.
+
+If uncertain, choose minimal elegant motion graphics instead of generic stock footage.

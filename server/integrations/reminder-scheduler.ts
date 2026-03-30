@@ -67,26 +67,22 @@ async function sendPartnerBotMessage(chatId: string, text: string): Promise<bool
 }
 
 function getTimezoneOffset(tz: string): string {
-  const tzMap: Record<string, string> = {
-    "CET": "+01:00",
-    "CEST": "+02:00",
-    "MET": "+01:00",
-    "MEZ": "+01:00",
-    "MESZ": "+02:00",
-    "UTC": "+00:00",
-    "GMT": "+00:00",
-    "MSK": "+03:00",
-    "Europe/Berlin": "+01:00",
-    "Europe/Moscow": "+03:00",
+  const tzToIana: Record<string, string> = {
+    "CET": "Europe/Berlin", "CEST": "Europe/Berlin",
+    "MET": "Europe/Berlin", "MEZ": "Europe/Berlin", "MESZ": "Europe/Berlin",
+    "UTC": "UTC", "GMT": "UTC",
+    "MSK": "Europe/Moscow", "Europe/Berlin": "Europe/Berlin", "Europe/Moscow": "Europe/Moscow",
+    "GST": "Asia/Dubai", "EST": "America/New_York", "EDT": "America/New_York",
   };
-
-  const now = new Date();
-  const berlinMonth = now.getMonth();
-  if ((tz === "CET" || tz === "Europe/Berlin" || tz === "MET" || tz === "MEZ") && berlinMonth >= 2 && berlinMonth <= 9) {
-    return "+02:00";
-  }
-
-  return tzMap[tz] || "+01:00";
+  const ianaZone = tzToIana[tz] || "Europe/Berlin";
+  try {
+    const fmt = new Intl.DateTimeFormat("en", { timeZone: ianaZone, timeZoneName: "longOffset" });
+    const parts = fmt.formatToParts(new Date());
+    const tzPart = parts.find(p => p.type === "timeZoneName")?.value || "";
+    const match = tzPart.match(/GMT([+-]\d{2}:\d{2})/);
+    if (match) return match[1];
+  } catch {}
+  return "+01:00";
 }
 
 function parseEventDateTime(dateStr: string, timeStr: string, timezone?: string): Date | null {

@@ -30,8 +30,17 @@ interface ScheduleEvent {
   language?: string;
 }
 
-const TIMEZONE_OFFSETS: Record<string, number> = {
-  CET: 1, CEST: 2, MSK: 3, EST: -5, EDT: -4, PST: -8, PDT: -7, GST: 4, UTC: 0,
+function getDynamicUtcOffset(ianaZone: string): number {
+  const fmt = new Intl.DateTimeFormat("en", { timeZone: ianaZone, timeZoneName: "shortOffset" });
+  const tzPart = fmt.formatToParts(new Date()).find(p => p.type === "timeZoneName")?.value || "";
+  const match = tzPart.match(/GMT([+-]\d+)/);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
+const TZ_TO_IANA: Record<string, string> = {
+  CET: "Europe/Berlin", CEST: "Europe/Berlin", MEZ: "Europe/Berlin", MESZ: "Europe/Berlin",
+  MSK: "Europe/Moscow", GST: "Asia/Dubai", EST: "America/New_York", EDT: "America/New_York",
+  PST: "America/Los_Angeles", PDT: "America/Los_Angeles", UTC: "UTC",
 };
 
 const EVENT_LABELS: Record<string, { expect: string; joinZoom: string; motto: [string, string, string] }> = {
@@ -61,8 +70,12 @@ function sortEvents(events: ScheduleEvent[]): ScheduleEvent[] {
 
 function convertTripleTime(time: string, fromTz: string): string {
   const [h, m] = time.split(":").map(Number);
-  const fromOffset = TIMEZONE_OFFSETS[fromTz] ?? 1;
-  
+  const fromIana = TZ_TO_IANA[fromTz] || "Europe/Berlin";
+  const fromOffset = getDynamicUtcOffset(fromIana);
+  const berlinOffset = getDynamicUtcOffset("Europe/Berlin");
+  const mskOffset = getDynamicUtcOffset("Europe/Moscow");
+  const dubaiOffset = getDynamicUtcOffset("Asia/Dubai");
+
   const getZonedTime = (offset: number) => {
     let newH = h + (offset - fromOffset);
     if (newH >= 24) newH -= 24;
@@ -70,11 +83,7 @@ function convertTripleTime(time: string, fromTz: string): string {
     return `${String(newH).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
   };
 
-  const berlin = getZonedTime(1);
-  const msk = getZonedTime(3);
-  const dubai = getZonedTime(4);
-  
-  return `${berlin} BER | ${msk} MSK | ${dubai} DXB`;
+  return `${getZonedTime(berlinOffset)} BER | ${getZonedTime(mskOffset)} MSK | ${getZonedTime(dubaiOffset)} DXB`;
 }
 
 function formatDate(dateStr: string): string {

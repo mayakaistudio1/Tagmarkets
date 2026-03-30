@@ -1956,13 +1956,25 @@ function formatDate(dateStr: string): string {
   return dateStr;
 }
 
+function getDynamicUtcOffset(ianaZone: string): number {
+  const fmt = new Intl.DateTimeFormat("en", { timeZone: ianaZone, timeZoneName: "shortOffset" });
+  const tzPart = fmt.formatToParts(new Date()).find(p => p.type === "timeZoneName")?.value || "";
+  const match = tzPart.match(/GMT([+-]\d+)/);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
 function convertTripleTime(time: string, fromTz: string): string {
   const [h, m] = time.split(":").map(Number);
-  const TIMEZONE_OFFSETS: Record<string, number> = {
-    CET: 1, CEST: 2, MSK: 3, GST: 4, UTC: 0
+  const TZ_TO_IANA: Record<string, string> = {
+    CET: "Europe/Berlin", CEST: "Europe/Berlin", MEZ: "Europe/Berlin", MESZ: "Europe/Berlin",
+    MSK: "Europe/Moscow", GST: "Asia/Dubai", EST: "America/New_York", EDT: "America/New_York", UTC: "UTC",
   };
-  const fromOffset = TIMEZONE_OFFSETS[fromTz] ?? 1;
-  
+  const fromIana = TZ_TO_IANA[fromTz] || "Europe/Berlin";
+  const fromOffset = getDynamicUtcOffset(fromIana);
+  const berlinOffset = getDynamicUtcOffset("Europe/Berlin");
+  const mskOffset = getDynamicUtcOffset("Europe/Moscow");
+  const dubaiOffset = getDynamicUtcOffset("Asia/Dubai");
+
   const getZonedTime = (offset: number) => {
     let newH = h + (offset - fromOffset);
     if (newH >= 24) newH -= 24;
@@ -1970,7 +1982,7 @@ function convertTripleTime(time: string, fromTz: string): string {
     return `${String(newH).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
   };
 
-  return `${getZonedTime(1)} BER | ${getZonedTime(3)} MSK | ${getZonedTime(4)} DXB`;
+  return `${getZonedTime(berlinOffset)} BER | ${getZonedTime(mskOffset)} MSK | ${getZonedTime(dubaiOffset)} DXB`;
 }
 
 const EventBannerPreview = React.forwardRef<HTMLDivElement, { event: ScheduleEvent; speakerPhoto: string }>(({ event, speakerPhoto }, ref) => {

@@ -320,8 +320,7 @@ const SchedulePage: React.FC = () => {
                     <div className="bg-gray-50 rounded-xl p-3 space-y-1.5">
                       <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{(EVENT_LABELS[language] || EVENT_LABELS.de).expect}</p>
                       {event.highlights.map((h, i) => (
-                        <p key={i} className="text-[12px] text-gray-600 font-medium leading-snug flex items-start gap-1.5">
-                          <span className="text-purple-400 mt-0.5 flex-shrink-0">•</span>
+                        <p key={i} className="text-[12px] text-gray-600 font-medium leading-snug">
                           {h}
                         </p>
                       ))}

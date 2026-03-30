@@ -402,8 +402,7 @@ const InvitePage = () => {
                 <Star className="w-3 h-3 text-blue-500" /> Das erwartet dich
               </p>
               {highlights.map((h, i) => (
-                <p key={i} className="text-sm text-gray-600 leading-snug flex items-start gap-2.5">
-                  <span className="text-blue-500 mt-0.5 flex-shrink-0">•</span>
+                <p key={i} className="text-sm text-gray-600 leading-snug">
                   {h}
                 </p>
               ))}

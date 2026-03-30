@@ -1,0 +1,241 @@
+#73 — AI Infrastructure — Cinematic Premium Landing Page
+
+## Core visual shift
+
+Do **not** use:
+
+* planets
+* orbital / galaxy metaphors
+* robots
+* humanoid AI visuals
+* futuristic sci-fi clichés
+* cheap neon-tech aesthetics
+
+Use instead:
+
+* cinematic premium realism
+* human-centered AI presence
+* elegant digital atmosphere
+* glass, reflections, soft volumetric light
+* dark luxury fintech aesthetic
+* subtle particles, depth, shadow, motion
+* realistic interface layers
+* real human silhouettes / presence / premium editorial imagery
+* AI as invisible infrastructure, not as a robot character
+
+## Creative principle
+
+JetUP AI should feel like:
+**a premium digital extension of a real leader**
+—not a machine from the future.
+
+The visual language must communicate:
+
+* trust
+* scale
+* modernity
+* control
+* clarity
+* human amplification
+
+## Updated What & Why
+
+Create a scroll-driven cinematic landing page that presents the **JetUP AI × Recruiting** concept with maximum visual impact.
+
+The page should feel like a **premium brand film turned into an interactive landing page**.
+
+It must tell the story from market pain to JetUP’s AI-enabled infrastructure, but through a **realistic, high-end, human-first visual language**.
+
+Available only in dev mode (`import.meta.env.DEV`), same pattern as `/presentation`.
+
+## Done looks like
+
+Route `/ai-landing` accessible only in dev mode.
+
+A full-screen, scroll-driven cinematic experience with 6 sections:
+
+### 1. Hero
+
+Dark premium screen.
+Text types itself character-by-character:
+
+**«Почему у сильных лидеров рост останавливается?»**
+
+Pause.
+Then dissolve / fade / fragment transition into:
+
+**«Потому что их физически мало.»**
+
+Visual treatment:
+
+* no tech gimmicks
+* premium typography
+* subtle floating particles
+* soft light beams
+* cinematic depth
+* elegant scroll cue
+
+### 2. Problem
+
+Scroll-triggered market pain section.
+
+Pain points appear one by one:
+
+* ручной рекрутинг
+* потерянные лиды
+* слабый follow-up
+* нестабильный онбординг
+* bottleneck на лидере
+
+Visual treatment:
+
+* premium iconography or editorial symbolic visuals
+* each pain point appears with strong motion entrance
+* then visually destabilizes: crack, distort, fade, fracture, blur, collapse
+* background should feel like a luxury dark digital environment, not a sci-fi control room
+
+### 3. Shift (Before → After)
+
+Split-screen transformation.
+
+Left side:
+manual chaos, scattered signals, fragmented interactions, visual overload.
+
+Right side:
+JetUP system logic appears with clarity, rhythm, alignment, elegant structured motion.
+
+Visual treatment:
+
+* not diagrams floating in space
+* more like digital architecture / premium interface system / visual order emerging from chaos
+* progressive illumination tied to scroll
+
+### 4. AI Infrastructure
+
+This section must be redesigned completely away from “orbit / planet” language.
+
+Instead of central planet + orbiting nodes, create a **cinematic infrastructure composition**:
+
+* central premium JetUP core
+* surrounding AI layers as connected architectural modules / glass panels / signal layers / interface blocks
+* layers:
+
+  * Recruiting
+  * Onboarding
+  * Duplication
+  * Personal Hub
+  * Communication
+  * Follow-up
+
+Visual treatment:
+
+* subtle animated connectors
+* elegant motion lines
+* realistic interface depth
+* soft pulsing highlights
+* hover / tap reveals short premium info cards
+* should feel like a living system architecture, not a cosmic map
+
+### 5. Live AI Moment
+
+Peak WOW section.
+
+Simulated conversation with Maria.
+A realistic chat environment appears.
+User asks a natural recruiting-related question.
+Maria responds with typing animation.
+
+Optional:
+if a real Maria clip exists, integrate it in a premium framed video block.
+
+Important:
+
+* no robot framing
+* Maria should feel like a real digital assistant inside a premium ecosystem
+* UI should feel polished, high-trust, and human
+
+### 6. Formula + CTA
+
+Final full-screen conclusion.
+
+Formula:
+**JetUP = продукт + партнёрская модель + AI-инфраструктура**
+
+Then supporting line:
+**AI не заменяет лидера. Он усиливает лидера.**
+
+Then glowing CTA button.
+
+Visual treatment:
+
+* slow cinematic reveal
+* premium glow
+* restrained elegance
+* strong final brand impression
+
+## Visual style system
+
+Use JetUP’s premium dark palette:
+
+* deep dark background
+* purple / violet / magenta accents
+* optional restrained gold highlights
+* white typography
+* glassmorphism only if subtle and premium
+* no overdesigned techno clutter
+
+## Design references to follow
+
+Think:
+
+* luxury fintech
+* premium product launch
+* Apple-level restraint
+* high-end motion design
+* cinematic landing page
+* real human business future
+
+Not:
+
+* crypto casino aesthetic
+* robot AI landing page
+* galaxy dashboard
+* sci-fi fantasy
+
+## Mobile requirement
+
+Must work cleanly in Telegram Mini App viewport.
+Responsive, readable, smooth, premium on mobile.
+
+## Motion requirement
+
+Use Framer Motion for transitions.
+Motion should feel:
+
+* smooth
+* intentional
+* expensive
+* cinematic
+* not playful
+
+## Out of scope
+
+* public deployment
+* real AI backend
+* analytics
+* multilingual support
+
+## Build tasks
+
+1. Register `/ai-landing` behind existing `import.meta.env.DEV` gate.
+2. Build Hero with cinematic typewriter + elegant dissolve/reveal transition.
+3. Build Problem section with premium symbolic pain-point animation and breakdown effect.
+4. Build Before/After transformation section with structured visual shift from chaos to infrastructure.
+5. Build AI Infrastructure section using architectural/interface composition instead of planets/orbits.
+6. Build Maria simulated chat section with premium human-centered UI.
+7. Build final Formula + CTA screen with strong premium brand ending.
+
+## Non-negotiable creative rule
+
+**AI must never be visualized as a robot.**
+**JetUP AI must feel like a human-powered premium digital extension of leadership.**

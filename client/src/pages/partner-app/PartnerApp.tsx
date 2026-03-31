@@ -130,7 +130,7 @@ function RegistrationScreen({
   };
 
   return (
-    <div className="min-h-full flex flex-col bg-white relative" data-testid="registration-screen">
+    <div className="min-h-screen flex flex-col bg-white relative" style={{ WebkitOverflowScrolling: "touch" }} data-testid="registration-screen">
       <div className="absolute top-4 right-4 z-10"><LanguageSelector /></div>
       <div className="flex-1 px-6 py-10 max-w-md mx-auto w-full">
         <div className="text-center mb-8">

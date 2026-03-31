@@ -877,7 +877,13 @@ function AdminPage() {
           />
         )}
         {activeTab === "partners" && (
-          <PartnersTab partners={adminPartners} />
+          <PartnersTab partners={adminPartners} onDelete={async (id) => {
+            if (!confirm("Partner wirklich löschen? Alle persönlichen Einladungen dieses Partners werden ebenfalls gelöscht.")) return;
+            try {
+              const res = await fetch(`/api/admin/partners/${id}`, { method: "DELETE", headers: headers() });
+              if (res.ok) fetchPartners();
+            } catch {}
+          }} />
         )}
         {activeTab === "workflow" && (
           <WorkflowTab />
@@ -2962,7 +2968,7 @@ function InviteForm({ event, setEvent, onSave, onClose }: {
   );
 }
 
-function PartnersTab({ partners }: { partners: AdminPartner[] }) {
+function PartnersTab({ partners, onDelete }: { partners: AdminPartner[]; onDelete: (id: number) => void }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -2997,8 +3003,17 @@ function PartnersTab({ partners }: { partners: AdminPartner[] }) {
                     )}
                   </div>
                 </div>
-                <div className="text-xs text-gray-400">
-                  {new Date(p.createdAt).toLocaleDateString("de-DE")}
+                <div className="flex items-start gap-3">
+                  <div className="text-xs text-gray-400">
+                    {new Date(p.createdAt).toLocaleDateString("de-DE")}
+                  </div>
+                  <button
+                    onClick={() => onDelete(p.id)}
+                    className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50"
+                    data-testid={`button-delete-partner-${p.id}`}
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             </div>

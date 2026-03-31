@@ -77,6 +77,7 @@ export interface IStorage {
   getPartnerById(id: number): Promise<Partner | undefined>;
   getAllPartners(): Promise<Partner[]>;
   updatePartnerStatus(id: number, status: string): Promise<Partner>;
+  deletePartner(id: number): Promise<void>;
 
   createZoomAttendance(data: InsertZoomAttendance): Promise<ZoomAttendance>;
   getZoomAttendanceByEventId(eventId: number): Promise<ZoomAttendance[]>;
@@ -532,6 +533,12 @@ export class DatabaseStorage implements IStorage {
   async updatePartnerStatus(id: number, status: string): Promise<Partner> {
     const [updated] = await db.update(partners).set({ status }).where(eq(partners.id, id)).returning();
     return updated;
+  }
+
+  async deletePartner(id: number): Promise<void> {
+    await db.delete(personalInvites).where(eq(personalInvites.partnerId, id));
+    await db.update(inviteEvents).set({ partnerId: null }).where(eq(inviteEvents.partnerId, id));
+    await db.delete(partners).where(eq(partners.id, id));
   }
 
   async createZoomAttendance(data: InsertZoomAttendance): Promise<ZoomAttendance> {

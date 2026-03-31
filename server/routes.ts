@@ -1408,5 +1408,15 @@ h1{font-size:1.25rem;color:#1a1a1a;margin:0 0 .5rem}p{color:#666;font-size:.9rem
     }
   });
 
+  app.delete("/api/admin/partners/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      await storage.deletePartner(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   return httpServer;
 }

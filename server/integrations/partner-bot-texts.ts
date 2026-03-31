@@ -274,11 +274,16 @@ const texts = {
   guestSummaryQuestions: { de: "Fragen gestellt", en: "questions asked", ru: "задано вопросов" },
   guestSummaryClickedZoom: { de: "Hat Zoom-Link geklickt", en: "Clicked Zoom link", ru: "Нажал ссылку Zoom" },
   guestSummaryRegisteredNotJoined: { de: "Registriert, aber nicht beigetreten", en: "Registered but did not join", ru: "Зарегистрирован, но не присоединился" },
+  personalInviteFallbackTitle: {
+    de: (name: string) => name ? `AI-Einladung für ${name}` : "Persönliche Einladung",
+    en: (name: string) => name ? `AI invite for ${name}` : "Personal invite",
+    ru: (name: string) => name ? `AI-приглашение для ${name}` : "Персональное приглашение",
+  },
 } as const;
 
 type TextsMap = typeof texts;
 
-export function t<K extends keyof TextsMap>(lang: BotLang, key: K): TextsMap[K][BotLang] {
-  const entry = texts[key];
+export function t<K extends keyof TextsMap>(lang: BotLang, key: K): TextsMap[K]["en"] {
+  const entry = texts[key] as Record<BotLang, TextsMap[K]["en"]>;
   return entry[lang] ?? entry["en"];
 }

@@ -164,10 +164,9 @@ async function handleStart(chatId: number, from: any, lang: BotLang): Promise<vo
   );
 }
 
-async function handleRegistration(chatId: number, text: string): Promise<boolean> {
+async function handleRegistration(chatId: number, text: string, lang: BotLang): Promise<boolean> {
   const state = registrationState.get(String(chatId));
   if (!state) return false;
-  const lang: BotLang = (state.data as any).language || "en";
 
   if (text.startsWith("/")) {
     registrationState.delete(String(chatId));
@@ -372,7 +371,7 @@ async function handleReport(chatId: number, lang: BotLang, eventId?: number): Pr
     }
   }
 
-  const keyboard = [[{
+  const keyboard: Array<Array<{ text: string; callback_data: string }>> = [[{
     text: t(lang, "aiFollowupButton"),
     callback_data: `followup_${event.id}`,
   }]];
@@ -570,7 +569,7 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
 
   console.log(`Bot received from ${chatId} (@${from?.username}, lang=${from?.language_code}→${lang}): ${text}`);
 
-  if (await handleRegistration(chatId, text)) return;
+  if (await handleRegistration(chatId, text, lang)) return;
 
   if (await handleAIMessage(chatId, text)) return;
 
@@ -586,7 +585,7 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
         let eventInfo = "";
         if (invite.scheduleEventId) {
           const se = await storage.getScheduleEvent(invite.scheduleEventId);
-          if (se) eventInfo = `\n\n📅 <b>${se.title}</b>\n🕐 ${se.date || ""} um ${se.time || ""} ${se.timezone || ""}`;
+          if (se) eventInfo = `\n\n📅 <b>${se.title}</b>\n🕐 ${se.date || ""} ${se.time || ""} ${se.timezone || ""}`;
         }
         await sendMessage(chatId, t(lang, "reminderSubscribed")(eventInfo));
       } else if (invite) {
@@ -823,7 +822,7 @@ export async function notifyPartnerPersonalInviteRegistration(invite: any, guest
 
   const lang: BotLang = (partner.language === "de" || partner.language === "en" || partner.language === "ru") ? partner.language : "en";
 
-  let eventTitle = invite.prospectName ? `AI-Einladung für ${invite.prospectName}` : "Persönliche Einladung";
+  let eventTitle = t(lang, "personalInviteFallbackTitle")(invite.prospectName || "");
   try {
     if (invite.scheduleEventId) {
       const ev = await storage.getScheduleEvent(invite.scheduleEventId);

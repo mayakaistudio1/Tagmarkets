@@ -130,8 +130,8 @@ function RegistrationScreen({
   };
 
   return (
-    <div className="h-full flex flex-col bg-white overflow-y-auto" data-testid="registration-screen">
-      <div className="absolute top-4 right-4"><LanguageSelector /></div>
+    <div className="min-h-full flex flex-col bg-white relative" data-testid="registration-screen">
+      <div className="absolute top-4 right-4 z-10"><LanguageSelector /></div>
       <div className="flex-1 px-6 py-10 max-w-md mx-auto w-full">
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-5 mx-auto shadow-lg shadow-blue-200">
@@ -153,7 +153,8 @@ function RegistrationScreen({
               </label>
               <input type={f.type} value={f.value} onChange={e => f.setter(e.target.value)} required={f.required}
                 placeholder={"placeholder" in f ? f.placeholder : undefined}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ fontSize: "16px" }}
                 data-testid={f.testId}
               />
             </div>

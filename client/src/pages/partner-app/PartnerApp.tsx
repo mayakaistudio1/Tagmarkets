@@ -153,8 +153,11 @@ function RegistrationScreen({
               </label>
               <input type={f.type} value={f.value} onChange={e => f.setter(e.target.value)} required={f.required}
                 placeholder={"placeholder" in f ? f.placeholder : undefined}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-                style={{ fontSize: "16px" }}
+                style={{ fontSize: "16px", WebkitTextSecurity: "none" } as React.CSSProperties}
                 data-testid={f.testId}
               />
             </div>

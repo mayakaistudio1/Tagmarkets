@@ -81,6 +81,7 @@ app.use((req, res, next) => {
       await client.query("ALTER TABLE personal_invites ADD COLUMN IF NOT EXISTS preferred_channel text");
       await client.query("ALTER TABLE personal_invites ADD COLUMN IF NOT EXISTS telegram_notifications_enabled boolean DEFAULT false");
       await client.query("ALTER TABLE personal_invites ADD COLUMN IF NOT EXISTS reminder24h_sent boolean DEFAULT false");
+      await client.query("ALTER TABLE partners ADD COLUMN IF NOT EXISTS language text NOT NULL DEFAULT 'en'");
       log("Database migrations applied", "db");
     } finally {
       client.release();

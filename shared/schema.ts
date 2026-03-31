@@ -194,6 +194,7 @@ export const partners = pgTable("partners", {
   phone: text("phone"),
   email: text("email"),
   status: text("status").notNull().default("active"),
+  language: text("language").notNull().default("de"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

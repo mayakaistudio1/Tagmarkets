@@ -44,7 +44,7 @@ Preferred communication style: Simple, everyday language.
 - **Production**: `npm run build` (Vite + esbuild), then `npm start`.
 
 ### Partner Infrastructure
-- **Partner Telegram Bot**: Manages `/start` commands (opens Mini App or handles `remind_CODE` deep links), `/invite`, `/events`, `/report` commands. Notifies partners of guest registrations and reminders.
+- **Partner Telegram Bot**: Manages `/start` commands (opens Mini App or handles `remind_CODE` deep links), `/invite`, `/events`, `/report` commands. Notifies partners of guest registrations and reminders. **Multilingual (DE/EN/RU)**: auto-detects partner language from Telegram `language_code`, persists to `partners.language` column, all bot messages served in partner's language via `server/integrations/partner-bot-texts.ts` translations file. AI follow-up assistant also responds in the partner's detected language.
 - **Partner Mini App Auth**: Uses Telegram WebApp `initData` HMAC verification for primary authentication. Fallback to `x-partner-auth: id:<telegramChatId>` for development. Supports new partner registration.
 - **Partner Mini App (4 Tabs)**:
     - **Upcoming Events**: Lists events with stats, personal invitations (with status), social share, and AI Personal Invite creation.

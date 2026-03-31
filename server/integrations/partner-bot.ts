@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { storage } from "../storage";
 import { sendTelegramNotification, sendTelegramMessageToChat } from "./telegram-notify";
 import { isZoomConfigured, syncZoomDataForEvent, testZoomConnection, saveZoomCredentialsToDb } from "./zoom-api";
+import { type BotLang, detectLang, t } from "./partner-bot-texts";
 
 const TELEGRAM_API = "https://api.telegram.org";
 
@@ -35,6 +36,7 @@ interface TelegramUpdate {
       first_name: string;
       last_name?: string;
       username?: string;
+      language_code?: string;
     };
     chat: {
       id: number;
@@ -49,6 +51,7 @@ interface TelegramUpdate {
       id: number;
       first_name: string;
       username?: string;
+      language_code?: string;
     };
     message: {
       message_id: number;
@@ -60,7 +63,7 @@ interface TelegramUpdate {
 
 const registrationState: Map<string, { step: string; data: any }> = new Map();
 
-const aiConversations: Map<string, { messages: Array<{ role: "user" | "assistant" | "system"; content: string }>; eventId?: number }> = new Map();
+const aiConversations: Map<string, { messages: Array<{ role: "user" | "assistant" | "system"; content: string }>; eventId?: number; lang?: BotLang }> = new Map();
 
 async function sendMessage(chatId: number | string, text: string, options?: any): Promise<any> {
   const token = getPartnerBotToken();
@@ -119,38 +122,37 @@ async function editMessage(chatId: number, messageId: number, text: string, opti
   });
 }
 
-async function handleStart(chatId: number, from: any): Promise<void> {
+async function getPartnerLang(chatId: number | string, fromLangCode?: string): Promise<BotLang> {
+  const partner = await storage.getPartnerByTelegramChatId(String(chatId));
+  if (partner?.language) return partner.language as BotLang;
+  return detectLang(fromLangCode);
+}
+
+async function handleStart(chatId: number, from: any, lang: BotLang): Promise<void> {
   const partner = await storage.getPartnerByTelegramChatId(String(chatId));
   const baseUrl = getBaseUrl();
   const webAppUrl = `${baseUrl}/partner-app`;
 
   if (partner) {
-    const keyboard = [
-      [{ text: "📱 Partner App öffnen", web_app: { url: webAppUrl } }],
-    ];
-
+    if (partner.language !== lang) {
+      await storage.updatePartnerLanguage(partner.id, lang);
+    }
     await sendMessage(chatId,
-      `👋 Willkommen zurück, <b>${partner.name}</b>!\n\n` +
-      `Öffne die Partner App für Dashboard, Einladungen, Statistiken und KI-Tools.`,
+      t(lang, "welcomeBack")(partner.name),
       {
         reply_markup: JSON.stringify({
-          inline_keyboard: keyboard,
+          inline_keyboard: [[{ text: t(lang, "appButton"), web_app: { url: webAppUrl } }]],
         }),
       }
     );
     return;
   }
 
-  const keyboard = [
-    [{ text: "🚀 Jetzt registrieren", web_app: { url: webAppUrl } }],
-  ];
-
   await sendMessage(chatId,
-    `🚀 <b>Willkommen beim JetUP Partner Bot!</b>\n\n` +
-    `Öffne die Partner App, um dein Profil anzulegen und loszulegen.`,
+    t(lang, "welcomeNew"),
     {
       reply_markup: JSON.stringify({
-        inline_keyboard: keyboard,
+        inline_keyboard: [[{ text: t(lang, "registerButton"), web_app: { url: webAppUrl } }]],
       }),
     }
   );
@@ -159,6 +161,7 @@ async function handleStart(chatId: number, from: any): Promise<void> {
 async function handleRegistration(chatId: number, text: string): Promise<boolean> {
   const state = registrationState.get(String(chatId));
   if (!state) return false;
+  const lang: BotLang = (state.data as any).language || "en";
 
   if (text.startsWith("/")) {
     registrationState.delete(String(chatId));
@@ -169,7 +172,7 @@ async function handleRegistration(chatId: number, text: string): Promise<boolean
     state.data.name = text.trim();
     state.step = "cu";
     registrationState.set(String(chatId), state);
-    await sendMessage(chatId, `👍 Danke, <b>${state.data.name}</b>!\n\n🔢 <b>Bitte gib deine CU-Nummer ein:</b>`);
+    await sendMessage(chatId, t(lang, "regStepCu")(state.data.name));
     return true;
   }
 
@@ -177,7 +180,7 @@ async function handleRegistration(chatId: number, text: string): Promise<boolean
     state.data.cuNumber = text.trim();
     state.step = "phone";
     registrationState.set(String(chatId), state);
-    await sendMessage(chatId, `📱 <b>Deine Telefonnummer?</b> (optional — sende /skip zum Überspringen)`);
+    await sendMessage(chatId, t(lang, "regStepPhone"));
     return true;
   }
 
@@ -187,7 +190,7 @@ async function handleRegistration(chatId: number, text: string): Promise<boolean
     }
     state.step = "email";
     registrationState.set(String(chatId), state);
-    await sendMessage(chatId, `📧 <b>Deine E-Mail-Adresse?</b> (optional — sende /skip zum Überspringen)`);
+    await sendMessage(chatId, t(lang, "regStepEmail"));
     return true;
   }
 
@@ -205,6 +208,7 @@ async function handleRegistration(chatId: number, text: string): Promise<boolean
         phone: state.data.phone || null,
         email: state.data.email || null,
         status: "active",
+        language: lang,
       });
 
       registrationState.delete(String(chatId));
@@ -213,15 +217,10 @@ async function handleRegistration(chatId: number, text: string): Promise<boolean
       const webAppUrl = `${baseUrl}/partner-app`;
 
       await sendMessage(chatId,
-        `✅ <b>Registrierung abgeschlossen!</b>\n\n` +
-        `👤 Name: ${partner.name}\n` +
-        `🔢 CU: ${partner.cuNumber}\n` +
-        `${partner.phone ? `📱 Tel: ${partner.phone}\n` : ""}` +
-        `${partner.email ? `📧 E-Mail: ${partner.email}\n` : ""}\n` +
-        `Öffne die Partner App, um loszulegen!`,
+        t(lang, "regSuccess")({ name: partner.name, cuNumber: partner.cuNumber, phone: partner.phone, email: partner.email }),
         {
           reply_markup: JSON.stringify({
-            inline_keyboard: [[{ text: "📱 Partner App öffnen", web_app: { url: webAppUrl } }]],
+            inline_keyboard: [[{ text: t(lang, "appButton"), web_app: { url: webAppUrl } }]],
           }),
         }
       );
@@ -230,9 +229,9 @@ async function handleRegistration(chatId: number, text: string): Promise<boolean
     } catch (error: any) {
       registrationState.delete(String(chatId));
       if (error.message?.includes("unique")) {
-        await sendMessage(chatId, `⚠️ Du bist bereits registriert. Sende /start um fortzufahren.`);
+        await sendMessage(chatId, t(lang, "regAlreadyExists"));
       } else {
-        await sendMessage(chatId, `❌ Fehler bei der Registrierung. Bitte versuche es erneut mit /start.`);
+        await sendMessage(chatId, t(lang, "regError"));
       }
     }
     return true;
@@ -242,20 +241,20 @@ async function handleRegistration(chatId: number, text: string): Promise<boolean
 }
 
 
-async function handleInviteCallback(callbackQueryId: string, chatId: number, scheduleEventId: number, messageId: number): Promise<void> {
+async function handleInviteCallback(callbackQueryId: string, chatId: number, scheduleEventId: number, messageId: number, lang: BotLang): Promise<void> {
   const partner = await storage.getPartnerByTelegramChatId(String(chatId));
   if (!partner) {
-    await answerCallbackQuery(callbackQueryId, "Nicht registriert");
+    await answerCallbackQuery(callbackQueryId, t(lang, "notRegisteredShort"));
     return;
   }
 
   const scheduleEvent = await storage.getScheduleEvent(scheduleEventId);
   if (!scheduleEvent) {
-    await answerCallbackQuery(callbackQueryId, "Event nicht gefunden");
+    await answerCallbackQuery(callbackQueryId, t(lang, "eventNotFound"));
     return;
   }
 
-  await answerCallbackQuery(callbackQueryId, "Erstelle Link...");
+  await answerCallbackQuery(callbackQueryId, t(lang, "creatingLink"));
 
   const inviteEvent = await storage.createInviteEvent({
     partnerName: partner.name,
@@ -273,36 +272,31 @@ async function handleInviteCallback(callbackQueryId: string, chatId: number, sch
   const inviteUrl = `${baseUrl}/invite/${inviteEvent.inviteCode}`;
 
   await editMessage(chatId, messageId,
-    `✅ <b>Einladungslink erstellt!</b>\n\n` +
-    `📋 <b>Event:</b> ${scheduleEvent.title}\n` +
-    `📅 ${scheduleEvent.date} | 🕐 ${scheduleEvent.time}\n` +
-    `🎙 Speaker: ${scheduleEvent.speaker}\n\n` +
-    `🔗 <b>Dein Link:</b>\n${inviteUrl}\n\n` +
-    `Teile diesen Link mit deinen Kontakten. Du erhältst eine Benachrichtigung, wenn sich jemand registriert!`
+    t(lang, "inviteLinkCreated")(scheduleEvent.title, scheduleEvent.date, scheduleEvent.time, scheduleEvent.speaker, inviteUrl)
   );
 }
 
 
-async function handleReport(chatId: number, eventId?: number): Promise<void> {
+async function handleReport(chatId: number, lang: BotLang, eventId?: number): Promise<void> {
   const partner = await storage.getPartnerByTelegramChatId(String(chatId));
   if (!partner) {
-    await sendMessage(chatId, `⚠️ Du bist noch nicht registriert.`);
+    await sendMessage(chatId, t(lang, "notRegistered"));
     return;
   }
 
   if (!eventId) {
     const events = await storage.getInviteEventsByPartnerId(partner.id);
     if (events.length === 0) {
-      await sendMessage(chatId, `📋 Du hast noch keine Events.`);
+      await sendMessage(chatId, t(lang, "noEvents"));
       return;
     }
 
     const keyboard = events.slice(0, 10).map(event => [{
-      text: `${event.title.substring(0, 35)} (${event.guestCount} Gäste)`,
+      text: `${event.title.substring(0, 35)} (${event.guestCount} ${t(lang, "guestsLabel")})`,
       callback_data: `report_${event.id}`,
     }]);
 
-    await sendMessage(chatId, `📊 <b>Wähle ein Event für den Bericht:</b>`, {
+    await sendMessage(chatId, t(lang, "selectEventReport"), {
       reply_markup: { inline_keyboard: keyboard },
     });
     return;
@@ -310,7 +304,7 @@ async function handleReport(chatId: number, eventId?: number): Promise<void> {
 
   const event = await storage.getInviteEventById(eventId);
   if (!event || event.partnerId !== partner.id) {
-    await sendMessage(chatId, `❌ Event nicht gefunden oder kein Zugriff.`);
+    await sendMessage(chatId, t(lang, "eventNotFoundOrNoAccess"));
     return;
   }
 
@@ -318,11 +312,10 @@ async function handleReport(chatId: number, eventId?: number): Promise<void> {
   const clicked = guests.filter(g => g.clickedZoom);
   const notClicked = guests.filter(g => !g.clickedZoom);
 
-  let msg = `📊 <b>Event-Bericht: ${event.title}</b>\n`;
-  msg += `📅 ${event.eventDate} | 🕐 ${event.eventTime}\n\n`;
-  msg += `📝 Registriert: <b>${guests.length}</b> Gäste\n`;
-  msg += `✅ Zoom beigetreten: <b>${clicked.length}</b>\n`;
-  msg += `❌ Nicht beigetreten: <b>${notClicked.length}</b>\n`;
+  let msg = t(lang, "reportHeader")(event.title, event.eventDate, event.eventTime);
+  msg += `📝 ${t(lang, "registered")}: <b>${guests.length}</b>\n`;
+  msg += `✅ ${t(lang, "zoomJoined")}: <b>${clicked.length}</b>\n`;
+  msg += `❌ ${t(lang, "zoomNotJoined")}: <b>${notClicked.length}</b>\n`;
 
   const zoomData = await storage.getZoomAttendanceByEventId(event.id);
   if (zoomData.length > 0) {
@@ -330,9 +323,9 @@ async function handleReport(chatId: number, eventId?: number): Promise<void> {
     const avgDuration = Math.round(totalDuration / zoomData.length);
     const totalQuestions = zoomData.reduce((sum, z) => sum + z.questionsAsked, 0);
 
-    msg += `\n📹 <b>Zoom-Teilnehmer (API): ${zoomData.length}</b>\n`;
-    msg += `⏱ Ø ${avgDuration} Min.`;
-    if (totalQuestions > 0) msg += ` | 💬 ${totalQuestions} Fragen`;
+    msg += `\n` + t(lang, "zoomParticipantsApi")(zoomData.length) + `\n`;
+    msg += `⏱ Ø ${avgDuration} ${t(lang, "avgMin")}`;
+    if (totalQuestions > 0) msg += ` | 💬 ${totalQuestions} ${t(lang, "questions")}`;
     msg += `\n\n`;
 
     for (const z of zoomData.slice(0, 15)) {
@@ -341,46 +334,46 @@ async function handleReport(chatId: number, eventId?: number): Promise<void> {
       const joinStr = z.joinTime ? new Date(z.joinTime).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }) : "–";
       const leaveStr = z.leaveTime ? new Date(z.leaveTime).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }) : "–";
       msg += `  ${matched} ${guestName}\n`;
-      msg += `     📧 ${z.participantEmail} | ⏱ ${joinStr}–${leaveStr} (${z.durationMinutes} Min.)`;
+      msg += `     📧 ${z.participantEmail} | ⏱ ${joinStr}–${leaveStr} (${z.durationMinutes} ${t(lang, "avgMin")})`;
       if (z.questionsAsked > 0) msg += ` | 💬 ${z.questionsAsked}`;
       msg += `\n`;
     }
     if (zoomData.length > 15) {
-      msg += `  ... und ${zoomData.length - 15} weitere\n`;
+      msg += t(lang, "andMore")(zoomData.length - 15) + `\n`;
     }
 
     const zoomEmails = new Set(zoomData.map(z => z.participantEmail.toLowerCase()));
     const registeredNotAttended = guests.filter(g => !zoomEmails.has(g.email.toLowerCase()));
     if (registeredNotAttended.length > 0) {
-      msg += `\n⚠️ <b>Registriert, aber nicht auf Zoom (${registeredNotAttended.length}):</b>\n`;
+      msg += t(lang, "registeredNotOnZoom")(registeredNotAttended.length) + `\n`;
       registeredNotAttended.slice(0, 10).forEach(g => { msg += `  • ${g.name} (${g.email})\n`; });
     }
 
     const guestEmails = new Set(guests.map(g => g.email.toLowerCase()));
     const attendedNotRegistered = zoomData.filter(z => !guestEmails.has(z.participantEmail.toLowerCase()) && !z.inviteGuestId);
     if (attendedNotRegistered.length > 0) {
-      msg += `\n🔍 <b>Auf Zoom, aber nicht registriert (${attendedNotRegistered.length}):</b>\n`;
+      msg += t(lang, "onZoomNotRegistered")(attendedNotRegistered.length) + `\n`;
       attendedNotRegistered.slice(0, 10).forEach(z => { msg += `  • ${z.participantName || z.participantEmail}\n`; });
     }
   } else {
     if (clicked.length > 0) {
-      msg += `\n<b>✅ Zoom-Link geklickt:</b>\n`;
+      msg += t(lang, "zoomLinkClicked") + `\n`;
       clicked.forEach(g => { msg += `  • ${g.name} (${g.email})\n`; });
     }
     if (notClicked.length > 0) {
-      msg += `\n<b>❌ Nicht geklickt:</b>\n`;
+      msg += t(lang, "zoomLinkNotClicked") + `\n`;
       notClicked.forEach(g => { msg += `  • ${g.name} (${g.email})\n`; });
     }
   }
 
   const keyboard = [[{
-    text: "🤖 KI Follow-up starten",
+    text: t(lang, "aiFollowupButton"),
     callback_data: `followup_${event.id}`,
   }]];
 
   if (isZoomConfigured()) {
     keyboard.push([{
-      text: zoomData.length > 0 ? "🔄 Zoom-Daten aktualisieren" : "📹 Zoom-Daten laden",
+      text: zoomData.length > 0 ? t(lang, "zoomSyncRefresh") : t(lang, "zoomSyncLoad"),
       callback_data: `zoom_sync_${event.id}`,
     }]);
   }
@@ -388,47 +381,44 @@ async function handleReport(chatId: number, eventId?: number): Promise<void> {
   await sendMessage(chatId, msg, { reply_markup: { inline_keyboard: keyboard } });
 }
 
-async function handleZoomSync(callbackQueryId: string, chatId: number, eventId: number): Promise<void> {
+async function handleZoomSync(callbackQueryId: string, chatId: number, eventId: number, lang: BotLang): Promise<void> {
   const partner = await storage.getPartnerByTelegramChatId(String(chatId));
   if (!partner) return;
 
   const event = await storage.getInviteEventById(eventId);
   if (!event || event.partnerId !== partner.id) {
-    await answerCallbackQuery(callbackQueryId, "Kein Zugriff");
+    await answerCallbackQuery(callbackQueryId, t(lang, "noAccess"));
     return;
   }
 
-  await answerCallbackQuery(callbackQueryId, "Lade Zoom-Daten...");
-  await sendMessage(chatId, `⏳ Lade Zoom-Teilnehmerdaten für "<b>${event.title}</b>"...`);
+  await answerCallbackQuery(callbackQueryId);
+  await sendMessage(chatId, t(lang, "zoomSyncLoading")(event.title));
 
   try {
     const result = await syncZoomDataForEvent(event.id, event.zoomLink);
     if (result.error) {
       await sendMessage(chatId, `⚠️ ${result.error}`);
     } else if (result.synced > 0) {
-      let msg = `✅ ${result.synced} Teilnehmer synchronisiert!`;
-      if (result.skipped > 0) msg += ` (${result.skipped} bereits vorhanden)`;
-      msg += `\n\nDie aktualisierten Daten findest du in der Partner App.`;
-      await sendMessage(chatId, msg);
+      await sendMessage(chatId, t(lang, "zoomSyncSuccess")(result.synced, result.skipped));
     } else {
-      await sendMessage(chatId, `ℹ️ Keine neuen Teilnehmerdaten gefunden.${result.skipped > 0 ? ` ${result.skipped} bereits synchronisiert.` : ''}`);
+      await sendMessage(chatId, t(lang, "zoomSyncNoNew")(result.skipped));
     }
   } catch (error) {
-    await sendMessage(chatId, `❌ Fehler beim Laden der Zoom-Daten. Bitte versuche es später erneut.`);
+    await sendMessage(chatId, t(lang, "zoomSyncError"));
   }
 }
 
-async function handleFollowup(chatId: number, eventId?: number): Promise<void> {
+async function handleFollowup(chatId: number, lang: BotLang, eventId?: number): Promise<void> {
   const partner = await storage.getPartnerByTelegramChatId(String(chatId));
   if (!partner) {
-    await sendMessage(chatId, `⚠️ Du bist noch nicht registriert.`);
+    await sendMessage(chatId, t(lang, "notRegistered"));
     return;
   }
 
   if (!eventId) {
     const events = await storage.getInviteEventsByPartnerId(partner.id);
     if (events.length === 0) {
-      await sendMessage(chatId, `📋 Keine Events für Follow-up vorhanden.`);
+      await sendMessage(chatId, t(lang, "noEventsFollowup"));
       return;
     }
 
@@ -437,7 +427,7 @@ async function handleFollowup(chatId: number, eventId?: number): Promise<void> {
       callback_data: `followup_${event.id}`,
     }]);
 
-    await sendMessage(chatId, `🤖 <b>Für welches Event möchtest du Follow-up-Nachrichten erstellen?</b>`, {
+    await sendMessage(chatId, t(lang, "selectEventFollowup"), {
       reply_markup: { inline_keyboard: keyboard },
     });
     return;
@@ -445,7 +435,7 @@ async function handleFollowup(chatId: number, eventId?: number): Promise<void> {
 
   const event = await storage.getInviteEventById(eventId);
   if (!event || event.partnerId !== partner.id) {
-    await sendMessage(chatId, `❌ Event nicht gefunden.`);
+    await sendMessage(chatId, t(lang, "eventNotFoundOrNoAccess"));
     return;
   }
 
@@ -457,50 +447,33 @@ async function handleFollowup(chatId: number, eventId?: number): Promise<void> {
     const zoom = zoomData.find(z => z.inviteGuestId === guest.id);
     guestSummary += `- ${guest.name} (${guest.email}): `;
     if (zoom) {
-      guestSummary += `Teilgenommen ${zoom.durationMinutes} Min.`;
-      if (zoom.questionsAsked > 0) guestSummary += `, ${zoom.questionsAsked} Fragen gestellt`;
+      guestSummary += `${t(lang, "guestSummaryAttended")} ${zoom.durationMinutes} ${t(lang, "guestSummaryMin")}`;
+      if (zoom.questionsAsked > 0) guestSummary += `, ${zoom.questionsAsked} ${t(lang, "guestSummaryQuestions")}`;
     } else if (guest.clickedZoom) {
-      guestSummary += `Hat Zoom-Link geklickt`;
+      guestSummary += t(lang, "guestSummaryClickedZoom");
     } else {
-      guestSummary += `Registriert, aber nicht beigetreten`;
+      guestSummary += t(lang, "guestSummaryRegisteredNotJoined");
     }
     guestSummary += "\n";
   }
 
-  const systemPrompt = `Du bist ein KI-Assistent für JetUP Partner. Du hilfst Partnern bei der Nachbereitung von Webinaren.
-
-Eventdaten:
-- Titel: ${event.title}
-- Datum: ${event.eventDate} ${event.eventTime}
-- Partner: ${partner.name}
-
-Gäste und Engagement:
-${guestSummary || "Keine Gäste registriert."}
-
-Deine Aufgaben:
-1. Personalisierte Follow-up-Nachrichten für Gäste vorschlagen
-2. Recruiting- und Vertriebsnachrichten formulieren
-3. Gesprächsleitfäden für Abschlüsse bereitstellen
-4. Empfehlungen geben, welche Gäste priorisiert werden sollten
-5. Fragen des Partners zu seinen Leads beantworten
-
-Antworte immer auf Deutsch. Sei professionell, aber freundlich. Gib konkrete, umsetzbare Vorschläge.`;
+  const systemPrompt = t(lang, "aiSystemPrompt")(event, partner.name, guestSummary);
 
   const convKey = `${chatId}_followup`;
   aiConversations.set(convKey, {
     messages: [{ role: "system", content: systemPrompt }],
     eventId,
+    lang,
   });
 
   const initialPrompt = guests.length > 0
-    ? `Hier ist eine Übersicht deiner ${guests.length} Gäste vom Event "${event.title}". Ich kann dir helfen mit:\n\n• Follow-up-Nachrichten für einzelne Gäste\n• Priorisierung der Leads\n• Recruiting-Strategien\n\nFrag mich einfach! Z.B. "Schreibe eine Follow-up-Nachricht für ${guests[0]?.name}" oder "Wen soll ich zuerst kontaktieren?"`
-    : `Für "${event.title}" sind noch keine Gäste registriert. Sobald sich Gäste anmelden, kann ich dir mit Follow-up-Nachrichten helfen.`;
+    ? t(lang, "aiGreetingWithGuests")(guests.length, event.title, guests[0]?.name)
+    : t(lang, "aiGreetingNoGuests")(event.title);
 
   await sendMessage(chatId,
-    `🤖 <b>KI Follow-up Assistent</b>\n` +
-    `📋 Event: ${event.title}\n\n` +
+    t(lang, "aiHeader")(event.title) +
     initialPrompt + `\n\n` +
-    `<i>Sende /exit um den Follow-up-Modus zu verlassen.</i>`
+    t(lang, "aiExitHint")
   );
 }
 
@@ -508,6 +481,7 @@ async function handleAIMessage(chatId: number, text: string): Promise<boolean> {
   const convKey = `${chatId}_followup`;
   const conversation = aiConversations.get(convKey);
   if (!conversation) return false;
+  const lang: BotLang = conversation.lang || "en";
 
   if (text.startsWith("/")) {
     aiConversations.delete(convKey);
@@ -524,7 +498,7 @@ async function handleAIMessage(chatId: number, text: string): Promise<boolean> {
       temperature: 0.7,
     });
 
-    const reply = response.choices[0]?.message?.content || "Entschuldigung, ich konnte keine Antwort generieren.";
+    const reply = response.choices[0]?.message?.content || t(lang, "aiFallback");
     conversation.messages.push({ role: "assistant", content: reply });
 
     if (conversation.messages.length > 20) {
@@ -535,30 +509,21 @@ async function handleAIMessage(chatId: number, text: string): Promise<boolean> {
     await sendMessage(chatId, reply);
   } catch (error) {
     console.error("AI followup error:", error);
-    await sendMessage(chatId, `❌ Fehler bei der KI-Verarbeitung. Bitte versuche es erneut.`);
+    await sendMessage(chatId, t(lang, "aiError"));
   }
 
   return true;
 }
 
-async function handleHelp(chatId: number): Promise<void> {
+async function handleHelp(chatId: number, lang: BotLang): Promise<void> {
   const baseUrl = getBaseUrl();
   const webAppUrl = `${baseUrl}/partner-app`;
 
   await sendMessage(chatId,
-    `📖 <b>JetUP Partner Bot — Hilfe</b>\n\n` +
-    `Alle Funktionen findest du in der <b>Partner App</b>:\n\n` +
-    `📊 Dashboard & Statistiken\n` +
-    `📅 Webinare & Einladungslinks\n` +
-    `🤖 KI-personalisierte Einladungen\n` +
-    `💬 KI Follow-up Assistent\n` +
-    `📈 Vergütungsübersicht\n\n` +
-    `<b>Befehle:</b>\n` +
-    `/start — Partner App öffnen\n` +
-    `/help — Diese Hilfe anzeigen`,
+    t(lang, "helpMenu"),
     {
       reply_markup: JSON.stringify({
-        inline_keyboard: [[{ text: "📱 Partner App öffnen", web_app: { url: webAppUrl } }]],
+        inline_keyboard: [[{ text: t(lang, "appButton"), web_app: { url: webAppUrl } }]],
       }),
     }
   );
@@ -568,21 +533,22 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
   if (update.callback_query) {
     const { id: queryId, data, message, from } = update.callback_query;
     const chatId = message.chat.id;
+    const lang = await getPartnerLang(chatId, from?.language_code);
 
     if (data.startsWith("invite_event_")) {
       const scheduleEventId = parseInt(data.replace("invite_event_", ""));
-      await handleInviteCallback(queryId, chatId, scheduleEventId, message.message_id);
+      await handleInviteCallback(queryId, chatId, scheduleEventId, message.message_id, lang);
     } else if (data.startsWith("report_")) {
       const eventId = parseInt(data.replace("report_", ""));
       await answerCallbackQuery(queryId);
-      await handleReport(chatId, eventId);
+      await handleReport(chatId, lang, eventId);
     } else if (data.startsWith("followup_")) {
       const eventId = parseInt(data.replace("followup_", ""));
       await answerCallbackQuery(queryId);
-      await handleFollowup(chatId, eventId);
+      await handleFollowup(chatId, lang, eventId);
     } else if (data.startsWith("zoom_sync_")) {
       const eventId = parseInt(data.replace("zoom_sync_", ""));
-      await handleZoomSync(queryId, chatId, eventId);
+      await handleZoomSync(queryId, chatId, eventId, lang);
     } else {
       await answerCallbackQuery(queryId);
     }
@@ -594,8 +560,9 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
   const chatId = update.message.chat.id;
   const text = update.message.text.trim();
   const from = update.message.from;
+  const lang = await getPartnerLang(chatId, from?.language_code);
 
-  console.log(`Bot received from ${chatId} (@${from?.username}): ${text}`);
+  console.log(`Bot received from ${chatId} (@${from?.username}, lang=${from?.language_code}→${lang}): ${text}`);
 
   if (await handleRegistration(chatId, text)) return;
 
@@ -615,14 +582,11 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
           const se = await storage.getScheduleEvent(invite.scheduleEventId);
           if (se) eventInfo = `\n\n📅 <b>${se.title}</b>\n🕐 ${se.date || ""} um ${se.time || ""} ${se.timezone || ""}`;
         }
-        await sendMessage(chatId,
-          `✅ <b>Super! Du erhältst Erinnerungen für das Webinar.</b>${eventInfo}\n\n` +
-          `Wir benachrichtigen dich kurz vor dem Start mit deinem persönlichen Zugangslink. 🔔`
-        );
+        await sendMessage(chatId, t(lang, "reminderSubscribed")(eventInfo));
       } else if (invite) {
-        await sendMessage(chatId, `⚠️ Du bist noch nicht für dieses Webinar registriert. Bitte vervollständige zuerst die Registrierung.`);
+        await sendMessage(chatId, t(lang, "reminderNotRegistered"));
       } else {
-        await sendMessage(chatId, `❌ Einladungslink nicht gefunden. Bitte wende dich an deinen Partner.`);
+        await sendMessage(chatId, t(lang, "reminderNotFound"));
       }
     } catch (e) {
       console.error("[Bot] remind_ handler error:", e);
@@ -632,14 +596,14 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
 
   switch (command) {
     case "/start":
-      await handleStart(chatId, from);
+      await handleStart(chatId, from, lang);
       break;
     case "/help":
-      await handleHelp(chatId);
+      await handleHelp(chatId, lang);
       break;
     case "/exit":
       aiConversations.delete(`${chatId}_followup`);
-      await sendMessage(chatId, `✅ Follow-up-Modus beendet.`);
+      await sendMessage(chatId, t(lang, "exitFollowup"));
       break;
     default: {
       const partner = await storage.getPartnerByTelegramChatId(String(chatId));
@@ -647,15 +611,15 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
         const baseUrl = getBaseUrl();
         const webAppUrl = `${baseUrl}/partner-app`;
         await sendMessage(chatId,
-          `Öffne die Partner App für alle Funktionen:`,
+          t(lang, "openAppForFeatures"),
           {
             reply_markup: JSON.stringify({
-              inline_keyboard: [[{ text: "📱 Partner App öffnen", web_app: { url: webAppUrl } }]],
+              inline_keyboard: [[{ text: t(lang, "appButton"), web_app: { url: webAppUrl } }]],
             }),
           }
         );
       } else {
-        await sendMessage(chatId, `Willkommen! Sende /start um dich als Partner zu registrieren.`);
+        await sendMessage(chatId, t(lang, "welcomeSendStart"));
       }
     }
   }
@@ -676,8 +640,8 @@ async function setBotCommands(): Promise<void> {
   if (!token) return;
 
   const commands = [
-    { command: "start", description: "Partner App öffnen" },
-    { command: "help", description: "Hilfe anzeigen" },
+    { command: "start", description: "Partner App / Open Partner App / Открыть Partner App" },
+    { command: "help", description: "Hilfe / Help / Помощь" },
   ];
 
   try {
@@ -851,6 +815,8 @@ export async function notifyPartnerPersonalInviteRegistration(invite: any, guest
   const partner = await storage.getPartnerById(invite.partnerId);
   if (!partner) return;
 
+  const lang = (partner.language as BotLang) || "de";
+
   let eventTitle = invite.prospectName ? `AI-Einladung für ${invite.prospectName}` : "Persönliche Einladung";
   try {
     if (invite.scheduleEventId) {
@@ -859,15 +825,10 @@ export async function notifyPartnerPersonalInviteRegistration(invite: any, guest
     }
   } catch {}
 
+  const time = new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
   await sendTelegramMessageToChat(
     partner.telegramChatId,
-    `🎯 <b>Neue Registrierung (persönliche Einladung)!</b>\n\n` +
-    `📋 <b>Event:</b> ${eventTitle}\n` +
-    `👤 <b>Gast:</b> ${guestName}\n` +
-    `📧 <b>E-Mail:</b> ${guestEmail}\n` +
-    `${guestPhone ? `📱 <b>Tel:</b> ${guestPhone}\n` : ""}` +
-    `🔗 <b>Einladungscode:</b> ${invite.inviteCode}\n` +
-    `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`,
+    t(lang, "notifyPersonalInvite")(eventTitle, guestName, guestEmail, guestPhone, invite.inviteCode, time),
     getPartnerBotToken()
   );
 }
@@ -878,14 +839,12 @@ export async function notifyPartnerNewRegistration(event: any, guest: any): Prom
   const partner = await storage.getPartnerById(event.partnerId);
   if (!partner) return;
 
+  const lang = (partner.language as BotLang) || "de";
+  const time = new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
+
   await sendTelegramMessageToChat(
     partner.telegramChatId,
-    `🎟 <b>Neue Registrierung!</b>\n\n` +
-    `📋 <b>Event:</b> ${event.title}\n` +
-    `👤 <b>Gast:</b> ${guest.name}\n` +
-    `📧 <b>E-Mail:</b> ${guest.email}\n` +
-    `${guest.phone ? `📱 <b>Tel:</b> ${guest.phone}\n` : ""}` +
-    `⏰ ${new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`,
+    t(lang, "notifyNewRegistration")(event.title, guest.name, guest.email, guest.phone, time),
     getPartnerBotToken()
   );
 }

@@ -123,9 +123,18 @@ async function editMessage(chatId: number, messageId: number, text: string, opti
 }
 
 async function getPartnerLang(chatId: number | string, fromLangCode?: string): Promise<BotLang> {
+  const detected = detectLang(fromLangCode);
   const partner = await storage.getPartnerByTelegramChatId(String(chatId));
-  if (partner?.language) return partner.language as BotLang;
-  return detectLang(fromLangCode);
+  if (partner && fromLangCode) {
+    if (partner.language !== detected) {
+      await storage.updatePartnerLanguage(partner.id, detected);
+    }
+    return detected;
+  }
+  if (partner?.language && (partner.language === "de" || partner.language === "en" || partner.language === "ru")) {
+    return partner.language;
+  }
+  return detected;
 }
 
 async function handleStart(chatId: number, from: any, lang: BotLang): Promise<void> {
@@ -134,9 +143,6 @@ async function handleStart(chatId: number, from: any, lang: BotLang): Promise<vo
   const webAppUrl = `${baseUrl}/partner-app`;
 
   if (partner) {
-    if (partner.language !== lang) {
-      await storage.updatePartnerLanguage(partner.id, lang);
-    }
     await sendMessage(chatId,
       t(lang, "welcomeBack")(partner.name),
       {
@@ -815,7 +821,7 @@ export async function notifyPartnerPersonalInviteRegistration(invite: any, guest
   const partner = await storage.getPartnerById(invite.partnerId);
   if (!partner) return;
 
-  const lang = (partner.language as BotLang) || "de";
+  const lang: BotLang = (partner.language === "de" || partner.language === "en" || partner.language === "ru") ? partner.language : "en";
 
   let eventTitle = invite.prospectName ? `AI-Einladung für ${invite.prospectName}` : "Persönliche Einladung";
   try {
@@ -839,7 +845,7 @@ export async function notifyPartnerNewRegistration(event: any, guest: any): Prom
   const partner = await storage.getPartnerById(event.partnerId);
   if (!partner) return;
 
-  const lang = (partner.language as BotLang) || "de";
+  const lang: BotLang = (partner.language === "de" || partner.language === "en" || partner.language === "ru") ? partner.language : "en";
   const time = new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
 
   await sendTelegramMessageToChat(

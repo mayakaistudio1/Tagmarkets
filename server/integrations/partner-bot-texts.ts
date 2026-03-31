@@ -276,7 +276,9 @@ const texts = {
   guestSummaryRegisteredNotJoined: { de: "Registriert, aber nicht beigetreten", en: "Registered but did not join", ru: "Зарегистрирован, но не присоединился" },
 } as const;
 
-export function t(lang: BotLang, key: keyof typeof texts): any {
+type TextsMap = typeof texts;
+
+export function t<K extends keyof TextsMap>(lang: BotLang, key: K): TextsMap[K][BotLang] {
   const entry = texts[key];
-  return (entry as any)[lang] ?? (entry as any)["en"];
+  return entry[lang] ?? entry["en"];
 }

@@ -3,7 +3,6 @@ import { syncZoomDataForEvent, isZoomConfigured } from "./zoom-api";
 
 const POLL_INTERVAL_MS = 10 * 60 * 1000;
 let pollerInterval: ReturnType<typeof setInterval> | null = null;
-const syncedScheduleEventIds = new Set<number>();
 
 function getTimezoneOffset(tz: string): string {
   const tzToIana: Record<string, string> = {
@@ -47,8 +46,6 @@ export async function checkAndAutoSyncZoom(): Promise<number> {
     const now = new Date();
 
     for (const se of allScheduleEvents) {
-      if (syncedScheduleEventIds.has(se.id)) continue;
-
       const eventDt = parseEventDateTime(se.date, se.time, se.timezone);
       if (!eventDt) continue;
 
@@ -62,28 +59,22 @@ export async function checkAndAutoSyncZoom(): Promise<number> {
       const allInviteEvents = await storage.getInviteEventsByScheduleEventId(se.id);
       if (allInviteEvents.length === 0) continue;
 
-      const firstEvent = allInviteEvents[0];
-      const existingAttendance = await storage.getZoomAttendanceByEventId(firstEvent.id);
-      if (existingAttendance.length > 0) {
-        syncedScheduleEventIds.add(se.id);
-        continue;
-      }
-
-      console.log(`[ZoomAutoSync] Event "${se.title}" ended ${Math.round(minSinceEvent)}min ago — syncing ${allInviteEvents.length} invite event(s)`);
-
       for (const ie of allInviteEvents) {
+        const existingAttendance = await storage.getZoomAttendanceByEventId(ie.id);
+        if (existingAttendance.length > 0) continue;
+
         try {
           const result = await syncZoomDataForEvent(ie.id, ie.zoomLink, ie.eventDate);
           syncedTotal += result.synced;
           if (result.error) {
             console.warn(`[ZoomAutoSync] Error for inviteEvent ${ie.id}: ${result.error}`);
+          } else {
+            console.log(`[ZoomAutoSync] Synced inviteEvent ${ie.id} (event "${se.title}"): ${result.synced} participant(s)`);
           }
         } catch (err) {
           console.error(`[ZoomAutoSync] Failed for inviteEvent ${ie.id}:`, err);
         }
       }
-
-      syncedScheduleEventIds.add(se.id);
     }
 
     if (syncedTotal > 0) {

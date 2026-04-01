@@ -21,6 +21,7 @@ import OpenAI from "openai";
 import { sendTelegramNotification, formatPromoApplicationMessage } from "./integrations/telegram-notify";
 import { startVerificationPoller, checkAndProcessVerifications } from "./integrations/promo-verification-poller";
 import { startReminderScheduler } from "./integrations/reminder-scheduler";
+import { startZoomSyncScheduler } from "./integrations/zoom-sync-scheduler";
 import { registerPartnerBotRoutes, notifyPartnerNewRegistration } from "./integrations/partner-bot";
 import { registerPartnerAppRoutes } from "./partner-app-routes";
 
@@ -1063,6 +1064,7 @@ Return ONLY valid JSON in this format (all text values must be in ${reportLang})
 
   startVerificationPoller();
   startReminderScheduler();
+  startZoomSyncScheduler();
 
   app.get("/api/invite/:code", async (req, res) => {
     try {

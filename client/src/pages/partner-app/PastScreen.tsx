@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   BarChart3, ChevronLeft, ChevronRight, Loader2, Users, UserCheck,
-  Calendar, Clock, MessageCircle, RefreshCw, CheckCircle, AlertCircle,
+  Calendar, Clock, MessageCircle,
   Bot, Send, Target, Star, Sparkles
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
@@ -29,15 +29,32 @@ interface EventReport {
   inviteEventIds?: number[];
 }
 
+function getTimezoneOffset(tz: string): string {
+  const tzMap: Record<string, string> = {
+    "CET": "Europe/Berlin", "CEST": "Europe/Berlin", "MET": "Europe/Berlin",
+    "MEZ": "Europe/Berlin", "MESZ": "Europe/Berlin", "UTC": "UTC", "GMT": "UTC",
+    "MSK": "Europe/Moscow", "Europe/Berlin": "Europe/Berlin", "Europe/Moscow": "Europe/Moscow",
+  };
+  const ianaZone = tzMap[tz] || "Europe/Berlin";
+  try {
+    const fmt = new Intl.DateTimeFormat("en", { timeZone: ianaZone, timeZoneName: "longOffset" });
+    const parts = fmt.formatToParts(new Date());
+    const tzPart = parts.find(p => p.type === "timeZoneName")?.value || "";
+    const match = tzPart.match(/GMT([+-]\d{2}:\d{2})/);
+    if (match) return match[1];
+  } catch {}
+  return "+02:00";
+}
+
 function isPast(dateStr: string, timeStr: string): boolean {
   try {
+    let isoDate = dateStr;
     const parts = dateStr.split(".");
     if (parts.length === 3) {
-      const isoDate = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
-      const dt = new Date(`${isoDate}T${timeStr || "00:00"}:00`);
-      return dt <= new Date();
+      isoDate = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
     }
-    const dt = new Date(`${dateStr}T${timeStr || "00:00"}:00`);
+    const offset = getTimezoneOffset("CET");
+    const dt = new Date(`${isoDate}T${timeStr || "00:00"}:00${offset}`);
     return dt <= new Date();
   } catch { return false; }
 }
@@ -70,9 +87,6 @@ export default function PastScreen({ telegramId }: { telegramId: string }) {
   const [report, setReport] = useState<EventReport | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
   const [expandedGuest, setExpandedGuest] = useState<number | null>(null);
-  const [zoomSyncing, setZoomSyncing] = useState(false);
-  const [zoomResult, setZoomResult] = useState<{ synced: number; skipped: number; total: number } | null>(null);
-  const [zoomError, setZoomError] = useState<string | null>(null);
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
   const [aiInput, setAiInput] = useState("");
   const [aiSending, setAiSending] = useState(false);
@@ -91,8 +105,6 @@ export default function PastScreen({ telegramId }: { telegramId: string }) {
   const loadReport = async (event: PartnerEvent) => {
     setReportLoading(true);
     setSelectedEvent(event);
-    setZoomResult(null);
-    setZoomError(null);
     setExpandedGuest(null);
     try {
       const ids = event.inviteEventIds || [event.id];
@@ -114,27 +126,6 @@ export default function PastScreen({ telegramId }: { telegramId: string }) {
       setScreen("report");
     } catch {}
     setReportLoading(false);
-  };
-
-  const handleZoomSync = async () => {
-    if (!selectedEvent || !report) return;
-    setZoomSyncing(true);
-    setZoomResult(null);
-    setZoomError(null);
-    const ids = report.inviteEventIds || [report.event.id];
-    let synced = 0, skipped = 0, total = 0;
-    let lastError: string | null = null;
-    for (const id of ids) {
-      try {
-        const res = await fetch(`/api/partner-app/events/${id}/zoom-sync`, { method: "POST", headers: { ...getPartnerAuthHeader() } });
-        const data = await res.json();
-        if (!res.ok) lastError = data.error || "Sync failed";
-        else { synced += data.synced || 0; skipped += data.skipped || 0; total += data.total || 0; }
-      } catch { lastError = "Network error"; }
-    }
-    setZoomSyncing(false);
-    if (lastError && synced === 0) setZoomError(lastError);
-    else { setZoomResult({ synced, skipped, total }); if (selectedEvent) await loadReport(selectedEvent); }
   };
 
   const sendAiMessage = async (text: string) => {
@@ -285,26 +276,6 @@ export default function PastScreen({ telegramId }: { telegramId: string }) {
             <FunnelBar label={t("pa.clickedZoom")} value={f.clickedZoom} maxValue={maxFunnel} color="bg-purple-500" />
             <FunnelBar label={t("pa.attended")} value={f.attended} maxValue={maxFunnel} color="bg-emerald-500" />
           </div>
-        </div>
-
-        <div className="mb-4">
-          {zoomResult && (
-            <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-3">
-              <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <p className="text-xs text-emerald-700 font-medium">Zoom sync: {zoomResult.synced} {t("pa.zoomSync.new")}{zoomResult.skipped > 0 ? `, ${zoomResult.skipped} ${t("pa.zoomSync.alreadyPresent")}` : ""}</p>
-            </motion.div>
-          )}
-          {zoomError && (
-            <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-3">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-red-700">{zoomError === "FUTURE_EVENT" ? t("pa.zoomSync.futureEvent") : zoomError === "Zoom not configured" ? t("pa.zoomSync.notConfigured") : `${t("pa.zoomSync.error")} ${zoomError}`}</p>
-              </div>
-            </motion.div>
-          )}
-          <button onClick={handleZoomSync} disabled={zoomSyncing} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 active:bg-gray-50 disabled:opacity-50" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }} data-testid="button-zoom-sync">
-            {zoomSyncing ? <><Loader2 className="w-4 h-4 animate-spin text-blue-500" /><span className="text-blue-600">{t("pa.zoomSync.loading")}</span></> : <><RefreshCw className="w-4 h-4 text-gray-500" />{t("pa.zoomSync.button")}</>}
-          </button>
         </div>
 
         <button onClick={() => { setAiMessages([]); setScreen("ai-followup"); }} className="w-full flex items-center justify-center gap-2 py-3.5 bg-orange-500 text-white rounded-xl text-sm font-semibold mb-5 active:bg-orange-600" data-testid="button-ai-followup">

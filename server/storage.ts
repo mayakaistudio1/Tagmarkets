@@ -66,6 +66,7 @@ export interface IStorage {
   getInviteEventById(id: number): Promise<InviteEvent | undefined>;
   getAllInviteEvents(): Promise<(InviteEvent & { guestCount: number; clickedCount: number })[]>;
   getInviteEventsByPartnerId(partnerId: number): Promise<(InviteEvent & { guestCount: number; clickedCount: number })[]>;
+  getInviteEventsByScheduleEventId(scheduleEventId: number): Promise<InviteEvent[]>;
   addInviteGuest(data: InsertInviteGuest): Promise<InviteGuest>;
   getGuestsByEventId(eventId: number): Promise<InviteGuest[]>;
   markGuestClickedZoom(guestId: number): Promise<InviteGuest>;
@@ -510,6 +511,11 @@ export class DatabaseStorage implements IStorage {
       });
     }
     return results;
+  }
+
+  async getInviteEventsByScheduleEventId(scheduleEventId: number): Promise<InviteEvent[]> {
+    return db.select().from(inviteEvents)
+      .where(eq(inviteEvents.scheduleEventId, scheduleEventId));
   }
 
   async createPartner(data: InsertPartner): Promise<Partner> {

@@ -10,6 +10,38 @@ import { notifyPartnerPersonalInviteRegistration } from "./integrations/partner-
 import { sendGuestConfirmationEmail } from "./integrations/resend-email";
 import { syncZoomDataForEvent, isZoomConfigured } from "./integrations/zoom-api";
 
+function getTimezoneOffsetServer(tz: string): string {
+  const tzToIana: Record<string, string> = {
+    "CET": "Europe/Berlin", "CEST": "Europe/Berlin",
+    "MET": "Europe/Berlin", "MEZ": "Europe/Berlin", "MESZ": "Europe/Berlin",
+    "UTC": "UTC", "GMT": "UTC",
+    "MSK": "Europe/Moscow", "Europe/Berlin": "Europe/Berlin", "Europe/Moscow": "Europe/Moscow",
+    "GST": "Asia/Dubai", "EST": "America/New_York", "EDT": "America/New_York",
+  };
+  const ianaZone = tzToIana[tz] || "Europe/Berlin";
+  try {
+    const fmt = new Intl.DateTimeFormat("en", { timeZone: ianaZone, timeZoneName: "longOffset" });
+    const parts = fmt.formatToParts(new Date());
+    const tzPart = parts.find(p => p.type === "timeZoneName")?.value || "";
+    const match = tzPart.match(/GMT([+-]\d{2}:\d{2})/);
+    if (match) return match[1];
+  } catch {}
+  return "+01:00";
+}
+
+function parseEventDateTimeServer(dateStr: string, timeStr: string, timezone?: string): Date | null {
+  try {
+    const match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return null;
+    const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+    if (!timeMatch) return null;
+    const offset = getTimezoneOffsetServer(timezone || "CET");
+    const dt = new Date(`${match[0]}T${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}:00${offset}`);
+    if (isNaN(dt.getTime())) return null;
+    return dt;
+  } catch { return null; }
+}
+
 function getPartnerBotToken(): string | undefined {
   if (process.env.NODE_ENV === "production") return process.env.TELEGRAM_PARTNER_BOT_TOKEN;
   return process.env.TELEGRAM_PARTNER_BOT_TOKEN_DEV || process.env.TELEGRAM_PARTNER_BOT_TOKEN;
@@ -585,11 +617,13 @@ export function registerPartnerAppRoutes(app: Express) {
       const partner = await getPartnerFromRequest(req);
       const allEvents = await storage.getScheduleEvents(true);
 
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const now = new Date();
       const events = allEvents.filter((e: any) => {
         const dateStr = e.date;
         if (!/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return false;
-        return dateStr >= todayStr;
+        const eventDt = parseEventDateTimeServer(dateStr, e.time || "00:00", e.timezone);
+        if (!eventDt) return dateStr >= now.toISOString().slice(0, 10);
+        return eventDt.getTime() > now.getTime();
       });
 
       if (partner) {

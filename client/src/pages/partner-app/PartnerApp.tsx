@@ -142,10 +142,10 @@ function RegistrationScreen({
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {[
-            { label: t("pa.register.name"), icon: User, value: name, setter: setName, type: "text", inputMode: "text" as const, required: true, testId: "input-register-name" },
-            { label: t("pa.register.cu"), icon: Hash, value: cuNumber, setter: setCuNumber, type: "text", inputMode: "text" as const, required: true, testId: "input-register-cu" },
-            { label: t("pa.register.phone"), icon: Phone, value: phone, setter: setPhone, type: "tel", inputMode: "tel" as const, required: false, placeholder: "+49 123 456 7890", testId: "input-register-phone" },
-            { label: t("pa.register.email"), icon: Mail, value: email, setter: setEmail, type: "email", inputMode: "email" as const, required: false, placeholder: "your@email.com", testId: "input-register-email" },
+            { label: t("pa.register.name"), icon: User, value: name, setter: setName, type: "text", inputMode: "text" as const, required: true, testId: "input-register-name", enterKey: "next" as const },
+            { label: t("pa.register.cu"), icon: Hash, value: cuNumber, setter: setCuNumber, type: "text", inputMode: "text" as const, required: true, testId: "input-register-cu", enterKey: "next" as const },
+            { label: t("pa.register.phone"), icon: Phone, value: phone, setter: setPhone, type: "tel", inputMode: "tel" as const, required: false, placeholder: "+49 123 456 7890", testId: "input-register-phone", enterKey: "next" as const },
+            { label: t("pa.register.email"), icon: Mail, value: email, setter: setEmail, type: "email", inputMode: "email" as const, required: false, placeholder: "your@email.com", testId: "input-register-email", enterKey: "done" as const },
           ].map(f => (
             <div key={f.testId}>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
@@ -158,7 +158,7 @@ function RegistrationScreen({
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
-                enterKeyHint="next"
+                enterKeyHint={f.enterKey}
                 onTouchStart={e => { e.currentTarget.focus(); }}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                 style={{ fontSize: "16px", WebkitTextSecurity: "none", WebkitUserSelect: "text", userSelect: "text", touchAction: "manipulation" } as React.CSSProperties}

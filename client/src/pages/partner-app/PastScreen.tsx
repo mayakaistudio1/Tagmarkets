@@ -30,7 +30,7 @@ interface EventReport {
   inviteEventIds?: number[];
 }
 
-const WEBINAR_DURATION_MS = 90 * 60 * 1000;
+const WEBINAR_DURATION_MS = 60 * 60 * 1000;
 
 function getTimezoneOffsetForDate(tz: string, refDate: Date): string {
   const tzMap: Record<string, string> = {

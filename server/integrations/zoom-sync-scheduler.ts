@@ -2,7 +2,7 @@ import { storage } from "../storage";
 import { syncZoomDataForEvent, isZoomConfigured } from "./zoom-api";
 
 const POLL_INTERVAL_MS = 10 * 60 * 1000;
-const WEBINAR_DURATION_MS = 90 * 60 * 1000;
+const WEBINAR_DURATION_MS = 60 * 60 * 1000;
 let pollerInterval: ReturnType<typeof setInterval> | null = null;
 
 function getTimezoneOffsetForDate(tz: string, refDate: Date): string {

@@ -10,7 +10,7 @@ import { notifyPartnerPersonalInviteRegistration } from "./integrations/partner-
 import { sendGuestConfirmationEmail } from "./integrations/resend-email";
 import { syncZoomDataForEvent, isZoomConfigured } from "./integrations/zoom-api";
 
-const WEBINAR_DURATION_MS = 90 * 60 * 1000;
+const WEBINAR_DURATION_MS = 60 * 60 * 1000;
 
 function getTimezoneOffsetServer(tz: string, refDate?: Date): string {
   const tzToIana: Record<string, string> = {

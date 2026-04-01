@@ -119,6 +119,7 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
   const [eventPersonalInvites, setEventPersonalInvites] = useState<EventPersonalInvite[]>([]);
   const [eventPersonalInviteStats, setEventPersonalInviteStats] = useState<EventPersonalInviteStats | null>(null);
   const [eventPersonalInvitesLoading, setEventPersonalInvitesLoading] = useState(false);
+  const [copiedInviteId, setCopiedInviteId] = useState<number | null>(null);
 
   const QUALIFY = language === "de" ? qualifyQuestionsDe : language === "ru" ? qualifyQuestionsRu : qualifyQuestionsEn;
 
@@ -345,6 +346,30 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
       case "viewed": return "text-blue-600";
       default: return "text-gray-400";
     }
+  };
+
+  const getStatusBg = (status: EventPersonalInvite["status"]) => {
+    switch (status) {
+      case "registered": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "chatted": return "bg-violet-50 text-violet-700 border-violet-200";
+      case "viewed": return "bg-blue-50 text-blue-700 border-blue-200";
+      default: return "bg-gray-50 text-gray-500 border-gray-200";
+    }
+  };
+
+  const copyInviteLink = (inv: EventPersonalInvite) => {
+    const url = `${window.location.origin}/personal-invite/${inv.inviteCode}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedInviteId(inv.id);
+      setTimeout(() => setCopiedInviteId(null), 2000);
+    });
+  };
+
+  const formatInviteDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString(language === "de" ? "de-DE" : language === "ru" ? "ru-RU" : "en-GB", { day: "numeric", month: "short" });
+    } catch { return ""; }
   };
 
   const handleFollowUp = (inv: EventPersonalInvite) => {
@@ -786,16 +811,36 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
           ) : eventPersonalInvites.length === 0 ? (
             <p className="text-xs text-gray-400 text-center py-2">{t("pa.upcoming.myInvitesEmpty")}</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {eventPersonalInvites.map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between gap-2 py-1.5" data-testid={`personal-invite-row-${inv.id}`}>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-gray-800 truncate">{inv.guestName || inv.prospectName}</p>
-                    <p className={`text-[10px] mt-0.5 ${getStatusColor(inv.status)}`}>{getStatusLabel(inv.status)}</p>
+                <div key={inv.id} className="border border-gray-100 rounded-xl p-3" data-testid={`personal-invite-card-${inv.id}`}>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-gray-800 truncate" data-testid={`text-invite-name-${inv.id}`}>{inv.guestName || inv.prospectName}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{formatInviteDate(inv.createdAt)}</p>
+                    </div>
+                    <span className={`flex-shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full border ${getStatusBg(inv.status)}`} data-testid={`status-badge-${inv.id}`}>
+                      {getStatusLabel(inv.status)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="flex-1 min-w-0 bg-gray-50 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
+                      <Link2 className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                      <p className="text-[10px] text-gray-500 truncate" data-testid={`text-invite-url-${inv.id}`}>
+                        {window.location.origin}/personal-invite/{inv.inviteCode}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => copyInviteLink(inv)}
+                      className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${copiedInviteId === inv.id ? "bg-emerald-50 text-emerald-600" : "bg-gray-50 text-gray-500 active:bg-gray-100"}`}
+                      data-testid={`button-copy-invite-${inv.id}`}
+                    >
+                      {copiedInviteId === inv.id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
                   </div>
                   <button
                     onClick={() => handleFollowUp(inv)}
-                    className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[11px] font-semibold active:bg-blue-100"
+                    className="w-full flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[11px] font-semibold active:bg-blue-100"
                     data-testid={`button-followup-${inv.id}`}
                   >
                     <Bell className="w-3 h-3" />

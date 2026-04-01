@@ -26,6 +26,7 @@ import PartnerApp from "@/pages/partner-app/PartnerApp";
 import BrollGalleryPage from "@/pages/BrollGalleryPage";
 
 const PresentationPage = React.lazy(() => import("@/pages/PresentationPage"));
+const AILandingPage = React.lazy(() => import("@/pages/AILandingPage"));
 
 function AppContent() {
   const [location, setLocation] = useLocation();
@@ -64,6 +65,14 @@ function AppContent() {
     return (
       <React.Suspense fallback={<div className="fixed inset-0 bg-black" />}>
         <PresentationPage />
+      </React.Suspense>
+    );
+  }
+
+  if (basePath === "/ai-landing" && import.meta.env.DEV) {
+    return (
+      <React.Suspense fallback={<div className="fixed inset-0 bg-black" />}>
+        <AILandingPage />
       </React.Suspense>
     );
   }

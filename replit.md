@@ -62,6 +62,14 @@ Preferred communication style: Simple, everyday language.
 - **Social Invite System**: Allows partners to share a single invite link for an event with multiple guests. Guests register via a public landing page.
 - **Guest Attendance Attribution**: Integrates with Zoom API (Server-to-Server OAuth) to fetch participant data post-webinar, matching attendees by `inviteGuestId` or email to `zoom_attendance` records.
 
+### AI Landing Page (Dev-only)
+- **Route**: `/ai-landing` (gated behind `import.meta.env.DEV`, same as `/presentation`)
+- **File**: `client/src/pages/AILandingPage.tsx`
+- **Purpose**: Cinematic scroll-driven landing page presenting JetUP AI × Recruiting concept with premium visual impact.
+- **Sections**: Hero (typewriter effect), Problem (pain points with destabilization animations), Before/After Shift (split-screen transformation), AI Infrastructure (architectural modules with interactive info cards), Maria Chat (simulated conversation with typing animation), Formula + CTA (cinematic reveal with glowing button).
+- **Visual Style**: Deep dark background, purple/violet/magenta accents, white typography, glassmorphism, Framer Motion transitions, particle canvas, light beams.
+- **Mobile**: Responsive, works in Telegram Mini App viewport.
+
 ### Other Core Features
 - **Partner Digital Hub**: Personalized partner pages (`/dennis`, `/p/dennis`) with a state machine UI (HERO, CHAT_OVERLAY, PRESENTATION_OVERLAY, ECOSYSTEM_OVERLAY). Features multilingual AI chat (GPT-4o-mini, SSE) and interactive presentation slides with video backgrounds and ecosystem map.
 - **Dennis Fast Start Promo**: Manages promotional campaigns from `dennis_promos` table, with admin CRUD, application management, and Telegram notifications.

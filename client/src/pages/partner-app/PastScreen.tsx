@@ -30,7 +30,9 @@ interface EventReport {
   inviteEventIds?: number[];
 }
 
-function getTimezoneOffset(tz: string): string {
+const WEBINAR_DURATION_MS = 90 * 60 * 1000;
+
+function getTimezoneOffsetForDate(tz: string, refDate: Date): string {
   const tzMap: Record<string, string> = {
     "CET": "Europe/Berlin", "CEST": "Europe/Berlin", "MET": "Europe/Berlin",
     "MEZ": "Europe/Berlin", "MESZ": "Europe/Berlin", "UTC": "UTC", "GMT": "UTC",
@@ -39,7 +41,7 @@ function getTimezoneOffset(tz: string): string {
   const ianaZone = tzMap[tz] || "Europe/Berlin";
   try {
     const fmt = new Intl.DateTimeFormat("en", { timeZone: ianaZone, timeZoneName: "longOffset" });
-    const parts = fmt.formatToParts(new Date());
+    const parts = fmt.formatToParts(refDate);
     const tzPart = parts.find(p => p.type === "timeZoneName")?.value || "";
     const match = tzPart.match(/GMT([+-]\d{2}:\d{2})/);
     if (match) return match[1];
@@ -54,9 +56,11 @@ function isPast(dateStr: string, timeStr: string, timezone?: string): boolean {
     if (parts.length === 3) {
       isoDate = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
     }
-    const offset = getTimezoneOffset(timezone || "CET");
-    const dt = new Date(`${isoDate}T${timeStr || "00:00"}:00${offset}`);
-    return dt <= new Date();
+    const roughDate = new Date(`${isoDate}T12:00:00Z`);
+    const offset = getTimezoneOffsetForDate(timezone || "CET", roughDate);
+    const startDt = new Date(`${isoDate}T${timeStr || "00:00"}:00${offset}`);
+    const endDt = new Date(startDt.getTime() + WEBINAR_DURATION_MS);
+    return endDt <= new Date();
   } catch { return false; }
 }
 

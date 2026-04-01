@@ -2,9 +2,10 @@ import { storage } from "../storage";
 import { syncZoomDataForEvent, isZoomConfigured } from "./zoom-api";
 
 const POLL_INTERVAL_MS = 10 * 60 * 1000;
+const WEBINAR_DURATION_MS = 90 * 60 * 1000;
 let pollerInterval: ReturnType<typeof setInterval> | null = null;
 
-function getTimezoneOffset(tz: string): string {
+function getTimezoneOffsetForDate(tz: string, refDate: Date): string {
   const tzToIana: Record<string, string> = {
     "CET": "Europe/Berlin", "CEST": "Europe/Berlin",
     "MET": "Europe/Berlin", "MEZ": "Europe/Berlin", "MESZ": "Europe/Berlin",
@@ -15,7 +16,7 @@ function getTimezoneOffset(tz: string): string {
   const ianaZone = tzToIana[tz] || "Europe/Berlin";
   try {
     const fmt = new Intl.DateTimeFormat("en", { timeZone: ianaZone, timeZoneName: "longOffset" });
-    const parts = fmt.formatToParts(new Date());
+    const parts = fmt.formatToParts(refDate);
     const tzPart = parts.find(p => p.type === "timeZoneName")?.value || "";
     const match = tzPart.match(/GMT([+-]\d{2}:\d{2})/);
     if (match) return match[1];
@@ -29,7 +30,8 @@ function parseEventDateTime(dateStr: string, timeStr: string, timezone?: string)
     if (!match) return null;
     const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
     if (!timeMatch) return null;
-    const offset = getTimezoneOffset(timezone || "CET");
+    const roughDate = new Date(`${match[0]}T12:00:00Z`);
+    const offset = getTimezoneOffsetForDate(timezone || "CET", roughDate);
     const dt = new Date(`${match[0]}T${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}:00${offset}`);
     if (isNaN(dt.getTime())) return null;
     return dt;
@@ -46,13 +48,13 @@ export async function checkAndAutoSyncZoom(): Promise<number> {
     const now = new Date();
 
     for (const se of allScheduleEvents) {
-      const eventDt = parseEventDateTime(se.date, se.time, se.timezone);
-      if (!eventDt) continue;
+      const eventStartDt = parseEventDateTime(se.date, se.time, se.timezone);
+      if (!eventStartDt) continue;
 
-      const msSinceEvent = now.getTime() - eventDt.getTime();
-      const minSinceEvent = msSinceEvent / (60 * 1000);
+      const eventEndDt = new Date(eventStartDt.getTime() + WEBINAR_DURATION_MS);
+      const minSinceEnd = (now.getTime() - eventEndDt.getTime()) / (60 * 1000);
 
-      if (minSinceEvent < 30 || minSinceEvent > 90) continue;
+      if (minSinceEnd < 30 || minSinceEnd > 90) continue;
 
       if (!se.link) continue;
 

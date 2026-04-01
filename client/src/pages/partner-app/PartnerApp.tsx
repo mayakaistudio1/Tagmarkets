@@ -321,7 +321,7 @@ export default function PartnerApp() {
   const isTelegramContext = !!(window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id;
 
   return (
-    <div className="h-full flex flex-col bg-[#F5F5F7] overflow-hidden">
+    <div className="h-full flex flex-col bg-[#F5F5F7] overflow-hidden partner-app-shell">
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-2.5 bg-white border-b border-gray-100">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">

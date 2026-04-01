@@ -48,7 +48,11 @@ body {
   line-height: 1.6;
 }
 
-input, textarea, select {
+[data-testid="registration-screen"] input,
+[data-testid="registration-screen"] textarea,
+[data-testid="registration-screen"] select,
+.partner-app-shell input,
+.partner-app-shell textarea {
   -webkit-user-select: text !important;
   user-select: text !important;
   touch-action: manipulation;

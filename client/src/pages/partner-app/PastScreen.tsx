@@ -46,7 +46,7 @@ function getTimezoneOffsetForDate(tz: string, refDate: Date): string {
     const match = tzPart.match(/GMT([+-]\d{2}:\d{2})/);
     if (match) return match[1];
   } catch {}
-  return "+02:00";
+  return "+01:00";
 }
 
 function isPast(dateStr: string, timeStr: string, timezone?: string): boolean {

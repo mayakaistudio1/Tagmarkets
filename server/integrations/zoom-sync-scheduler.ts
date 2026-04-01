@@ -56,8 +56,6 @@ export async function checkAndAutoSyncZoom(): Promise<number> {
 
       if (minSinceEnd < 30 || minSinceEnd > 90) continue;
 
-      if (!se.link) continue;
-
       const allInviteEvents = await storage.getInviteEventsByScheduleEventId(se.id);
       if (allInviteEvents.length === 0) continue;
 

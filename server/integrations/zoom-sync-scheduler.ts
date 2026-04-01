@@ -3,6 +3,7 @@ import { syncZoomDataForEvent, isZoomConfigured } from "./zoom-api";
 
 const POLL_INTERVAL_MS = 10 * 60 * 1000;
 let pollerInterval: ReturnType<typeof setInterval> | null = null;
+const syncedScheduleEventIds = new Set<number>();
 
 function getTimezoneOffset(tz: string): string {
   const tzToIana: Record<string, string> = {
@@ -46,13 +47,15 @@ export async function checkAndAutoSyncZoom(): Promise<number> {
     const now = new Date();
 
     for (const se of allScheduleEvents) {
+      if (syncedScheduleEventIds.has(se.id)) continue;
+
       const eventDt = parseEventDateTime(se.date, se.time, se.timezone);
       if (!eventDt) continue;
 
       const msSinceEvent = now.getTime() - eventDt.getTime();
       const minSinceEvent = msSinceEvent / (60 * 1000);
 
-      if (minSinceEvent < 30 || minSinceEvent > 1440) continue;
+      if (minSinceEvent < 30 || minSinceEvent > 90) continue;
 
       if (!se.link) continue;
 
@@ -61,7 +64,10 @@ export async function checkAndAutoSyncZoom(): Promise<number> {
 
       const firstEvent = allInviteEvents[0];
       const existingAttendance = await storage.getZoomAttendanceByEventId(firstEvent.id);
-      if (existingAttendance.length > 0) continue;
+      if (existingAttendance.length > 0) {
+        syncedScheduleEventIds.add(se.id);
+        continue;
+      }
 
       console.log(`[ZoomAutoSync] Event "${se.title}" ended ${Math.round(minSinceEvent)}min ago — syncing ${allInviteEvents.length} invite event(s)`);
 
@@ -76,6 +82,8 @@ export async function checkAndAutoSyncZoom(): Promise<number> {
           console.error(`[ZoomAutoSync] Failed for inviteEvent ${ie.id}:`, err);
         }
       }
+
+      syncedScheduleEventIds.add(se.id);
     }
 
     if (syncedTotal > 0) {

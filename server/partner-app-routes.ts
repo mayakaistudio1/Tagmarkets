@@ -663,8 +663,19 @@ export function registerPartnerAppRoutes(app: Express) {
 
       const events = await storage.getInviteEventsByPartnerId(partner.id);
 
+      const scheduleEventIds = [...new Set(events.filter(e => e.scheduleEventId).map(e => e.scheduleEventId!))];
+      const scheduleEventsMap = new Map<number, { timezone: string }>();
+      if (scheduleEventIds.length > 0) {
+        const allSe = await storage.getScheduleEvents();
+        for (const seId of scheduleEventIds) {
+          const se = allSe.find((s: any) => s.id === seId);
+          if (se) scheduleEventsMap.set(seId, { timezone: se.timezone || "CET" });
+        }
+      }
+
       const grouped = new Map<string, {
         title: string; eventDate: string; eventTime: string; scheduleEventId: number | null;
+        timezone: string;
         inviteEvents: typeof events;
         totalGuests: number; totalAttended: number; totalClicked: number; invitesSent: number;
       }>();
@@ -672,9 +683,10 @@ export function registerPartnerAppRoutes(app: Express) {
       for (const event of events) {
         const key = event.scheduleEventId?.toString() || event.title;
         if (!grouped.has(key)) {
+          const tz = event.scheduleEventId ? (scheduleEventsMap.get(event.scheduleEventId)?.timezone || "CET") : "CET";
           grouped.set(key, {
             title: event.title, eventDate: event.eventDate, eventTime: event.eventTime,
-            scheduleEventId: event.scheduleEventId,
+            scheduleEventId: event.scheduleEventId, timezone: tz,
             inviteEvents: [], totalGuests: 0, totalAttended: 0, totalClicked: 0, invitesSent: 0,
           });
         }
@@ -695,6 +707,7 @@ export function registerPartnerAppRoutes(app: Express) {
         title: g.title,
         eventDate: g.eventDate,
         eventTime: g.eventTime,
+        timezone: g.timezone,
         scheduleEventId: g.scheduleEventId,
         invitesSent: g.invitesSent,
         registeredCount: g.totalGuests,

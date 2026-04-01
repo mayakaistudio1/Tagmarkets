@@ -10,6 +10,7 @@ import { getPartnerAuthHeader } from "./partnerAuth";
 
 interface PartnerEvent {
   id: number; title: string; eventDate: string; eventTime: string;
+  timezone?: string;
   registeredCount: number; attendedCount: number; conversionRate: number;
   guestCount: number; clickedCount: number; invitesSent: number;
   inviteEventIds?: number[];
@@ -46,14 +47,14 @@ function getTimezoneOffset(tz: string): string {
   return "+02:00";
 }
 
-function isPast(dateStr: string, timeStr: string): boolean {
+function isPast(dateStr: string, timeStr: string, timezone?: string): boolean {
   try {
     let isoDate = dateStr;
     const parts = dateStr.split(".");
     if (parts.length === 3) {
       isoDate = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
     }
-    const offset = getTimezoneOffset("CET");
+    const offset = getTimezoneOffset(timezone || "CET");
     const dt = new Date(`${isoDate}T${timeStr || "00:00"}:00${offset}`);
     return dt <= new Date();
   } catch { return false; }
@@ -95,7 +96,7 @@ export default function PastScreen({ telegramId }: { telegramId: string }) {
     fetch("/api/partner-app/events", { headers: { ...getPartnerAuthHeader() } })
       .then(r => r.json())
       .then(data => {
-        const past = (data || []).filter((e: PartnerEvent) => isPast(e.eventDate, e.eventTime));
+        const past = (data || []).filter((e: PartnerEvent) => isPast(e.eventDate, e.eventTime, e.timezone));
         setEvents(past);
         setLoading(false);
       })

@@ -339,15 +339,6 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
     }
   };
 
-  const getStatusColor = (status: EventPersonalInvite["status"]) => {
-    switch (status) {
-      case "registered": return "text-emerald-600";
-      case "chatted": return "text-violet-600";
-      case "viewed": return "text-blue-600";
-      default: return "text-gray-400";
-    }
-  };
-
   const getStatusBg = (status: EventPersonalInvite["status"]) => {
     switch (status) {
       case "registered": return "bg-emerald-50 text-emerald-700 border-emerald-200";
@@ -359,10 +350,27 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
 
   const copyInviteLink = (inv: EventPersonalInvite) => {
     const url = `${window.location.origin}/personal-invite/${inv.inviteCode}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopiedInviteId(inv.id);
-      setTimeout(() => setCopiedInviteId(null), 2000);
-    });
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopiedInviteId(inv.id);
+        setTimeout(() => setCopiedInviteId(null), 2000);
+      }).catch(() => {
+        fallbackCopy(url, inv.id);
+      });
+    } else {
+      fallbackCopy(url, inv.id);
+    }
+  };
+
+  const fallbackCopy = (text: string, invId: number) => {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); setCopiedInviteId(invId); setTimeout(() => setCopiedInviteId(null), 2000); } catch {}
+    document.body.removeChild(ta);
   };
 
   const formatInviteDate = (dateStr: string) => {

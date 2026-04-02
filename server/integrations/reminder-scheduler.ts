@@ -1,5 +1,4 @@
 import { storage } from "../storage";
-import { sendTelegramMessageToChat } from "./telegram-notify";
 import { db } from "../db";
 import { sql } from "drizzle-orm";
 import { sendGuestReminderEmail } from "./resend-email";
@@ -13,33 +12,6 @@ function getPartnerBotToken(): string | undefined {
   return process.env.TELEGRAM_PARTNER_BOT_TOKEN_DEV || process.env.TELEGRAM_PARTNER_BOT_TOKEN;
 }
 
-async function sendTelegramMessageByUsername(username: string, text: string): Promise<boolean> {
-  const token = getPartnerBotToken();
-  if (!token) {
-    console.warn("Telegram guest reminder skipped: partner bot token not set");
-    return false;
-  }
-
-  const chatId = username.startsWith("@") ? username : `@${username}`;
-
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
-    });
-    if (!res.ok) {
-      const err = await res.text();
-      console.warn(`Telegram guest reminder to ${chatId} failed (user may not have started bot): ${err}`);
-      return false;
-    }
-    console.log(`Telegram reminder sent to ${chatId}`);
-    return true;
-  } catch (error) {
-    console.error("Telegram guest reminder send failed:", error);
-    return false;
-  }
-}
 
 async function sendPartnerBotMessage(chatId: string, text: string): Promise<boolean> {
   const token = getPartnerBotToken();
@@ -153,9 +125,8 @@ async function sendReminderForInvite(
   const goLink = `${baseUrl}/go/${guestToken}`;
   const selectedChannel = invite.reminderChannel || invite.preferredChannel || "email";
 
-  let guestEmailSent = true;
   if (selectedChannel === "email" && invite.guestEmail) {
-    guestEmailSent = await sendGuestReminderEmail({
+    const emailSent = await sendGuestReminderEmail({
       to: invite.guestEmail,
       name: guestName,
       eventTitle: event.title,
@@ -167,16 +138,15 @@ async function sendReminderForInvite(
       goLink,
       language: guestLang,
     }).catch((err) => {
-      console.error(`Failed to send guest reminder email to ${invite.guestEmail}:`, err);
+      console.error(`[Reminder] Failed to send guest reminder email to ${invite.guestEmail}:`, err);
       return false;
     });
+    return emailSent;
   }
 
   if (selectedChannel === "telegram") {
-    const hasTgChatId = !!invite.telegramChatId;
-    const hasTgUsername = !!invite.guestTelegram;
-
-    if (hasTgChatId || hasTgUsername) {
+    const isNumericChatId = invite.telegramChatId && /^-?\d+$/.test(invite.telegramChatId);
+    if (isNumericChatId) {
       const safeTitle = event.title.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const safeSpeaker = event.speaker.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -187,20 +157,20 @@ async function sendReminderForInvite(
       };
       const tgMsg = reminderTexts[guestLang] || reminderTexts.de;
 
-      if (hasTgChatId) {
-        sendPartnerBotMessage(invite.telegramChatId, tgMsg).catch((err) =>
-          console.error(`Telegram reminder via chat_id to ${invite.telegramChatId} failed:`, err)
-        );
-      } else if (hasTgUsername) {
-        const tgHandle = invite.guestTelegram!.replace("@", "").trim();
-        sendTelegramMessageByUsername(tgHandle, tgMsg).catch((err) =>
-          console.error(`Telegram reminder to @${tgHandle} failed:`, err)
-        );
+      const tgSent = await sendPartnerBotMessage(invite.telegramChatId, tgMsg);
+      if (tgSent) {
+        console.log(`[Reminder] Telegram guest reminder delivered to chat_id=${invite.telegramChatId} for invite#${invite.id}`);
+      } else {
+        console.warn(`[Reminder] Telegram guest reminder FAILED for chat_id=${invite.telegramChatId} invite#${invite.id}`);
       }
+      return tgSent;
+    } else {
+      console.log(`[Reminder] Telegram reminder skipped for invite#${invite.id}: no numeric chat_id (username-only: ${invite.guestTelegram || 'none'})`);
+      return false;
     }
   }
 
-  return guestEmailSent;
+  return true;
 }
 
 export async function checkAndSendReminders(): Promise<number> {
@@ -208,21 +178,25 @@ export async function checkAndSendReminders(): Promise<number> {
 
   try {
     const pendingInvites = await storage.getPersonalInvitesPendingAutoReminder();
+    console.log(`[Reminder] Cycle start: ${pendingInvites.length} pending invite(s) to check`);
     if (pendingInvites.length === 0) return 0;
 
     const now = new Date();
-
+    let skippedEventPassed = 0;
+    let skippedNoPartner = 0;
+    let skippedOutsideWindow = 0;
     for (const invite of pendingInvites) {
       try {
         const event = await storage.getScheduleEvent(invite.scheduleEventId);
         if (!event) {
           await storage.markPersonalInviteReminderSent(invite.id);
+          console.log(`[Reminder] invite#${invite.id}: event not found, marking as sent`);
           continue;
         }
 
         const eventTime = parseEventDateTime(event.date, event.time, event.timezone);
         if (!eventTime) {
-          console.warn(`Cannot parse event date/time for event ${event.id}: ${event.date} ${event.time}`);
+          console.warn(`[Reminder] invite#${invite.id}: cannot parse event date/time for event ${event.id}: ${event.date} ${event.time}`);
           continue;
         }
 
@@ -230,6 +204,7 @@ export async function checkAndSendReminders(): Promise<number> {
 
         if (msUntilEvent < 0) {
           await storage.markPersonalInviteReminderSent(invite.id);
+          skippedEventPassed++;
           continue;
         }
 
@@ -240,6 +215,7 @@ export async function checkAndSendReminders(): Promise<number> {
         const partner = await storage.getPartnerById(invite.partnerId);
         if (!partner) {
           await storage.markPersonalInviteReminderSent(invite.id);
+          skippedNoPartner++;
           continue;
         }
 
@@ -248,7 +224,9 @@ export async function checkAndSendReminders(): Promise<number> {
           if (ok) {
             await storage.markPersonalInviteReminder24hSent(invite.id);
             sentCount++;
-            console.log(`24h reminder sent for guest ${invite.guestName || invite.prospectName}`);
+            console.log(`[Reminder] 24h reminder SENT for invite#${invite.id} guest="${invite.guestName || invite.prospectName}" channel=${invite.reminderChannel || 'default'}`);
+          } else {
+            console.log(`[Reminder] 24h reminder FAILED for invite#${invite.id} guest="${invite.guestName || invite.prospectName}"`);
           }
           continue;
         }
@@ -258,19 +236,21 @@ export async function checkAndSendReminders(): Promise<number> {
           if (ok) {
             await storage.markPersonalInviteReminderSent(invite.id);
             sentCount++;
-            console.log(`1h reminder sent for guest ${invite.guestName || invite.prospectName}`);
+            console.log(`[Reminder] 1h reminder SENT for invite#${invite.id} guest="${invite.guestName || invite.prospectName}" channel=${invite.reminderChannel || 'default'}`);
+          } else {
+            console.log(`[Reminder] 1h reminder FAILED for invite#${invite.id} guest="${invite.guestName || invite.prospectName}"`);
           }
+        } else {
+          skippedOutsideWindow++;
         }
       } catch (err) {
-        console.error(`Error processing reminder for invite ${invite.id}:`, err);
+        console.error(`[Reminder] Error processing invite#${invite.id}:`, err);
       }
     }
 
-    if (sentCount > 0) {
-      console.log(`Sent ${sentCount} reminder notification(s) this cycle`);
-    }
+    console.log(`[Reminder] Cycle complete: ${sentCount} sent, ${skippedEventPassed} event-passed, ${skippedNoPartner} no-partner, ${skippedOutsideWindow} outside-window`);
   } catch (error) {
-    console.error("Reminder scheduler error:", error);
+    console.error("[Reminder] Scheduler error:", error);
   }
 
   return sentCount;

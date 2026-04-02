@@ -98,6 +98,10 @@ export interface IStorage {
   updatePersonalInviteTelegram(id: number, telegramChatId: string): Promise<PersonalInvite>;
   markPersonalInviteReminderSent(id: number): Promise<PersonalInvite>;
   markPersonalInviteReminder24hSent(id: number): Promise<PersonalInvite>;
+  getPersonalInvitesByScheduleEventId(scheduleEventId: number): Promise<PersonalInvite[]>;
+  findInviteGuestByEmailAndEvent(email: string, inviteEventId: number): Promise<InviteGuest | undefined>;
+  updateZoomAttendanceGuestId(attendanceId: number, inviteGuestId: number): Promise<void>;
+  deleteZoomAttendanceByEventId(eventId: number): Promise<void>;
 
   getSetting(key: string): Promise<string | null>;
   setSetting(key: string, value: string): Promise<void>;
@@ -559,6 +563,30 @@ export class DatabaseStorage implements IStorage {
 
   async getZoomAttendanceByEventId(eventId: number): Promise<ZoomAttendance[]> {
     return db.select().from(zoomAttendance).where(eq(zoomAttendance.inviteEventId, eventId));
+  }
+
+  async getPersonalInvitesByScheduleEventId(scheduleEventId: number): Promise<PersonalInvite[]> {
+    return db.select().from(personalInvites)
+      .where(eq(personalInvites.scheduleEventId, scheduleEventId));
+  }
+
+  async findInviteGuestByEmailAndEvent(email: string, inviteEventId: number): Promise<InviteGuest | undefined> {
+    const [guest] = await db.select().from(inviteGuests)
+      .where(and(
+        eq(inviteGuests.inviteEventId, inviteEventId),
+        sql`LOWER(${inviteGuests.email}) = LOWER(${email})`
+      ));
+    return guest;
+  }
+
+  async updateZoomAttendanceGuestId(attendanceId: number, inviteGuestId: number): Promise<void> {
+    await db.update(zoomAttendance)
+      .set({ inviteGuestId })
+      .where(eq(zoomAttendance.id, attendanceId));
+  }
+
+  async deleteZoomAttendanceByEventId(eventId: number): Promise<void> {
+    await db.delete(zoomAttendance).where(eq(zoomAttendance.inviteEventId, eventId));
   }
 
   async getSetting(key: string): Promise<string | null> {

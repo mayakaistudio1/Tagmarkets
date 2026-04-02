@@ -1597,7 +1597,12 @@ Return ONLY a JSON array with 2 message strings. Example: ["Message 1 text", "Me
         }
       }
 
-      const result = await syncZoomDataForEvent(event.id, event.zoomLink, event.eventDate ?? undefined);
+      let zoomUrl = event.zoomLink;
+      if (!zoomUrl && event.scheduleEventId) {
+        const se = await storage.getScheduleEvent(event.scheduleEventId);
+        if (se) zoomUrl = se.link;
+      }
+      const result = await syncZoomDataForEvent(event.id, zoomUrl, event.eventDate ?? undefined);
 
       if (result.error) {
         return res.status(400).json({ error: result.error });

@@ -22,6 +22,7 @@ import { sendTelegramNotification, formatPromoApplicationMessage } from "./integ
 import { startVerificationPoller, checkAndProcessVerifications } from "./integrations/promo-verification-poller";
 import { startReminderScheduler } from "./integrations/reminder-scheduler";
 import { startZoomSyncScheduler } from "./integrations/zoom-sync-scheduler";
+import { syncZoomDataForEvent } from "./integrations/zoom-api";
 import { registerPartnerBotRoutes, notifyPartnerNewRegistration } from "./integrations/partner-bot";
 import { registerPartnerAppRoutes } from "./partner-app-routes";
 
@@ -1244,6 +1245,22 @@ Return ONLY valid JSON in this format (all text values must be in ${reportLang})
             const se = await storage.getScheduleEvent(personalInvite.scheduleEventId);
             zoomLink = se?.link || null;
           }
+          if (personalInvite.guestEmail && personalInvite.scheduleEventId && personalInvite.partnerId) {
+            try {
+              const partnerInviteEvents = await storage.getInviteEventsByPartnerId(personalInvite.partnerId);
+              const siblingEvents = partnerInviteEvents.filter(ie => ie.scheduleEventId === personalInvite.scheduleEventId);
+              for (const ie of siblingEvents) {
+                const linkedGuest = await storage.findInviteGuestByEmailAndEvent(personalInvite.guestEmail, ie.id);
+                if (linkedGuest) {
+                  await storage.markGuestGoClicked(linkedGuest.id);
+                  console.log(`[/go] Propagated go_clicked_at from personal_invite#${personalInvite.id} to invite_guest#${linkedGuest.id} (partner#${personalInvite.partnerId})`);
+                  break;
+                }
+              }
+            } catch (err) {
+              console.error("[/go] Error propagating go_clicked_at to invite_guest:", err);
+            }
+          }
         }
       }
 
@@ -1415,6 +1432,145 @@ h1{font-size:1.25rem;color:#1a1a1a;margin:0 0 .5rem}p{color:#666;font-size:.9rem
     try {
       await storage.deletePartner(parseInt(req.params.id));
       res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/admin/invites-grouped", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const allScheduleEvents = await storage.getScheduleEvents();
+      const allInviteEvents = await storage.getAllInviteEvents();
+      const zoomCounts = await storage.getZoomAttendanceCounts();
+      const allPartners = await storage.getAllPartners();
+      const partnerMap = new Map(allPartners.map(p => [p.id, p]));
+
+      const grouped = [];
+
+      for (const se of allScheduleEvents) {
+        const relatedInvites = allInviteEvents.filter(ie => ie.scheduleEventId === se.id);
+        if (relatedInvites.length === 0) continue;
+
+        let totalInvited = 0;
+        let totalRegistered = 0;
+        let totalAttended = 0;
+
+        const partnerBreakdown = [];
+
+        for (const ie of relatedInvites) {
+          const guests = await storage.getGuestsByEventId(ie.id);
+          const attendance = await storage.getZoomAttendanceByEventId(ie.id);
+          const attendedByGuestId = new Set(attendance.filter(a => a.inviteGuestId).map(a => a.inviteGuestId));
+          const attendedByEmail = new Map(attendance.map(a => [a.participantEmail.toLowerCase(), a]));
+
+          const registered = guests.length;
+          const attended = guests.filter(g =>
+            attendedByGuestId.has(g.id) || attendedByEmail.has(g.email.toLowerCase())
+          ).length;
+          const matchedGuestIds = new Set(guests.filter(g =>
+            attendedByGuestId.has(g.id) || attendedByEmail.has(g.email.toLowerCase())
+          ).map(g => g.id));
+          const walkIns = attendance.filter(a =>
+            !a.inviteGuestId && !guests.some(g => g.email.toLowerCase() === a.participantEmail.toLowerCase())
+          ).length;
+          const zoomSynced = zoomCounts[ie.id] || 0;
+
+          totalRegistered += registered;
+          totalAttended += attended + walkIns;
+
+          const partner = ie.partnerId ? partnerMap.get(ie.partnerId) : null;
+
+          partnerBreakdown.push({
+            inviteEventId: ie.id,
+            partnerId: ie.partnerId,
+            partnerName: ie.partnerName,
+            partnerCu: ie.partnerCu,
+            inviteCode: ie.inviteCode,
+            isActive: ie.isActive,
+            registered,
+            clicked: ie.clickedCount || 0,
+            attended: attended + walkIns,
+            walkIns,
+            zoomSynced,
+            guests: guests.map(g => ({
+              id: g.id,
+              name: g.name,
+              email: g.email,
+              phone: g.phone,
+              registeredAt: g.registeredAt,
+              clickedZoom: g.clickedZoom,
+              goClickedAt: g.goClickedAt,
+              invitationMethod: g.invitationMethod,
+              attended: attendedByGuestId.has(g.id) || attendedByEmail.has(g.email.toLowerCase()),
+              durationMinutes: (attendance.find(a => a.inviteGuestId === g.id) || attendedByEmail.get(g.email.toLowerCase()))?.durationMinutes ?? null,
+              questionsAsked: (attendance.find(a => a.inviteGuestId === g.id) || attendedByEmail.get(g.email.toLowerCase()))?.questionsAsked ?? null,
+              joinTime: (attendance.find(a => a.inviteGuestId === g.id) || attendedByEmail.get(g.email.toLowerCase()))?.joinTime ?? null,
+            })),
+          });
+        }
+
+        const personalInvites = await storage.getPersonalInvitesByScheduleEventId(se.id);
+        const unregisteredPi = personalInvites.filter(pi => !pi.registeredAt).length;
+        totalInvited = unregisteredPi + totalRegistered;
+
+        grouped.push({
+          scheduleEvent: {
+            id: se.id,
+            title: se.title,
+            date: se.date,
+            time: se.time,
+            timezone: se.timezone,
+            speaker: se.speaker,
+            link: se.link,
+            isActive: se.isActive,
+          },
+          stats: {
+            totalPartners: relatedInvites.length,
+            totalInvited,
+            totalRegistered,
+            totalAttended,
+          },
+          partners: partnerBreakdown,
+        });
+      }
+
+      grouped.sort((a, b) => b.scheduleEvent.date.localeCompare(a.scheduleEvent.date));
+      res.json(grouped);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admin/zoom-resync-all", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const allScheduleEvents = await storage.getScheduleEvents();
+      let totalSynced = 0;
+      let totalErrors = 0;
+      const results: Array<{ eventId: number; title: string; synced: number; error?: string }> = [];
+
+      for (const se of allScheduleEvents) {
+        if (!se.link) continue;
+        const inviteEventsForSe = await storage.getInviteEventsByScheduleEventId(se.id);
+
+        for (const ie of inviteEventsForSe) {
+          try {
+            await storage.deleteZoomAttendanceByEventId(ie.id);
+            const zoomUrl = ie.zoomLink || se.link;
+            const result = await syncZoomDataForEvent(ie.id, zoomUrl, ie.eventDate ?? undefined);
+            totalSynced += result.synced;
+            results.push({ eventId: ie.id, title: se.title, synced: result.synced, error: result.error });
+            if (result.error) totalErrors++;
+          } catch (err: any) {
+            totalErrors++;
+            results.push({ eventId: ie.id, title: se.title, synced: 0, error: err.message });
+          }
+        }
+      }
+
+      console.log(`[ZoomResyncAll] Complete: ${totalSynced} total synced, ${totalErrors} errors`);
+      res.json({ totalSynced, totalErrors, results });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

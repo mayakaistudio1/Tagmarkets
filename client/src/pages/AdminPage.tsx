@@ -93,6 +93,56 @@ interface InviteEvent {
   zoomSyncedCount?: number;
 }
 
+interface GroupedGuest {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string | null;
+  registeredAt: string;
+  clickedZoom: boolean;
+  goClickedAt?: string | null;
+  invitationMethod?: string | null;
+  attended: boolean;
+  durationMinutes?: number | null;
+  questionsAsked?: number | null;
+  joinTime?: string | null;
+}
+
+interface PartnerBreakdown {
+  inviteEventId: number;
+  partnerId: number | null;
+  partnerName: string;
+  partnerCu: string;
+  inviteCode: string;
+  isActive: boolean;
+  registered: number;
+  clicked: number;
+  attended: number;
+  walkIns: number;
+  zoomSynced: number;
+  guests: GroupedGuest[];
+}
+
+interface GroupedWebinar {
+  scheduleEvent: {
+    id: number;
+    title: string;
+    date: string;
+    time: string;
+    timezone: string;
+    speaker: string;
+    link: string;
+    isActive: boolean;
+  };
+  stats: {
+    totalPartners: number;
+    totalInvited: number;
+    totalRegistered: number;
+    totalAttended: number;
+  };
+  partners: PartnerBreakdown[];
+}
+
 interface AdminPartner {
   id: number;
   name: string;
@@ -246,6 +296,7 @@ function AdminPage() {
   const [selectedInviteReport, setSelectedInviteReport] = useState<InviteEvent | null>(null);
   const [inviteGuests, setInviteGuests] = useState<InviteGuest[]>([]);
   const [guestsLoading, setGuestsLoading] = useState(false);
+  const [groupedWebinars, setGroupedWebinars] = useState<GroupedWebinar[]>([]);
 
   const headers = useCallback(
     () => ({
@@ -592,6 +643,20 @@ function AdminPage() {
     }
   }, [headers]);
 
+  const fetchGroupedInvites = useCallback(async () => {
+    setInvitesLoading(true);
+    try {
+      const res = await fetch("/api/admin/invites-grouped", { headers: headers() });
+      if (handleAuthError(res)) return;
+      if (res.ok) setGroupedWebinars(await res.json());
+      else setErrorMsg("Fehler beim Laden der Einladungen");
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    } finally {
+      setInvitesLoading(false);
+    }
+  }, [headers]);
+
   const saveInviteEvent = async (event: Partial<InviteEvent>) => {
     const method = "POST";
     const url = "/api/admin/invite-events";
@@ -673,9 +738,9 @@ function AdminPage() {
     if (activeTab === "schedule") { fetchEvents(); fetchSpeakers(); }
     if (activeTab === "speakers") fetchSpeakers();
     if (activeTab === "promo") { fetchPromoApps(); fetchDennisPromos(); }
-    if (activeTab === "invites") fetchInviteEvents();
+    if (activeTab === "invites") { fetchGroupedInvites(); fetchInviteEvents(); }
     if (activeTab === "partners") fetchPartners();
-  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps, fetchInviteEvents, fetchPartners]);
+  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps, fetchInviteEvents, fetchGroupedInvites, fetchPartners]);
 
   if (!isLoggedIn) {
     return (
@@ -859,21 +924,11 @@ function AdminPage() {
         )}
         {activeTab === "invites" && (
           <InvitesTab
-            events={inviteEvents}
+            groupedWebinars={groupedWebinars}
             loading={invitesLoading}
-            formOpen={inviteFormOpen}
-            setFormOpen={setInviteFormOpen}
-            editing={editingInvite}
-            setEditing={setEditingInvite}
-            onSave={saveInviteEvent}
-            onReport={fetchInviteReport}
-            onSendTelegramReport={sendInviteTelegramReport}
-            onZoomSync={syncZoomData}
-            selectedReport={selectedInviteReport}
-            setSelectedReport={setSelectedInviteReport}
-            guests={inviteGuests}
-            guestsLoading={guestsLoading}
             headers={headers}
+            onRefresh={fetchGroupedInvites}
+            onSendTelegramReport={sendInviteTelegramReport}
           />
         )}
         {activeTab === "partners" && (
@@ -2631,25 +2686,22 @@ function PromoApplicationsSubTab({
 export default AdminPage;
 
 function InvitesTab({
-  events, loading, formOpen, setFormOpen, editing, setEditing, onSave, onReport, onSendTelegramReport, onZoomSync, selectedReport, setSelectedReport, guests, guestsLoading, headers
+  groupedWebinars, loading, headers, onRefresh, onSendTelegramReport
 }: {
-  events: InviteEvent[]; loading: boolean; formOpen: boolean; setFormOpen: (v: boolean) => void;
-  editing: Partial<InviteEvent> | null; setEditing: (v: Partial<InviteEvent> | null) => void;
-  onSave: (e: Partial<InviteEvent>) => void;
-  onReport: (id: number) => void;
-  onSendTelegramReport: (id: number) => void;
-  onZoomSync: (eventId: number) => void;
-  selectedReport: InviteEvent | null;
-  setSelectedReport: (v: InviteEvent | null) => void;
-  guests: InviteGuest[];
-  guestsLoading: boolean;
+  groupedWebinars: GroupedWebinar[];
+  loading: boolean;
   headers: () => Record<string, string>;
+  onRefresh: () => void;
+  onSendTelegramReport: (id: number) => void;
 }) {
   const [zoomStatus, setZoomStatus] = useState<{ configured: boolean; ok: boolean; error?: string } | null>(null);
   const [zoomChecking, setZoomChecking] = useState(false);
   const [showZoomConfig, setShowZoomConfig] = useState(false);
   const [zoomCreds, setZoomCreds] = useState({ accountId: "", clientId: "", clientSecret: "" });
   const [zoomSaving, setZoomSaving] = useState(false);
+  const [resyncLoading, setResyncLoading] = useState(false);
+  const [expandedWebinar, setExpandedWebinar] = useState<number | null>(null);
+  const [expandedPartner, setExpandedPartner] = useState<number | null>(null);
 
   const checkZoomStatus = async () => {
     setZoomChecking(true);
@@ -2680,20 +2732,34 @@ function InvitesTab({
     setZoomSaving(false);
   };
 
-  useEffect(() => { checkZoomStatus(); }, []);
-  const openNew = () => { setEditing({ partnerName: "", partnerCu: "", zoomLink: "", title: "", eventDate: "", eventTime: "", isActive: true }); setFormOpen(true); };
-  const closeForm = () => { setFormOpen(false); setEditing(null); };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert("Kopiert!");
+  const resyncAll = async () => {
+    if (!confirm("Re-sync all Zoom attendance data? This will clear and re-fetch all attendance records.")) return;
+    setResyncLoading(true);
+    try {
+      const res = await fetch("/api/admin/zoom-resync-all", {
+        method: "POST",
+        headers: headers(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        alert(`Re-sync complete: ${data.totalSynced} participants synced, ${data.totalErrors} errors`);
+        onRefresh();
+      } else {
+        alert("Re-sync failed");
+      }
+    } catch {
+      alert("Connection error");
+    }
+    setResyncLoading(false);
   };
+
+  useEffect(() => { checkZoomStatus(); }, []);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Partner Invites Management</h2>
+          <h2 className="text-xl font-bold text-gray-900" data-testid="text-invites-title">Invites by Webinar</h2>
           {zoomStatus && (
             <div className="flex items-center gap-2 mt-1">
               <span className={`inline-block w-2 h-2 rounded-full ${zoomStatus.ok ? 'bg-green-500' : zoomStatus.configured ? 'bg-yellow-500' : 'bg-gray-400'}`} />
@@ -2708,7 +2774,15 @@ function InvitesTab({
             </div>
           )}
         </div>
-        
+        <div className="flex items-center gap-2">
+          {zoomStatus?.ok && (
+            <button data-testid="button-resync-all" onClick={resyncAll} disabled={resyncLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 disabled:opacity-50">
+              {resyncLoading ? <Loader2 size={14} className="animate-spin" /> : <Video size={14} />}
+              Re-sync All Zoom
+            </button>
+          )}
+        </div>
       </div>
 
       {showZoomConfig && (
@@ -2750,178 +2824,184 @@ function InvitesTab({
         </div>
       )}
 
-      
-
       {loading ? (
         <div className="p-8 text-center text-gray-500">Laden...</div>
-      ) : events.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No invite events found</div>
+      ) : groupedWebinars.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No webinars with invites found</div>
       ) : (
         <div className="grid gap-4">
-          {events.map((event) => (
-            <div key={event.id} data-testid={`card-invite-${event.id}`} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-lg text-gray-900">{event.title}</h3>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${event.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                      {event.isActive ? "Active" : "Inactive"}
-                    </span>
-                    {(event.zoomSyncedCount ?? 0) > 0 ? (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 flex items-center gap-1">
-                        <Video size={10} /> {event.zoomSyncedCount} synced
-                      </span>
-                    ) : event.zoomLink ? (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-400">
-                        Zoom: not synced
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="text-sm text-gray-600">Partner: <span className="font-medium">{event.partnerName}</span> ({event.partnerCu})</p>
-                  <p className="text-sm text-gray-500">{event.eventDate} at {event.eventTime}</p>
-                </div>
-
-                <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-4 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
-                    <div className="text-center">
-                      <p className="text-[10px] uppercase text-gray-400 font-bold">Registered</p>
-                      <p className="text-lg font-bold text-purple-600">{event.guestCount || 0}</p>
+          {groupedWebinars.map((webinar) => {
+            const isExpanded = expandedWebinar === webinar.scheduleEvent.id;
+            return (
+              <div key={webinar.scheduleEvent.id} data-testid={`card-webinar-${webinar.scheduleEvent.id}`} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <button
+                  onClick={() => setExpandedWebinar(isExpanded ? null : webinar.scheduleEvent.id)}
+                  className="w-full p-5 text-left hover:bg-gray-50 transition-colors"
+                  data-testid={`button-expand-webinar-${webinar.scheduleEvent.id}`}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        {isExpanded ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+                        <h3 className="font-bold text-lg text-gray-900">{webinar.scheduleEvent.title}</h3>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${webinar.scheduleEvent.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                          {webinar.scheduleEvent.isActive ? "Active" : "Inactive"}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500 ml-7">{webinar.scheduleEvent.date} {webinar.scheduleEvent.time} {webinar.scheduleEvent.timezone} | {webinar.scheduleEvent.speaker}</p>
                     </div>
-                    <div className="w-px h-8 bg-gray-200" />
-                    <div className="text-center">
-                      <p className="text-[10px] uppercase text-gray-400 font-bold">Clicked Zoom</p>
-                      <p className="text-lg font-bold text-blue-600">{event.clickedCount || 0}</p>
+
+                    <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
+                      <div className="text-center">
+                        <p className="text-[10px] uppercase text-gray-400 font-bold">Partners</p>
+                        <p className="text-lg font-bold text-gray-700" data-testid={`stat-partners-${webinar.scheduleEvent.id}`}>{webinar.stats.totalPartners}</p>
+                      </div>
+                      <div className="w-px h-8 bg-gray-200" />
+                      <div className="text-center">
+                        <p className="text-[10px] uppercase text-gray-400 font-bold">Invited</p>
+                        <p className="text-lg font-bold text-purple-600" data-testid={`stat-invited-${webinar.scheduleEvent.id}`}>{webinar.stats.totalInvited}</p>
+                      </div>
+                      <div className="w-px h-8 bg-gray-200" />
+                      <div className="text-center">
+                        <p className="text-[10px] uppercase text-gray-400 font-bold">Registered</p>
+                        <p className="text-lg font-bold text-blue-600" data-testid={`stat-registered-${webinar.scheduleEvent.id}`}>{webinar.stats.totalRegistered}</p>
+                      </div>
+                      <div className="w-px h-8 bg-gray-200" />
+                      <div className="text-center">
+                        <p className="text-[10px] uppercase text-gray-400 font-bold">Attended</p>
+                        <p className="text-lg font-bold text-emerald-600" data-testid={`stat-attended-${webinar.scheduleEvent.id}`}>{webinar.stats.totalAttended}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-center gap-3 pt-4 border-t border-gray-50">
-                <div className="flex-1 flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 max-w-md">
-                  <LinkIcon size={14} className="text-gray-400 shrink-0" />
-                  <span className="text-xs text-gray-500 truncate font-mono">{`${window.location.origin}/invite/${event.inviteCode}`}</span>
-                  <button onClick={() => copyToClipboard(`${window.location.origin}/invite/${event.inviteCode}`)}
-                    className="ml-auto text-purple-600 hover:text-purple-700 font-medium text-xs">Copy</button>
-                </div>
-
-                <button onClick={() => onReport(event.id)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200">
-                  <BarChart3 size={14} /> View Details
-                </button>
-                
-                <button onClick={() => onSendTelegramReport(event.id)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-100">
-                  <MessageSquare size={14} /> Send TG Report
                 </button>
 
-                {zoomStatus?.ok && event.zoomLink && (
-                  <button data-testid={`button-zoom-sync-${event.id}`} onClick={() => onZoomSync(event.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-100">
-                    <Video size={14} /> Zoom Sync
-                  </button>
+                {isExpanded && (
+                  <div className="border-t border-gray-100 px-5 pb-5">
+                    {webinar.partners.length === 0 ? (
+                      <p className="text-center py-4 text-gray-400 text-sm">No partners for this webinar</p>
+                    ) : (
+                      <div className="space-y-3 mt-4">
+                        {webinar.partners.map((partner) => {
+                          const isPartnerExpanded = expandedPartner === partner.inviteEventId;
+                          return (
+                            <div key={partner.inviteEventId} className="border border-gray-100 rounded-lg overflow-hidden" data-testid={`card-partner-invite-${partner.inviteEventId}`}>
+                              <button
+                                onClick={() => setExpandedPartner(isPartnerExpanded ? null : partner.inviteEventId)}
+                                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
+                                data-testid={`button-expand-partner-${partner.inviteEventId}`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  {isPartnerExpanded ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
+                                  <span className="font-semibold text-gray-900">{partner.partnerName}</span>
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{partner.partnerCu}</span>
+                                  {partner.zoomSynced > 0 && (
+                                    <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                      <Video size={10} /> {partner.zoomSynced}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-4 text-xs text-gray-500">
+                                  <span>{partner.registered} registered</span>
+                                  <span>{partner.clicked} clicked</span>
+                                  <span className="text-emerald-600 font-semibold">{partner.attended} attended</span>
+                                  {partner.walkIns > 0 && <span className="text-amber-600">{partner.walkIns} walk-ins</span>}
+                                </div>
+                              </button>
+
+                              {isPartnerExpanded && (
+                                <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex flex-wrap items-center gap-3">
+                                  <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-lg border border-gray-200 max-w-sm">
+                                    <LinkIcon size={12} className="text-gray-400 shrink-0" />
+                                    <span className="text-xs text-gray-500 truncate font-mono">{`${window.location.origin}/invite/${partner.inviteCode}`}</span>
+                                    <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/invite/${partner.inviteCode}`); alert("Kopiert!"); }}
+                                      className="ml-auto text-purple-600 hover:text-purple-700 font-medium text-xs whitespace-nowrap" data-testid={`button-copy-invite-${partner.inviteEventId}`}>Copy</button>
+                                  </div>
+                                  <button onClick={() => onSendTelegramReport(partner.inviteEventId)}
+                                    className="flex items-center gap-1.5 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-100"
+                                    data-testid={`button-tg-report-${partner.inviteEventId}`}>
+                                    <MessageSquare size={12} /> TG Report
+                                  </button>
+                                </div>
+                              )}
+
+                              {isPartnerExpanded && partner.guests.length > 0 && (
+                                <div className="border-t border-gray-100 overflow-x-auto">
+                                  <table className="w-full text-left">
+                                    <thead className="bg-gray-50 border-b">
+                                      <tr>
+                                        <th className="px-4 py-2 text-xs font-bold text-gray-500 uppercase">Name</th>
+                                        <th className="px-4 py-2 text-xs font-bold text-gray-500 uppercase">Email</th>
+                                        <th className="px-4 py-2 text-xs font-bold text-gray-500 uppercase">Method</th>
+                                        <th className="px-4 py-2 text-xs font-bold text-gray-500 uppercase text-center">Clicked</th>
+                                        <th className="px-4 py-2 text-xs font-bold text-gray-500 uppercase text-center">Attended</th>
+                                        <th className="px-4 py-2 text-xs font-bold text-gray-500 uppercase text-center">Duration</th>
+                                        <th className="px-4 py-2 text-xs font-bold text-gray-500 uppercase text-center">Q&A</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                      {partner.guests.map((guest) => (
+                                        <tr key={guest.id} className="hover:bg-gray-50">
+                                          <td className="px-4 py-2 text-sm font-medium text-gray-900">{guest.name}</td>
+                                          <td className="px-4 py-2 text-sm text-gray-600">{guest.email}</td>
+                                          <td className="px-4 py-2 text-sm">
+                                            {guest.invitationMethod === "personal_ai" ? (
+                                              <span className="text-xs bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-full">AI</span>
+                                            ) : (
+                                              <span className="text-xs bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded-full">Manual</span>
+                                            )}
+                                          </td>
+                                          <td className="px-4 py-2 text-center">
+                                            {guest.clickedZoom ? (
+                                              <Check className="text-green-500 mx-auto" size={16} />
+                                            ) : (
+                                              <X className="text-gray-300 mx-auto" size={16} />
+                                            )}
+                                          </td>
+                                          <td className="px-4 py-2 text-center">
+                                            {guest.attended ? (
+                                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-xs font-semibold">
+                                                <Check size={12} /> Yes
+                                              </span>
+                                            ) : (
+                                              <span className="text-gray-300 text-xs">—</span>
+                                            )}
+                                          </td>
+                                          <td className="px-4 py-2 text-center text-sm text-gray-600">
+                                            {guest.attended && guest.durationMinutes != null ? (
+                                              <span className="font-medium">{guest.durationMinutes}m</span>
+                                            ) : (
+                                              <span className="text-gray-300">—</span>
+                                            )}
+                                          </td>
+                                          <td className="px-4 py-2 text-center text-sm text-gray-600">
+                                            {guest.attended && guest.questionsAsked != null && guest.questionsAsked > 0 ? (
+                                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
+                                                {guest.questionsAsked}
+                                              </span>
+                                            ) : (
+                                              <span className="text-gray-300">—</span>
+                                            )}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+
+                              {isPartnerExpanded && partner.guests.length === 0 && (
+                                <div className="border-t border-gray-100 px-4 py-3 text-center text-sm text-gray-400">No guests registered yet</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {selectedReport && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">Guest Report: {selectedReport.title}</h3>
-                <p className="text-sm text-gray-500">Partner: {selectedReport.partnerName} ({selectedReport.partnerCu})</p>
-              </div>
-              <button onClick={() => setSelectedReport(null)} className="text-gray-400 hover:text-gray-600 p-2"><X size={24} /></button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto flex-1">
-              {guestsLoading ? (
-                <div className="flex items-center justify-center py-12"><Loader2 size={32} className="animate-spin text-purple-500" /></div>
-              ) : guests.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">No guests registered yet</div>
-              ) : (
-                <div className="border rounded-xl overflow-hidden">
-                  <table className="w-full text-left">
-                    <thead className="bg-gray-50 border-b">
-                      <tr>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Name</th>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Email</th>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Phone</th>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Registered</th>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Clicked</th>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Attended</th>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Joined At</th>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Duration</th>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Q&A</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {guests.map((guest) => (
-                        <tr key={guest.id} className={`hover:bg-gray-50 ${guest.isWalkIn ? "bg-amber-50/40" : ""}`}>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                            {guest.name}
-                            {guest.isWalkIn && <span className="ml-1.5 text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold">Walk-in</span>}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{guest.email}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{guest.phone || "-"}</td>
-                          <td className="px-4 py-3 text-sm text-gray-500">
-                            {guest.isWalkIn ? <span className="text-gray-300">—</span> : new Date(guest.registeredAt).toLocaleString()}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            {guest.isWalkIn ? (
-                              <span className="text-gray-300">—</span>
-                            ) : guest.clickedZoom ? (
-                              <div className="flex flex-col items-center">
-                                <Check className="text-green-500" size={18} />
-                                {guest.clickedAt && <span className="text-[10px] text-gray-400">{new Date(guest.clickedAt).toLocaleTimeString()}</span>}
-                              </div>
-                            ) : (
-                              <X className="text-gray-300 mx-auto" size={18} />
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            {guest.attended ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-xs font-semibold">
-                                <Check size={12} /> Yes
-                              </span>
-                            ) : (
-                              <span className="text-gray-300 text-xs">—</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-center text-sm text-gray-500">
-                            {guest.joinTime ? (
-                              <span>{new Date(guest.joinTime).toLocaleTimeString()}</span>
-                            ) : (
-                              <span className="text-gray-300">—</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-center text-sm text-gray-600">
-                            {guest.attended && guest.durationMinutes != null ? (
-                              <span className="font-medium">{guest.durationMinutes}m</span>
-                            ) : (
-                              <span className="text-gray-300">—</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-center text-sm text-gray-600">
-                            {guest.attended && guest.questionsAsked != null && guest.questionsAsked > 0 ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
-                                {guest.questionsAsked}
-                              </span>
-                            ) : (
-                              <span className="text-gray-300">—</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
+            );
+          })}
         </div>
       )}
     </div>

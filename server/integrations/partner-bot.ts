@@ -401,7 +401,12 @@ async function handleZoomSync(callbackQueryId: string, chatId: number, eventId: 
   await sendMessage(chatId, t(lang, "zoomSyncLoading")(event.title));
 
   try {
-    const result = await syncZoomDataForEvent(event.id, event.zoomLink);
+    let zoomUrl = event.zoomLink;
+    if (!zoomUrl && event.scheduleEventId) {
+      const se = await storage.getScheduleEvent(event.scheduleEventId);
+      if (se) zoomUrl = se.link;
+    }
+    const result = await syncZoomDataForEvent(event.id, zoomUrl);
     if (result.error) {
       await sendMessage(chatId, `⚠️ ${result.error}`);
     } else if (result.synced > 0) {
@@ -759,7 +764,12 @@ export function registerPartnerBotRoutes(app: Express): void {
       const event = await storage.getInviteEventById(Number(req.params.eventId));
       if (!event) return res.status(404).json({ error: "Event not found" });
 
-      const result = await syncZoomDataForEvent(event.id, event.zoomLink);
+      let zoomUrl = event.zoomLink;
+      if (!zoomUrl && event.scheduleEventId) {
+        const se = await storage.getScheduleEvent(event.scheduleEventId);
+        if (se) zoomUrl = se.link;
+      }
+      const result = await syncZoomDataForEvent(event.id, zoomUrl);
       if (result.error && result.synced === 0) {
         return res.json({ synced: 0, skipped: result.skipped || 0, error: result.error });
       }

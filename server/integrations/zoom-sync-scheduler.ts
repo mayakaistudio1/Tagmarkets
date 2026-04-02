@@ -64,7 +64,8 @@ export async function checkAndAutoSyncZoom(): Promise<number> {
         if (existingAttendance.length > 0) continue;
 
         try {
-          const result = await syncZoomDataForEvent(ie.id, ie.zoomLink, ie.eventDate);
+          const zoomUrl = ie.zoomLink || se.link;
+          const result = await syncZoomDataForEvent(ie.id, zoomUrl, ie.eventDate);
           syncedTotal += result.synced;
           if (result.error) {
             console.warn(`[ZoomAutoSync] Error for inviteEvent ${ie.id}: ${result.error}`);

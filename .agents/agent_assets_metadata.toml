@@ -42,3 +42,21 @@ id = "7CD5x232pLBwQHT9IhVIA"
 uri = "file://content/banners/jetup-mission-telegram.png"
 type = "image"
 title = "JetUP Mission — Telegram Banner 1280×360"
+
+[[outputs]]
+id = "CWskP6Gz4GA9GYW3_U5NI"
+uri = "file://artifacts/mockup-sandbox/public/images/desktop-hero-bg.jpg"
+type = "image"
+title = "dark abstract technology network background, glowing nodes, purple and blue tones"
+
+[[outputs]]
+id = "OJx_gZUO7eoTtvnO3x9-O"
+uri = "file://artifacts/mockup-sandbox/public/images/desktop-trading-bg.jpg"
+type = "image"
+title = "dark stock market trading charts, glowing neon candlesticks, abstract finance"
+
+[[outputs]]
+id = "E2Qysj_cZW16hYeA6r8bO"
+uri = "file://artifacts/mockup-sandbox/public/images/desktop-partner-bg.jpg"
+type = "image"
+title = "dark business meeting or presentation, professional network"

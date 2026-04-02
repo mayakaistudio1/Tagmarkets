@@ -332,7 +332,7 @@ export const tutorials = pgTable("tutorials", {
   title: text("title").notNull(),
   description: text("description").notNull().default(""),
   youtubeUrl: text("youtube_url").notNull(),
-  youtubeVideoId: text("youtube_video_id").notNull(),
+  youtubeVideoId: text("youtube_id").notNull(),
   category: text("category").notNull().default("getting-started"),
   topicTags: text("topic_tags").array().notNull(),
   language: text("language").notNull().default("de"),

@@ -261,7 +261,6 @@ const HomePage: React.FC = () => {
               <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />
             </button>
 
-            {/* Tutorials button hidden for now - kept for future use
             <button
               onClick={goToTutorials}
               className="w-full flex items-center gap-3 bg-white rounded-xl px-4 py-3 shadow-[0_1px_8px_rgba(0,0,0,0.04)] active:scale-[0.98] transition-transform text-left"
@@ -273,7 +272,6 @@ const HomePage: React.FC = () => {
               <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">{t("home.tutorials")}</span>
               <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />
             </button>
-            */}
           </motion.div>
 
           <motion.div

@@ -24,6 +24,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import SectionVideos from "@/components/SectionVideos";
 
 const PartnerHubPage: React.FC = () => {
   const [, setLocation] = useAppNavigation();
@@ -100,6 +101,7 @@ const PartnerHubPage: React.FC = () => {
                       {t("partner.highlight")}
                     </p>
                   </div>
+                  <SectionVideos topicTag="partner-toolkit" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -131,6 +133,7 @@ const PartnerHubPage: React.FC = () => {
                   <p>
                     {t("partner.basis")}
                   </p>
+                  <SectionVideos topicTag="commissions" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -162,6 +165,7 @@ const PartnerHubPage: React.FC = () => {
                   <p>
                     {t("partner.profitBasis")}
                   </p>
+                  <SectionVideos topicTag="profit-share" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -193,6 +197,7 @@ const PartnerHubPage: React.FC = () => {
                     <p><span className="font-bold text-gray-800">{t("partner.infinityStep3")}</span> {t("partner.infinityStep3Desc")}</p>
                     <p><span className="font-bold text-gray-800">{t("partner.infinityStep4")}</span></p>
                   </div>
+                  <SectionVideos topicTag="infinity-bonus" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -227,6 +232,7 @@ const PartnerHubPage: React.FC = () => {
                       <p>✈️ {t("partner.lifestyle3")}</p>
                     </div>
                   </div>
+                  <SectionVideos topicTag="rewards" />
                 </div>
               </AccordionContent>
             </AccordionItem>

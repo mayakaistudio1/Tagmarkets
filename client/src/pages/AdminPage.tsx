@@ -34,7 +34,7 @@ import {
   Zap,
 } from "lucide-react";
 
-type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo" | "invites" | "partners" | "workflow";
+type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo" | "invites" | "partners" | "workflow" | "videos";
 
 interface AnalysisSection {
   title: string;
@@ -287,6 +287,13 @@ function AdminPage() {
   const [editingDennisPromo, setEditingDennisPromo] = useState<any | null>(null);
   const [dennisPromoFormOpen, setDennisPromoFormOpen] = useState(false);
   const [promoSubTab, setPromoSubTab] = useState<"offers" | "applications">("offers");
+
+  const [videosList, setVideosList] = useState<VideoFormData[]>([]);
+  const [videosLoading, setVideosLoading] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<VideoFormData | null>(null);
+  const [videoFormOpen, setVideoFormOpen] = useState(false);
+  const [videoFilterCategory, setVideoFilterCategory] = useState("all");
+  const [videoFilterLang, setVideoFilterLang] = useState("all");
 
   const [inviteEvents, setInviteEvents] = useState<InviteEvent[]>([]);
   const [adminPartners, setAdminPartners] = useState<AdminPartner[]>([]);
@@ -621,6 +628,50 @@ function AdminPage() {
     }
   };
 
+  const fetchVideos = useCallback(async () => {
+    setVideosLoading(true);
+    try {
+      const res = await fetch("/api/admin/tutorials", { headers: headers() });
+      if (handleAuthError(res)) return;
+      if (res.ok) setVideosList(await res.json());
+      else setErrorMsg("Fehler beim Laden der Videos");
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    } finally {
+      setVideosLoading(false);
+    }
+  }, [headers]);
+
+  const saveVideo = async (video: VideoFormData) => {
+    const method = video.id ? "PUT" : "POST";
+    const url = video.id ? `/api/admin/tutorials/${video.id}` : "/api/admin/tutorials";
+    try {
+      const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(video) });
+      if (handleAuthError(res)) return;
+      if (res.ok) {
+        setVideoFormOpen(false);
+        setEditingVideo(null);
+        fetchVideos();
+      } else {
+        setErrorMsg("Fehler beim Speichern");
+      }
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    }
+  };
+
+  const deleteVideo = async (id: number) => {
+    if (!confirm("Video wirklich löschen?")) return;
+    try {
+      const res = await fetch(`/api/admin/tutorials/${id}`, { method: "DELETE", headers: headers() });
+      if (handleAuthError(res)) return;
+      if (!res.ok) setErrorMsg("Fehler beim Löschen");
+      fetchVideos();
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    }
+  };
+
   const fetchPartners = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/partners", { headers: headers() });
@@ -740,7 +791,8 @@ function AdminPage() {
     if (activeTab === "promo") { fetchPromoApps(); fetchDennisPromos(); }
     if (activeTab === "invites") { fetchGroupedInvites(); fetchInviteEvents(); }
     if (activeTab === "partners") fetchPartners();
-  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps, fetchInviteEvents, fetchGroupedInvites, fetchPartners]);
+    if (activeTab === "videos") fetchVideos();
+  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps, fetchInviteEvents, fetchGroupedInvites, fetchPartners, fetchVideos]);
 
   if (!isLoggedIn) {
     return (
@@ -799,6 +851,7 @@ function AdminPage() {
     { key: "promo", label: "Promo", icon: <Gift size={18} /> },
     { key: "invites", label: "Invites", icon: <LinkIcon size={18} /> },
     { key: "partners", label: "Partners", icon: <UserCheck size={18} /> },
+    { key: "videos", label: "Videos", icon: <Video size={18} /> },
     { key: "workflow", label: "Workflow", icon: <Zap size={18} /> },
   ];
 
@@ -939,6 +992,22 @@ function AdminPage() {
               if (res.ok) fetchPartners();
             } catch {}
           }} />
+        )}
+        {activeTab === "videos" && (
+          <VideosTab
+            videos={videosList}
+            loading={videosLoading}
+            formOpen={videoFormOpen}
+            setFormOpen={setVideoFormOpen}
+            editing={editingVideo}
+            setEditing={setEditingVideo}
+            onSave={saveVideo}
+            onDelete={deleteVideo}
+            filterCategory={videoFilterCategory}
+            setFilterCategory={setVideoFilterCategory}
+            filterLang={videoFilterLang}
+            setFilterLang={setVideoFilterLang}
+          />
         )}
         {activeTab === "workflow" && (
           <WorkflowTab />
@@ -3095,6 +3164,323 @@ function PartnersTab({ partners, onDelete }: { partners: AdminPartner[]; onDelet
                     <Trash2 size={16} />
                   </button>
                 </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function extractYouTubeVideoId(url: string): string {
+  if (!url) return "";
+  const shortsMatch = url.match(/youtube\.com\/shorts\/([^?&/]+)/);
+  if (shortsMatch) return shortsMatch[1];
+  const standardMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^?&/]+)/);
+  if (standardMatch) return standardMatch[1];
+  const embedMatch = url.match(/youtube\.com\/embed\/([^?&/]+)/);
+  if (embedMatch) return embedMatch[1];
+  return url;
+}
+
+const VIDEO_CATEGORIES = [
+  { value: "bonuses", label: "Bonuses" },
+  { value: "strategies", label: "Strategies" },
+  { value: "partner-program", label: "Partner Program" },
+  { value: "getting-started", label: "Getting Started" },
+];
+
+interface VideoFormData {
+  id?: number;
+  title: string;
+  description: string;
+  youtubeUrl: string;
+  youtubeVideoId: string;
+  category: string;
+  topicTags: string[];
+  language: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+const emptyVideo: VideoFormData = {
+  title: "",
+  description: "",
+  youtubeUrl: "",
+  youtubeVideoId: "",
+  category: "getting-started",
+  topicTags: [] as string[],
+  language: "de",
+  sortOrder: 0,
+  isActive: true,
+};
+
+function VideosTab({
+  videos, loading, formOpen, setFormOpen, editing, setEditing, onSave, onDelete,
+  filterCategory, setFilterCategory, filterLang, setFilterLang,
+}: {
+  videos: VideoFormData[]; loading: boolean; formOpen: boolean; setFormOpen: (v: boolean) => void;
+  editing: VideoFormData | null; setEditing: (v: VideoFormData | null) => void;
+  onSave: (v: VideoFormData) => void; onDelete: (id: number) => void;
+  filterCategory: string; setFilterCategory: (v: string) => void;
+  filterLang: string; setFilterLang: (v: string) => void;
+}) {
+  const [form, setForm] = useState(emptyVideo);
+  const [tagInput, setTagInput] = useState("");
+
+  useEffect(() => {
+    if (editing) {
+      setForm(editing);
+    } else {
+      setForm(emptyVideo);
+    }
+  }, [editing]);
+
+  const handleUrlChange = (url: string) => {
+    const videoId = extractYouTubeVideoId(url);
+    setForm((f) => ({ ...f, youtubeUrl: url, youtubeVideoId: videoId }));
+  };
+
+  const addTag = () => {
+    const tag = tagInput.trim();
+    if (tag && !form.topicTags.includes(tag)) {
+      setForm((f) => ({ ...f, topicTags: [...f.topicTags, tag] }));
+    }
+    setTagInput("");
+  };
+
+  const removeTag = (tag: string) => {
+    setForm((f) => ({ ...f, topicTags: f.topicTags.filter((t: string) => t !== tag) }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(form);
+  };
+
+  const filtered = videos.filter((v) => {
+    if (filterCategory !== "all" && v.category !== filterCategory) return false;
+    if (filterLang !== "all" && v.language !== filterLang) return false;
+    return true;
+  });
+
+  return (
+    <div className="space-y-6" data-testid="videos-tab">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Videos</h2>
+        <button
+          onClick={() => { setEditing(null); setForm(emptyVideo); setFormOpen(true); }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+          data-testid="button-add-video"
+        >
+          <Plus size={16} />
+          Neues Video
+        </button>
+      </div>
+
+      <div className="flex gap-3 items-center">
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          className="px-3 py-2 rounded-lg border border-gray-300 text-sm"
+          data-testid="filter-video-category"
+        >
+          <option value="all">Alle Kategorien</option>
+          {VIDEO_CATEGORIES.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
+          ))}
+        </select>
+        <select
+          value={filterLang}
+          onChange={(e) => setFilterLang(e.target.value)}
+          className="px-3 py-2 rounded-lg border border-gray-300 text-sm"
+          data-testid="filter-video-lang"
+        >
+          <option value="all">Alle Sprachen</option>
+          <option value="de">DE</option>
+          <option value="en">EN</option>
+          <option value="ru">RU</option>
+        </select>
+      </div>
+
+      {formOpen && (
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-4" data-testid="video-form">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Title</label>
+              <input
+                value={form.title}
+                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+                required
+                data-testid="input-video-title"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">YouTube URL</label>
+              <input
+                value={form.youtubeUrl}
+                onChange={(e) => handleUrlChange(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+                placeholder="https://youtube.com/shorts/..."
+                required
+                data-testid="input-video-url"
+              />
+              {form.youtubeVideoId && (
+                <p className="text-xs text-green-600 mt-1">Video ID: {form.youtubeVideoId}</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Description</label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+              rows={2}
+              data-testid="input-video-description"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Category</label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+                data-testid="select-video-category"
+              >
+                {VIDEO_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Language</label>
+              <select
+                value={form.language}
+                onChange={(e) => setForm((f) => ({ ...f, language: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+                data-testid="select-video-language"
+              >
+                <option value="de">DE</option>
+                <option value="en">EN</option>
+                <option value="ru">RU</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Sort Order</label>
+              <input
+                type="number"
+                value={form.sortOrder}
+                onChange={(e) => setForm((f) => ({ ...f, sortOrder: parseInt(e.target.value) || 0 }))}
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+                data-testid="input-video-sort"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Topic Tags</label>
+            <div className="flex gap-2 flex-wrap mb-2">
+              {form.topicTags.map((tag: string) => (
+                <span key={tag} className="flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium">
+                  {tag}
+                  <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500"><X size={12} /></button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+                className="flex-1 px-3 py-2 rounded-lg border border-gray-300 text-sm"
+                placeholder="z.B. tag-markets, copy-x, amplify, commissions..."
+                data-testid="input-video-tag"
+              />
+              <button type="button" onClick={addTag} className="px-3 py-2 rounded-lg bg-gray-200 text-sm font-medium hover:bg-gray-300">
+                Hinzufügen
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Tags werden verwendet, um Videos in Trading Hub / Partner Hub Abschnitten zuzuordnen.</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.isActive}
+                onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
+                className="rounded"
+                data-testid="checkbox-video-active"
+              />
+              Active
+            </label>
+          </div>
+
+          <div className="flex gap-3">
+            <button type="submit" className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700" data-testid="button-save-video">
+              <Check size={16} className="inline mr-1" />
+              Speichern
+            </button>
+            <button type="button" onClick={() => { setFormOpen(false); setEditing(null); }} className="px-4 py-2 rounded-lg bg-gray-200 text-sm font-medium hover:bg-gray-300" data-testid="button-cancel-video">
+              Abbrechen
+            </button>
+          </div>
+        </form>
+      )}
+
+      {loading ? (
+        <div className="text-center py-8 text-gray-500">Laden...</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-8 text-gray-400">Keine Videos vorhanden.</div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((v) => (
+            <div key={v.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-4" data-testid={`video-item-${v.id}`}>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-sm font-bold text-gray-900">{v.title}</span>
+                  {!v.isActive && (
+                    <span className="text-[10px] px-1.5 py-0.5 bg-gray-200 text-gray-500 rounded-full font-medium">Inaktiv</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${LANG_COLORS[v.language] || "bg-gray-100 text-gray-500"}`}>
+                    {LANG_LABELS[v.language] || v.language}
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium">
+                    {VIDEO_CATEGORIES.find(c => c.value === v.category)?.label || v.category}
+                  </span>
+                  {v.topicTags?.map((tag: string) => (
+                    <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                {v.description && (
+                  <p className="text-xs text-gray-400 mt-1 truncate">{v.description}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => { setEditing(v); setFormOpen(true); }}
+                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-purple-600"
+                  data-testid={`button-edit-video-${v.id}`}
+                >
+                  <Edit size={16} />
+                </button>
+                <button
+                  onClick={() => onDelete(v.id)}
+                  className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500"
+                  data-testid={`button-delete-video-${v.id}`}
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
           ))}

@@ -1,95 +1,78 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
   MessageCircle,
   Play,
-  FileText,
+  Video,
 } from "lucide-react";
 import { useAppNavigation } from "@/hooks/use-app-navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-type FilterTab = "alle" | "trader" | "partner";
+type CategoryTab = "all" | "bonuses" | "strategies" | "partner-program" | "getting-started";
 
 interface Tutorial {
-  id: string;
+  id: number;
   title: string;
   description: string;
-  type: "trader" | "partner";
-  format: "video" | "guide";
-  duration?: string;
+  youtubeUrl: string;
+  youtubeVideoId: string;
+  category: string;
+  topicTags: string[];
+  language: string;
+  sortOrder: number;
+  isActive: boolean;
 }
 
-const tutorials: Tutorial[] = [
-  {
-    id: "1",
-    title: "Erste Schritte mit TAG Markets",
-    description: "Konto eröffnen, MT5 installieren und erste Einzahlung durchführen.",
-    type: "trader",
-    format: "video",
-    duration: "5 Min.",
-  },
-  {
-    id: "2",
-    title: "Copy‑X‑Strategie auswählen",
-    description: "So findest du die passende Strategie und aktivierst sie.",
-    type: "trader",
-    format: "video",
-    duration: "7 Min.",
-  },
-  {
-    id: "3",
-    title: "Amplify verstehen",
-    description: "12x‑Skalierung einfach erklärt: Ablauf, Regeln, Gewinn.",
-    type: "trader",
-    format: "guide",
-  },
-  {
-    id: "4",
-    title: "Partnerprogramm erklärt",
-    description: "Provisionen, Profit‑Share und Bonusprogramme im Überblick.",
-    type: "partner",
-    format: "video",
-    duration: "6 Min.",
-  },
-  {
-    id: "5",
-    title: "Deinen Link richtig teilen",
-    description: "Best Practices für Social Media, Telegram und persönliche Empfehlungen.",
-    type: "partner",
-    format: "guide",
-  },
-  {
-    id: "6",
-    title: "Lifestyle‑Rewards erreichen",
-    description: "Volumenziele, Rolex, Immobilien und Reise‑Belohnungen.",
-    type: "partner",
-    format: "guide",
-  },
-];
+function YouTubeShortsEmbed({ videoId, title }: { videoId: string; title: string }) {
+  return (
+    <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ aspectRatio: "9/16", maxHeight: "400px" }}>
+      <iframe
+        src={`https://www.youtube.com/embed/${videoId}?rel=0`}
+        title={title}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        className="absolute inset-0 w-full h-full"
+        data-testid={`video-embed-${videoId}`}
+      />
+    </div>
+  );
+}
 
 const TutorialsPage: React.FC = () => {
   const [, setLocation] = useAppNavigation();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<CategoryTab>("all");
 
-  const getInitialFilter = (): FilterTab => {
-    const params = new URLSearchParams(window.location.search);
-    const f = params.get("filter");
-    if (f === "trader" || f === "partner") return f;
-    return "alle";
-  };
+  useEffect(() => {
+    const fetchTutorials = async () => {
+      try {
+        const res = await fetch(`/api/tutorials?language=${language}`);
+        if (res.ok) {
+          setTutorials(await res.json());
+        }
+      } catch (err) {
+        console.error("Failed to fetch tutorials:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTutorials();
+  }, [language]);
 
-  const [filter, setFilter] = useState<FilterTab>(getInitialFilter);
-
-  const filteredTutorials = filter === "alle"
-    ? tutorials
-    : tutorials.filter((t) => t.type === filter);
-
-  const tabs: { key: FilterTab; label: string }[] = [
-    { key: "alle", label: t("tutorials.all") },
-    { key: "trader", label: t("tutorials.forTraders") },
-    { key: "partner", label: t("tutorials.forPartners") },
+  const categoryTabs: { key: CategoryTab; label: string }[] = [
+    { key: "all", label: t("tutorials.all") },
+    { key: "bonuses", label: t("tutorials.bonuses") },
+    { key: "strategies", label: t("tutorials.strategies") },
+    { key: "partner-program", label: t("tutorials.partnerProgram") },
+    { key: "getting-started", label: t("tutorials.gettingStarted") },
   ];
+
+  const filtered = activeCategory === "all"
+    ? tutorials
+    : tutorials.filter((tut) => tut.category === activeCategory);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -117,13 +100,13 @@ const TutorialsPage: React.FC = () => {
             {t("tutorials.subtitle")}
           </p>
 
-          <div className="flex gap-2">
-            {tabs.map((tab) => (
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            {categoryTabs.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`px-4 py-2.5 rounded-xl text-[12px] font-bold transition-all ${
-                  filter === tab.key
+                onClick={() => setActiveCategory(tab.key)}
+                className={`px-4 py-2.5 rounded-xl text-[12px] font-bold transition-all whitespace-nowrap ${
+                  activeCategory === tab.key
                     ? "jetup-gradient text-white btn-glow"
                     : "bg-gray-100 text-gray-500"
                 }`}
@@ -134,50 +117,36 @@ const TutorialsPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="space-y-3">
-            {filteredTutorials.map((tutorial) => (
-              <div
-                key={tutorial.id}
-                className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.05)]"
-                data-testid={`tutorial-${tutorial.id}`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                    tutorial.type === "trader" ? "bg-blue-100" : "bg-emerald-100"
-                  }`}>
-                    {tutorial.format === "video" ? (
-                      <Play size={19} className={tutorial.type === "trader" ? "text-blue-600" : "text-emerald-600"} />
-                    ) : (
-                      <FileText size={19} className={tutorial.type === "trader" ? "text-blue-600" : "text-emerald-600"} />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                        tutorial.type === "trader"
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-emerald-100 text-emerald-600"
-                      }`}>
-                        {tutorial.type === "trader" ? t("tutorials.forTraders") : t("tutorials.forPartners")}
-                      </span>
-                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                        {tutorial.format === "video" ? `${t("common.video")}${tutorial.duration ? ` · ${tutorial.duration}` : ""}` : t("common.guide")}
-                      </span>
-                    </div>
-                    <h3 className="text-[14px] font-bold text-gray-900 leading-tight">
-                      {tutorial.title}
-                    </h3>
-                    <p className="text-[12px] text-gray-500 mt-1 leading-snug font-medium">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-8 h-8 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-12" data-testid="tutorials-empty">
+              <Video size={40} className="mx-auto text-gray-300 mb-3" />
+              <p className="text-[14px] text-gray-400 font-medium">{t("tutorials.empty")}</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filtered.map((tutorial) => (
+                <div
+                  key={tutorial.id}
+                  className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.05)]"
+                  data-testid={`tutorial-${tutorial.id}`}
+                >
+                  <h3 className="text-[14px] font-bold text-gray-900 leading-tight mb-2">
+                    {tutorial.title}
+                  </h3>
+                  {tutorial.description && (
+                    <p className="text-[12px] text-gray-500 mb-3 leading-snug font-medium">
                       {tutorial.description}
                     </p>
-                  </div>
+                  )}
+                  <YouTubeShortsEmbed videoId={tutorial.youtubeVideoId} title={tutorial.title} />
                 </div>
-                <button className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gray-100 text-gray-400 text-[12px] font-bold cursor-not-allowed" disabled data-testid={`button-view-${tutorial.id}`}>
-                  {t("common.comingSoon")}
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           <div className="flex gap-2.5 pt-2">
             <button

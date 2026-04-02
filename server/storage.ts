@@ -8,8 +8,9 @@ import {
   type Partner, type InsertPartner,
   type ZoomAttendance, type InsertZoomAttendance,
   type PersonalInvite, type InsertPersonalInvite,
+  type Tutorial, type InsertTutorial,
   users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers, promoApplications, dennisPromos,
-  inviteEvents, inviteGuests, partners, zoomAttendance, appSettings, personalInvites,
+  inviteEvents, inviteGuests, partners, zoomAttendance, appSettings, personalInvites, tutorials,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql, count, or, isNotNull, ne } from "drizzle-orm";
 import { db } from "./db";
@@ -102,6 +103,12 @@ export interface IStorage {
   findInviteGuestByEmailAndEvent(email: string, inviteEventId: number): Promise<InviteGuest | undefined>;
   updateZoomAttendanceGuestId(attendanceId: number, inviteGuestId: number): Promise<void>;
   deleteZoomAttendanceByEventId(eventId: number): Promise<void>;
+
+  getTutorials(activeOnly?: boolean, language?: string, category?: string, topicTag?: string): Promise<Tutorial[]>;
+  getTutorial(id: number): Promise<Tutorial | undefined>;
+  createTutorial(tutorial: InsertTutorial): Promise<Tutorial>;
+  updateTutorial(id: number, tutorial: Partial<InsertTutorial>): Promise<Tutorial>;
+  deleteTutorial(id: number): Promise<void>;
 
   getSetting(key: string): Promise<string | null>;
   setSetting(key: string, value: string): Promise<void>;
@@ -713,6 +720,39 @@ export class DatabaseStorage implements IStorage {
       .where(eq(personalInvites.id, id))
       .returning();
     return updated;
+  }
+
+  async getTutorials(activeOnly?: boolean, language?: string, category?: string, topicTag?: string): Promise<Tutorial[]> {
+    const conditions = [];
+    if (activeOnly) conditions.push(eq(tutorials.isActive, true));
+    if (language) conditions.push(eq(tutorials.language, language));
+    if (category) conditions.push(eq(tutorials.category, category));
+    const results = conditions.length > 0
+      ? await db.select().from(tutorials).where(and(...conditions)).orderBy(tutorials.sortOrder)
+      : await db.select().from(tutorials).orderBy(tutorials.sortOrder);
+    if (topicTag) {
+      return results.filter(t => t.topicTags.includes(topicTag));
+    }
+    return results;
+  }
+
+  async getTutorial(id: number): Promise<Tutorial | undefined> {
+    const [tutorial] = await db.select().from(tutorials).where(eq(tutorials.id, id));
+    return tutorial;
+  }
+
+  async createTutorial(tutorial: InsertTutorial): Promise<Tutorial> {
+    const [created] = await db.insert(tutorials).values(tutorial).returning();
+    return created;
+  }
+
+  async updateTutorial(id: number, tutorial: Partial<InsertTutorial>): Promise<Tutorial> {
+    const [updated] = await db.update(tutorials).set(tutorial).where(eq(tutorials.id, id)).returning();
+    return updated;
+  }
+
+  async deleteTutorial(id: number): Promise<void> {
+    await db.delete(tutorials).where(eq(tutorials.id, id));
   }
 }
 

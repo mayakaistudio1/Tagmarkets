@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertApplicationSchema, insertPromoApplicationSchema, insertDennisPromoSchema, insertInviteEventSchema, insertInviteGuestSchema } from "@shared/schema";
+import { insertApplicationSchema, insertPromoApplicationSchema, insertDennisPromoSchema, insertInviteEventSchema, insertInviteGuestSchema, insertTutorialSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { registerLiveAvatarRoutes } from "./integrations/liveavatar";
 import { registerMariaChatRoutes } from "./integrations/maria-chat";
@@ -1573,6 +1573,76 @@ h1{font-size:1.25rem;color:#1a1a1a;margin:0 0 .5rem}p{color:#666;font-size:.9rem
       res.json({ totalSynced, totalErrors, results });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/tutorials", async (req, res) => {
+    try {
+      const language = req.query.language as string | undefined;
+      const category = req.query.category as string | undefined;
+      const topicTag = req.query.topicTag as string | undefined;
+      const tuts = await storage.getTutorials(true, language, category, topicTag);
+      res.json(tuts);
+    } catch (error) {
+      console.error("Error fetching tutorials:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/admin/tutorials", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const tuts = await storage.getTutorials(false);
+      res.json(tuts);
+    } catch (error) {
+      console.error("Error fetching tutorials:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/admin/tutorials", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const parsed = insertTutorialSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: fromZodError(parsed.error).message });
+      }
+      const tutorial = await storage.createTutorial(parsed.data);
+      res.status(201).json(tutorial);
+    } catch (error) {
+      console.error("Error creating tutorial:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/admin/tutorials/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      const { id: _, createdAt, ...data } = req.body;
+      const existing = await storage.getTutorial(id);
+      if (!existing) return res.status(404).json({ error: "Not found" });
+      const parsed = insertTutorialSchema.partial().safeParse(data);
+      if (!parsed.success) {
+        return res.status(400).json({ error: fromZodError(parsed.error).message });
+      }
+      const tutorial = await storage.updateTutorial(id, parsed.data);
+      res.json(tutorial);
+    } catch (error) {
+      console.error("Error updating tutorial:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/admin/tutorials/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTutorial(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting tutorial:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 

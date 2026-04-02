@@ -327,6 +327,28 @@ export const insertPersonalInviteSchema = createInsertSchema(personalInvites).om
 export type InsertPersonalInvite = z.infer<typeof insertPersonalInviteSchema>;
 export type PersonalInvite = typeof personalInvites.$inferSelect;
 
+export const tutorials = pgTable("tutorials", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  youtubeUrl: text("youtube_url").notNull(),
+  youtubeVideoId: text("youtube_video_id").notNull(),
+  category: text("category").notNull().default("getting-started"),
+  topicTags: text("topic_tags").array().notNull(),
+  language: text("language").notNull().default("de"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertTutorialSchema = createInsertSchema(tutorials).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertTutorial = z.infer<typeof insertTutorialSchema>;
+export type Tutorial = typeof tutorials.$inferSelect;
+
 export const appSettings = pgTable("app_settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),

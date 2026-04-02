@@ -82,6 +82,19 @@ app.use((req, res, next) => {
       await client.query("ALTER TABLE personal_invites ADD COLUMN IF NOT EXISTS telegram_notifications_enabled boolean DEFAULT false");
       await client.query("ALTER TABLE personal_invites ADD COLUMN IF NOT EXISTS reminder24h_sent boolean DEFAULT false");
       await client.query("ALTER TABLE partners ADD COLUMN IF NOT EXISTS language text NOT NULL DEFAULT 'en'");
+      await client.query(`CREATE TABLE IF NOT EXISTS tutorials (
+        id SERIAL PRIMARY KEY,
+        youtube_url text NOT NULL,
+        youtube_id text NOT NULL,
+        title text NOT NULL,
+        description text,
+        category text NOT NULL DEFAULT 'getting-started',
+        topic_tags text[] NOT NULL DEFAULT '{}',
+        language text NOT NULL DEFAULT 'en',
+        sort_order integer NOT NULL DEFAULT 0,
+        is_active boolean NOT NULL DEFAULT true,
+        created_at timestamptz NOT NULL DEFAULT NOW()
+      )`);
       log("Database migrations applied", "db");
     } finally {
       client.release();

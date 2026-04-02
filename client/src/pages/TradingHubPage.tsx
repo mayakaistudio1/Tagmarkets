@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/accordion";
 import { useAppNavigation } from "@/hooks/use-app-navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import SectionVideos from "@/components/SectionVideos";
 
 const TradingHubPage: React.FC = () => {
   const [, setLocation] = useAppNavigation();
@@ -91,6 +92,7 @@ const TradingHubPage: React.FC = () => {
                     <span className="font-bold text-gray-800">{t("trading.security")}</span>{" "}
                     {t("trading.securityDesc")}
                   </p>
+                  <SectionVideos topicTag="tag-markets" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -128,6 +130,7 @@ const TradingHubPage: React.FC = () => {
                     <span className="font-bold text-gray-800">{t("trading.risk")}</span>{" "}
                     {t("trading.riskDesc")}
                   </p>
+                  <SectionVideos topicTag="copy-x" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -194,6 +197,7 @@ const TradingHubPage: React.FC = () => {
                     <span className="font-bold text-gray-800">{t("trading.noCredit")}</span>{" "}
                     {t("trading.noCreditDesc")}
                   </p>
+                  <SectionVideos topicTag="amplify" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -221,6 +225,7 @@ const TradingHubPage: React.FC = () => {
                   <p><span className="font-bold text-gray-800">{t("trading.startStep3")}</span> {t("trading.startStep3Desc")}</p>
                   <p><span className="font-bold text-gray-800">{t("trading.startStep4")}</span> {t("trading.startStep4Desc")}</p>
                   <p><span className="font-bold text-gray-800">{t("trading.startStep5")}</span> {t("trading.startStep5Desc")}</p>
+                  <SectionVideos topicTag="getting-started" />
                 </div>
               </AccordionContent>
             </AccordionItem>

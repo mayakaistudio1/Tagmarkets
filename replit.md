@@ -36,7 +36,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Database
 - **Type**: PostgreSQL with Drizzle ORM.
-- **Schema**: Defined in `shared/schema.ts` for entities like `partners`, `personal_invites`, `invite_events`, `invite_guests`, `zoom_attendance`.
+- **Schema**: Defined in `shared/schema.ts` for entities like `partners`, `personal_invites`, `invite_events`, `invite_guests`, `zoom_attendance`, `tutorials`.
 - **Migrations**: Applied on server startup using raw SQL `ALTER TABLE IF NOT EXISTS` statements.
 
 ### Build System
@@ -73,8 +73,9 @@ Preferred communication style: Simple, everyday language.
 ### Other Core Features
 - **Partner Digital Hub**: Personalized partner pages (`/dennis`, `/p/dennis`) with a state machine UI (HERO, CHAT_OVERLAY, PRESENTATION_OVERLAY, ECOSYSTEM_OVERLAY). Features multilingual AI chat (GPT-4o-mini, SSE) and interactive presentation slides with video backgrounds and ecosystem map.
 - **Dennis Fast Start Promo**: Manages promotional campaigns from `dennis_promos` table, with admin CRUD, application management, and Telegram notifications.
-- **Smart Linktree Navigation**: Centralized navigation for various hubs, schedules, tutorials, and promotions.
-- **Admin Panel**: Password-protected interface (`/admin`) for managing chat logs, promotions, events, speakers, promo applications, invite events, and partners.
+- **Smart Linktree Navigation**: Centralized navigation for various hubs, schedules, Video Library, and promotions.
+- **Video Library**: Educational video layer using YouTube Shorts embeds. Videos are managed via admin panel (`tutorials` table), filtered by language (DE/EN/RU), categorized (bonuses/strategies/partner-program/getting-started), and matched to Trading/Partner Hub sections via topic tags. Videos appear inline only when they exist for that topic + language.
+- **Admin Panel**: Password-protected interface (`/admin`) for managing chat logs, promotions, events, speakers, promo applications, invite events, partners, and videos.
 - **Maria AI**: Provides text-based chat (GPT-4o-mini, SSE) and a video avatar (HeyGen LiveAvatar via LiveKit WebRTC). Chat logs are analyzed via the admin panel.
 
 ## External Dependencies

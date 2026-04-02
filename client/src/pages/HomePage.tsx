@@ -11,7 +11,6 @@ import {
   Video,
   MessageCircle,
   Calendar,
-  GraduationCap,
   ChevronRight,
   Megaphone,
 } from "lucide-react";
@@ -267,7 +266,7 @@ const HomePage: React.FC = () => {
               data-testid="card-tutorials"
             >
               <div className="w-9 h-9 rounded-lg bg-cyan-100 flex items-center justify-center flex-shrink-0">
-                <GraduationCap size={18} className="text-cyan-600" />
+                <Video size={18} className="text-cyan-600" />
               </div>
               <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">{t("home.tutorials")}</span>
               <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />

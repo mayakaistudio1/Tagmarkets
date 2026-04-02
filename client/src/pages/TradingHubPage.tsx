@@ -92,7 +92,7 @@ const TradingHubPage: React.FC = () => {
                     <span className="font-bold text-gray-800">{t("trading.security")}</span>{" "}
                     {t("trading.securityDesc")}
                   </p>
-                  <SectionVideos topicTag="tag-markets" />
+                  <SectionVideos topicTag="tag-markets" hubPath="/trading" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -130,7 +130,7 @@ const TradingHubPage: React.FC = () => {
                     <span className="font-bold text-gray-800">{t("trading.risk")}</span>{" "}
                     {t("trading.riskDesc")}
                   </p>
-                  <SectionVideos topicTag="copy-x" />
+                  <SectionVideos topicTag="copy-x" hubPath="/trading" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -197,7 +197,7 @@ const TradingHubPage: React.FC = () => {
                     <span className="font-bold text-gray-800">{t("trading.noCredit")}</span>{" "}
                     {t("trading.noCreditDesc")}
                   </p>
-                  <SectionVideos topicTag="amplify" />
+                  <SectionVideos topicTag="amplify" hubPath="/trading" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -225,7 +225,7 @@ const TradingHubPage: React.FC = () => {
                   <p><span className="font-bold text-gray-800">{t("trading.startStep3")}</span> {t("trading.startStep3Desc")}</p>
                   <p><span className="font-bold text-gray-800">{t("trading.startStep4")}</span> {t("trading.startStep4Desc")}</p>
                   <p><span className="font-bold text-gray-800">{t("trading.startStep5")}</span> {t("trading.startStep5Desc")}</p>
-                  <SectionVideos topicTag="getting-started" />
+                  <SectionVideos topicTag="getting-started" hubPath="/trading" />
                 </div>
               </AccordionContent>
             </AccordionItem>

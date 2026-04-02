@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useAppNavigation } from "@/hooks/use-app-navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import ShareMenu, { SHARE_ORIGIN } from "@/components/ShareMenu";
 
 type CategoryTab = "all" | "bonuses" | "strategies" | "partner-program" | "getting-started";
 
@@ -25,10 +26,34 @@ interface Tutorial {
 }
 
 function YouTubeShortsEmbed({ videoId, title }: { videoId: string; title: string }) {
+  const [playing, setPlaying] = useState(false);
+
+  if (!playing) {
+    return (
+      <button
+        onClick={() => setPlaying(true)}
+        className="relative w-full rounded-xl overflow-hidden bg-black group"
+        style={{ aspectRatio: "9/16", maxHeight: "400px" }}
+        data-testid={`video-thumb-${videoId}`}
+      >
+        <img
+          src={`https://img.youtube.com/vi/${videoId}/0.jpg`}
+          alt={title}
+          className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+            <Play size={20} className="text-purple-600 ml-0.5" />
+          </div>
+        </div>
+      </button>
+    );
+  }
+
   return (
     <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ aspectRatio: "9/16", maxHeight: "400px" }}>
       <iframe
-        src={`https://www.youtube.com/embed/${videoId}?rel=0`}
+        src={`https://www.youtube.com/embed/${videoId}?rel=0&autoplay=1&modestbranding=1&disablekb=0`}
         title={title}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
@@ -73,6 +98,8 @@ const TutorialsPage: React.FC = () => {
   const filtered = activeCategory === "all"
     ? tutorials
     : tutorials.filter((tut) => tut.category === activeCategory);
+
+  const hubShareUrl = `${SHARE_ORIGIN}/tutorials`;
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -134,9 +161,17 @@ const TutorialsPage: React.FC = () => {
                   className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.05)]"
                   data-testid={`tutorial-${tutorial.id}`}
                 >
-                  <h3 className="text-[14px] font-bold text-gray-900 leading-tight mb-2">
-                    {tutorial.title}
-                  </h3>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="text-[14px] font-bold text-gray-900 leading-tight flex-1">
+                      {tutorial.title}
+                    </h3>
+                    <ShareMenu
+                      title={tutorial.title}
+                      text={tutorial.description || tutorial.title}
+                      shareUrl={hubShareUrl}
+                      testId={`share-tutorial-${tutorial.id}`}
+                    />
+                  </div>
                   {tutorial.description && (
                     <p className="text-[12px] text-gray-500 mb-3 leading-snug font-medium">
                       {tutorial.description}

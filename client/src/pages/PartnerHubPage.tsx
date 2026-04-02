@@ -101,7 +101,7 @@ const PartnerHubPage: React.FC = () => {
                       {t("partner.highlight")}
                     </p>
                   </div>
-                  <SectionVideos topicTag="partner-toolkit" />
+                  <SectionVideos topicTag="partner-toolkit" hubPath="/partner" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -133,7 +133,7 @@ const PartnerHubPage: React.FC = () => {
                   <p>
                     {t("partner.basis")}
                   </p>
-                  <SectionVideos topicTag="commissions" />
+                  <SectionVideos topicTag="commissions" hubPath="/partner" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -165,7 +165,7 @@ const PartnerHubPage: React.FC = () => {
                   <p>
                     {t("partner.profitBasis")}
                   </p>
-                  <SectionVideos topicTag="profit-share" />
+                  <SectionVideos topicTag="profit-share" hubPath="/partner" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -197,7 +197,7 @@ const PartnerHubPage: React.FC = () => {
                     <p><span className="font-bold text-gray-800">{t("partner.infinityStep3")}</span> {t("partner.infinityStep3Desc")}</p>
                     <p><span className="font-bold text-gray-800">{t("partner.infinityStep4")}</span></p>
                   </div>
-                  <SectionVideos topicTag="infinity-bonus" />
+                  <SectionVideos topicTag="infinity-bonus" hubPath="/partner" />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -232,7 +232,7 @@ const PartnerHubPage: React.FC = () => {
                       <p>✈️ {t("partner.lifestyle3")}</p>
                     </div>
                   </div>
-                  <SectionVideos topicTag="rewards" />
+                  <SectionVideos topicTag="rewards" hubPath="/partner" />
                 </div>
               </AccordionContent>
             </AccordionItem>

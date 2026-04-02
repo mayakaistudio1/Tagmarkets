@@ -88,7 +88,7 @@ export default function ShareMenu({ title, text, url, shareBody, shareUrl, class
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(resolvedBodyWithUrl);
+      await navigator.clipboard.writeText(resolvedShareUrl);
       setCopied(true);
       setTimeout(() => {
         setCopied(false);

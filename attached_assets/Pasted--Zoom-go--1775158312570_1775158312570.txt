@@ -1,0 +1,126 @@
+Задача: Полный аудит и исправление воронки приглашений — Zoom-атрибуция, /go/ ссылки, напоминания
+КОНТЕКСТ ПРОЕКТА
+JetUP — платформа управления вебинарами с Partner App (Telegram Mini App). Партнёры создают AI-персонализированные приглашения (personal_invites), гости регистрируются, получают напоминания, заходят на Zoom, после чего данные синхронизируются из Zoom API.
+
+ВЫЯВЛЕННЫЕ ПРОБЛЕМЫ (из production-диагностики 02.04.2026)
+ПРОБЛЕМА 1: Zoom-участники не привязываются к гостям
+Файл: server/integrations/zoom-api.ts, функция syncZoomDataForEvent (строки 264-310)
+
+Корень проблемы: Алгоритм матчинга ищет гостей ТОЛЬКО в таблице invite_guests, но НЕ проверяет personal_invites. При этом большинство реальных гостей приходят через personal_invites.
+
+Матчинг сейчас:
+
+Email match: invite_guests.email vs Zoom participant_email — не работает когда гость заходит с iPhone (Zoom отдаёт email = "unknown")
+Time proximity: invite_guests.go_clicked_at within 10 мин от Zoom join_time — не работает потому что go_clicked_at хранится в personal_invites, а НЕ в invite_guests
+Production-данные, подтверждающие проблему:
+
+zoom_attendance: invite_guest_id = NULL для ВСЕХ записей событий 29, 33, 34
+Гульзада: Zoom email = "unknown" (iPhone), personal_invites.go_clicked_at = 2026-04-02 19:11 (после вебинара)
+Марк: вообще НЕ в списке участников Zoom
+Что нужно исправить:
+
+В syncZoomDataForEvent: добавить матчинг через personal_invites (по email и по go_clicked_at)
+Добавить fuzzy name matching для участников с email = "unknown" (сравнить Zoom participant_name с invite_guests.name / personal_invites.prospect_name)
+При совпадении через personal_invite — найти связанного invite_guest (по email) и установить invite_guest_id
+ПРОБЛЕМА 2: /go/ ссылка НЕ пробрасывает go_clicked_at в invite_guests
+Файл: server/routes.ts, маршрут /go/:token (строки ~1228-1274)
+
+Как работает сейчас:
+
+Ищет токен в invite_guests → если нашёл, ставит goClickedAt в invite_guests
+Если НЕ нашёл — ищет в personal_invites → ставит goClickedAt ТОЛЬКО в personal_invites
+НЕ обновляет связанный invite_guests запись
+Что нужно исправить:
+
+Когда /go/ клик идёт через personal_invite — найти связанного invite_guest (по email + invite_event_id) и тоже установить его goClickedAt
+Это критично для time-proximity матчинга в Zoom sync
+ПРОБЛЕМА 3: Напоминания — непонятно работают ли
+Файл: server/integrations/reminder-scheduler.ts
+
+Production-данные:
+
+Все personal_invites с registered_at имеют reminder_sent = true
+Но reminder24h_sent = false для большинства (только 7 из 20 = true)
+В production логах НЕТ записей "[Reminder]" или "Sending reminder"
+Что нужно проверить:
+
+Работает ли reminder scheduler вообще в production? Логирует ли он что-то?
+Почему reminder24h_sent = false для старых приглашений? Значит 24-часовое напоминание НЕ отправлялось
+reminder_sent = true для всех — возможно ставится автоматически когда событие прошло, без реальной отправки
+Напоминания по Telegram: scheduler пытается отправить через sendMessage с username (@jazgil) вместо chat_id — это НЕ работает в Telegram API (нужен числовой chat_id)
+Поле telegram_chat_id заполнено только у 2 из 20 зарегистрированных гостей
+Что нужно исправить:
+
+Добавить подробное логирование в reminder scheduler (каждый цикл, каждую проверку)
+Исправить отправку по Telegram — использовать chat_id вместо username
+Проверить и при необходимости исправить логику определения каналов (email/telegram/whatsapp)
+AI ПРОМПТЫ (для документации)
+1. Генерация сообщений-приглашений
+Файл: server/partner-app-routes.ts (строки 1127-1154)
+Endpoint: POST /api/partner-app/generate-invite-messages
+Промпт:
+
+Generate exactly 2 short invitation messages in ${langName} for a webinar invitation.
+CONTEXT:
+- You are the personal assistant of ${displayPartnerName}
+- Prospect name: ${prospectName}
+- Prospect type: ${prospectType}
+- Relationship to prospect: ${relationshipDescription}
+- Prospect motivation: ${motivationDescription}
+- Prospect reaction style: ${reactionDescription}
+- Partner's note about prospect: "${contextNote}"
+- Webinar: "${scheduleEvent.title}" on ${scheduleEvent.date} at ${scheduleEvent.time} with ${scheduleEvent.speaker}
+STRATEGY: ${strategy} (Authority/Opportunity/Curiosity/Support)
+DISC TONE: ${discType} (D=direct/I=energetic/S=soft/C=rational)
+RULES:
+- Message 1: Greet by first name, introduce as assistant, mention personal invitation. 2-3 sentences max.
+- Message 2: Mention webinar date/time, frame relevance, ask one engagement question. 2-3 sentences max.
+- Natural chat style, NOT email format
+- Return ONLY JSON array: ["Message 1", "Message 2"]
+2. AI чат на странице персонального приглашения
+Файл: server/partner-app-routes.ts (строки 231-269)
+Endpoints: POST /api/personal-invite/:code/init-chat и /chat
+System промпт:
+
+You are a personal AI invitation assistant for ${partnerName}.
+Your job is to have a short, personal conversation with ${prospectName} who was invited to a private webinar.
+WEBINAR DETAILS: Title, Date, Time, Speaker, Key topics
+PROSPECT INFO: Name, Type, Context from partner
+DISC TONE GUIDE + STRATEGY GUIDE
+CRITICAL RULES:
+- You speak as the personal assistant of ${partnerName}, NOT as JetUP
+- Keep EVERY message SHORT: 2-4 sentences max
+- Natural chat style, no long paragraphs
+- Goal: curiosity + relevance → registration
+- If they want to register, tell them to click the "Register" button
+- Respond in ${language}
+3. AI follow-up после вебинара
+Файл: server/partner-app-routes.ts (строки 1030-1034)
+Endpoint: POST /api/partner-app/ai-followup
+System промпт:
+
+You are an AI recruiting assistant for JetUP partners.
+You help partners follow up with webinar guests and prospects.
+Professional, supportive, focused on converting leads.
+Respond in the same language as the partner's message.
+Keep messages concise and action-oriented.
+${contextInfo with guest attendance data}
+КЛЮЧЕВЫЕ ФАЙЛЫ
+server/integrations/zoom-api.ts — Zoom sync + матчинг (ГЛАВНАЯ ПРОБЛЕМА)
+server/routes.ts — /go/:token маршрут (строки ~1228-1274)
+server/integrations/reminder-scheduler.ts — напоминания
+server/integrations/zoom-sync-scheduler.ts — автоматический Zoom sync
+server/partner-app-routes.ts — AI промпты + partner app API
+server/storage.ts — CRUD операции (getGuestsByEventId, getPersonalInviteByGuestToken)
+shared/schema.ts — схема БД (invite_guests, personal_invites, zoom_attendance)
+ТАБЛИЦЫ БД И ИХ СВЯЗЬ
+schedule_events (id, title, date, time, timezone, link)
+   ↓ schedule_event_id
+invite_events (id, partner_id, schedule_event_id, zoom_link, invite_code)
+   ↓ invite_event_id
+invite_guests (id, invite_event_id, name, email, guest_token, go_clicked_at)
+   ↓ invite_guest_id (ЧАСТО NULL — это и есть проблема)
+zoom_attendance (id, invite_event_id, invite_guest_id, participant_email, join_time)
+personal_invites (id, partner_id, schedule_event_id, prospect_name, guest_email, guest_token, go_clicked_at)
+   — ПАРАЛЛЕЛЬНАЯ таблица, НЕ связана напрямую с invite_guests
+   — go_clicked_at хранится ЗДЕСЬ, а Zoom sync ищет ТОЛЬКО в invite_guests

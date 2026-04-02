@@ -83,13 +83,13 @@ export default function SectionVideos({ topicTag, hubPath }: SectionVideosProps)
   return (
     <div className="mt-3 space-y-3" data-testid={`section-videos-${topicTag}`}>
       {videos.map((video) => (
-        <div key={video.id} className="space-y-1.5">
+        <div key={video.id} id={`video-${video.id}`} className="space-y-1.5">
           <div className="flex items-center justify-between gap-2">
             <p className="text-[12px] font-semibold text-purple-600 flex-1">{video.title}</p>
             <ShareMenu
               title={video.title}
               text={video.description || video.title}
-              shareUrl={shareUrl}
+              shareUrl={`${SHARE_ORIGIN}/tutorials#video-${video.id}`}
               testId={`share-section-video-${video.id}`}
             />
           </div>

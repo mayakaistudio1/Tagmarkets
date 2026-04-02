@@ -87,6 +87,19 @@ const TutorialsPage: React.FC = () => {
     fetchTutorials();
   }, [language]);
 
+  useEffect(() => {
+    if (loading || tutorials.length === 0) return;
+    const hash = window.location.hash;
+    if (hash) {
+      setTimeout(() => {
+        const el = document.querySelector(hash);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 300);
+    }
+  }, [loading, tutorials]);
+
   const categoryTabs: { key: CategoryTab; label: string }[] = [
     { key: "all", label: t("tutorials.all") },
     { key: "bonuses", label: t("tutorials.bonuses") },
@@ -158,6 +171,7 @@ const TutorialsPage: React.FC = () => {
               {filtered.map((tutorial) => (
                 <div
                   key={tutorial.id}
+                  id={`video-${tutorial.id}`}
                   className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.05)]"
                   data-testid={`tutorial-${tutorial.id}`}
                 >
@@ -168,7 +182,7 @@ const TutorialsPage: React.FC = () => {
                     <ShareMenu
                       title={tutorial.title}
                       text={tutorial.description || tutorial.title}
-                      shareUrl={hubShareUrl}
+                      shareUrl={`${hubShareUrl}#video-${tutorial.id}`}
                       testId={`share-tutorial-${tutorial.id}`}
                     />
                   </div>

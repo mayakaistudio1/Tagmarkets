@@ -268,7 +268,10 @@ const HomePage: React.FC = () => {
               <div className="w-9 h-9 rounded-lg bg-cyan-100 flex items-center justify-center flex-shrink-0">
                 <Video size={18} className="text-cyan-600" />
               </div>
-              <span className="text-[13px] font-bold text-gray-900 flex-1 min-w-0">{t("home.tutorials")}</span>
+              <div className="flex-1 min-w-0">
+                <span className="text-[13px] font-bold text-gray-900">{t("home.tutorials")}</span>
+                <p className="text-[11px] font-normal text-gray-500 mt-1 leading-snug">{t("home.tutorialsSubtitle")}</p>
+              </div>
               <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />
             </button>
           </motion.div>

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
+  ExternalLink,
   MessageCircle,
   Play,
   Video,
+  Youtube,
 } from "lucide-react";
 import { useAppNavigation } from "@/hooks/use-app-navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -139,6 +141,23 @@ const TutorialsPage: React.FC = () => {
           <p className="text-[13px] text-gray-500 leading-relaxed font-medium">
             {t("tutorials.subtitle")}
           </p>
+
+          <a
+            href="https://www.youtube.com/@JetUP_official"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 bg-white rounded-xl px-4 py-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.05)] active:scale-[0.98] transition-transform"
+            data-testid="link-webinar-youtube"
+          >
+            <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
+              <Youtube size={20} className="text-red-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-bold text-gray-900 leading-tight">{t("tutorials.webinarYoutube")}</p>
+              <p className="text-[11px] font-normal text-gray-500 mt-1 leading-snug">{t("tutorials.webinarYoutubeSubtitle")}</p>
+            </div>
+            <ExternalLink size={16} className="text-gray-300 flex-shrink-0" />
+          </a>
 
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
             {categoryTabs.map((tab) => (

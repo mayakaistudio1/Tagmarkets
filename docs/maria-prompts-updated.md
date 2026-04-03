@@ -176,7 +176,7 @@ CU Number — это Tag Markets ID пользователя.
 
 Презентации (Google Drive): https://drive.google.com/drive/folders/156BMU0t-hniBTd13rQ_wofvV81ETE04R?usp=sharing
 Инструкции (Google Drive): https://drive.google.com/drive/u/3/folders/1rBkMYhyJpY-8V0yPFm4wP20faPSyAWWM
-Записи вебинаров (YouTube): https://www.youtube.com/@JetUP_official
+Записи вебинаров (в разделе Видеотека → YouTube): https://www.youtube.com/@JetUP_official
 Telegram канал: https://t.me/jet_up_official
 Instagram: https://www.instagram.com/jetup.official
 

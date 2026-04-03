@@ -207,7 +207,7 @@ CU Number — это твой Tag Markets ID.
 📅 Расписание вебинаров: https://jet-up.ai/schedule
 📁 Презентации: https://drive.google.com/drive/folders/156BMU0t-hniBTd13rQ_wofvV81ETE04R
 📁 Инструкции: https://drive.google.com/drive/u/3/folders/1rBkMYhyJpY-8V0yPFm4wP20faPSyAWWM
-🎬 Записи вебинаров: https://www.youtube.com/@JetUP_official
+🎬 Записи вебинаров (в разделе Видеотека): https://www.youtube.com/@JetUP_official
 💬 Telegram: https://t.me/jet_up_official
 
 ### 3. Dennis Fast Start Promo

@@ -42,14 +42,6 @@ const HomePage: React.FC = () => {
 
   const directLinks = [
     {
-      icon: Youtube,
-      label: t("home.webinarRecordings"),
-      subtitle: t("home.webinarRecordingsSubtitle"),
-      href: "https://www.youtube.com/@JetUP_official",
-      color: "text-red-600",
-      bg: "bg-red-50",
-    },
-    {
       icon: FolderOpen,
       label: t("home.presentations"),
       subtitle: t("home.presentationsSubtitle"),

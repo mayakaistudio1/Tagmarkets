@@ -1589,6 +1589,44 @@ h1{font-size:1.25rem;color:#1a1a1a;margin:0 0 .5rem}p{color:#666;font-size:.9rem
     }
   });
 
+  app.get("/api/admin/youtube-meta", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const videoId = req.query.videoId as string;
+      if (!videoId) return res.status(400).json({ error: "videoId required" });
+
+      const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&format=json`;
+      const response = await fetch(oembedUrl, { signal: AbortSignal.timeout(5000) });
+      if (!response.ok) return res.json({ title: "", description: "" });
+
+      const data = await response.json();
+      const title = data.title || "";
+
+      let description = "";
+      try {
+        const pageRes = await fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`, {
+          signal: AbortSignal.timeout(5000),
+          headers: { "Accept-Language": "de-DE,de;q=0.9,en;q=0.5" },
+        });
+        if (pageRes.ok) {
+          const html = await pageRes.text();
+          const descMatch = html.match(/"shortDescription":"((?:[^"\\]|\\.)*)"/);
+          if (descMatch) {
+            description = descMatch[1]
+              .replace(/\\n/g, "\n")
+              .replace(/\\"/g, '"')
+              .replace(/\\\\/g, "\\");
+          }
+        }
+      } catch {}
+
+      res.json({ title, description });
+    } catch (error) {
+      console.error("Error fetching YouTube metadata:", error);
+      res.json({ title: "", description: "" });
+    }
+  });
+
   app.get("/api/admin/tutorials", async (req, res) => {
     if (!requireAdmin(req, res)) return;
     try {

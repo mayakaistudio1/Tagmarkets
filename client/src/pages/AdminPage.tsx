@@ -1007,6 +1007,7 @@ function AdminPage() {
             setFilterCategory={setVideoFilterCategory}
             filterLang={videoFilterLang}
             setFilterLang={setVideoFilterLang}
+            adminPassword={adminPassword}
           />
         )}
         {activeTab === "workflow" && (
@@ -3218,16 +3219,18 @@ const emptyVideo: VideoFormData = {
 
 function VideosTab({
   videos, loading, formOpen, setFormOpen, editing, setEditing, onSave, onDelete,
-  filterCategory, setFilterCategory, filterLang, setFilterLang,
+  filterCategory, setFilterCategory, filterLang, setFilterLang, adminPassword,
 }: {
   videos: VideoFormData[]; loading: boolean; formOpen: boolean; setFormOpen: (v: boolean) => void;
   editing: VideoFormData | null; setEditing: (v: VideoFormData | null) => void;
   onSave: (v: VideoFormData) => void; onDelete: (id: number) => void;
   filterCategory: string; setFilterCategory: (v: string) => void;
   filterLang: string; setFilterLang: (v: string) => void;
+  adminPassword: string;
 }) {
   const [form, setForm] = useState(emptyVideo);
   const [tagInput, setTagInput] = useState("");
+  const [fetchingMeta, setFetchingMeta] = useState(false);
 
   useEffect(() => {
     if (editing) {
@@ -3237,9 +3240,27 @@ function VideosTab({
     }
   }, [editing]);
 
-  const handleUrlChange = (url: string) => {
+  const handleUrlChange = async (url: string) => {
     const videoId = extractYouTubeVideoId(url);
     setForm((f) => ({ ...f, youtubeUrl: url, youtubeVideoId: videoId }));
+
+    if (videoId && videoId.length > 5) {
+      setFetchingMeta(true);
+      try {
+        const res = await fetch(`/api/admin/youtube-meta?videoId=${encodeURIComponent(videoId)}`, {
+          headers: { "x-admin-password": adminPassword },
+        });
+        if (res.ok) {
+          const meta = await res.json();
+          setForm((f) => ({
+            ...f,
+            title: f.title || meta.title || "",
+            description: f.description || meta.description || "",
+          }));
+        }
+      } catch {}
+      setFetchingMeta(false);
+    }
   };
 
   const addTag = () => {
@@ -3308,11 +3329,14 @@ function VideosTab({
         <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-4" data-testid="video-form">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1">Title</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">
+                Title {fetchingMeta && <span className="text-purple-500 animate-pulse ml-1">⏳</span>}
+              </label>
               <input
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+                placeholder={fetchingMeta ? "Laden..." : ""}
                 required
                 data-testid="input-video-title"
               />
@@ -3334,11 +3358,14 @@ function VideosTab({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">Description</label>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">
+              Description {fetchingMeta && <span className="text-purple-500 animate-pulse ml-1">⏳</span>}
+            </label>
             <textarea
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+              placeholder={fetchingMeta ? "Laden..." : ""}
               rows={2}
               data-testid="input-video-description"
             />

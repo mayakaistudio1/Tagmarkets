@@ -3232,6 +3232,7 @@ interface BulkEntry extends VideoFormData {
   _key: string;
   _metaFailed?: boolean;
   _duplicate?: boolean;
+  _invalid?: boolean;
 }
 
 function VideosTab({
@@ -3328,7 +3329,18 @@ function VideosTab({
 
     for (const line of lines) {
       const videoId = extractYouTubeVideoId(line);
-      if (!videoId || !isValidYouTubeId(videoId)) continue;
+      const isValid = videoId && isValidYouTubeId(videoId);
+
+      if (!isValid) {
+        entries.push({
+          ...emptyVideo,
+          youtubeUrl: line,
+          youtubeVideoId: "",
+          _key: `invalid-${Date.now()}-${Math.random()}`,
+          _invalid: true,
+        });
+        continue;
+      }
 
       const isDuplicate = existingIds.has(videoId) || seenIds.has(videoId);
       seenIds.add(videoId);
@@ -3344,7 +3356,10 @@ function VideosTab({
 
     setBulkEntries([...entries]);
 
-    const metaPromises = entries.map(async (entry, idx) => {
+    const validIndices = entries.map((e, i) => (!e._invalid ? i : -1)).filter(i => i >= 0);
+
+    const metaPromises = validIndices.map(async (idx) => {
+      const entry = entries[idx];
       try {
         const res = await fetch(`/api/admin/youtube-meta?videoId=${encodeURIComponent(entry.youtubeVideoId)}`, {
           headers: { "x-admin-password": adminPassword },
@@ -3402,11 +3417,11 @@ function VideosTab({
   };
 
   const handleBulkSave = async () => {
-    const valid = bulkEntries.filter(e => e.youtubeVideoId && e.title && !e._duplicate);
+    const valid = bulkEntries.filter(e => e.youtubeVideoId && e.title && !e._duplicate && !e._invalid);
     if (valid.length === 0) return;
 
     setBulkSaving(true);
-    const saved = await onBulkSave(valid.map(({ _key, _metaFailed, _duplicate, ...rest }) => rest));
+    const saved = await onBulkSave(valid.map(({ _key, _metaFailed, _duplicate, _invalid, ...rest }) => rest));
     setBulkSaving(false);
     setBulkSaveResult(`${saved} von ${valid.length} Videos gespeichert`);
     if (saved > 0) {
@@ -3534,6 +3549,9 @@ function VideosTab({
                   {bulkEntries.some(e => e._duplicate) && (
                     <span className="text-amber-600 ml-2">({bulkEntries.filter(e => e._duplicate).length} Duplikate)</span>
                   )}
+                  {bulkEntries.some(e => e._invalid) && (
+                    <span className="text-red-500 ml-2">({bulkEntries.filter(e => e._invalid).length} ungültig)</span>
+                  )}
                 </p>
                 <div className="flex items-center gap-2">
                   <button
@@ -3548,12 +3566,12 @@ function VideosTab({
                   )}
                   <button
                     onClick={handleBulkSave}
-                    disabled={bulkSaving || bulkEntries.filter(e => e.youtubeVideoId && e.title && !e._duplicate).length === 0}
+                    disabled={bulkSaving || bulkEntries.filter(e => e.youtubeVideoId && e.title && !e._duplicate && !e._invalid).length === 0}
                     className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 disabled:opacity-50"
                     data-testid="button-bulk-save"
                   >
                     {bulkSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                    {bulkSaving ? "Speichern..." : `Alle speichern (${bulkEntries.filter(e => e.youtubeVideoId && e.title && !e._duplicate).length})`}
+                    {bulkSaving ? "Speichern..." : `Alle speichern (${bulkEntries.filter(e => e.youtubeVideoId && e.title && !e._duplicate && !e._invalid).length})`}
                   </button>
                 </div>
               </div>
@@ -3562,21 +3580,31 @@ function VideosTab({
                 {bulkEntries.map((entry, idx) => (
                   <div
                     key={entry._key}
-                    className={`rounded-lg border p-4 space-y-3 ${entry._duplicate ? "border-amber-300 bg-amber-50" : entry._metaFailed ? "border-orange-200 bg-orange-50" : "border-gray-200 bg-gray-50"}`}
+                    className={`rounded-lg border p-4 space-y-3 ${entry._invalid ? "border-red-300 bg-red-50" : entry._duplicate ? "border-amber-300 bg-amber-50" : entry._metaFailed ? "border-orange-200 bg-orange-50" : "border-gray-200 bg-gray-50"}`}
                     data-testid={`bulk-entry-${idx}`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-gray-400">#{idx + 1}</span>
-                        <span className="text-xs text-gray-400 font-mono">{entry.youtubeVideoId}</span>
+                        {entry._invalid ? (
+                          <span className="text-xs text-red-500 font-mono truncate max-w-[300px]">{entry.youtubeUrl}</span>
+                        ) : (
+                          <span className="text-xs text-gray-400 font-mono">{entry.youtubeVideoId}</span>
+                        )}
+                        {entry._invalid && <span className="text-[10px] px-1.5 py-0.5 bg-red-200 text-red-700 rounded-full font-bold">Ungültige URL</span>}
                         {entry._duplicate && <span className="text-[10px] px-1.5 py-0.5 bg-amber-200 text-amber-700 rounded-full font-bold">Duplikat</span>}
-                        {entry._metaFailed && !entry._duplicate && <span className="text-[10px] px-1.5 py-0.5 bg-orange-200 text-orange-700 rounded-full font-bold">Manuell ausfüllen</span>}
+                        {entry._metaFailed && !entry._duplicate && !entry._invalid && <span className="text-[10px] px-1.5 py-0.5 bg-orange-200 text-orange-700 rounded-full font-bold">Manuell ausfüllen</span>}
                       </div>
                       <button onClick={() => removeBulkEntry(entry._key)} className="p-1 rounded hover:bg-red-100 text-gray-400 hover:text-red-500" data-testid={`button-remove-bulk-${idx}`}>
                         <X size={14} />
                       </button>
                     </div>
 
+                    {entry._invalid && (
+                      <p className="text-xs text-red-500">Diese URL konnte nicht erkannt werden. Bitte entfernen oder korrigieren.</p>
+                    )}
+
+                    {!entry._invalid && <>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Title</label>
@@ -3677,6 +3705,7 @@ function VideosTab({
                         <button type="button" onClick={() => addBulkTag(entry._key)} className="px-2 py-1 rounded bg-gray-200 text-[10px] font-medium hover:bg-gray-300">+</button>
                       </div>
                     </div>
+                    </>}
                   </div>
                 ))}
               </div>

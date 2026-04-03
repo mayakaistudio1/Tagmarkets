@@ -96,13 +96,15 @@ const PromoDetailPage: React.FC = () => {
                         <Zap size={8} />
                         {promo.badge}
                       </span>
-                      <div className="ml-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                        <ShareMenu
-                          title={promo.title}
-                          shareBody={`🔥 JetUP\n\n${promo.title}\n\n${promo.subtitle}`}
-                          shareUrl={`${SHARE_ORIGIN}/promo/${promo.id}`}
-                          testId={`button-share-promo-${promo.id}`}
-                        />
+                      <div className="ml-auto flex items-center gap-1">
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <ShareMenu
+                            title={promo.title}
+                            shareBody={`🔥 JetUP\n\n${promo.title}\n\n${promo.subtitle}`}
+                            shareUrl={`${SHARE_ORIGIN}/promo/${promo.id}`}
+                            testId={`button-share-promo-${promo.id}`}
+                          />
+                        </div>
                         <motion.div
                           animate={{ rotate: isExpanded ? 180 : 0 }}
                           transition={{ duration: 0.25 }}

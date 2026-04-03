@@ -3240,7 +3240,16 @@ function VideosTab({
     } else {
       setForm(emptyVideo);
     }
+    fetchTokenRef.current++;
+    setFetchingMeta(false);
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
   }, [editing]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, []);
 
   const isValidYouTubeId = (id: string) => /^[a-zA-Z0-9_-]{11}$/.test(id);
 

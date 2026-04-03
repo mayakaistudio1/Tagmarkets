@@ -796,8 +796,8 @@ function AdminPage() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-md">
           <div className="flex flex-col items-center mb-6">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center mb-4 shadow-lg">
               <Shield size={32} className="text-white" />
@@ -858,46 +858,46 @@ function AdminPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {errorMsg && (
-        <div className="fixed top-0 left-0 right-0 z-[100] bg-red-500 text-white px-6 py-3 flex items-center justify-between" data-testid="error-banner">
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-red-500 text-white px-3 md:px-6 py-3 flex items-center justify-between" data-testid="error-banner">
           <span className="text-sm font-medium">{errorMsg}</span>
           <button onClick={() => setErrorMsg("")} className="text-white hover:text-red-100"><X size={18} /></button>
         </div>
       )}
-      <header className={`bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky ${errorMsg ? 'top-10' : 'top-0'} z-50`}>
-        <div className="flex items-center gap-3">
+      <header className={`bg-white border-b border-gray-200 px-3 md:px-6 py-3 flex items-center justify-between sticky ${errorMsg ? 'top-10' : 'top-0'} z-50 gap-2`}>
+        <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center">
             <Shield size={16} className="text-white" />
           </div>
-          <h1 className="text-lg font-bold text-gray-900">JetApp Admin</h1>
+          <h1 className="text-lg font-bold text-gray-900 hidden md:block">JetApp Admin</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2 overflow-x-auto flex-1 min-w-0 no-scrollbar">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               data-testid={`tab-${tab.key}`}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 px-2.5 md:px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0 min-h-[44px] md:min-h-0 ${
                 activeTab === tab.key
                   ? "bg-purple-100 text-purple-700"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               {tab.icon}
-              {tab.label}
+              <span className="hidden md:inline">{tab.label}</span>
             </button>
           ))}
         </div>
         <button
           data-testid="button-admin-logout"
           onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+          className="flex items-center gap-2 px-2.5 md:px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors flex-shrink-0 min-h-[44px] md:min-h-0"
         >
           <LogOut size={16} />
-          Logout
+          <span className="hidden md:inline">Logout</span>
         </button>
       </header>
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-3 md:p-6">
         {activeTab === "chat" && (
           <ChatLogsTab
             sessions={chatSessions}
@@ -1217,8 +1217,8 @@ function ChatLogsTab({
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="flex flex-wrap items-end gap-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4">
+        <div className="flex flex-wrap items-end gap-3 md:gap-4">
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Typ</label>
             <select data-testid="select-chat-type" value={filterType} onChange={(e) => setFilterType(e.target.value)}
@@ -1396,13 +1396,13 @@ function ChatLogsTab({
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden overflow-x-auto">
         {loading ? (
           <div className="p-8 text-center text-gray-500">Laden...</div>
         ) : sessions.length === 0 ? (
           <div data-testid="text-no-sessions" className="p-8 text-center text-gray-500">Keine Chat-Sitzungen gefunden</div>
         ) : (
-          <table className="w-full">
+          <table className="w-full min-w-[600px] md:min-w-0">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Session ID</th>
@@ -1561,11 +1561,11 @@ function SpeakerForm({ speaker, setSpeaker, onSave, onClose, adminPassword }: {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-0 md:p-4">
+      <div className="bg-white rounded-none md:rounded-2xl shadow-2xl w-full max-w-none md:max-w-lg h-full md:h-auto md:max-h-[90vh] overflow-y-auto p-4 md:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900">{speaker.id ? "Sprecher bearbeiten" : "Neuer Sprecher"}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center"><X size={20} /></button>
         </div>
         <InputField label="Name" value={speaker.name} onChange={(v) => setSpeaker({ ...speaker, name: v })} testId="input-speaker-name" />
         <InputField label="Rolle" value={speaker.role} onChange={(v) => setSpeaker({ ...speaker, role: v })} testId="input-speaker-role" />
@@ -1611,10 +1611,10 @@ function PromotionsTab({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-gray-900">Aktionen / Promotions</h2>
         <button data-testid="button-new-promotion" onClick={openNew}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors min-h-[44px] md:min-h-0">
           <Plus size={16} /> Neue Aktion
         </button>
       </div>
@@ -1700,13 +1700,13 @@ function PromotionForm({ promo, setPromo, onSave, onClose, adminPassword }: {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-0 md:p-4">
+      <div className="bg-white rounded-none md:rounded-2xl shadow-2xl w-full max-w-none md:max-w-lg h-full md:h-auto md:max-h-[90vh] overflow-y-auto p-4 md:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900">{promo.id ? "Aktion bearbeiten" : "Neue Aktion"}</h3>
-          <button data-testid="button-close-promo-form" onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <button data-testid="button-close-promo-form" onClick={onClose} className="text-gray-400 hover:text-gray-600 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center"><X size={20} /></button>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Sprache</label>
             <select data-testid="select-promo-language" value={promo.language} onChange={(e) => setPromo({ ...promo, language: e.target.value })}
@@ -1743,7 +1743,7 @@ function PromotionForm({ promo, setPromo, onSave, onClose, adminPassword }: {
             }}
             rows={5} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <InputField label="CTA Text" value={promo.ctaText} onChange={(v) => setPromo({ ...promo, ctaText: v })} testId="input-promo-cta-text" />
           <InputField label="CTA Link" value={promo.ctaLink} onChange={(v) => setPromo({ ...promo, ctaLink: v })} testId="input-promo-cta-link" />
         </div>
@@ -1776,10 +1776,10 @@ function ScheduleTab({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-gray-900">Webinare & Termine</h2>
         <button data-testid="button-new-event" onClick={openNew}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors min-h-[44px] md:min-h-0">
           <Plus size={16} /> Neues Event
         </button>
       </div>
@@ -1873,11 +1873,11 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
   const currentSpeakerPhoto = event.speakerPhoto || speakers.find(s => s.id === event.speakerId)?.photo || "";
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-0 md:p-4">
+      <div className="bg-white rounded-none md:rounded-2xl shadow-2xl w-full max-w-none md:max-w-lg h-full md:h-auto md:max-h-[95vh] flex flex-col overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
           <h3 className="text-lg font-bold text-gray-900">{event.id ? "Event bearbeiten" : "Neues Event"}</h3>
-          <button data-testid="button-close-event-form" onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <button data-testid="button-close-event-form" onClick={onClose} className="text-gray-400 hover:text-gray-600 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center"><X size={20} /></button>
         </div>
 
         <div className="p-5 space-y-3 overflow-y-auto flex-1 custom-scrollbar">
@@ -2304,8 +2304,8 @@ function DennisPromoTab({
 
       {promoSubTab === "offers" && (
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Dennis Promo — Управление акциями</h2>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-3">
+            <h2 className="text-lg md:text-xl font-bold text-gray-900">Dennis Promo — Управление акциями</h2>
             <button
               onClick={() => { setEditing(null); setFormOpen(true); }}
               className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors"
@@ -2317,7 +2317,7 @@ function DennisPromoTab({
           </div>
 
           {formOpen && (
-            <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-orange-200">
+            <div className="bg-white rounded-xl shadow-sm p-4 md:p-6 mb-6 border border-orange-200">
               <h3 className="text-lg font-bold text-gray-900 mb-4">{editing?.id ? "Редактировать" : "Новая"} промо-акция</h3>
               <div className="space-y-4">
                 <div>
@@ -2364,7 +2364,7 @@ function DennisPromoTab({
                     data-testid="input-dp-rules"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">Sprache / Язык</label>
                     <select
@@ -2601,8 +2601,8 @@ function PromoApplicationsSubTab({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h2 className="text-xl font-bold text-gray-900">Заявки на промо-акции</h2>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-3 md:gap-2">
+        <h2 className="text-lg md:text-xl font-bold text-gray-900">Заявки на промо-акции</h2>
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={checkVerifications}
@@ -2656,8 +2656,8 @@ function PromoApplicationsSubTab({
       ) : promoApps.length === 0 ? (
         <div className="text-center py-12 text-gray-500">Нет заявок</div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden overflow-x-auto">
+          <table className="w-full text-sm min-w-[800px] md:min-w-0">
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">ID</th>
@@ -2838,9 +2838,9 @@ function InvitesTab({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-gray-900" data-testid="text-invites-title">Invites by Webinar</h2>
+          <h2 className="text-lg md:text-xl font-bold text-gray-900" data-testid="text-invites-title">Invites by Webinar</h2>
           {zoomStatus && (
             <div className="flex items-center gap-2 mt-1">
               <span className={`inline-block w-2 h-2 rounded-full ${zoomStatus.ok ? 'bg-green-500' : zoomStatus.configured ? 'bg-yellow-500' : 'bg-gray-400'}`} />
@@ -2873,7 +2873,7 @@ function InvitesTab({
             <button onClick={() => setShowZoomConfig(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
           </div>
           <p className="text-xs text-gray-500">Server-to-Server OAuth credentials from <a href="https://marketplace.zoom.us/" target="_blank" rel="noopener noreferrer" className="text-purple-600 underline">Zoom Marketplace</a></p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Account ID</label>
               <input data-testid="input-zoom-account-id" type="text" value={zoomCreds.accountId}
@@ -2917,7 +2917,7 @@ function InvitesTab({
               <div key={webinar.scheduleEvent.id} data-testid={`card-webinar-${webinar.scheduleEvent.id}`} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <button
                   onClick={() => setExpandedWebinar(isExpanded ? null : webinar.scheduleEvent.id)}
-                  className="w-full p-5 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full p-3 md:p-5 text-left hover:bg-gray-50 transition-colors"
                   data-testid={`button-expand-webinar-${webinar.scheduleEvent.id}`}
                 >
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -2932,23 +2932,23 @@ function InvitesTab({
                       <p className="text-sm text-gray-500 ml-7">{webinar.scheduleEvent.date} {webinar.scheduleEvent.time} {webinar.scheduleEvent.timezone} | {webinar.scheduleEvent.speaker}</p>
                     </div>
 
-                    <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
-                      <div className="text-center">
+                    <div className="flex items-center gap-2 md:gap-3 bg-gray-50 px-3 md:px-4 py-2 rounded-lg border border-gray-100 overflow-x-auto no-scrollbar flex-shrink-0">
+                      <div className="text-center flex-shrink-0">
                         <p className="text-[10px] uppercase text-gray-400 font-bold">Partners</p>
                         <p className="text-lg font-bold text-gray-700" data-testid={`stat-partners-${webinar.scheduleEvent.id}`}>{webinar.stats.totalPartners}</p>
                       </div>
-                      <div className="w-px h-8 bg-gray-200" />
-                      <div className="text-center">
+                      <div className="w-px h-8 bg-gray-200 flex-shrink-0" />
+                      <div className="text-center flex-shrink-0">
                         <p className="text-[10px] uppercase text-gray-400 font-bold">Invited</p>
                         <p className="text-lg font-bold text-purple-600" data-testid={`stat-invited-${webinar.scheduleEvent.id}`}>{webinar.stats.totalInvited}</p>
                       </div>
-                      <div className="w-px h-8 bg-gray-200" />
-                      <div className="text-center">
+                      <div className="w-px h-8 bg-gray-200 flex-shrink-0" />
+                      <div className="text-center flex-shrink-0">
                         <p className="text-[10px] uppercase text-gray-400 font-bold">Registered</p>
                         <p className="text-lg font-bold text-blue-600" data-testid={`stat-registered-${webinar.scheduleEvent.id}`}>{webinar.stats.totalRegistered}</p>
                       </div>
-                      <div className="w-px h-8 bg-gray-200" />
-                      <div className="text-center">
+                      <div className="w-px h-8 bg-gray-200 flex-shrink-0" />
+                      <div className="text-center flex-shrink-0">
                         <p className="text-[10px] uppercase text-gray-400 font-bold">Attended</p>
                         <p className="text-lg font-bold text-emerald-600" data-testid={`stat-attended-${webinar.scheduleEvent.id}`}>{webinar.stats.totalAttended}</p>
                       </div>
@@ -3007,7 +3007,7 @@ function InvitesTab({
 
                               {isPartnerExpanded && partner.guests.length > 0 && (
                                 <div className="border-t border-gray-100 overflow-x-auto">
-                                  <table className="w-full text-left">
+                                  <table className="w-full text-left min-w-[600px] md:min-w-0">
                                     <thead className="bg-gray-50 border-b">
                                       <tr>
                                         <th className="px-4 py-2 text-xs font-bold text-gray-500 uppercase">Name</th>
@@ -3093,21 +3093,21 @@ function InviteForm({ event, setEvent, onSave, onClose }: {
   event: Partial<InviteEvent>; setEvent: (e: Partial<InviteEvent>) => void; onSave: () => void; onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-0 md:p-4">
+      <div className="bg-white rounded-none md:rounded-2xl shadow-2xl w-full max-w-none md:max-w-lg h-full md:h-auto md:max-h-[90vh] overflow-y-auto p-4 md:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900">Create New Invite Event</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center"><X size={20} /></button>
         </div>
         
         <InputField label="Event Title" value={event.title || ""} onChange={(v) => setEvent({ ...event, title: v })} testId="input-invite-title" />
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField label="Partner Name" value={event.partnerName || ""} onChange={(v) => setEvent({ ...event, partnerName: v })} testId="input-invite-partner-name" />
           <InputField label="Partner CU Number" value={event.partnerCu || ""} onChange={(v) => setEvent({ ...event, partnerCu: v })} testId="input-invite-partner-cu" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField label="Date" value={event.eventDate || ""} onChange={(v) => setEvent({ ...event, eventDate: v })} testId="input-invite-date" />
           <InputField label="Time" value={event.eventTime || ""} onChange={(v) => setEvent({ ...event, eventTime: v })} testId="input-invite-time" />
         </div>
@@ -3459,12 +3459,12 @@ function VideosTab({
 
   return (
     <div className="space-y-6" data-testid="videos-tab">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Videos</h2>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <h2 className="text-lg md:text-xl font-bold text-gray-900">Videos</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => { setBulkOpen(!bulkOpen); setBulkEntries([]); setBulkUrls(""); setBulkSaveResult(null); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 min-h-[44px] md:min-h-0"
             data-testid="button-bulk-import"
           >
             <Upload size={16} />
@@ -3472,7 +3472,7 @@ function VideosTab({
           </button>
           <button
             onClick={() => { setEditing(null); setForm(emptyVideo); setFormOpen(true); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 min-h-[44px] md:min-h-0"
             data-testid="button-add-video"
           >
             <Plus size={16} />
@@ -3481,7 +3481,7 @@ function VideosTab({
         </div>
       </div>
 
-      <div className="flex gap-3 items-center">
+      <div className="flex gap-3 items-center flex-wrap">
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
@@ -3605,7 +3605,7 @@ function VideosTab({
                     )}
 
                     {!entry._invalid && <>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Title</label>
                         <input
@@ -3634,7 +3634,7 @@ function VideosTab({
                       />
                     </div>
 
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       <div>
                         <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Category</label>
                         <select
@@ -3715,8 +3715,8 @@ function VideosTab({
       )}
 
       {formOpen && (
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-4" data-testid="video-form">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 space-y-4" data-testid="video-form">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">
                 Title {fetchingMeta && <span className="text-purple-500 animate-pulse ml-1">⏳</span>}
@@ -3760,7 +3760,7 @@ function VideosTab({
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">Category</label>
               <select
@@ -3857,7 +3857,7 @@ function VideosTab({
       ) : (
         <div className="space-y-3">
           {filtered.map((v) => (
-            <div key={v.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-4" data-testid={`video-item-${v.id}`}>
+            <div key={v.id} className="bg-white rounded-xl p-3 md:p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center gap-3 md:gap-4" data-testid={`video-item-${v.id}`}>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-bold text-gray-900">{v.title}</span>

@@ -3197,7 +3197,7 @@ function extractYouTubeVideoId(url: string): string {
 }
 
 const VIDEO_CATEGORIES = [
-  { value: "bonuses", label: "Bonuses" },
+  { value: "bonuses", label: "Incentives" },
   { value: "strategies", label: "Strategies" },
   { value: "partner-program", label: "Partner Program" },
   { value: "getting-started", label: "Getting Started" },

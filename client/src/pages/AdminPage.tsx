@@ -1003,6 +1003,17 @@ function AdminPage() {
             setEditing={setEditingVideo}
             onSave={saveVideo}
             onDelete={deleteVideo}
+            onBulkSave={async (items: VideoFormData[]) => {
+              let saved = 0;
+              for (const item of items) {
+                try {
+                  const res = await fetch("/api/admin/tutorials", { method: "POST", headers: headers(), body: JSON.stringify(item) });
+                  if (res.ok) saved++;
+                } catch {}
+              }
+              fetchVideos();
+              return saved;
+            }}
             filterCategory={videoFilterCategory}
             setFilterCategory={setVideoFilterCategory}
             filterLang={videoFilterLang}
@@ -3217,13 +3228,20 @@ const emptyVideo: VideoFormData = {
   isActive: true,
 };
 
+interface BulkEntry extends VideoFormData {
+  _key: string;
+  _metaFailed?: boolean;
+  _duplicate?: boolean;
+}
+
 function VideosTab({
-  videos, loading, formOpen, setFormOpen, editing, setEditing, onSave, onDelete,
+  videos, loading, formOpen, setFormOpen, editing, setEditing, onSave, onDelete, onBulkSave,
   filterCategory, setFilterCategory, filterLang, setFilterLang, adminPassword,
 }: {
   videos: VideoFormData[]; loading: boolean; formOpen: boolean; setFormOpen: (v: boolean) => void;
   editing: VideoFormData | null; setEditing: (v: VideoFormData | null) => void;
   onSave: (v: VideoFormData) => void; onDelete: (id: number) => void;
+  onBulkSave: (items: VideoFormData[]) => Promise<number>;
   filterCategory: string; setFilterCategory: (v: string) => void;
   filterLang: string; setFilterLang: (v: string) => void;
   adminPassword: string;
@@ -3233,6 +3251,14 @@ function VideosTab({
   const [fetchingMeta, setFetchingMeta] = useState(false);
   const fetchTokenRef = useRef(0);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkUrls, setBulkUrls] = useState("");
+  const [bulkEntries, setBulkEntries] = useState<BulkEntry[]>([]);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const [bulkSaveResult, setBulkSaveResult] = useState<string | null>(null);
+  const [bulkTagInputs, setBulkTagInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (editing) {
@@ -3288,6 +3314,111 @@ function VideosTab({
     }
   };
 
+  const handleBulkLoad = async () => {
+    const lines = bulkUrls.split("\n").map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) return;
+
+    setBulkLoading(true);
+    setBulkSaveResult(null);
+
+    const existingIds = new Set(videos.map(v => v.youtubeVideoId));
+
+    const entries: BulkEntry[] = [];
+    const seenIds = new Set<string>();
+
+    for (const line of lines) {
+      const videoId = extractYouTubeVideoId(line);
+      if (!videoId || !isValidYouTubeId(videoId)) continue;
+
+      const isDuplicate = existingIds.has(videoId) || seenIds.has(videoId);
+      seenIds.add(videoId);
+
+      entries.push({
+        ...emptyVideo,
+        youtubeUrl: line,
+        youtubeVideoId: videoId,
+        _key: `${videoId}-${Date.now()}-${Math.random()}`,
+        _duplicate: isDuplicate,
+      });
+    }
+
+    setBulkEntries([...entries]);
+
+    const metaPromises = entries.map(async (entry, idx) => {
+      try {
+        const res = await fetch(`/api/admin/youtube-meta?videoId=${encodeURIComponent(entry.youtubeVideoId)}`, {
+          headers: { "x-admin-password": adminPassword },
+        });
+        if (res.ok) {
+          const meta = await res.json();
+          return { idx, title: meta.title || "", description: meta.description || "", failed: false };
+        }
+      } catch {}
+      return { idx, title: "", description: "", failed: true };
+    });
+
+    const results = await Promise.all(metaPromises);
+
+    setBulkEntries(prev => {
+      const updated = [...prev];
+      for (const r of results) {
+        if (updated[r.idx]) {
+          updated[r.idx] = {
+            ...updated[r.idx],
+            title: r.title,
+            description: r.description,
+            _metaFailed: r.failed,
+          };
+        }
+      }
+      return updated;
+    });
+
+    setBulkLoading(false);
+  };
+
+  const updateBulkEntry = (key: string, field: string, value: any) => {
+    setBulkEntries(prev => prev.map(e => e._key === key ? { ...e, [field]: value } : e));
+  };
+
+  const removeBulkEntry = (key: string) => {
+    setBulkEntries(prev => prev.filter(e => e._key !== key));
+  };
+
+  const addBulkTag = (key: string) => {
+    const tag = (bulkTagInputs[key] || "").trim();
+    if (!tag) return;
+    setBulkEntries(prev => prev.map(e => {
+      if (e._key === key && !e.topicTags.includes(tag)) {
+        return { ...e, topicTags: [...e.topicTags, tag] };
+      }
+      return e;
+    }));
+    setBulkTagInputs(prev => ({ ...prev, [key]: "" }));
+  };
+
+  const removeBulkTag = (key: string, tag: string) => {
+    setBulkEntries(prev => prev.map(e => e._key === key ? { ...e, topicTags: e.topicTags.filter(t => t !== tag) } : e));
+  };
+
+  const handleBulkSave = async () => {
+    const valid = bulkEntries.filter(e => e.youtubeVideoId && e.title && !e._duplicate);
+    if (valid.length === 0) return;
+
+    setBulkSaving(true);
+    const saved = await onBulkSave(valid.map(({ _key, _metaFailed, _duplicate, ...rest }) => rest));
+    setBulkSaving(false);
+    setBulkSaveResult(`${saved} von ${valid.length} Videos gespeichert`);
+    if (saved > 0) {
+      setBulkEntries([]);
+      setBulkUrls("");
+      setTimeout(() => {
+        setBulkOpen(false);
+        setBulkSaveResult(null);
+      }, 1500);
+    }
+  };
+
   const addTag = () => {
     const tag = tagInput.trim();
     if (tag && !form.topicTags.includes(tag)) {
@@ -3315,14 +3446,24 @@ function VideosTab({
     <div className="space-y-6" data-testid="videos-tab">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900">Videos</h2>
-        <button
-          onClick={() => { setEditing(null); setForm(emptyVideo); setFormOpen(true); }}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
-          data-testid="button-add-video"
-        >
-          <Plus size={16} />
-          Neues Video
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setBulkOpen(!bulkOpen); setBulkEntries([]); setBulkUrls(""); setBulkSaveResult(null); }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200"
+            data-testid="button-bulk-import"
+          >
+            <Upload size={16} />
+            Bulk Import
+          </button>
+          <button
+            onClick={() => { setEditing(null); setForm(emptyVideo); setFormOpen(true); }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+            data-testid="button-add-video"
+          >
+            <Plus size={16} />
+            Neues Video
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-3 items-center">
@@ -3349,6 +3490,200 @@ function VideosTab({
           <option value="ru">RU</option>
         </select>
       </div>
+
+      {bulkOpen && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-200 space-y-4" data-testid="bulk-import-panel">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-gray-900">Bulk Import</h3>
+            <button onClick={() => { setBulkOpen(false); setBulkEntries([]); setBulkUrls(""); }} className="p-1 rounded hover:bg-gray-100" data-testid="button-close-bulk">
+              <X size={16} className="text-gray-400" />
+            </button>
+          </div>
+
+          {bulkEntries.length === 0 && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">YouTube URLs (eine pro Zeile)</label>
+                <textarea
+                  value={bulkUrls}
+                  onChange={(e) => setBulkUrls(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm font-mono"
+                  rows={6}
+                  placeholder={"https://youtube.com/shorts/abc123...\nhttps://youtube.com/shorts/def456...\nhttps://youtu.be/ghi789..."}
+                  data-testid="textarea-bulk-urls"
+                />
+                <p className="text-xs text-gray-400 mt-1">{bulkUrls.split("\n").filter(l => l.trim()).length} URLs erkannt</p>
+              </div>
+              <button
+                onClick={handleBulkLoad}
+                disabled={bulkLoading || !bulkUrls.trim()}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 disabled:opacity-50"
+                data-testid="button-bulk-load"
+              >
+                {bulkLoading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                {bulkLoading ? "Metadaten laden..." : "Laden"}
+              </button>
+            </div>
+          )}
+
+          {bulkEntries.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-500 font-medium">
+                  {bulkEntries.length} Videos geladen
+                  {bulkEntries.some(e => e._duplicate) && (
+                    <span className="text-amber-600 ml-2">({bulkEntries.filter(e => e._duplicate).length} Duplikate)</span>
+                  )}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { setBulkEntries([]); setBulkUrls(""); }}
+                    className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200"
+                    data-testid="button-bulk-reset"
+                  >
+                    Zurücksetzen
+                  </button>
+                  {bulkSaveResult && (
+                    <span className="text-xs text-green-600 font-medium">{bulkSaveResult}</span>
+                  )}
+                  <button
+                    onClick={handleBulkSave}
+                    disabled={bulkSaving || bulkEntries.filter(e => e.youtubeVideoId && e.title && !e._duplicate).length === 0}
+                    className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 disabled:opacity-50"
+                    data-testid="button-bulk-save"
+                  >
+                    {bulkSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                    {bulkSaving ? "Speichern..." : `Alle speichern (${bulkEntries.filter(e => e.youtubeVideoId && e.title && !e._duplicate).length})`}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                {bulkEntries.map((entry, idx) => (
+                  <div
+                    key={entry._key}
+                    className={`rounded-lg border p-4 space-y-3 ${entry._duplicate ? "border-amber-300 bg-amber-50" : entry._metaFailed ? "border-orange-200 bg-orange-50" : "border-gray-200 bg-gray-50"}`}
+                    data-testid={`bulk-entry-${idx}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-400">#{idx + 1}</span>
+                        <span className="text-xs text-gray-400 font-mono">{entry.youtubeVideoId}</span>
+                        {entry._duplicate && <span className="text-[10px] px-1.5 py-0.5 bg-amber-200 text-amber-700 rounded-full font-bold">Duplikat</span>}
+                        {entry._metaFailed && !entry._duplicate && <span className="text-[10px] px-1.5 py-0.5 bg-orange-200 text-orange-700 rounded-full font-bold">Manuell ausfüllen</span>}
+                      </div>
+                      <button onClick={() => removeBulkEntry(entry._key)} className="p-1 rounded hover:bg-red-100 text-gray-400 hover:text-red-500" data-testid={`button-remove-bulk-${idx}`}>
+                        <X size={14} />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Title</label>
+                        <input
+                          value={entry.title}
+                          onChange={(e) => updateBulkEntry(entry._key, "title", e.target.value)}
+                          className="w-full px-2 py-1.5 rounded border border-gray-300 text-xs"
+                          placeholder="Titel eingeben..."
+                          data-testid={`bulk-title-${idx}`}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">URL</label>
+                        <input value={entry.youtubeUrl} readOnly className="w-full px-2 py-1.5 rounded border border-gray-200 text-xs bg-gray-100 text-gray-500" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Description</label>
+                      <textarea
+                        value={entry.description}
+                        onChange={(e) => updateBulkEntry(entry._key, "description", e.target.value)}
+                        className="w-full px-2 py-1.5 rounded border border-gray-300 text-xs"
+                        rows={2}
+                        placeholder="Beschreibung..."
+                        data-testid={`bulk-desc-${idx}`}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Category</label>
+                        <select
+                          value={entry.category}
+                          onChange={(e) => updateBulkEntry(entry._key, "category", e.target.value)}
+                          className="w-full px-2 py-1.5 rounded border border-gray-300 text-xs"
+                          data-testid={`bulk-category-${idx}`}
+                        >
+                          {VIDEO_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Language</label>
+                        <select
+                          value={entry.language}
+                          onChange={(e) => updateBulkEntry(entry._key, "language", e.target.value)}
+                          className="w-full px-2 py-1.5 rounded border border-gray-300 text-xs"
+                          data-testid={`bulk-lang-${idx}`}
+                        >
+                          <option value="de">DE</option>
+                          <option value="en">EN</option>
+                          <option value="ru">RU</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Sort Order</label>
+                        <input
+                          type="number"
+                          value={entry.sortOrder}
+                          onChange={(e) => updateBulkEntry(entry._key, "sortOrder", parseInt(e.target.value) || 0)}
+                          className="w-full px-2 py-1.5 rounded border border-gray-300 text-xs"
+                          data-testid={`bulk-sort-${idx}`}
+                        />
+                      </div>
+                      <div className="flex items-end pb-1">
+                        <label className="flex items-center gap-1 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={entry.isActive}
+                            onChange={(e) => updateBulkEntry(entry._key, "isActive", e.target.checked)}
+                            className="rounded"
+                            data-testid={`bulk-active-${idx}`}
+                          />
+                          Active
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Topic Tags</label>
+                      <div className="flex gap-1 flex-wrap mb-1">
+                        {entry.topicTags.map(tag => (
+                          <span key={tag} className="flex items-center gap-0.5 px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] font-medium">
+                            {tag}
+                            <button type="button" onClick={() => removeBulkTag(entry._key, tag)} className="hover:text-red-500"><X size={10} /></button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-1">
+                        <input
+                          value={bulkTagInputs[entry._key] || ""}
+                          onChange={(e) => setBulkTagInputs(prev => ({ ...prev, [entry._key]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addBulkTag(entry._key); } }}
+                          className="flex-1 px-2 py-1 rounded border border-gray-300 text-[10px]"
+                          placeholder="Tag..."
+                          data-testid={`bulk-tag-input-${idx}`}
+                        />
+                        <button type="button" onClick={() => addBulkTag(entry._key)} className="px-2 py-1 rounded bg-gray-200 text-[10px] font-medium hover:bg-gray-300">+</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {formOpen && (
         <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-4" data-testid="video-form">

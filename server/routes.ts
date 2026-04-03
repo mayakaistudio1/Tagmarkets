@@ -1610,7 +1610,10 @@ h1{font-size:1.25rem;color:#1a1a1a;margin:0 0 .5rem}p{color:#666;font-size:.9rem
       try {
         const pageRes = await fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`, {
           signal: AbortSignal.timeout(5000),
-          headers: { "Accept-Language": "de-DE,de;q=0.9,en;q=0.5" },
+          headers: {
+            "Accept-Language": "en-US,en;q=0.9",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          },
         });
         if (pageRes.ok) {
           const html = await pageRes.text();

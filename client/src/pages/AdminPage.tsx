@@ -3231,7 +3231,8 @@ function VideosTab({
   const [form, setForm] = useState(emptyVideo);
   const [tagInput, setTagInput] = useState("");
   const [fetchingMeta, setFetchingMeta] = useState(false);
-  const lastFetchedVideoIdRef = useRef("");
+  const fetchTokenRef = useRef(0);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (editing) {
@@ -3241,29 +3242,40 @@ function VideosTab({
     }
   }, [editing]);
 
-  const handleUrlChange = async (url: string) => {
+  const isValidYouTubeId = (id: string) => /^[a-zA-Z0-9_-]{11}$/.test(id);
+
+  const fetchYoutubeMeta = async (videoId: string, token: number) => {
+    setFetchingMeta(true);
+    try {
+      const res = await fetch(`/api/admin/youtube-meta?videoId=${encodeURIComponent(videoId)}`, {
+        headers: { "x-admin-password": adminPassword },
+      });
+      if (res.ok && fetchTokenRef.current === token) {
+        const meta = await res.json();
+        setForm((f) => ({
+          ...f,
+          title: f.title || meta.title || "",
+          description: f.description || meta.description || "",
+        }));
+      }
+    } catch {}
+    if (fetchTokenRef.current === token) {
+      setFetchingMeta(false);
+    }
+  };
+
+  const handleUrlChange = (url: string) => {
     const videoId = extractYouTubeVideoId(url);
     setForm((f) => ({ ...f, youtubeUrl: url, youtubeVideoId: videoId }));
 
-    if (videoId && videoId.length > 5) {
-      lastFetchedVideoIdRef.current = videoId;
-      setFetchingMeta(true);
-      try {
-        const res = await fetch(`/api/admin/youtube-meta?videoId=${encodeURIComponent(videoId)}`, {
-          headers: { "x-admin-password": adminPassword },
-        });
-        if (res.ok && lastFetchedVideoIdRef.current === videoId) {
-          const meta = await res.json();
-          setForm((f) => ({
-            ...f,
-            title: f.title || meta.title || "",
-            description: f.description || meta.description || "",
-          }));
-        }
-      } catch {}
-      if (lastFetchedVideoIdRef.current === videoId) {
-        setFetchingMeta(false);
-      }
+    fetchTokenRef.current++;
+    setFetchingMeta(false);
+
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+
+    if (videoId && isValidYouTubeId(videoId)) {
+      const token = fetchTokenRef.current;
+      debounceTimerRef.current = setTimeout(() => fetchYoutubeMeta(videoId, token), 400);
     }
   };
 

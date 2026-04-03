@@ -3231,6 +3231,7 @@ function VideosTab({
   const [form, setForm] = useState(emptyVideo);
   const [tagInput, setTagInput] = useState("");
   const [fetchingMeta, setFetchingMeta] = useState(false);
+  const lastFetchedVideoIdRef = useRef("");
 
   useEffect(() => {
     if (editing) {
@@ -3245,12 +3246,13 @@ function VideosTab({
     setForm((f) => ({ ...f, youtubeUrl: url, youtubeVideoId: videoId }));
 
     if (videoId && videoId.length > 5) {
+      lastFetchedVideoIdRef.current = videoId;
       setFetchingMeta(true);
       try {
         const res = await fetch(`/api/admin/youtube-meta?videoId=${encodeURIComponent(videoId)}`, {
           headers: { "x-admin-password": adminPassword },
         });
-        if (res.ok) {
+        if (res.ok && lastFetchedVideoIdRef.current === videoId) {
           const meta = await res.json();
           setForm((f) => ({
             ...f,
@@ -3259,7 +3261,9 @@ function VideosTab({
           }));
         }
       } catch {}
-      setFetchingMeta(false);
+      if (lastFetchedVideoIdRef.current === videoId) {
+        setFetchingMeta(false);
+      }
     }
   };
 

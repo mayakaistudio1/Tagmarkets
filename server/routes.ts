@@ -1595,14 +1595,18 @@ h1{font-size:1.25rem;color:#1a1a1a;margin:0 0 .5rem}p{color:#666;font-size:.9rem
       const videoId = req.query.videoId as string;
       if (!videoId) return res.status(400).json({ error: "videoId required" });
 
-      const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&format=json`;
-      const response = await fetch(oembedUrl, { signal: AbortSignal.timeout(5000) });
-      if (!response.ok) return res.json({ title: "", description: "" });
-
-      const data = await response.json();
-      const title = data.title || "";
-
+      let title = "";
       let description = "";
+
+      try {
+        const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&format=json`;
+        const response = await fetch(oembedUrl, { signal: AbortSignal.timeout(5000) });
+        if (response.ok) {
+          const data = await response.json();
+          title = data.title || "";
+        }
+      } catch {}
+
       try {
         const pageRes = await fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`, {
           signal: AbortSignal.timeout(5000),
@@ -1610,6 +1614,12 @@ h1{font-size:1.25rem;color:#1a1a1a;margin:0 0 .5rem}p{color:#666;font-size:.9rem
         });
         if (pageRes.ok) {
           const html = await pageRes.text();
+          if (!title) {
+            const titleMatch = html.match(/<title>(.+?)\s*-\s*YouTube<\/title>/);
+            if (titleMatch) {
+              title = titleMatch[1].trim();
+            }
+          }
           const descMatch = html.match(/"shortDescription":"((?:[^"\\]|\\.)*)"/);
           if (descMatch) {
             description = descMatch[1]

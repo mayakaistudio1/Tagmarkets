@@ -1,5 +1,58 @@
 uploads = []
-generated = []
+
+[[generated]]
+id = "K52y6pvsQserQ4I8dnBtK"
+uri = "file://artifacts/mockup-sandbox/public/images/jetup-hero-presentation.png"
+type = "image"
+title = "Premium storytelling presentation vibe"
+
+[[generated]]
+id = "OsmJKPRdZr5hQXlZ4E4RJ"
+uri = "file://artifacts/mockup-sandbox/public/images/jetup-hero-quickaccess.png"
+type = "image"
+title = "Minimalist quick access representation"
+
+[[generated]]
+id = "wY4qcR_SGdS5WMjWPYyXA"
+uri = "file://artifacts/mockup-sandbox/public/images/jetup-hero-system.png"
+type = "image"
+title = "Elegant financial system representation"
+
+[[generated]]
+id = "dMJfEY5-VQ5v-IdAq_uj9"
+uri = "file://artifacts/mockup-sandbox/public/images/jetup-network-abstract.png"
+type = "image"
+title = "Abstract violet financial network nodes"
+
+[[generated]]
+id = "qesZ6SYMIh-ETJIBI075S"
+uri = "file://artifacts/mockup-sandbox/public/images/jetup-dashboard-hint.png"
+type = "image"
+title = "Dark mode sleek CRM app interface"
+
+[[generated]]
+id = "020TgFc7dr9qVi7qp5qEM"
+uri = "file://artifacts/mockup-sandbox/public/images/client-path-bg.png"
+type = "image"
+title = "Abstract dark warm wealth background"
+
+[[generated]]
+id = "lpHS4QZ-ii24fPPYS1tmC"
+uri = "file://artifacts/mockup-sandbox/public/images/client-path-premium-bg.png"
+type = "image"
+title = "luxurious amber dark financial background"
+
+[[generated]]
+id = "nuwWTGFGL1LSlP12kvEBX"
+uri = "file://artifacts/mockup-sandbox/public/images/partner-tech-abstract.png"
+type = "image"
+title = "Abstract dark violet tech background"
+
+[[generated]]
+id = "QSgP5sL9VfBf9NvZNCZBn"
+uri = "file://artifacts/mockup-sandbox/public/images/partner-network.png"
+type = "image"
+title = "Professional network structure"
 
 [[outputs]]
 id = "bwzJAgj-AIxDcx8Er5c2k"

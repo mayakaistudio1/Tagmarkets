@@ -7,7 +7,7 @@ import { registerLiveAvatarRoutes } from "./integrations/liveavatar";
 import { registerMariaChatRoutes } from "./integrations/maria-chat";
 import { registerDennisChatRoutes } from "./integrations/dennis-chat";
 import { db } from "./db";
-import { chatSessions, chatMessages } from "@shared/schema";
+import { chatSessions, chatMessages, scheduleEvents } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -834,14 +834,14 @@ export async function registerRoutes(
 
       if (validLangs.length > 1) {
         const translationGroup = crypto.randomUUID();
-        const created = await db.transaction(async () => {
+        const created = await db.transaction(async (tx) => {
           const results = [];
           for (const lang of validLangs) {
-            const ev = await storage.createScheduleEvent({
+            const [ev] = await tx.insert(scheduleEvents).values({
               ...eventData,
               language: lang,
               translationGroup,
-            });
+            }).returning();
             results.push(ev);
           }
           return results;

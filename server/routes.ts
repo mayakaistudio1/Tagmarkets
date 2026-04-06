@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertApplicationSchema, insertPromoApplicationSchema, insertDennisPromoSchema, insertInviteEventSchema, insertInviteGuestSchema, insertTutorialSchema } from "@shared/schema";
+import { insertApplicationSchema, insertPromoApplicationSchema, insertDennisPromoSchema, insertInviteEventSchema, insertInviteGuestSchema, insertTutorialSchema, insertAmaQuestionSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { registerLiveAvatarRoutes } from "./integrations/liveavatar";
 import { registerMariaChatRoutes } from "./integrations/maria-chat";
@@ -14,7 +14,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { objectStorageClient } from "./replit_integrations/object_storage";
-import { syncAllChatSessions, appendPromoApplicationToSheet, syncAllPromoApplications } from "./googleSheets";
+import { syncAllChatSessions, appendPromoApplicationToSheet, syncAllPromoApplications, syncAllAmaQuestions } from "./googleSheets";
 import { MARIA_SYSTEM_PROMPT_DE, MARIA_SYSTEM_PROMPT_EN, MARIA_SYSTEM_PROMPT_RU } from "./integrations/maria-chat";
 import { LIVEAVATAR_SYSTEM_PROMPT } from "./integrations/liveavatar";
 import OpenAI from "openai";
@@ -1052,6 +1052,21 @@ Return ONLY valid JSON in this format (all text values must be in ${reportLang})
     }
   });
 
+  app.post("/api/admin/sync-ama-sheets", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const result = await syncAllAmaQuestions();
+      res.json({
+        success: true,
+        count: result.count,
+        spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${result.spreadsheetId}`,
+      });
+    } catch (error: unknown) {
+      console.error("AMA Sheets sync error:", error);
+      res.status(500).json({ error: error instanceof Error ? error.message : "Failed to sync AMA questions" });
+    }
+  });
+
   app.post("/api/admin/check-promo-verifications", async (req, res) => {
     if (!requireAdmin(req, res)) return;
     try {
@@ -1693,6 +1708,53 @@ h1{font-size:1.25rem;color:#1a1a1a;margin:0 0 .5rem}p{color:#666;font-size:.9rem
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting tutorial:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/ama/questions", async (req, res) => {
+    try {
+      const parsed = insertAmaQuestionSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: fromZodError(parsed.error).message });
+      }
+      const question = await storage.createAmaQuestion(parsed.data);
+      res.status(201).json(question);
+    } catch (error) {
+      console.error("Error creating AMA question:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/ama/questions", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const questions = await storage.getAmaQuestions();
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching AMA questions:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/ama/questions/:id/status", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ error: "Invalid question ID" });
+      }
+      const { status } = req.body;
+      if (!["pending", "selected", "answered"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status. Must be pending, selected, or answered." });
+      }
+      const updated = await storage.updateAmaQuestionStatus(id, status);
+      if (!updated) {
+        return res.status(404).json({ error: "Question not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating AMA question status:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

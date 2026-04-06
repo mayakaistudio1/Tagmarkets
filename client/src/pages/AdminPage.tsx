@@ -32,9 +32,10 @@ import {
   UserCheck,
   Video,
   Zap,
+  HelpCircle,
 } from "lucide-react";
 
-type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo" | "invites" | "partners" | "workflow" | "videos";
+type Tab = "chat" | "promotions" | "schedule" | "speakers" | "promo" | "invites" | "partners" | "workflow" | "videos" | "ama";
 
 interface AnalysisSection {
   title: string;
@@ -151,6 +152,17 @@ interface AdminPartner {
   phone?: string;
   email?: string;
   status: string;
+  createdAt: string;
+}
+
+type AmaQuestionStatus = "pending" | "selected" | "answered";
+
+interface AmaQuestionItem {
+  id: number;
+  name: string;
+  contact: string;
+  question: string;
+  status: AmaQuestionStatus;
   createdAt: string;
 }
 
@@ -294,6 +306,9 @@ function AdminPage() {
   const [videoFormOpen, setVideoFormOpen] = useState(false);
   const [videoFilterCategory, setVideoFilterCategory] = useState("all");
   const [videoFilterLang, setVideoFilterLang] = useState("all");
+
+  const [amaQuestions, setAmaQuestions] = useState<AmaQuestionItem[]>([]);
+  const [amaLoading, setAmaLoading] = useState(false);
 
   const [inviteEvents, setInviteEvents] = useState<InviteEvent[]>([]);
   const [adminPartners, setAdminPartners] = useState<AdminPartner[]>([]);
@@ -672,6 +687,35 @@ function AdminPage() {
     }
   };
 
+  const fetchAmaQuestions = useCallback(async () => {
+    setAmaLoading(true);
+    try {
+      const res = await fetch("/api/ama/questions", { headers: headers() });
+      if (handleAuthError(res)) return;
+      if (res.ok) setAmaQuestions(await res.json());
+      else setErrorMsg("Fehler beim Laden der AMA-Fragen");
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    } finally {
+      setAmaLoading(false);
+    }
+  }, [headers]);
+
+  const updateAmaQuestionStatus = async (id: number, status: AmaQuestionStatus) => {
+    try {
+      const res = await fetch(`/api/ama/questions/${id}/status`, {
+        method: "PATCH",
+        headers: headers(),
+        body: JSON.stringify({ status }),
+      });
+      if (handleAuthError(res)) return;
+      if (res.ok) fetchAmaQuestions();
+      else setErrorMsg("Fehler beim Aktualisieren");
+    } catch {
+      setErrorMsg("Verbindungsfehler");
+    }
+  };
+
   const fetchPartners = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/partners", { headers: headers() });
@@ -792,7 +836,8 @@ function AdminPage() {
     if (activeTab === "invites") { fetchGroupedInvites(); fetchInviteEvents(); }
     if (activeTab === "partners") fetchPartners();
     if (activeTab === "videos") fetchVideos();
-  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps, fetchInviteEvents, fetchGroupedInvites, fetchPartners, fetchVideos]);
+    if (activeTab === "ama") fetchAmaQuestions();
+  }, [isLoggedIn, activeTab, fetchChatSessions, fetchPromotions, fetchEvents, fetchSpeakers, fetchPromoApps, fetchInviteEvents, fetchGroupedInvites, fetchPartners, fetchVideos, fetchAmaQuestions]);
 
   if (!isLoggedIn) {
     return (
@@ -852,6 +897,7 @@ function AdminPage() {
     { key: "invites", label: "Invites", icon: <LinkIcon size={18} /> },
     { key: "partners", label: "Partners", icon: <UserCheck size={18} /> },
     { key: "videos", label: "Videos", icon: <Video size={18} /> },
+    { key: "ama", label: "AMA", icon: <HelpCircle size={18} /> },
     { key: "workflow", label: "Workflow", icon: <Zap size={18} /> },
   ];
 
@@ -1018,6 +1064,14 @@ function AdminPage() {
             setFilterCategory={setVideoFilterCategory}
             filterLang={videoFilterLang}
             setFilterLang={setVideoFilterLang}
+            adminPassword={adminPassword}
+          />
+        )}
+        {activeTab === "ama" && (
+          <AmaTab
+            questions={amaQuestions}
+            loading={amaLoading}
+            onUpdateStatus={updateAmaQuestionStatus}
             adminPassword={adminPassword}
           />
         )}
@@ -3900,6 +3954,205 @@ function VideosTab({
               </div>
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AmaTab({ questions, loading, onUpdateStatus, adminPassword }: {
+  questions: AmaQuestionItem[];
+  loading: boolean;
+  onUpdateStatus: (id: number, status: AmaQuestionStatus) => void;
+  adminPassword: string;
+}) {
+  const [sortAsc, setSortAsc] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<"all" | AmaQuestionStatus>("all");
+  const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [sheetUrl, setSheetUrl] = useState<string | null>(null);
+
+  const sorted = [...questions].sort((a, b) => {
+    const tA = new Date(a.createdAt).getTime();
+    const tB = new Date(b.createdAt).getTime();
+    return sortAsc ? tA - tB : tB - tA;
+  });
+
+  const filtered = filterStatus === "all" ? sorted : sorted.filter(q => q.status === filterStatus);
+
+  const statusColors: Record<AmaQuestionStatus, string> = {
+    pending: "bg-yellow-100 text-yellow-700",
+    selected: "bg-blue-100 text-blue-700",
+    answered: "bg-green-100 text-green-700",
+  };
+
+  const exportCSV = () => {
+    const csvHeader = "Nr,Name,Kontakt,Frage,Status,Datum\n";
+    const csvRows = filtered.map((q, i) =>
+      `${i + 1},"${q.name.replace(/"/g, '""')}","${q.contact.replace(/"/g, '""')}","${q.question.replace(/"/g, '""')}","${q.status}","${new Date(q.createdAt).toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}"`
+    ).join("\n");
+    const blob = new Blob([csvHeader + csvRows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ama-questions-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const syncToSheets = async () => {
+    setSyncing(true);
+    setSyncError(null);
+    try {
+      const res = await fetch("/api/admin/sync-ama-sheets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-password": adminPassword },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSheetUrl(data.spreadsheetUrl);
+      } else {
+        setSyncError(data.error || "Sync failed");
+      }
+    } catch (err: unknown) {
+      setSyncError(err instanceof Error ? err.message : "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-3 md:gap-2">
+        <h2 className="text-lg font-bold text-gray-900">AMA Questions ({filtered.length})</h2>
+        <div className="flex gap-2 flex-wrap">
+          <select
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value as "all" | AmaQuestionStatus)}
+            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
+            data-testid="select-ama-filter"
+          >
+            <option value="all">Alle</option>
+            <option value="pending">Pending</option>
+            <option value="selected">Selected</option>
+            <option value="answered">Answered</option>
+          </select>
+          <button
+            onClick={() => setSortAsc(!sortAsc)}
+            className="flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50"
+            data-testid="button-ama-sort"
+          >
+            {sortAsc ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            Zeit
+          </button>
+          <button
+            onClick={syncToSheets}
+            disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+            data-testid="btn-sync-ama-sheets"
+          >
+            {syncing ? <Loader2 size={16} className="animate-spin" /> : <FileSpreadsheet size={16} />}
+            Google Sheets
+          </button>
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+            data-testid="btn-export-ama-csv"
+          >
+            <Download size={16} />
+            CSV Export
+          </button>
+        </div>
+      </div>
+
+      {sheetUrl && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 text-sm">
+          <FileSpreadsheet size={16} className="text-blue-600 flex-shrink-0" />
+          <span className="text-blue-800">Синхронизировано!</span>
+          <a href={sheetUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline flex items-center gap-1 ml-1" data-testid="link-ama-sheet">
+            Открыть таблицу <ExternalLink size={12} />
+          </a>
+        </div>
+      )}
+      {syncError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          {syncError}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="text-center py-8 text-gray-500">Laden...</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-8 text-gray-400">Keine Fragen vorhanden.</div>
+      ) : (
+        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
+          <table className="w-full text-sm" data-testid="table-ama-questions">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="text-left px-4 py-3 font-semibold text-gray-600 w-8">Nr</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Kontakt</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Frage</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600 w-24">Status</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600 w-36">Datum</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600 w-48">Aktionen</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((q, idx) => (
+                <tr key={q.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors" data-testid={`ama-question-${q.id}`}>
+                  <td className="px-4 py-3 text-gray-400 font-medium">{idx + 1}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{q.name}</td>
+                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{q.contact}</td>
+                  <td className="px-4 py-3 text-gray-700 leading-relaxed max-w-xs" data-testid={`text-ama-question-${q.id}`}>
+                    <div className="whitespace-pre-wrap break-words">{q.question}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${statusColors[q.status]}`}>
+                      {q.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
+                    {new Date(q.createdAt).toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      {q.status !== "selected" && (
+                        <button
+                          onClick={() => onUpdateStatus(q.id, "selected")}
+                          className="px-2 py-1 text-xs font-medium rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                          title="Mark as selected"
+                          data-testid={`button-ama-select-${q.id}`}
+                        >
+                          Select
+                        </button>
+                      )}
+                      {q.status !== "answered" && (
+                        <button
+                          onClick={() => onUpdateStatus(q.id, "answered")}
+                          className="px-2 py-1 text-xs font-medium rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                          title="Mark as answered"
+                          data-testid={`button-ama-answer-${q.id}`}
+                        >
+                          Answered
+                        </button>
+                      )}
+                      {q.status !== "pending" && (
+                        <button
+                          onClick={() => onUpdateStatus(q.id, "pending")}
+                          className="px-2 py-1 text-xs font-medium rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                          title="Reset to pending"
+                          data-testid={`button-ama-reset-${q.id}`}
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

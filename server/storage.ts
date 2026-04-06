@@ -9,8 +9,9 @@ import {
   type ZoomAttendance, type InsertZoomAttendance,
   type PersonalInvite, type InsertPersonalInvite,
   type Tutorial, type InsertTutorial,
+  type AmaQuestion, type InsertAmaQuestion,
   users, applications, chatSessions, chatMessages, promotions, scheduleEvents, speakers, promoApplications, dennisPromos,
-  inviteEvents, inviteGuests, partners, zoomAttendance, appSettings, personalInvites, tutorials,
+  inviteEvents, inviteGuests, partners, zoomAttendance, appSettings, personalInvites, tutorials, amaQuestions,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql, count, or, isNotNull, ne } from "drizzle-orm";
 import { db } from "./db";
@@ -109,6 +110,10 @@ export interface IStorage {
   createTutorial(tutorial: InsertTutorial): Promise<Tutorial>;
   updateTutorial(id: number, tutorial: Partial<InsertTutorial>): Promise<Tutorial>;
   deleteTutorial(id: number): Promise<void>;
+
+  createAmaQuestion(question: InsertAmaQuestion): Promise<AmaQuestion>;
+  getAmaQuestions(): Promise<AmaQuestion[]>;
+  updateAmaQuestionStatus(id: number, status: string): Promise<AmaQuestion>;
 
   getSetting(key: string): Promise<string | null>;
   setSetting(key: string, value: string): Promise<void>;
@@ -753,6 +758,20 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTutorial(id: number): Promise<void> {
     await db.delete(tutorials).where(eq(tutorials.id, id));
+  }
+
+  async createAmaQuestion(question: InsertAmaQuestion): Promise<AmaQuestion> {
+    const [created] = await db.insert(amaQuestions).values(question).returning();
+    return created;
+  }
+
+  async getAmaQuestions(): Promise<AmaQuestion[]> {
+    return db.select().from(amaQuestions).orderBy(desc(amaQuestions.createdAt));
+  }
+
+  async updateAmaQuestionStatus(id: number, status: string): Promise<AmaQuestion> {
+    const [updated] = await db.update(amaQuestions).set({ status }).where(eq(amaQuestions.id, id)).returning();
+    return updated;
   }
 }
 

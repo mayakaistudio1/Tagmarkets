@@ -24,6 +24,7 @@ import PersonalInvitePage from "@/pages/PersonalInvitePage";
 import PromoAdminPage from "@/pages/PromoAdminPage";
 import PartnerApp from "@/pages/partner-app/PartnerApp";
 import BrollGalleryPage from "@/pages/BrollGalleryPage";
+import AmaPage from "@/pages/AmaPage";
 
 const PresentationPage = React.lazy(() => import("@/pages/PresentationPage"));
 const AILandingPage = React.lazy(() => import("@/pages/AILandingPage"));
@@ -107,6 +108,8 @@ function AppContent() {
         return <TutorialsPage />;
       case "/promo":
         return <PromoDetailPage />;
+      case "/ama":
+        return <AmaPage />;
       default:
         return <HomePage />;
     }
@@ -114,7 +117,7 @@ function AppContent() {
 
   const showTabBar = basePath === "/" || basePath === "/maria";
 
-  const isFullPageRoute = !!(inviteMatch || personalInviteMatch || eventMatch);
+  const isFullPageRoute = !!(inviteMatch || personalInviteMatch || eventMatch || basePath === "/ama");
 
   return (
     <div className={`bg-background text-foreground font-sans flex justify-center w-full ${isFullPageRoute ? 'min-h-[100dvh]' : 'h-[100dvh] overflow-hidden'}`}>

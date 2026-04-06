@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 import { db } from './db';
-import { chatSessions, chatMessages, promoApplications, dennisPromos } from '@shared/schema';
+import { chatSessions, chatMessages, promoApplications, dennisPromos, amaQuestions } from '@shared/schema';
 import { desc, eq } from 'drizzle-orm';
 
 let connectionSettings: any;
@@ -916,4 +916,158 @@ export async function pollPromoSheetForVerifications(): Promise<{
     console.error('Failed to poll promo sheet for verifications:', error);
     return { verified: [], noMoney: [] };
   }
+}
+
+const AMA_SHEET_NAME = 'AMA Questions';
+let cachedAmaSpreadsheetIdDev: string | null = null;
+let cachedAmaSpreadsheetIdProd: string | null = null;
+
+function getAmaSpreadsheetTitle(): string {
+  return isProduction() ? 'JetUP AMA Questions PROD' : 'JetUP AMA Questions DEV';
+}
+
+function getCachedAmaId(): string | null {
+  return isProduction() ? cachedAmaSpreadsheetIdProd : cachedAmaSpreadsheetIdDev;
+}
+
+function setCachedAmaId(id: string | null): void {
+  if (isProduction()) {
+    cachedAmaSpreadsheetIdProd = id;
+  } else {
+    cachedAmaSpreadsheetIdDev = id;
+  }
+}
+
+async function getOrCreateAmaSpreadsheet(): Promise<string> {
+  const cached = getCachedAmaId();
+  if (cached) {
+    try {
+      const sheets = await getSheetsClient();
+      await sheets.spreadsheets.get({ spreadsheetId: cached });
+      return cached;
+    } catch {
+      setCachedAmaId(null);
+    }
+  }
+
+  const title = getAmaSpreadsheetTitle();
+  const drive = await getDriveClient();
+  const res = await drive.files.list({
+    q: `name='${title}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`,
+    fields: 'files(id, name)',
+    spaces: 'drive',
+  });
+
+  if (res.data.files && res.data.files.length > 0) {
+    setCachedAmaId(res.data.files[0].id!);
+    return getCachedAmaId()!;
+  }
+
+  const sheets = await getSheetsClient();
+  const createRes = await sheets.spreadsheets.create({
+    requestBody: {
+      properties: { title },
+      sheets: [{ properties: { title: AMA_SHEET_NAME } }],
+    },
+  });
+
+  const spreadsheetId = createRes.data.spreadsheetId!;
+  setCachedAmaId(spreadsheetId);
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `'${AMA_SHEET_NAME}'!A1`,
+    valueInputOption: 'RAW',
+    requestBody: {
+      values: [['Nr', 'Name', 'Kontakt', 'Frage', 'Status', 'Datum']],
+    },
+  });
+
+  const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+  const sheetId = spreadsheet.data.sheets?.[0]?.properties?.sheetId;
+  if (sheetId !== undefined) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            repeatCell: {
+              range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
+              cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.85, green: 0.8, blue: 1.0 } } },
+              fields: 'userEnteredFormat(textFormat,backgroundColor)',
+            }
+          },
+          {
+            updateSheetProperties: {
+              properties: { sheetId, gridProperties: { frozenRowCount: 1 } },
+              fields: 'gridProperties.frozenRowCount',
+            }
+          },
+        ]
+      },
+    });
+  }
+
+  return spreadsheetId;
+}
+
+export async function syncAllAmaQuestions(): Promise<{ spreadsheetId: string; count: number }> {
+  const spreadsheetId = await getOrCreateAmaSpreadsheet();
+  const sheets = await getSheetsClient();
+
+  const questions = await db.select().from(amaQuestions).orderBy(desc(amaQuestions.createdAt));
+
+  const rows: (string | number)[][] = [['Nr', 'Name', 'Kontakt', 'Frage', 'Status', 'Datum']];
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    rows.push([
+      i + 1,
+      q.name,
+      q.contact,
+      q.question,
+      q.status,
+      formatDate(q.createdAt),
+    ]);
+  }
+
+  await sheets.spreadsheets.values.clear({
+    spreadsheetId,
+    range: `'${AMA_SHEET_NAME}'!A:F`,
+  });
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `'${AMA_SHEET_NAME}'!A1`,
+    valueInputOption: 'RAW',
+    requestBody: { values: rows },
+  });
+
+  const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+  const sheetId = spreadsheet.data.sheets?.find(
+    (s) => s.properties?.title === AMA_SHEET_NAME
+  )?.properties?.sheetId;
+  if (sheetId !== undefined) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            repeatCell: {
+              range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
+              cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.85, green: 0.8, blue: 1.0 } } },
+              fields: 'userEnteredFormat(textFormat,backgroundColor)',
+            }
+          },
+          {
+            updateSheetProperties: {
+              properties: { sheetId, gridProperties: { frozenRowCount: 1 } },
+              fields: 'gridProperties.frozenRowCount',
+            }
+          },
+        ]
+      },
+    });
+  }
+
+  return { spreadsheetId, count: questions.length };
 }

@@ -349,6 +349,24 @@ export const insertTutorialSchema = createInsertSchema(tutorials).omit({
 export type InsertTutorial = z.infer<typeof insertTutorialSchema>;
 export type Tutorial = typeof tutorials.$inferSelect;
 
+export const amaQuestions = pgTable("ama_questions", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  contact: text("contact").notNull(),
+  question: text("question").notNull(),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAmaQuestionSchema = createInsertSchema(amaQuestions).omit({
+  id: true,
+  createdAt: true,
+  status: true,
+});
+
+export type InsertAmaQuestion = z.infer<typeof insertAmaQuestionSchema>;
+export type AmaQuestion = typeof amaQuestions.$inferSelect;
+
 export const appSettings = pgTable("app_settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),

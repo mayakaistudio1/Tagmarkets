@@ -82,6 +82,16 @@ app.use((req, res, next) => {
       await client.query("ALTER TABLE personal_invites ADD COLUMN IF NOT EXISTS telegram_notifications_enabled boolean DEFAULT false");
       await client.query("ALTER TABLE personal_invites ADD COLUMN IF NOT EXISTS reminder24h_sent boolean DEFAULT false");
       await client.query("ALTER TABLE partners ADD COLUMN IF NOT EXISTS language text NOT NULL DEFAULT 'en'");
+      await client.query(`CREATE TABLE IF NOT EXISTS ama_questions (
+        id SERIAL PRIMARY KEY,
+        name text NOT NULL,
+        contact text NOT NULL,
+        question text NOT NULL,
+        status text NOT NULL DEFAULT 'pending',
+        created_at timestamptz NOT NULL DEFAULT NOW()
+      )`);
+      await client.query("ALTER TABLE schedule_events ADD COLUMN IF NOT EXISTS action_url text");
+      await client.query("ALTER TABLE schedule_events ADD COLUMN IF NOT EXISTS action_label text");
       await client.query(`CREATE TABLE IF NOT EXISTS tutorials (
         id SERIAL PRIMARY KEY,
         youtube_url text NOT NULL,

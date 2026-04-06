@@ -76,6 +76,34 @@ function checkLoginRate(ip: string): boolean {
   return true;
 }
 
+function groupEventsByTranslation(events: any[], lang: string): any[] {
+  const grouped = new Map<string, any[]>();
+  const seen = new Set<string>();
+  const result: any[] = [];
+
+  for (const event of events) {
+    if (event.translationGroup) {
+      const group = grouped.get(event.translationGroup) || [];
+      group.push(event);
+      grouped.set(event.translationGroup, group);
+    }
+  }
+
+  for (const event of events) {
+    if (!event.translationGroup) {
+      result.push({ ...event, isMultiLang: false });
+    } else if (!seen.has(event.translationGroup)) {
+      seen.add(event.translationGroup);
+      const group = grouped.get(event.translationGroup)!;
+      const isMultiLang = group.length > 1;
+      const preferred = group.find((e: any) => e.language === lang) || group[0];
+      result.push({ ...preferred, isMultiLang });
+    }
+  }
+
+  return result;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -760,13 +788,16 @@ export async function registerRoutes(
 
   app.get("/api/schedule-events", async (req, res) => {
     try {
+      const lang = (req.query.lang as string) || "de";
       const events = await storage.getScheduleEvents(true);
       const today = new Date().toISOString().split("T")[0];
       const filtered = events.filter((e: any) => {
         if (!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) return false;
         return e.date >= today;
       });
-      res.json(filtered);
+
+      const grouped = groupEventsByTranslation(filtered, lang);
+      res.json(grouped);
     } catch (error) {
       console.error("Error fetching schedule events:", error);
       res.status(500).json({ error: "Internal server error" });

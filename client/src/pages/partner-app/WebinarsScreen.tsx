@@ -212,8 +212,9 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
   const [personalInvites, setPersonalInvites] = useState<Array<{ id: number; inviteCode: string; prospectName: string; prospectType: string; discType: string; scheduleEventId: number; eventTitle: string | null; createdAt: string; viewedAt: string | null; registeredAt: string | null; guestName: string | null; guestEmail: string | null; isActive: boolean; reminderPreference?: string | null; reminderSent?: boolean }>>([]);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([
-      fetch("/api/partner-app/webinars", { headers: { ...getPartnerAuthHeader() } }).then((r) => r.json()),
+      fetch(`/api/partner-app/webinars?lang=${language}`, { headers: { ...getPartnerAuthHeader() } }).then((r) => r.json()),
       fetch("/api/partner-app/events", { headers: { ...getPartnerAuthHeader() } }).then((r) => r.json()),
       fetch("/api/partner-app/profile", { headers: { ...getPartnerAuthHeader() } }).then((r) => r.json()).catch(() => null),
       fetch("/api/partner-app/personal-invites", { headers: { ...getPartnerAuthHeader() } }).then((r) => r.json()).catch(() => ({ invites: [] })),
@@ -228,7 +229,7 @@ export default function WebinarsScreen({ telegramId }: { telegramId: string }) {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [telegramId]);
+  }, [telegramId, language]);
 
   const createInvite = async () => {
     if (!selectedWebinar || creating) return;

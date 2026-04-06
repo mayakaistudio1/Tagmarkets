@@ -47,10 +47,10 @@ interface PartnerEvent {
 export default function DashboardScreen({ profile, telegramId, onNavigate }: Props) {
   const [webinars, setWebinars] = useState<Webinar[]>([]);
   const [pastEvents, setPastEvents] = useState<PartnerEvent[]>([]);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   useEffect(() => {
-    fetch("/api/partner-app/webinars", { headers: { ...getPartnerAuthHeader() } })
+    fetch(`/api/partner-app/webinars?lang=${language}`, { headers: { ...getPartnerAuthHeader() } })
       .then((r) => r.json())
       .then((data) => setWebinars(data.slice(0, 3)))
       .catch(() => {});
@@ -59,7 +59,7 @@ export default function DashboardScreen({ profile, telegramId, onNavigate }: Pro
       .then((r) => r.json())
       .then((data) => setPastEvents(data.slice(0, 3)))
       .catch(() => {});
-  }, [telegramId]);
+  }, [telegramId, language]);
 
   const firstName = profile.partner.name.split(" ")[0];
 

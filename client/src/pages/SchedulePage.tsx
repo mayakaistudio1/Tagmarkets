@@ -28,6 +28,9 @@ interface ScheduleEvent {
   highlights: string[];
   link: string;
   language?: string;
+  isMultiLang?: boolean;
+  actionUrl?: string | null;
+  actionLabel?: string | null;
 }
 
 function getDynamicUtcOffset(ianaZone: string): number {
@@ -211,13 +214,14 @@ const SchedulePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/schedule-events").then(r => r.json())
+    setLoading(true);
+    fetch(`/api/schedule-events?lang=${language}`).then(r => r.json())
       .then((events) => {
         setFilteredEvents(sortEvents(events));
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [language]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -279,7 +283,7 @@ const SchedulePage: React.FC = () => {
                       <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-600">
                         Zoom‑Call
                       </span>
-                      {event.language && (
+                      {event.language && !event.isMultiLang && (
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           event.language === "de" ? "bg-yellow-100 text-yellow-700" :
                           event.language === "en" ? "bg-blue-100 text-blue-700" :
@@ -336,6 +340,19 @@ const SchedulePage: React.FC = () => {
                       <ExternalLink size={15} />
                       {(EVENT_LABELS[language] || EVENT_LABELS.de).joinZoom}
                     </a>
+
+                    {event.actionUrl && event.actionLabel && (
+                      <a
+                        href={event.actionUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-purple-100 text-purple-700 text-[13px] font-bold active:scale-[0.97] transition-transform hover:bg-purple-200"
+                        data-testid={`action-link-${event.id}`}
+                      >
+                        <ExternalLink size={15} />
+                        {event.actionLabel}
+                      </a>
+                    )}
                   </div>
                 </div>
               );

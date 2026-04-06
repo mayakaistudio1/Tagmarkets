@@ -246,6 +246,8 @@ export class DatabaseStorage implements IStorage {
         sortOrder: scheduleEvents.sortOrder,
         language: scheduleEvents.language,
         translationGroup: scheduleEvents.translationGroup,
+        actionUrl: scheduleEvents.actionUrl,
+        actionLabel: scheduleEvents.actionLabel,
         createdAt: scheduleEvents.createdAt,
         speakerPhoto: speakers.photo,
       })
@@ -279,6 +281,8 @@ export class DatabaseStorage implements IStorage {
         sortOrder: scheduleEvents.sortOrder,
         language: scheduleEvents.language,
         translationGroup: scheduleEvents.translationGroup,
+        actionUrl: scheduleEvents.actionUrl,
+        actionLabel: scheduleEvents.actionLabel,
         createdAt: scheduleEvents.createdAt,
         speakerPhoto: speakers.photo,
       })

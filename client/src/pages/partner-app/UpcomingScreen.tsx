@@ -124,8 +124,9 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
   const QUALIFY = language === "de" ? qualifyQuestionsDe : language === "ru" ? qualifyQuestionsRu : qualifyQuestionsEn;
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([
-      fetch("/api/partner-app/webinars", { headers: { ...getPartnerAuthHeader() } }).then(r => r.json()),
+      fetch(`/api/partner-app/webinars?lang=${language}`, { headers: { ...getPartnerAuthHeader() } }).then(r => r.json()),
       fetch("/api/partner-app/profile", { headers: { ...getPartnerAuthHeader() } }).then(r => r.json()).catch(() => null),
     ]).then(([webinarData, profileData]) => {
       const upcoming = (webinarData || []).filter((w: Webinar) => isUpcoming(w.date, w.time));
@@ -133,7 +134,7 @@ export default function UpcomingScreen({ telegramId }: { telegramId: string }) {
       if (profileData?.partner?.name) setPartnerName(profileData.partner.name);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [telegramId]);
+  }, [telegramId, language]);
 
   useEffect(() => {
     if (screen !== "detail" || !selected) { setDetailReport(null); return; }

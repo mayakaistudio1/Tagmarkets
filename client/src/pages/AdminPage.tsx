@@ -206,6 +206,8 @@ interface ScheduleEvent {
   link: string;
   language: string;
   translationGroup?: string;
+  actionUrl?: string;
+  actionLabel?: string;
   isActive: boolean;
 }
 
@@ -238,6 +240,8 @@ const emptyEvent: ScheduleEvent = {
   highlights: [],
   link: "",
   language: "de",
+  actionUrl: "",
+  actionLabel: "",
   isActive: true,
 };
 
@@ -1880,6 +1884,9 @@ function ScheduleTab({
               {event.translationGroup && (
                 <p className="text-xs text-gray-400 flex items-center gap-1"><Globe size={12} /> Gruppe: {event.translationGroup.substring(0, 8)}...</p>
               )}
+              {event.actionUrl && (
+                <p className="text-xs text-purple-500 flex items-center gap-1"><LinkIcon size={12} /> {event.actionLabel || event.actionUrl}</p>
+              )}
               <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                 <button data-testid={`button-edit-event-${event.id}`} onClick={() => openEdit(event)}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
@@ -2021,6 +2028,14 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
         </div>
 
         <InputField label="Link" value={event.link} onChange={(v) => setEvent({ ...event, link: v })} testId="input-event-link" />
+
+        <div className="border-t border-gray-100 pt-3 mt-1">
+          <p className="text-[10px] font-medium text-gray-400 mb-2 uppercase tracking-wider">Action Link (optional)</p>
+          <div className="grid grid-cols-2 gap-3">
+            <InputField label="Action URL" value={event.actionUrl || ""} onChange={(v) => setEvent({ ...event, actionUrl: v })} testId="input-event-action-url" />
+            <InputField label="Button Label" value={event.actionLabel || ""} onChange={(v) => setEvent({ ...event, actionLabel: v })} testId="input-event-action-label" />
+          </div>
+        </div>
 
         <ToggleField label="Aktiv" value={event.isActive} onChange={(v) => setEvent({ ...event, isActive: v })} testId="toggle-event-active" />
 

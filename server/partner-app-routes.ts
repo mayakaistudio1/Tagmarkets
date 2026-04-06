@@ -12,6 +12,35 @@ import { syncZoomDataForEvent, isZoomConfigured } from "./integrations/zoom-api"
 
 const WEBINAR_DURATION_MS = 60 * 60 * 1000;
 
+function groupEventsByTranslationPartner(events: any[], lang: string): any[] {
+  const grouped = new Map<string, any[]>();
+  const seen = new Set<string>();
+  const result: any[] = [];
+
+  for (const event of events) {
+    if (event.translationGroup) {
+      const group = grouped.get(event.translationGroup) || [];
+      group.push(event);
+      grouped.set(event.translationGroup, group);
+    }
+  }
+
+  for (const event of events) {
+    if (!event.translationGroup) {
+      result.push({ ...event, isMultiLang: false, allGroupIds: [event.id] });
+    } else if (!seen.has(event.translationGroup)) {
+      seen.add(event.translationGroup);
+      const group = grouped.get(event.translationGroup)!;
+      const isMultiLang = group.length > 1;
+      const preferred = group.find((e: any) => e.language === lang) || group[0];
+      const allGroupIds = group.map((e: any) => e.id);
+      result.push({ ...preferred, isMultiLang, allGroupIds });
+    }
+  }
+
+  return result;
+}
+
 function getTimezoneOffsetServer(tz: string, refDate?: Date): string {
   const tzToIana: Record<string, string> = {
     "CET": "Europe/Berlin", "CEST": "Europe/Berlin",
@@ -617,11 +646,12 @@ export function registerPartnerAppRoutes(app: Express) {
   app.get("/api/partner-app/webinars", async (req, res) => {
     if (!partnerAppGuard(req, res)) return;
     try {
+      const lang = (req.query.lang as string) || "de";
       const partner = await getPartnerFromRequest(req);
       const allEvents = await storage.getScheduleEvents(true);
 
       const now = new Date();
-      const events = allEvents.filter((e: any) => {
+      const filtered = allEvents.filter((e: any) => {
         const dateStr = e.date;
         if (!/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return false;
         const eventDt = parseEventDateTimeServer(dateStr, e.time || "00:00", e.timezone);
@@ -630,11 +660,14 @@ export function registerPartnerAppRoutes(app: Express) {
         return eventEndTime > now.getTime();
       });
 
+      const events = groupEventsByTranslationPartner(filtered, lang);
+
       if (partner) {
         const partnerEvents = await storage.getInviteEventsByPartnerId(partner.id);
         const pInvites = await storage.getPersonalInvitesByPartnerId(partner.id);
         const enriched = await Promise.all(events.map(async (se: any) => {
-          const related = partnerEvents.filter((ie: any) => ie.scheduleEventId === se.id);
+          const groupIds: number[] = se.allGroupIds || [se.id];
+          const related = partnerEvents.filter((ie: any) => groupIds.includes(ie.scheduleEventId));
           let invitesSent = 0;
           let registeredCount = 0;
           for (const ie of related) {
@@ -642,15 +675,16 @@ export function registerPartnerAppRoutes(app: Express) {
             const guests = await storage.getGuestsByEventId(ie.id);
             registeredCount += guests.length;
           }
-          const relatedPi = pInvites.filter((pi) => pi.scheduleEventId === se.id);
+          const relatedPi = pInvites.filter((pi) => groupIds.includes(pi.scheduleEventId!));
           invitesSent += relatedPi.length;
           registeredCount += relatedPi.filter((pi) => pi.registeredAt).length;
-          return { ...se, invitesSent, registeredCount, inviteEventIds: related.map((ie: any) => ie.id) };
+          const { allGroupIds, ...eventData } = se;
+          return { ...eventData, invitesSent, registeredCount, inviteEventIds: related.map((ie: any) => ie.id) };
         }));
         return res.json(enriched);
       }
 
-      res.json(events.map((e: any) => ({ ...e, invitesSent: 0, registeredCount: 0 })));
+      res.json(events.map((e: any) => { const { allGroupIds, ...rest } = e; return { ...rest, invitesSent: 0, registeredCount: 0 }; }));
     } catch (error: any) {
       console.error("Partner app webinars error:", error);
       res.status(500).json({ error: "Internal server error" });

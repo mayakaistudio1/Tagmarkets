@@ -174,6 +174,8 @@ export const scheduleEvents = pgTable("schedule_events", {
   sortOrder: integer("sort_order").notNull().default(0),
   language: text("language").notNull().default("de"),
   translationGroup: text("translation_group"),
+  actionUrl: text("action_url"),
+  actionLabel: text("action_label"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

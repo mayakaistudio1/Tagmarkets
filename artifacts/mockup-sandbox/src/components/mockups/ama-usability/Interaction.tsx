@@ -32,12 +32,6 @@ export function Interaction() {
             alt="AMA Session with Niklas Freihofer"
             className="w-full h-auto object-cover"
           />
-          <div className="absolute top-3 left-3 flex items-center gap-1.5">
-            <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              Live
-            </span>
-          </div>
         </div>
 
         <div className="px-5 pt-5 pb-8">

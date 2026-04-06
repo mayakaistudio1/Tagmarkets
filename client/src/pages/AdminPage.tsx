@@ -624,9 +624,13 @@ function AdminPage() {
       const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(event) });
       if (handleAuthError(res)) return;
       if (res.ok) {
+        const data = await res.json();
         setEventFormOpen(false);
         setEditingEvent(null);
         fetchEvents();
+        if (data.multiLang) {
+          alert(`Event in ${data.count} Sprachen erstellt: ${data.languages.map((l: string) => l.toUpperCase()).join(", ")}`);
+        }
       } else {
         setErrorMsg("Fehler beim Speichern des Events");
       }
@@ -1916,6 +1920,29 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
   onSave: (e: ScheduleEvent) => void; onClose: () => void;
   speakers: Speaker[]; adminPassword: string;
 }) {
+  const isNew = !event.id;
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(isNew ? [event.language || "de"] : [event.language]);
+
+  const toggleLang = (lang: string) => {
+    if (!isNew) return;
+    setSelectedLanguages(prev => {
+      if (prev.includes(lang)) {
+        if (prev.length <= 1) return prev;
+        return prev.filter(l => l !== lang);
+      }
+      return [...prev, lang];
+    });
+  };
+
+  const handleSave = () => {
+    if (isNew && selectedLanguages.length > 1) {
+      onSave({ ...event, languages: selectedLanguages } as any);
+    } else if (isNew && selectedLanguages.length === 1) {
+      onSave({ ...event, language: selectedLanguages[0] });
+    } else {
+      onSave(event);
+    }
+  };
 
   const bannerRef = useRef<HTMLDivElement>(null);
 
@@ -1945,13 +1972,31 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Sprache</label>
-            <select data-testid="select-event-language" value={event.language} onChange={(e) => setEvent({ ...event, language: e.target.value })}
-              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500">
-              <option value="de">Deutsch</option>
-              <option value="en">English</option>
-              <option value="ru">Русский</option>
-            </select>
+            <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Sprache{isNew && selectedLanguages.length > 1 ? "n" : ""}</label>
+            {isNew ? (
+              <div className="flex gap-1.5" data-testid="select-event-language">
+                {([["de", "DE"], ["en", "EN"], ["ru", "RU"]] as const).map(([code, label]) => (
+                  <button key={code} type="button" data-testid={`toggle-lang-${code}`}
+                    onClick={() => toggleLang(code)}
+                    className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold border transition-all ${
+                      selectedLanguages.includes(code)
+                        ? "bg-purple-600 text-white border-purple-600"
+                        : "bg-white text-gray-500 border-gray-200 hover:border-purple-300"
+                    }`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="px-2.5 py-1.5 border border-gray-200 rounded-lg text-[13px] bg-gray-50 text-gray-600">
+                {event.language === "de" ? "Deutsch" : event.language === "en" ? "English" : "Русский"}
+              </div>
+            )}
+            {isNew && selectedLanguages.length > 1 && (
+              <p className="text-[10px] text-purple-500 mt-1 font-medium">
+                {selectedLanguages.length} Sprachen — es werden {selectedLanguages.length} verknüpfte Events erstellt
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Typ</label>
@@ -2148,7 +2193,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
         <div className="flex justify-end gap-3 p-4 border-t border-gray-100 flex-shrink-0 bg-gray-50/50">
           <button data-testid="button-cancel-event" onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Abbrechen</button>
-          <button data-testid="button-save-event" onClick={() => onSave(event)}
+          <button data-testid="button-save-event" onClick={handleSave}
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
             <Check size={16} /> Speichern
           </button>

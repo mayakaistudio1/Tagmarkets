@@ -818,9 +818,25 @@ export async function registerRoutes(
   app.post("/api/admin/schedule-events", async (req, res) => {
     if (!requireAdmin(req, res)) return;
     try {
-      const { autoTranslate, ...eventData } = req.body;
-      const event = await storage.createScheduleEvent(eventData);
-      res.status(201).json(event);
+      const { autoTranslate, languages, ...eventData } = req.body;
+
+      if (Array.isArray(languages) && languages.length > 1) {
+        const translationGroup = crypto.randomUUID();
+        const created = [];
+        for (const lang of languages) {
+          const ev = await storage.createScheduleEvent({
+            ...eventData,
+            language: lang,
+            translationGroup,
+          });
+          created.push(ev);
+        }
+        res.status(201).json({ multiLang: true, count: created.length, languages, events: created });
+      } else {
+        const lang = Array.isArray(languages) && languages.length === 1 ? languages[0] : eventData.language;
+        const event = await storage.createScheduleEvent({ ...eventData, language: lang });
+        res.status(201).json(event);
+      }
     } catch (error) {
       console.error("Error creating schedule event:", error);
       res.status(500).json({ error: "Internal server error" });

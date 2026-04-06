@@ -820,10 +820,22 @@ export async function registerRoutes(
     try {
       const { autoTranslate, languages, ...eventData } = req.body;
 
-      if (Array.isArray(languages) && languages.length > 1) {
+      const VALID_LANGS = ["de", "en", "ru"];
+      if (Array.isArray(languages)) {
+        const filtered = [...new Set(languages)].filter((l: string) => VALID_LANGS.includes(l));
+        if (filtered.length === 0) {
+          return res.status(400).json({ error: "At least one valid language (de, en, ru) is required" });
+        }
+      }
+
+      const validLangs = Array.isArray(languages)
+        ? [...new Set(languages)].filter((l: string) => VALID_LANGS.includes(l))
+        : [];
+
+      if (validLangs.length > 1) {
         const translationGroup = crypto.randomUUID();
         const created = [];
-        for (const lang of languages) {
+        for (const lang of validLangs) {
           const ev = await storage.createScheduleEvent({
             ...eventData,
             language: lang,
@@ -831,9 +843,9 @@ export async function registerRoutes(
           });
           created.push(ev);
         }
-        res.status(201).json({ multiLang: true, count: created.length, languages, events: created });
+        res.status(201).json({ multiLang: true, count: created.length, languages: validLangs, events: created });
       } else {
-        const lang = Array.isArray(languages) && languages.length === 1 ? languages[0] : eventData.language;
+        const lang = validLangs.length === 1 ? validLangs[0] : (eventData.language || "de");
         const event = await storage.createScheduleEvent({ ...eventData, language: lang });
         res.status(201).json(event);
       }

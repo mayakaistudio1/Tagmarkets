@@ -205,6 +205,7 @@ interface ScheduleEvent {
   highlights: string[];
   link: string;
   language: string;
+  languages?: string[];
   translationGroup?: string;
   actionUrl?: string;
   actionLabel?: string;
@@ -1936,7 +1937,7 @@ function EventForm({ event, setEvent, onSave, onClose, speakers, adminPassword }
 
   const handleSave = () => {
     if (isNew && selectedLanguages.length > 1) {
-      onSave({ ...event, languages: selectedLanguages } as any);
+      onSave({ ...event, languages: selectedLanguages });
     } else if (isNew && selectedLanguages.length === 1) {
       onSave({ ...event, language: selectedLanguages[0] });
     } else {

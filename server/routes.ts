@@ -834,15 +834,18 @@ export async function registerRoutes(
 
       if (validLangs.length > 1) {
         const translationGroup = crypto.randomUUID();
-        const created = [];
-        for (const lang of validLangs) {
-          const ev = await storage.createScheduleEvent({
-            ...eventData,
-            language: lang,
-            translationGroup,
-          });
-          created.push(ev);
-        }
+        const created = await db.transaction(async () => {
+          const results = [];
+          for (const lang of validLangs) {
+            const ev = await storage.createScheduleEvent({
+              ...eventData,
+              language: lang,
+              translationGroup,
+            });
+            results.push(ev);
+          }
+          return results;
+        });
         res.status(201).json({ multiLang: true, count: created.length, languages: validLangs, events: created });
       } else {
         const lang = validLangs.length === 1 ? validLangs[0] : (eventData.language || "de");
